@@ -2,7 +2,7 @@ use hacspec_dev::prelude::*;
 use hacspec_lib::prelude::*;
 
 use bertie::*;
-use tls_cryptolib::*;
+use hacspec_cryptolib::*;
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 
@@ -190,8 +190,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
 const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
-    AeadAlgorithm::AES_128_GCM,
-    SignatureScheme::RSA_PSS_PSS_SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::RsaPssRsaSha256,
     NamedGroup::X25519,
     false,
     false,
@@ -199,16 +199,16 @@ const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
 
 const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
-    AeadAlgorithm::AES_128_GCM,
-    SignatureScheme::ECDSA_SECP256R1_SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
     NamedGroup::X25519,
     false,
     false,
 );
 const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
-    AeadAlgorithm::CHACHA20_POLY1305,
-    SignatureScheme::ECDSA_SECP256R1_SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::EcdsaSecp256r1Sha256,
     NamedGroup::X25519,
     false,
     false,
