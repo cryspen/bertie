@@ -10,19 +10,9 @@
 // FIXME: helper - move
 
 // XXX: not hacspec
-pub type Res<T> = Result<T, usize>;
-pub type Bytes = ByteSeq;
-
-pub fn empty() -> ByteSeq {
-    ByteSeq::new(0)
-}
 
 pub fn zeros(u: usize) -> ByteSeq {
     ByteSeq::new(u)
-}
-
-pub fn bytes<T: SeqTrait<U8>>(x: &T) -> ByteSeq {
-    return Seq::from_seq(x);
 }
 
 bytes!(Random, 32);

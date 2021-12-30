@@ -44,7 +44,7 @@ bytes!(Bytes98, 98);
 bytes!(Random, 32);
 
 pub fn bytes1(x: u8) -> ByteSeq {
-    bytes(&Bytes1([U8(x)]))
+    bytes_seq!([U8(x)])
 }
 pub fn bytes2(x: u8, y: u8) -> ByteSeq {
     bytes(&Bytes2([U8(x), U8(y)]))
@@ -198,7 +198,7 @@ pub fn lbytes1(b: &ByteSeq) -> Res<Bytes> {
     if len >= 256 {
         Err(payload_too_long)
     } else {
-        let mut lenb = Seq::new(1);
+        let mut lenb = ByteSeq::new(1);
         lenb[0] = U8(len as u8);
         Ok(lenb.concat(b))
     }
@@ -641,7 +641,7 @@ pub fn set_client_hello_binder(
 ) -> Res<HandshakeData> {
     let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = algs;
     let HandshakeData(ch) = ch;
-    let chlen = &ch.len();
+    let chlen = ch.len();
     match binder {
         Some(m) => Ok(HandshakeData(ch.update_slice(
             chlen - hash_len(ha),
@@ -722,10 +722,13 @@ pub fn server_hello(
     let ks = server_key_shares(algs, gy)?;
     let sv = server_supported_version(algs)?;
     let mut exts = ks.concat(&sv);
-    match psk_mode {
-        true => exts = exts.concat(&server_pre_shared_key(algs)?),
-        false => {}
+    if psk_mode {
+        exts = exts.concat(&server_pre_shared_key(algs)?);
     }
+    // match psk_mode {
+    //     true => exts = exts.concat(&server_pre_shared_key(algs)?),
+    //     false => ()
+    // }
     let sh = ty.concat(&lbytes3(
         &ver.concat(sr)
             .concat(&sid)
@@ -901,14 +904,15 @@ pub fn session_ticket(algs: &Algorithms, tkt: &ByteSeq) -> Res<HandshakeData> {
     let stkt = lbytes2(&tkt)?;
     let grease_ext = bytes2(0x5a, 0x5a).concat(&lbytes2(&empty())?);
     let ext = lbytes2(&grease_ext)?;
+    let lifetime = lbytes3(
+        &lifetime
+            .concat(&age)
+            .concat(&nonce)
+            .concat(&stkt)
+            .concat(&grease_ext),
+    )?;
     Ok(HandshakeData(
-        ty.concat(&lbytes3(
-            &lifetime
-                .concat(&age)
-                .concat(&nonce)
-                .concat(&stkt)
-                .concat(&grease_ext),
-        )?),
+        ty.concat(&lifetime),
     ))
 }
 
@@ -952,7 +956,7 @@ pub fn get_content_type(t: u8) -> Res<ContentType> {
         20 => Ok(ContentType::ChangeCipherSpec),
         21 => Ok(ContentType::Alert),
         22 => Ok(ContentType::Handshake),
-        23 => Ok(ContentType::ApplicationData),
+        23u8 => Ok(ContentType::ApplicationData),
         _ => Err(parse_failed),
     }
 }
@@ -983,8 +987,8 @@ pub fn has_handshake_message(p: &HandshakeData, start: usize) -> bool {
         false
     } else {
         match check_lbytes3(&p.slice_range(start + 1..p.len())) {
-            Ok(_) => true,
-            Err(_) => false,
+            Res::<usize>::Ok(_) => true,
+            Res::<usize>::Err(_) => false,
         }
     }
 }
