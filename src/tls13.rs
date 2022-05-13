@@ -5,7 +5,6 @@
 #![allow(non_upper_case_globals)]
 #![allow(unused_imports)]
 #![allow(unused_parens)]
-//#![feature(backtrace)]
 
 pub mod tls13formats;
 pub use tls13formats::*;
@@ -193,11 +192,20 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
     put_record(&mut stream, &ch_rec)?;
 
     /* Process Server Response  */
-    let mut in_buf = [0; 4096];
+    let mut in_buf = [0; 8192];
     let (sh, len1_) = get_handshake_message(&mut stream, &mut in_buf)?;
+
+    //println!("Got SH");
+
     let (cstate, cipherH) = client_set_params(&sh, cstate)?;
     get_ccs_message(&mut stream, &mut in_buf)?;
+    
+    //println!("Got SCCS");
+    
     let (sf, cipherH) = decrypt_handshake_flight(&mut stream, &mut in_buf, cipherH)?;
+    
+    //println!("Got SFIN");
+
     let (cf, cstate, cipher1) = client_finish(&sf, cstate)?;
 
     /* Complete Connection */
@@ -228,7 +236,7 @@ fn main() {
     let port = if args.len() <= 2 { "443" } else { &args[2] };
     match tls13client(host, port) {
         Err(x) => {
-            println!("Connection to {} failed\n", host);
+            println!("Connection to {} failed with {}\n", host,x);
         }
         Ok(x) => {
             println!("Connection to {} succeeded\n", host);
