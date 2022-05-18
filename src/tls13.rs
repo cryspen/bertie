@@ -6,10 +6,32 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 
+// FIXME: helper - move
+
+// XXX: not hacspec
+pub type Res<T> = Result<T, usize>;
+pub type Bytes = ByteSeq;
+
+pub fn empty() -> ByteSeq {
+    ByteSeq::new(0)
+}
+
+pub fn zeros(u: usize) -> ByteSeq {
+    ByteSeq::new(u)
+}
+
+pub fn bytes<T: SeqTrait<U8>>(x: &T) -> ByteSeq {
+    return Seq::from_seq(x);
+}
+
+bytes!(Random, 32);
+
+// ---
+
 pub mod tls13formats;
-pub use tls13formats::*;
 #[cfg(not(feature = "evercrypt-backend"))]
-use tls_cryptolib::*;
+use hacspec_cryptolib::*;
+pub use tls13formats::*;
 #[cfg(feature = "evercrypt-backend")]
 pub mod cryptolib_evercrypt;
 #[cfg(feature = "evercrypt-backend")]
@@ -36,7 +58,6 @@ use std::io;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
-
 
 fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Res<usize> {
     match stream.read(&mut buf[..]) {
@@ -127,9 +148,9 @@ fn decrypt_handshake_flight(
         let len = read_record(stream, buf)?;
         let rec = ByteSeq::from_public_slice(&buf[0..len]);
         let (plain, cip) = decrypt_handshake(&rec, cipherH)?;
-        payload = handshake_concat(payload,&plain);
+        payload = handshake_concat(payload, &plain);
         cipherH = cip;
-        finished = find_handshake_message(HandshakeType::Finished,&payload,0);
+        finished = find_handshake_message(HandshakeType::Finished, &payload, 0);
     }
     Ok((payload, cipherH))
 }
@@ -160,8 +181,8 @@ fn decrypt_tickets_and_data(
 const default_algs: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     // AEADAlgorithm::CHACHA20_POLY1305,
-    AeadAlgorithm::AES_128_GCM,
-    SignatureScheme::ECDSA_SECP256R1_SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
     // SignatureScheme::RSA_PSS_RSAE_SHA256,
     NamedGroup::X25519,
     false,
