@@ -10,7 +10,6 @@
 use super::*;
 
 // Import hacspec and all needed definitions.
-use hacspec_cryptolib::*;
 use hacspec_lib::*;
 
 bytes!(Bytes1, 1);

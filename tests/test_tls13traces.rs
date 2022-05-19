@@ -2,7 +2,10 @@ use hacspec_dev::prelude::*;
 use hacspec_lib::prelude::*;
 
 use bertie::*;
+#[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 

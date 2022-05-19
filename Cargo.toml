@@ -21,7 +21,13 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
-hacspec_cryptolib = { git = "ssh://git@github.com/cryspen/mls-research.git" }
+hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
+evercrypt_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "evercrypt_cryptolib" }
+
+[features]
+default = ["hacspec"]
+hacspec = ["hacspec_cryptolib"]
+evercrypt = ["evercrypt_cryptolib"]
 
 [dev-dependencies]  
 dhat = "0.2.2"
