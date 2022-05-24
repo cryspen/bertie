@@ -28,14 +28,13 @@ bytes!(Random, 32);
 
 // ---
 
-pub mod tls13formats;
-#[cfg(not(feature = "evercrypt-backend"))]
+#[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
+
+pub mod tls13formats;
 pub use tls13formats::*;
-#[cfg(feature = "evercrypt-backend")]
-pub mod cryptolib_evercrypt;
-#[cfg(feature = "evercrypt-backend")]
-pub use cryptolib_evercrypt::*;
 pub mod tls13handshake;
 pub use tls13handshake::*;
 pub mod tls13record;
@@ -220,11 +219,11 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
 
     let (cstate, cipherH) = client_set_params(&sh, cstate)?;
     get_ccs_message(&mut stream, &mut in_buf)?;
-    
+
     //println!("Got SCCS");
-    
+
     let (sf, cipherH) = decrypt_handshake_flight(&mut stream, &mut in_buf, cipherH)?;
-    
+
     //println!("Got SFIN");
 
     let (cf, cstate, cipher1) = client_finish(&sf, cstate)?;
@@ -257,7 +256,7 @@ fn main() {
     let port = if args.len() <= 2 { "443" } else { &args[2] };
     match tls13client(host, port) {
         Err(x) => {
-            println!("Connection to {} failed with {}\n", host,x);
+            println!("Connection to {} failed with {}\n", host, x);
         }
         Ok(x) => {
             println!("Connection to {} succeeded\n", host);
