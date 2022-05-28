@@ -1,17 +1,24 @@
-use super::*;
-
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
+use hacspec_cryptolib::*;
+use crate::tls13utils::*;
 
 /* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
 
+pub fn hash_empty(ha: &HashAlgorithm) -> Res<Digest> {
+    match hash(ha, &empty()) {
+        Ok(h) => Res::<Digest>::Ok(h),
+        Err(_) => Res::<Digest>::Err(crypto_error),
+    }
+    //Ok(HASH::from_seq(&sha256_empty))
+}
 pub fn hkdf_expand_label(
     ha: &HashAlgorithm,
     k: &Key,
     label: &Bytes,
     context: &Bytes,
     len: usize,
-) -> Res<Key> {
+    ) -> Res<Key> {
     if len >= 65536 {
         Err(payload_too_long)
     } else {
