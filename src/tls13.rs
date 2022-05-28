@@ -6,26 +6,6 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 
-// FIXME: helper - move
-
-// XXX: not hacspec
-pub type Res<T> = Result<T, usize>;
-pub type Bytes = ByteSeq;
-
-pub fn empty() -> ByteSeq {
-    ByteSeq::new(0)
-}
-
-pub fn zeros(u: usize) -> ByteSeq {
-    ByteSeq::new(u)
-}
-
-pub fn bytes<T: SeqTrait<U8>>(x: &T) -> ByteSeq {
-    return Seq::from_seq(x);
-}
-
-bytes!(Random, 32);
-
 // ---
 
 #[cfg(not(feature = "evercrypt"))]
@@ -33,6 +13,8 @@ use hacspec_cryptolib::*;
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
 
+pub mod tls13utils;
+pub use tls13utils::*;
 pub mod tls13formats;
 pub use tls13formats::*;
 pub mod tls13handshake;
@@ -47,6 +29,7 @@ use hacspec_lib::*;
 use rand::*;
 use std::env;
 use std::time::Duration;
+
 
 // A Simple TLS 1.3 HTTP Client Implementation
 // It connects to a give host at port 443, sends an HTTP "GET /", and prints a prefix of the HTTP response

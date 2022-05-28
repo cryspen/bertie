@@ -1,6 +1,8 @@
 // TLS 1.3 Record Layer Computations
 
-use super::*;
+use hacspec_cryptolib::*;
+use crate::tls13utils::*;
+use crate::tls13formats::*;
 
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
