@@ -174,21 +174,6 @@ pub struct DuplexCipherState1(
 
 /* Incremental Transcript Construction
 For simplicity, we store the full transcript, but an internal Digest state would suffice. */
-/*
-pub struct TranscriptTruncatedClientHello(pub HashAlgorithm, pub Digest);
-pub struct TranscriptClientHello(pub HashAlgorithm, pub bool, pub HandshakeData, pub Digest);
-pub struct TranscriptServerHello(pub HashAlgorithm, pub bool, pub HandshakeData, pub Digest);
-pub struct TranscriptServerCertificate(pub HashAlgorithm, pub bool, pub HandshakeData, pub Digest);
-pub struct TranscriptServerCertificateVerify(
-    pub HashAlgorithm,
-    pub bool,
-    pub HandshakeData,
-    pub Digest,
-);
-pub struct TranscriptServerFinished(pub HashAlgorithm, pub bool, pub HandshakeData, pub Digest);
-pub struct TranscriptClientFinished(pub HashAlgorithm, pub bool, pub HandshakeData, pub Digest);
-*/
-
 
 pub struct Transcript(pub HashAlgorithm, pub HandshakeData);
 
@@ -222,88 +207,6 @@ pub fn get_transcript_hash_truncated_client_hello(
     let th = hash(&ha, &tx.concat(&ch.slice_range(0..trunc_len)))?;
     Ok(th)
 }
-
-
-/*
-pub fn transcript_client_hello(algs: Algorithms, ch: &HandshakeData) -> Res<TranscriptClientHello> {
-    let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = algs;
-    let transcript = HandshakeData(empty());
-    let (transcript, th) = transcript_add(ha, transcript, ch)?;
-    Ok(TranscriptClientHello(ha, psk_mode, transcript, th))
-}
-
-pub fn transcript_server_hello(
-    tx: TranscriptClientHello,
-    sh: &HandshakeData,
-) -> Res<TranscriptServerHello> {
-    let TranscriptClientHello(ha, psk_mode, transcript, _) = tx;
-    let (transcript, th) = transcript_add(ha, transcript, sh)?;
-    Ok(TranscriptServerHello(ha, psk_mode, transcript, th))
-}
-
-pub fn transcript_server_certificate(
-    tx: TranscriptServerHello,
-    ee: &HandshakeData,
-    sc: &HandshakeData,
-) -> Res<TranscriptServerCertificate> {
-    let TranscriptServerHello(ha, psk_mode, transcript, _) = tx;
-    if psk_mode {
-        Err(psk_mode_mismatch)
-    } else {
-        let transcript = handshake_concat(transcript, ee);
-        let (transcript, th) = transcript_add(ha, transcript, sc)?;
-        Ok(TranscriptServerCertificate(ha, psk_mode, transcript, th))
-    }
-}
-
-pub fn transcript_server_certificate_verify(
-    tx: TranscriptServerCertificate,
-    cv: &HandshakeData,
-) -> Res<TranscriptServerCertificateVerify> {
-    let TranscriptServerCertificate(ha, psk_mode, transcript, _) = tx;
-    if psk_mode {
-        Err(psk_mode_mismatch)
-    } else {
-        let (transcript, th) = transcript_add(ha, transcript, cv)?;
-        Ok(TranscriptServerCertificateVerify(
-            ha, psk_mode, transcript, th,
-        ))
-    }
-}
-
-pub fn transcript_skip_server_certificate_verify(
-    tx: TranscriptServerHello,
-    ee: &HandshakeData,
-) -> Res<TranscriptServerCertificateVerify> {
-    let TranscriptServerHello(ha, psk_mode, transcript, _) = tx;
-    if !psk_mode {
-        Err(psk_mode_mismatch)
-    } else {
-        let (transcript, th) = transcript_add(ha, transcript, ee)?;
-        Ok(TranscriptServerCertificateVerify(
-            ha, psk_mode, transcript, th,
-        ))
-    }
-}
-
-pub fn transcript_server_finished(
-    tx: TranscriptServerCertificateVerify,
-    sf: &HandshakeData,
-) -> Res<TranscriptServerFinished> {
-    let TranscriptServerCertificateVerify(ha, psk_mode, transcript, _) = tx;
-    let (transcript, th) = transcript_add(ha, transcript, sf)?;
-    Ok(TranscriptServerFinished(ha, psk_mode, transcript, th))
-}
-
-pub fn transcript_client_finished(
-    tx: TranscriptServerFinished,
-    cf: &HandshakeData,
-) -> Res<TranscriptClientFinished> {
-    let TranscriptServerFinished(ha, psk_mode, transcript, _) = tx;
-    let (transcript, th) = transcript_add(ha, transcript, cf)?;
-    Ok(TranscriptClientFinished(ha, psk_mode, transcript, th))
-}
-*/
 
 /* Handshake State Machine */
 /* We implement a simple linear state machine:
@@ -358,14 +261,14 @@ pub fn get_client_hello(
                     let th = get_transcript_hash(&tx_ch)?;
                     let (aek, key) = derive_0rtt_keys(ha, ae, &k, &th)?;
                     let cipher0 = Some(ClientCipherState0(*ae, aek, 0, key));
-                    return Ok((nch, cipher0, ClientPostClientHello(cr, algs0, x, psk,tx_ch)))
+                    return Ok((nch, cipher0, ClientPostClientHello(cr, algs0, x, Some(k),tx_ch)))
                 } else {
-                    return Ok((nch, None, ClientPostClientHello(cr, algs0, x, psk,tx_ch)))
+                    return Ok((nch, None, ClientPostClientHello(cr, algs0, x, Some(k),tx_ch)))
                 }
             },
             (false, None, 0) => {
                 let tx_ch = transcript_add1(tx,&ch);
-                return Ok((ch,None,ClientPostClientHello(cr,algs0,x,psk,tx_ch)))
+                return Ok((ch,None,ClientPostClientHello(cr,algs0,x,None,tx_ch)))
             },
             _ => return Err(psk_mode_mismatch),
         }
@@ -374,7 +277,7 @@ pub fn get_client_hello(
 
 
 pub fn put_server_hello(
-    sh: HandshakeData,
+    sh: &HandshakeData,
     st: ClientPostClientHello,
 ) -> Res<(DuplexCipherStateH, ClientPostServerHello)> {
     let ClientPostClientHello(cr, algs0, x, psk, tx) = st;
@@ -435,6 +338,22 @@ pub fn put_psk_skip_server_signature(
     }
 }
 
+pub fn put_server_finished(
+    sfin:&HandshakeData,
+    st: ClientPostCertificateVerify
+) -> Res<(DuplexCipherState1,ClientPostServerFinished)> {
+    let ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk,tx) = st;
+    let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = &algs;
+    let th = get_transcript_hash(&tx)?;
+    let vd = parse_finished(&algs,&sfin)?;
+    hmac_verify(ha,&sfk,&th,&vd)?;
+    let tx = transcript_add1(tx,&sfin);
+    let th_sfin = get_transcript_hash(&tx)?;
+    let (cak, sak, exp) = derive_app_keys(ha, ae, &ms, &th_sfin)?;
+    let cipher1 = DuplexCipherState1(*ae, cak, 0, sak, 0, exp);
+    Ok((cipher1,ClientPostServerFinished(cr,sr,algs,ms,cfk,tx)))
+}
+
 pub fn get_client_finished(
     st: ClientPostServerFinished,
 ) -> Res<(HandshakeData, ClientPostClientFinished)> {
@@ -471,7 +390,7 @@ fn lookup_db(algs:Algorithms, db:&ServerDB,sni:&Bytes,tkt:&Option<Bytes>) ->
 
 pub fn put_client_hello(
     algs: Algorithms,
-    ch: HandshakeData,
+    ch: &HandshakeData,
     db: ServerDB,
     ent: Entropy,
 ) -> Res<(Option<ServerCipherState0>,ServerPostClientHello)> {
@@ -508,14 +427,14 @@ pub fn put_client_hello(
 
 pub fn get_server_hello(
     st: ServerPostClientHello,
-) -> Res<(DuplexCipherStateH, ServerPostServerHello)> {
+) -> Res<(HandshakeData,DuplexCipherStateH, ServerPostServerHello)> {
     let ServerPostClientHello(cr, sr, algs, sid, cert, sigk, gy, gxy, psk, tx) = st;
     let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = &algs;
     let sh = server_hello(&algs,&sr,&sid,&gy)?;
     let tx = transcript_add1(tx,&sh);
     let th = get_transcript_hash(&tx)?;
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(ha, ae, &gxy, &psk, &th)?;
-    Ok((
+    Ok((sh,
         DuplexCipherStateH(*ae, shk, 0, chk, 0),
         ServerPostServerHello(cr, sr, algs, cert, sigk, ms, cfk, sfk, tx),
     ))
