@@ -292,7 +292,7 @@ pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeD
     HandshakeData(m1.concat(m2))
 }
 
-
+// Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)
 #[derive(Clone, Copy, PartialEq)]
 pub struct Algorithms(
     pub HashAlgorithm,
@@ -302,3 +302,10 @@ pub struct Algorithms(
     pub bool,
     pub bool,
 );
+
+pub fn hash_alg(algs:&Algorithms) -> HashAlgorithm {algs.0}
+pub fn aead_alg(algs:&Algorithms) -> AeadAlgorithm {algs.1}
+pub fn sig_alg(algs:&Algorithms) -> SignatureScheme {algs.2}
+pub fn kem_alg(algs:&Algorithms) -> KemScheme {algs.3}
+pub fn psk_mode(algs:&Algorithms) -> bool {algs.4}
+pub fn zero_rtt(algs:&Algorithms) -> bool {algs.5}

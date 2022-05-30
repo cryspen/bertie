@@ -16,7 +16,6 @@ pub struct ClientH(Algorithms,ClientPostServerHello);
 pub struct Client1(Algorithms,ClientPostClientFinished);
     
 pub fn client_init(algs:Algorithms,sn:&Bytes,tkt:Option<Bytes>,psk:Option<Key>,ent:Entropy) -> Res<(HandshakeData,Client0,Option<ClientCipherState0>)> {
-    let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = &algs;
     let (ch,c2s0,cstate) = get_client_hello(algs,sn,tkt,psk,ent)?;
     let st = Client0(algs,cstate);
     Ok((ch,st,c2s0))  
@@ -67,12 +66,12 @@ pub struct Server1(Algorithms,ServerPostClientFinished);
 
 pub fn server_init(algs:Algorithms,db:ServerDB,ch:&HandshakeData,ent:Entropy) -> Res<(HandshakeData,HandshakeData,Server0,DuplexCipherStateH,DuplexCipherState1)> {
     let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = &algs;
-    let (cipher0,sstate) = put_client_hello(algs,&ch,db,ent.clone())?;//FIX Do not clone.
-    let (sh,cipherH,sstate) = get_server_hello(sstate)?;
+    let (cipher0,sstate) = put_client_hello(algs,&ch,db)?;
+    let (sh,cipherH,sstate) = get_server_hello(sstate,ent.slice(0,32+dh_priv_len(gn)))?;
 
     match psk_mode {
         false => {
-            let (ee,sc,scv,sstate) = get_server_signature(sstate,ent)?; 
+            let (ee,sc,scv,sstate) = get_server_signature(sstate,ent.slice(0,32))?; 
             let (sfin,cipher1,sstate) = get_server_finished(sstate)?;
             let flight = handshake_concat(ee,&handshake_concat(sc,&handshake_concat(scv,&sfin)));
             Ok((sh,flight,Server0(algs,sstate),cipherH,cipher1))
