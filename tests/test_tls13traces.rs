@@ -639,26 +639,26 @@ fn test_full_round_trip() {
             println!("Client0 Error {}", x);
             b = false;
         }
-        Ok((ch, cstate, _)) => {
+        Ok((ch, _, cstate)) => {
             println!("Client0 Complete");
             match server_init(TLS_AES_128_GCM_SHA256_X25519, db, &ch, ent_s) {
                 Err(x) => {
                     println!("Server0 Error {}", x);
                     b = false;
                 }
-                Ok((sh, sf, sstate, _, server_cipher)) => {
+                Ok((sh, sf, _, server_cipher, sstate)) => {
                     println!("Server0 Complete");
                     match client_set_params(&sh, cstate) {
                         Err(x) => {
                             println!("ClientH Error {}", x);
                             b = false;
                         }
-                        Ok((cstate, _)) => match client_finish(&sf, cstate) {
+                        Ok((_, cstate)) => match client_finish(&sf, cstate) {
                             Err(x) => {
                                 println!("Client1 Error {}", x);
                                 b = false;
                             }
-                            Ok((cf, cstate, client_cipher)) => {
+                            Ok((cf, client_cipher, cstate)) => {
                                 println!("Client Complete");
                                 match server_finish(&cf, sstate) {
                                     Err(x) => {

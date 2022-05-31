@@ -681,6 +681,11 @@ pub fn check_handshake_record(p: &ByteSeq) -> Res<(HandshakeData, usize)> {
     }
 }
 
+pub fn handshake_data_len(p:&HandshakeData) -> usize {
+    let HandshakeData(p) = p;
+    p.len()
+}
+
 pub fn has_handshake_message(p: &HandshakeData, start: usize) -> bool {
     let HandshakeData(p) = p;
     if p.len() < start + 3 {
@@ -704,6 +709,30 @@ pub fn check_handshake_message(p: &HandshakeData, start: usize) -> Res<(Handshak
             4 + len,
         ))
     }
+}
+
+pub fn get_handshake_messages4(p:&HandshakeData) -> Res<(HandshakeData,HandshakeData,HandshakeData,HandshakeData)> {
+    let next = 0;
+    let (m1,len) = check_handshake_message(p,next)?;
+    let next = next + len;
+    let (m2,len) = check_handshake_message(p,next)?;
+    let next = next + len;
+    let (m3,len) = check_handshake_message(p,next)?;
+    let next = next + len;
+    let (m4,len) = check_handshake_message(p,next)?;
+    let next = next + len;
+    if handshake_data_len(p) != next {Err(parse_failed)}
+    else {Ok((m1,m2,m3,m4))}
+}
+
+pub fn get_handshake_messages2(p:&HandshakeData) -> Res<(HandshakeData,HandshakeData)> {
+    let next = 0;
+    let (m1,len) = check_handshake_message(p,next)?;
+    let next = next + len;
+    let (m2,len) = check_handshake_message(p,next)?;
+    let next = next + len;
+    if handshake_data_len(p) != next {Err(parse_failed)}
+    else {Ok((m1,m2))}
 }
 
 pub fn find_handshake_message(ty: HandshakeType, payload: &HandshakeData, start: usize) -> bool {

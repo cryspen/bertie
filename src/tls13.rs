@@ -160,16 +160,25 @@ fn decrypt_tickets_and_data(
     Ok((payload, cipher1))
 }
 
-const default_algs: Algorithms = Algorithms(
+const sha256_aes128gcm_ecdsap256_x25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
-    // AEADAlgorithm::CHACHA20_POLY1305,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    // SignatureScheme::RSA_PSS_RSAE_SHA256,
     NamedGroup::X25519,
     false,
     false,
 );
+
+const sha256_chacha20poly1305_rsapss256_x25519: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::RsaPssRsaSha256,
+    NamedGroup::X25519,
+    false,
+    false,
+);
+
+const default_algs: Algorithms = sha256_aes128gcm_ecdsap256_x25519;
 
 pub fn tls13client(host: &str, port: &str) -> Res<()> {
     let mut entropy = [0 as u8; 64];
@@ -189,7 +198,7 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
     println!("Initiating connection to {}", addr);
 
     /* Initialize TLS 1.3. Client */
-    let (ch, cstate, _) = client_init(default_algs, &sni, None, None, ent_c)?;
+    let (ch, _, cstate) = client_init(default_algs, &sni, None, None, ent_c)?;
     let mut ch_rec = handshake_record(&ch)?;
     ch_rec[2] = U8(0x01);
     put_record(&mut stream, &ch_rec)?;
@@ -200,7 +209,7 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
 
     //println!("Got SH");
 
-    let (cstate, cipherH) = client_set_params(&sh, cstate)?;
+    let (cipherH, cstate) = client_set_params(&sh, cstate)?;
     get_ccs_message(&mut stream, &mut in_buf)?;
 
     //println!("Got SCCS");
@@ -209,7 +218,7 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
 
     //println!("Got SFIN");
 
-    let (cf, cstate, cipher1) = client_finish(&sf, cstate)?;
+    let (cf, cipher1, cstate) = client_finish(&sf, cstate)?;
 
     /* Complete Connection */
     put_ccs_message(&mut stream)?;

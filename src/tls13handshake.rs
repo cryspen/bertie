@@ -219,15 +219,14 @@ pub struct ClientPostServerHello(Random, Random, Algorithms, Key, MacKey, MacKey
 pub struct ClientPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
 pub struct ClientPostClientFinished(Random, Random, Algorithms, Key, Transcript);
-//pub struct ClientComplete(Random, Random, Algorithms, Key, Transcript);
 
+pub fn algs(st:&ClientPostServerHello) -> Algorithms {st.2}
 
 pub struct ServerPostClientHello(Random, Algorithms, Bytes, Bytes, Bytes, SignatureKey, Option<PSK>, Transcript);
 pub struct ServerPostServerHello(Random, Random, Algorithms, Bytes, SignatureKey, Key, MacKey, MacKey, Transcript);
 pub struct ServerPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ServerPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
 pub struct ServerPostClientFinished(Random, Random, Algorithms, Key, Transcript);
-//pub struct ServerComplete(Random, Random, Algorithms, Key, Transcript);
 
 /* Handshake Core Functions: See RFC 8446 Section 4 */
 /* We delegate all details of message formatting and transcript Digestes to the caller */
@@ -513,3 +512,72 @@ pub fn put_client_finished(
     let rms = derive_rms(&ha, &ms,&th)?;
     Ok(ServerPostClientFinished(cr, sr, algs, rms, tx))
 }
+
+// Handshake API
+// Client-Side Handshake API for TLS 1.3 Applications
+// client_init -> (encrypt_zerortt)* -> client_set_params ->
+// (decrypt_handshake)* -> client_finish -> (encrypt_handhsake) ->
+// (encrypt_data | decrypt_data)*
+
+type Client0 = ClientPostClientHello;
+type ClientH = ClientPostServerHello;
+type Client1 = ClientPostClientFinished;
+    
+pub fn client_init(algs:Algorithms,sn:&Bytes,tkt:Option<Bytes>,psk:Option<Key>,ent:Entropy)
+-> Res<(HandshakeData,Option<ClientCipherState0>,Client0)> {get_client_hello(algs,sn,tkt,psk,ent)}
+
+pub fn client_set_params(sh:&HandshakeData,st:Client0) -> Res<(DuplexCipherStateH,ClientH)> {
+    put_server_hello(sh,st)}
+
+
+pub fn client_finish(payload:&HandshakeData,st:ClientH) -> Res<(HandshakeData,DuplexCipherState1,Client1)> {
+    match psk_mode(&algs(&st)) {
+        false => {  
+            let (ee,sc,scv,sfin) = get_handshake_messages4(&payload)?;
+            let cstate_cv = put_server_signature(&ee, &sc, &scv, st)?;
+            let (cipher,cstate_fin) = put_server_finished(&sfin,cstate_cv)?;
+            let (cfin,cstate) = get_client_finished(cstate_fin)?;
+            Ok((cfin,cipher,cstate)) 
+        },
+        true => {
+            let (ee,sfin) = get_handshake_messages2(&payload)?;
+            let cstate_cv = put_psk_skip_server_signature(&ee, st)?;
+            let (cipher,cstate_fin) = put_server_finished(&sfin,cstate_cv)?;
+            let (cfin,cstate) = get_client_finished(cstate_fin)?;
+            Ok((cfin,cipher,cstate)) 
+        }
+    }
+}
+
+// Server-Side Handshake API for TLS 1.3 Applications
+// server_init -> (encrypt_handshake)* -> (decrypt_zerortt)* ->
+// (decrypt_handshake) -> server_finish ->
+// (encrypt data | decrypt data)*
+
+type Server0 = ServerPostServerFinished;
+type Server1 = ServerPostClientFinished;
+
+pub fn server_init(algs:Algorithms,db:ServerDB,ch:&HandshakeData,ent:Entropy) -> Res<(HandshakeData,HandshakeData,DuplexCipherStateH,DuplexCipherState1,Server0)> {
+    let (cipher0,sstate) = put_client_hello(algs,&ch,db)?;
+    let (sh,cipherH,sstate) = get_server_hello(sstate,ent.slice(0,32+dh_priv_len(&kem_alg(&algs))))?;
+
+    match psk_mode(&algs) {
+        false => {
+            let (ee,sc,scv,sstate) = get_server_signature(sstate,ent.slice(0,32))?; 
+            let (sfin,cipher1,sstate) = get_server_finished(sstate)?;
+            let flight = handshake_concat(ee,&handshake_concat(sc,&handshake_concat(scv,&sfin)));
+            Ok((sh,flight,cipherH,cipher1,sstate))
+        },
+        true => {
+            let (ee,sstate) = get_skip_server_signature(sstate)?;
+            let (sfin,cipher1,sstate) = get_server_finished(sstate)?;
+            let flight = handshake_concat(ee,&sfin);
+            Ok((sh,flight,cipherH,cipher1,sstate))
+        }
+    }
+}
+    
+pub fn server_finish(cfin:&HandshakeData,st:Server0) -> Res<Server1> {
+    put_client_finished(&cfin,st)
+}
+
