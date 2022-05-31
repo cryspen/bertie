@@ -48,7 +48,22 @@ pub fn bytes5(x0: u8, x1: u8, x2: u8, x3: u8, x4: u8) -> ByteSeq {
     bytes(&Bytes5([U8(x0), U8(x1), U8(x2), U8(x3), U8(x4)]))
 }
 
-
+// Local error codes
+pub const incorrect_state: usize = 0;
+pub const mac_failed: usize = 1;
+pub const verify_failed: usize = 2;
+pub const zero_rtt_disabled: usize = 3;
+pub const not_zero_rtt_sender: usize = 4;
+pub const payload_too_long: usize = 5;
+pub const psk_mode_mismatch: usize = 6;
+pub const negotiation_mismatch: usize = 7;
+pub const unsupported_algorithm: usize = 8;
+pub const parse_failed: usize = 9;
+pub const insufficient_entropy: usize = 10;
+pub const insufficient_data: usize = 11;
+pub const hkdf_error: usize = 12;
+pub const crypto_error: usize = 13;
+pub const invalid_cert: usize = 14;
 /*
 pub fn check_eq_size(s1: usize, s2: usize) -> Res<()> {
     if s1 == s2 {Ok(())}
@@ -212,100 +227,3 @@ pub fn check_lbytes3_full(b: &ByteSeq) -> Res<()> {
     }
 }
 
-/// Well Known Constants
-
-pub const label_iv: Bytes2 = Bytes2(secret_bytes!([105, 118]));
-pub const label_key: Bytes3 = Bytes3(secret_bytes!([107, 101, 121]));
-pub const label_tls13: Bytes6 = Bytes6(secret_bytes!([116, 108, 115, 049, 051, 032]));
-pub const label_derived: Bytes7 = Bytes7(secret_bytes!([100, 101, 114, 105, 118, 101, 100]));
-pub const label_finished: Bytes8 = Bytes8(secret_bytes!([102, 105, 110, 105, 115, 104, 101, 100]));
-pub const label_res_binder: Bytes10 = Bytes10(secret_bytes!([
-    114, 101, 115, 032, 098, 105, 110, 100, 101, 114
-]));
-pub const label_ext_binder: Bytes10 = Bytes10(secret_bytes!([
-    101, 120, 116, 032, 098, 105, 110, 100, 101, 114
-]));
-pub const label_exp_master: Bytes10 = Bytes10(secret_bytes!([
-    101, 120, 112, 032, 109, 097, 115, 116, 101, 114
-]));
-pub const label_res_master: Bytes10 = Bytes10(secret_bytes!([
-    114, 101, 115, 032, 109, 097, 115, 116, 101, 114
-]));
-pub const label_c_e_traffic: Bytes11 = Bytes11(secret_bytes!([
-    099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const label_e_exp_master: Bytes12 = Bytes12(secret_bytes!([
-    101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114
-]));
-pub const label_c_hs_traffic: Bytes12 = Bytes12(secret_bytes!([
-    099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const label_s_hs_traffic: Bytes12 = Bytes12(secret_bytes!([
-    115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const label_c_ap_traffic: Bytes12 = Bytes12(secret_bytes!([
-    099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const label_s_ap_traffic: Bytes12 = Bytes12(secret_bytes!([
-    115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-
-pub const prefix_server_certificate_verify: Bytes98 = Bytes98(secret_bytes!([
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x54, 0x4c, 0x53, 0x20, 0x31, 0x2e, 0x33, 0x2c, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x20,
-    0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x56, 0x65, 0x72, 0x69, 0x66,
-    0x79, 0x00
-]));
-
-const sha256_empty: Bytes32 = Bytes32(secret_bytes!([
-    0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
-    0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
-]));
-
-// Error codes
-pub const incorrect_state: usize = 0;
-pub const mac_failed: usize = 1;
-pub const verify_failed: usize = 2;
-pub const zero_rtt_disabled: usize = 3;
-pub const not_zero_rtt_sender: usize = 4;
-pub const payload_too_long: usize = 5;
-pub const psk_mode_mismatch: usize = 6;
-pub const negotiation_mismatch: usize = 7;
-pub const unsupported_algorithm: usize = 8;
-pub const parse_failed: usize = 9;
-pub const insufficient_entropy: usize = 10;
-pub const insufficient_data: usize = 11;
-pub const hkdf_error: usize = 12;
-pub const crypto_error: usize = 13;
-pub const invalid_cert: usize = 14;
-
-// Tagged Handshake Data
-
-pub struct HandshakeData(pub Bytes);
-
-pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
-    let HandshakeData(m1) = msg1;
-    let HandshakeData(m2) = msg2;
-    HandshakeData(m1.concat(m2))
-}
-
-// Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)
-#[derive(Clone, Copy, PartialEq)]
-pub struct Algorithms(
-    pub HashAlgorithm,
-    pub AeadAlgorithm,
-    pub SignatureScheme,
-    pub KemScheme,
-    pub bool,
-    pub bool,
-);
-
-pub fn hash_alg(algs:&Algorithms) -> HashAlgorithm {algs.0}
-pub fn aead_alg(algs:&Algorithms) -> AeadAlgorithm {algs.1}
-pub fn sig_alg(algs:&Algorithms) -> SignatureScheme {algs.2}
-pub fn kem_alg(algs:&Algorithms) -> KemScheme {algs.3}
-pub fn psk_mode(algs:&Algorithms) -> bool {algs.4}
-pub fn zero_rtt(algs:&Algorithms) -> bool {algs.5}

@@ -21,8 +21,7 @@ pub mod tls13handshake;
 pub use tls13handshake::*;
 pub mod tls13record;
 pub use tls13record::*;
-pub mod tls13api;
-pub use tls13api::*;
+
 
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
@@ -133,6 +132,7 @@ fn decrypt_handshake_flight(
         payload = handshake_concat(payload, &plain);
         cipherH = cip;
         finished = find_handshake_message(HandshakeType::Finished, &payload, 0);
+        //println!("finished: {}",finished);
     }
     Ok((payload, cipherH))
 }
@@ -207,16 +207,16 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
     let mut in_buf = [0; 8192];
     let (sh, len1_) = get_handshake_message(&mut stream, &mut in_buf)?;
 
-    //println!("Got SH");
+    println!("Got SH");
 
     let (cipherH, cstate) = client_set_params(&sh, cstate)?;
     get_ccs_message(&mut stream, &mut in_buf)?;
 
-    //println!("Got SCCS");
+    println!("Got SCCS");
 
     let (sf, cipherH) = decrypt_handshake_flight(&mut stream, &mut in_buf, cipherH)?;
 
-    //println!("Got SFIN");
+    println!("Got SFIN");
 
     let (cf, cipher1, cstate) = client_finish(&sf, cstate)?;
 

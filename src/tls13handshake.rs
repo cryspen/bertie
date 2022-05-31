@@ -199,12 +199,11 @@ pub fn get_transcript_hash(
 pub fn get_transcript_hash_truncated_client_hello(
     tx: &Transcript,
     ch: &HandshakeData,
-    trunc_len: usize,
+    trunc_len: usize
 ) -> Res<Digest> {
     let Transcript(ha,HandshakeData(tx)) = tx;
     let HandshakeData(ch) = ch;
-    let th = hash(&ha, &tx.concat(&ch.slice_range(0..trunc_len)))?;
-    Ok(th)
+    Ok(hash(&ha, &tx.concat(&ch.slice_range(0..trunc_len)))?)
 }
 
 /* Handshake State Machine */
@@ -266,7 +265,7 @@ pub fn compute_psk_binder_zero_rtt(
             let th_trunc = get_transcript_hash_truncated_client_hello(&tx,&ch,trunc_len)?;
             let mk = derive_binder_key(&ha, &k)?;
             let binder = hmac_tag(&ha, &mk, &th_trunc)?;
-            let nch = set_client_hello_binder(&algs0,&Some(binder),ch)?;
+            let nch = set_client_hello_binder(&algs0,&Some(binder),ch,Some(trunc_len))?;
             let tx_ch = transcript_add1(tx,&nch);
             if zero_rtt {
                 let th = get_transcript_hash(&tx_ch)?;
@@ -407,22 +406,34 @@ pub fn put_client_hello(
     let tx = transcript_empty(ha);
     let th_trunc = get_transcript_hash_truncated_client_hello(&tx,&ch,trunc_len)?;
     let tx = transcript_add1(tx,&ch);
+    let th = get_transcript_hash(&tx)?;
     let (cert,sigk,psko) = lookup_db(algs,&db,&sni,&tkto)?;
+    let cipher0 = process_psk_binder_zero_rtt(algs,th,th_trunc,&psko,bindero)?;
+    return Ok((cipher0,ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psko, tx)))
+}
+
+pub fn process_psk_binder_zero_rtt(
+    algs:Algorithms,
+    th_trunc:Digest,
+    th:Digest,
+    psko: &Option<PSK>,
+    bindero: Option<Bytes>
+) -> Res<Option<ServerCipherState0>> {
+    let Algorithms(ha, ae, sa, ks, psk_mode, zero_rtt) = algs;
     match (psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
             let mk = derive_binder_key(&ha, &k)?;
             hmac_verify(&ha, &mk, &th_trunc, &binder)?;
             if zero_rtt {
-                let th = get_transcript_hash(&tx)?;
                 let (aek, key) = derive_0rtt_keys(&ha, &ae, &k, &th)?;
                 let cipher0 = Some(ServerCipherState0(ae, aek, 0, key));
-                return Ok((cipher0,ServerPostClientHello(cr, algs, sid, gx, cert, sigk, Some(k), tx)))
+                return Ok(cipher0)
             }
             else {
-                return Ok((None,ServerPostClientHello(cr, algs, sid, gx, cert, sigk, Some(k), tx)))
-            }
+                return Ok(None)
+             }
         },
-        (false, None, None) => return Ok((None,ServerPostClientHello(cr, algs, sid, gx, cert, sigk, None, tx))),
+        (false, None, None) => return Ok((None)),
         _ => return Err(psk_mode_mismatch),
         }
 }
@@ -533,14 +544,14 @@ pub fn client_set_params(sh:&HandshakeData,st:Client0) -> Res<(DuplexCipherState
 pub fn client_finish(payload:&HandshakeData,st:ClientH) -> Res<(HandshakeData,DuplexCipherState1,Client1)> {
     match psk_mode(&algs(&st)) {
         false => {  
-            let (ee,sc,scv,sfin) = get_handshake_messages4(&payload)?;
+            let (ee,sc,scv,sfin) = get_handshake_messages4(payload)?;
             let cstate_cv = put_server_signature(&ee, &sc, &scv, st)?;
             let (cipher,cstate_fin) = put_server_finished(&sfin,cstate_cv)?;
             let (cfin,cstate) = get_client_finished(cstate_fin)?;
             Ok((cfin,cipher,cstate)) 
         },
         true => {
-            let (ee,sfin) = get_handshake_messages2(&payload)?;
+            let (ee,sfin) = get_handshake_messages2(payload)?;
             let cstate_cv = put_psk_skip_server_signature(&ee, st)?;
             let (cipher,cstate_fin) = put_server_finished(&sfin,cstate_cv)?;
             let (cfin,cstate) = get_client_finished(cstate_fin)?;
@@ -558,12 +569,12 @@ type Server0 = ServerPostServerFinished;
 type Server1 = ServerPostClientFinished;
 
 pub fn server_init(algs:Algorithms,db:ServerDB,ch:&HandshakeData,ent:Entropy) -> Res<(HandshakeData,HandshakeData,DuplexCipherStateH,DuplexCipherState1,Server0)> {
-    let (cipher0,sstate) = put_client_hello(algs,&ch,db)?;
+    let (cipher0,sstate) = put_client_hello(algs,ch,db)?;
     let (sh,cipherH,sstate) = get_server_hello(sstate,ent.slice(0,32+dh_priv_len(&kem_alg(&algs))))?;
 
     match psk_mode(&algs) {
         false => {
-            let (ee,sc,scv,sstate) = get_server_signature(sstate,ent.slice(0,32))?; 
+            let (ee,sc,scv,sstate) = get_server_signature(sstate,ent.slice(0,32))?; //FIX: use 32 extra bytes
             let (sfin,cipher1,sstate) = get_server_finished(sstate)?;
             let flight = handshake_concat(ee,&handshake_concat(sc,&handshake_concat(scv,&sfin)));
             Ok((sh,flight,cipherH,cipher1,sstate))
