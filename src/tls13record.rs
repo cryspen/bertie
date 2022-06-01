@@ -53,7 +53,7 @@ pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIv, n:u64) -> AeadIv {
     iv_ctr
 }
 
-pub fn encrypt_record_payload(ae:&AeadAlgorithm, kiv: &AeadKeyIV, n:u64, ct:ContentType, payload: &Bytes, pad:usize) -> Res<Bytes> {
+pub fn encrypt_record_payload(ae:&AeadAlgorithm, kiv: &AeadKeyIV, n:u64, ct:ContentType, payload: &Bytes, pad:usize) -> Result<Bytes,TLSError> {
     let (k,iv) = kiv;
     let iv_ctr = derive_iv_ctr(&ae,&iv,n);
     let inner_plaintext = payload.concat(&bytes1(content_type(ct))).concat(&zeros(pad));
@@ -65,7 +65,7 @@ pub fn encrypt_record_payload(ae:&AeadAlgorithm, kiv: &AeadKeyIV, n:u64, ct:Cont
         let rec = ad.concat(&cip);
         Ok(rec)
     } else {
-        Err(payload_too_long)
+        Err(PAYLOAD_TOO_LONG)
     }
 }
 
@@ -73,7 +73,7 @@ pub fn padlen(b:&Bytes,n:usize) -> usize {
     if n > 0 && b[n-1].declassify() == 0 {1 + padlen(&b,n-1)}
     else {0}
 }
-pub fn decrypt_record_payload(ae:&AeadAlgorithm, kiv:&AeadKeyIV, n:u64, ciphertext: &Bytes) -> Res<(ContentType,Bytes)> {
+pub fn decrypt_record_payload(ae:&AeadAlgorithm, kiv:&AeadKeyIV, n:u64, ciphertext: &Bytes) -> Result<(ContentType,Bytes),TLSError> {
     let (k,iv) = kiv;
     let iv_ctr = derive_iv_ctr(&ae, &iv, n);
     let clen = ciphertext.len() - 5;
@@ -88,7 +88,7 @@ pub fn decrypt_record_payload(ae:&AeadAlgorithm, kiv:&AeadKeyIV, n:u64, cipherte
         let payload = plain.slice_range(0..payload_len);       
         Ok((ct,payload))
     } else {
-        Err(payload_too_long)
+        Err(PAYLOAD_TOO_LONG)
     }
 }
 
@@ -99,47 +99,47 @@ pub struct AppData(Bytes);
 pub fn app_data(b:Bytes) -> AppData{AppData(b)}
 pub fn app_data_bytes(a:AppData)->Bytes{a.0}
 
-pub fn encrypt_zerortt(payload:AppData, pad:usize, st: ClientCipherState0) -> Res<(Bytes,ClientCipherState0)> {
+pub fn encrypt_zerortt(payload:AppData, pad:usize, st: ClientCipherState0) -> Result<(Bytes,ClientCipherState0),TLSError> {
     let ClientCipherState0(ae, kiv, n, exp) = st;
     let AppData(payload) = payload;
     let rec = encrypt_record_payload(&ae,&kiv,n,ContentType::ApplicationData,&payload,pad)?;
     Ok((rec,ClientCipherState0(ae,kiv,n+1, exp)))
 }
 
-pub fn decrypt_zerortt(ciphertext:&Bytes, st: ServerCipherState0) -> Res<(AppData,ServerCipherState0)> {
+pub fn decrypt_zerortt(ciphertext:&Bytes, st: ServerCipherState0) -> Result<(AppData,ServerCipherState0),TLSError> {
     let ServerCipherState0(ae, kiv, n, exp) = st;
     let (ct,payload) = decrypt_record_payload(&ae,&kiv,n,ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
     Ok((AppData(payload),ServerCipherState0(ae,kiv,n+1,exp)))
 }
 
-pub fn encrypt_handshake(payload:HandshakeData, pad:usize, st: DuplexCipherStateH) -> Res<(Bytes,DuplexCipherStateH)> {
+pub fn encrypt_handshake(payload:HandshakeData, pad:usize, st: DuplexCipherStateH) -> Result<(Bytes,DuplexCipherStateH),TLSError> {
     let DuplexCipherStateH(ae, kiv, n, x, y) = st;
     let payload = handshake_data_bytes(&payload);
     let rec = encrypt_record_payload(&ae,&kiv,n,ContentType::Handshake,&payload,pad)?;
     Ok((rec,DuplexCipherStateH(ae,kiv,n+1, x, y)))
 }
 
-pub fn decrypt_handshake(ciphertext:&Bytes, st: DuplexCipherStateH) -> Res<(HandshakeData,DuplexCipherStateH)> {
+pub fn decrypt_handshake(ciphertext:&Bytes, st: DuplexCipherStateH) -> Result<(HandshakeData,DuplexCipherStateH),TLSError> {
     let DuplexCipherStateH(ae, x, y, kiv, n) = st;
     let (ct,payload) = decrypt_record_payload(&ae,&kiv,n,ciphertext)?;
     check(ct == ContentType::Handshake)?;
     Ok((handshake_data(payload),DuplexCipherStateH(ae, x, y, kiv, n+1)))
 }
 
-pub fn encrypt_data(payload:AppData, pad:usize, st: DuplexCipherState1) -> Res<(Bytes,DuplexCipherState1)> {
+pub fn encrypt_data(payload:AppData, pad:usize, st: DuplexCipherState1) -> Result<(Bytes,DuplexCipherState1),TLSError> {
     let DuplexCipherState1(ae, kiv, n, x, y, exp) = st;
     let AppData(payload) = payload;
     let rec = encrypt_record_payload(&ae,&kiv,n,ContentType::ApplicationData,&payload,pad)?;
     Ok((rec,DuplexCipherState1(ae,kiv,n+1,x,y,exp)))
 }
 
-pub fn decrypt_data_or_hs(ciphertext:&Bytes, st: DuplexCipherState1) -> Res<(ContentType,Bytes,DuplexCipherState1)> {
+pub fn decrypt_data_or_hs(ciphertext:&Bytes, st: DuplexCipherState1) -> Result<(ContentType,Bytes,DuplexCipherState1),TLSError> {
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
     let (ct,payload) = decrypt_record_payload(&ae,&kiv,n,ciphertext)?;
     Ok((ct,payload,DuplexCipherState1(ae, x, y, kiv, n+1, exp)))
 }
-pub fn decrypt_data(ciphertext:&Bytes, st: DuplexCipherState1) -> Res<(AppData,DuplexCipherState1)> {
+pub fn decrypt_data(ciphertext:&Bytes, st: DuplexCipherState1) -> Result<(AppData,DuplexCipherState1),TLSError> {
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
     let (ct,payload) = decrypt_record_payload(&ae,&kiv,n,ciphertext)?;
     check(ct == ContentType::ApplicationData)?;

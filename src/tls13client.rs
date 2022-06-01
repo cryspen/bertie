@@ -1,5 +1,3 @@
-#![allow(non_upper_case_globals)]
-
 #[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
 #[cfg(feature = "evercrypt")]
@@ -34,7 +32,7 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
 
-fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Res<usize> {
+fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize,TLSError> {
     match stream.read(&mut buf[..]) {
         Ok(len) => {
             if len >= nbytes {
@@ -43,38 +41,41 @@ fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Res<usiz
                 read_bytes(stream, &mut buf[len..], nbytes - len)
             }
         }
-        Err(_) => Err(parse_failed),
+        Err(_) => Err(INSUFFICIENT_DATA),
     }
 }
 
-fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Res<usize> {
+fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize,TLSError> {
     let mut b: [u8; 5] = [0; 5];
     let mut len = 0;
     while len < 5 {
-        len = stream.peek(&mut b).expect("peek failed");
+        match stream.peek(&mut b) {
+            Result::Ok(l) => len = l,
+            Result::Err(_) => Err(INSUFFICIENT_DATA)?
+        }
     }
     let l0 = b[3] as usize;
     let l1 = b[4] as usize;
     let len = l0 * 256 + l1;
     if len + 5 > buf.len() {
-        Err(parse_failed)
+        Err(INSUFFICIENT_DATA)
     } else {
         let extra = read_bytes(stream, &mut buf[0..len + 5], len + 5)?;
         if extra > 0 {
-            Err(parse_failed)
+            Err(PAYLOAD_TOO_LONG)
         } else {
             Ok(len + 5)
         }
     }
 }
 
-fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Res<()> {
+fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(),TLSError> {
     let wire = hex::decode(&rec.to_hex()).expect("Record Decoding Failed");
     match stream.write(&wire) {
-        Err(_) => Err(parse_failed),
+        Err(_) => Err(INSUFFICIENT_DATA),
         Ok(len) => {
             if len < wire.len() {
-                Err(parse_failed)
+                Err(PARSE_FAILED)
             } else {
                 Ok(())
             }
@@ -82,7 +83,7 @@ fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Res<()> {
     }
 }
 
-fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Res<()> {
+fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(),TLSError> {
     let len = read_record(stream, buf)?;
     if len == 6
         && buf[0] == 0x14
@@ -94,17 +95,17 @@ fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Res<()> {
     {
         Ok(())
     } else {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     }
 }
 
-fn put_ccs_message(stream: &mut TcpStream) -> Res<()> {
+fn put_ccs_message(stream: &mut TcpStream) -> Result<(),TLSError> {
     let ccs_rec = ByteSeq::from_hex("140303000101");
     put_record(stream, &ccs_rec)
 }
 
 
-const sha256_aes128gcm_ecdsap256_x25519: Algorithms = Algorithms(
+const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -113,7 +114,8 @@ const sha256_aes128gcm_ecdsap256_x25519: Algorithms = Algorithms(
     false,
 );
 
-const sha256_chacha20poly1305_rsapss256_x25519: Algorithms = Algorithms(
+/*
+const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
@@ -121,10 +123,11 @@ const sha256_chacha20poly1305_rsapss256_x25519: Algorithms = Algorithms(
     false,
     false,
 );
+*/
 
-const default_algs: Algorithms = sha256_aes128gcm_ecdsap256_x25519;
+const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
-pub fn tls13client(host: &str, port: &str) -> Res<()> {
+pub fn tls13client(host: &str, port: &str) -> Result<(),TLSError> {
     let mut entropy = [0 as u8; 64];
     let d = Duration::new(1, 0);
     thread_rng().fill(&mut entropy);
@@ -196,7 +199,7 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
     Ok(())
 }
 
-fn main() {
+pub fn main() {
     let args: Vec<String> = env::args().collect();
     let host = if args.len() <= 1 {
         "www.google.com"
@@ -208,7 +211,7 @@ fn main() {
         Err(x) => {
             println!("Connection to {} failed with {}\n", host, x);
         }
-        Ok(_) => {
+        Ok(()) => {
             println!("Connection to {} succeeded\n", host);
         }
     }
