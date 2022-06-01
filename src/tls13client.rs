@@ -1,10 +1,12 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+
+/* #![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(non_camel_case_types)]
+
 #![allow(unused_imports)]
-#![allow(unused_parens)]
+#![allow(unused_parens)] */
 
 // ---
 
@@ -36,8 +38,8 @@ use std::time::Duration;
 // It connects to a give host at port 443, sends an HTTP "GET /", and prints a prefix of the HTTP response
 // WARNING: This code is not in hacspec since it need to use TCP etc.
 
-use hex::*;
-use std::io;
+//use hex::*;
+//use std::io;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
@@ -58,7 +60,7 @@ fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Res<usiz
 fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Res<usize> {
     let mut b: [u8; 5] = [0; 5];
     let mut len = 0;
-    while (len < 5) {
+    while len < 5 {
         len = stream.peek(&mut b).expect("peek failed");
     }
     let l0 = b[3] as usize;
@@ -74,14 +76,6 @@ fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Res<usize> {
             Ok(len + 5)
         }
     }
-}
-
-fn get_handshake_message(stream: &mut TcpStream, buf: &mut [u8]) -> Res<(HandshakeData, usize)> {
-    let len = read_record(stream, buf)?;
-    let rec = ByteSeq::from_public_slice(&buf[0..len]);
-    let (msg, len_) = check_handshake_record(&rec)?;
-    check(len == len_)?;
-    Ok((msg, len))
 }
 
 fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Res<()> {
@@ -119,49 +113,6 @@ fn put_ccs_message(stream: &mut TcpStream) -> Res<()> {
     put_record(stream, &ccs_rec)
 }
 
-fn decrypt_handshake_flight(
-    stream: &mut TcpStream,
-    buf: &mut [u8],
-    cipherH: DuplexCipherStateH,
-) -> Res<(HandshakeData, DuplexCipherStateH)> {
-    let mut payload = handshake_data(empty());
-    let mut finished = false;
-    let mut cipherH = cipherH;
-    while !finished {
-        let len = read_record(stream, buf)?;
-        println!("read record");
-        let rec = ByteSeq::from_public_slice(&buf[0..len]);
-        let (plain, cip) = decrypt_handshake(&rec, cipherH)?;
-        payload = handshake_concat(payload, &plain);
-        cipherH = cip;
-        finished = find_handshake_message(HandshakeType::Finished, &payload, 0);
-        //println!("finished: {}",finished);
-    }
-    Ok((payload, cipherH))
-}
-
-fn decrypt_tickets_and_data(
-    stream: &mut TcpStream,
-    buf: &mut [u8],
-    cipher1: DuplexCipherState1,
-) -> Res<(Bytes, DuplexCipherState1)> {
-    let mut payload = ByteSeq::new(0);
-    let mut data = false;
-    let mut cipher1 = cipher1;
-    while !data {
-        let len = read_record(stream, buf)?;
-        let rec = ByteSeq::from_public_slice(&buf[0..len]);
-        let (ct, pl, cip) = decrypt_data_or_hs(&rec, cipher1)?;
-        payload = pl;
-        cipher1 = cip;
-        if ct == ContentType::ApplicationData {
-            data = true;
-        } else {
-            println!("Received Session Ticket");
-        }
-    }
-    Ok((payload, cipher1))
-}
 
 const sha256_aes128gcm_ecdsap256_x25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -267,7 +218,7 @@ fn main() {
         Err(x) => {
             println!("Connection to {} failed with {}\n", host, x);
         }
-        Ok(x) => {
+        Ok(_) => {
             println!("Connection to {} succeeded\n", host);
         }
     }
