@@ -1,8 +1,5 @@
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
-
-// XXX: not hacspec
-pub type Res<T> = Result<T, usize>;
 pub type Bytes = ByteSeq;
 
 pub fn empty() -> ByteSeq {
@@ -48,43 +45,42 @@ pub fn bytes5(x0: u8, x1: u8, x2: u8, x3: u8, x4: u8) -> ByteSeq {
 }
 
 // Local error codes
-pub const incorrect_state: usize = 0;
-pub const mac_failed: usize = 1;
-pub const verify_failed: usize = 2;
-pub const zero_rtt_disabled: usize = 3;
-pub const not_zero_rtt_sender: usize = 4;
-pub const payload_too_long: usize = 5;
-pub const psk_mode_mismatch: usize = 6;
-pub const negotiation_mismatch: usize = 7;
-pub const unsupported_algorithm: usize = 8;
-pub const parse_failed: usize = 9;
-pub const insufficient_entropy: usize = 10;
-pub const insufficient_data: usize = 11;
-pub const hkdf_error: usize = 12;
-pub const crypto_error: usize = 13;
-pub const invalid_cert: usize = 14;
+pub type TLSError = u8;
+pub const INCORRECT_STATE: TLSError = 128;
+pub const ZERO_RTT_DISABLED: TLSError = 129;
+pub const PAYLOAD_TOO_LONG: TLSError = 130;
+pub const PSK_MODE_MISMATCH: TLSError = 131;
+pub const NEGOTIATION_MISMATCH: TLSError = 132;
+pub const PARSE_FAILED: TLSError = 133;
+pub const INSUFFICIENT_DATA: TLSError = 134;
+
+pub fn error_string(c:u8) -> String {
+    match c {
+        _ => format!("{}",c)
+    }
+}
 /*
-pub fn check_eq_size(s1: usize, s2: usize) -> Res<()> {
+pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     if s1 == s2 {Ok(())}
-    else {Err(parse_failed)}
+    else {Err(PARSE_FAILED)}
 }*/
 
-pub fn check(b: bool) -> Result<(), usize> {
+pub fn check(b: bool) -> Result<(), TLSError> {
     if b {
         Ok(())
     } else {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     }
 }
 
 pub fn eq1(b1: U8, b2: U8) -> bool {
     b1.declassify() == b2.declassify()
 }
-pub fn check_eq1(b1: U8, b2: U8) -> Res<()> {
+pub fn check_eq1(b1: U8, b2: U8) -> Result<(),TLSError> {
     if eq1(b1, b2) {
         Ok(())
     } else {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     }
 }
 
@@ -101,9 +97,9 @@ pub fn eq(b1: &ByteSeq, b2: &ByteSeq) -> bool {
     }
 }
 
-pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Res<()> {
+pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(),TLSError> {
     if b1.len() != b2.len() {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         for i in 0..b1.len() {
             check_eq1(b1[i], b2[i])?;
@@ -112,9 +108,9 @@ pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Res<()> {
     }
 }
 
-pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Res<()> {
+pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(),TLSError> {
     if b2.len() % b1.len() != 0 {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         for i in 0..(b2.len() / b1.len()) {
             let snip = b2.slice_range(i * b1.len()..(i + 1) * b1.len());
@@ -122,14 +118,14 @@ pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Res<()> {
                 return Ok(());
             }
         }
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     }
 }
 
-pub fn lbytes1(b: &ByteSeq) -> Res<Bytes> {
+pub fn lbytes1(b: &ByteSeq) -> Result<Bytes,TLSError> {
     let len = b.len();
     if len >= 256 {
-        Err(payload_too_long)
+        Err(PAYLOAD_TOO_LONG)
     } else {
         let mut lenb = Seq::new(1);
         lenb[0] = U8(len as u8);
@@ -137,10 +133,10 @@ pub fn lbytes1(b: &ByteSeq) -> Res<Bytes> {
     }
 }
 
-pub fn lbytes2(b: &ByteSeq) -> Res<Bytes> {
+pub fn lbytes2(b: &ByteSeq) -> Result<Bytes,TLSError> {
     let len = b.len();
     if len >= 65536 {
-        Err(payload_too_long)
+        Err(PAYLOAD_TOO_LONG)
     } else {
         let len: u16 = len as u16;
         let lenb = Seq::from_seq(&U16_to_be_bytes(U16(len)));
@@ -148,79 +144,79 @@ pub fn lbytes2(b: &ByteSeq) -> Res<Bytes> {
     }
 }
 
-pub fn lbytes3(b: &ByteSeq) -> Res<Bytes> {
+pub fn lbytes3(b: &ByteSeq) -> Result<Bytes,TLSError> {
     let len = b.len();
     if len >= 16777216 {
-        Err(payload_too_long)
+        Err(PAYLOAD_TOO_LONG)
     } else {
         let lenb = U32_to_be_bytes(U32(len as u32));
         Ok(lenb.slice_range(1..4).concat(b))
     }
 }
 
-pub fn check_lbytes1(b: &ByteSeq) -> Res<usize> {
+pub fn check_lbytes1(b: &ByteSeq) -> Result<usize,TLSError> {
     if b.len() < 1 {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         let l = (b[0] as U8).declassify() as usize;
         if b.len() - 1 < l {
-            Err(parse_failed)
+            Err(PARSE_FAILED)
         } else {
             Ok(l)
         }
     }
 }
 
-pub fn check_lbytes2(b: &ByteSeq) -> Res<usize> {
+pub fn check_lbytes2(b: &ByteSeq) -> Result<usize,TLSError> {
     if b.len() < 2 {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         let l0 = (b[0] as U8).declassify() as usize;
         let l1 = (b[1] as U8).declassify() as usize;
         let l = l0 * 256 + l1;
         if b.len() - 2 < l as usize {
-            Err(parse_failed)
+            Err(PARSE_FAILED)
         } else {
             Ok(l)
         }
     }
 }
 
-pub fn check_lbytes3(b: &ByteSeq) -> Res<usize> {
+pub fn check_lbytes3(b: &ByteSeq) -> Result<usize,TLSError> {
     if b.len() < 3 {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         let l0 = (b[0] as U8).declassify() as usize;
         let l1 = (b[1] as U8).declassify() as usize;
         let l2 = (b[2] as U8).declassify() as usize;
         let l = l0 * 65536 + l1 * 256 + l2;
         if b.len() - 3 < l {
-            Err(parse_failed)
+            Err(PARSE_FAILED)
         } else {
             Ok(l)
         }
     }
 }
 
-pub fn check_lbytes1_full(b: &ByteSeq) -> Res<()> {
+pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(),TLSError> {
     if check_lbytes1(b)? + 1 != b.len() {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         Ok(())
     }
 }
 
-pub fn check_lbytes2_full(b: &ByteSeq) -> Res<()> {
+pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(),TLSError> {
     if check_lbytes2(b)? + 2 != b.len() {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         Ok(())
     }
 }
 
-pub fn check_lbytes3_full(b: &ByteSeq) -> Res<()> {
+pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(),TLSError> {
     if check_lbytes3(b)? + 3 != b.len() {
-        Err(parse_failed)
+        Err(PARSE_FAILED)
     } else {
         Ok(())
     }
