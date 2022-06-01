@@ -90,7 +90,9 @@ pub enum Server {
 
 pub fn server_accept(algs:Algorithms,db:ServerDB,ch_rec:&Bytes,ent:Entropy)
 -> Result<(Bytes,Bytes,Server),TLSError> {
-    let ch = get_handshake_record(ch_rec)?;
+    let mut ch_rec = ch_rec.clone();
+    ch_rec[2] = U8(0x03);
+    let ch = get_handshake_record(&ch_rec)?;
     let (sh,sf,cipher0,cipher_hs,cipher1,sstate) = server_init(algs,&ch,db,ent)?;
     let sh_rec = handshake_record(&sh)?;
     let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
