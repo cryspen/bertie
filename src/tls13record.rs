@@ -1,9 +1,11 @@
 // TLS 1.3 Record Layer Computations
-
+#[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
+
 use crate::tls13utils::*;
 use crate::tls13formats::*;
-//use crate::tls13handshake::*;
 
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
@@ -24,7 +26,7 @@ pub struct DuplexCipherStateH(
     AeadKeyIV,
     u64,
 );
-pub fn duplex_cipher_stateH(ae:AeadAlgorithm,kiv1:AeadKeyIV,c1:u64,kiv2:AeadKeyIV,c2:u64)
+pub fn duplex_cipher_state_hs(ae:AeadAlgorithm,kiv1:AeadKeyIV,c1:u64,kiv2:AeadKeyIV,c2:u64)
 -> DuplexCipherStateH {DuplexCipherStateH(ae,kiv1,c1,kiv2,c2)}
 
 pub struct DuplexCipherState1(
