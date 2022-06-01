@@ -1,6 +1,9 @@
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
+#[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
 use crate::tls13utils::*;
 use crate::tls13formats::*;
 use crate::tls13record::*;
@@ -245,7 +248,7 @@ fn put_server_hello(
     let gxy = kem_decap(&ks, &gy, x)?;
     let th = get_transcript_hash(&tx)?;
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &psk, &th)?;
-    Ok(( duplex_cipher_stateH(ae, chk, 0, shk, 0),
+    Ok(( duplex_cipher_state_hs(ae, chk, 0, shk, 0),
          ClientPostServerHello(cr, sr, algs0, ms, cfk, sfk, tx)))
 }
 
@@ -427,7 +430,7 @@ fn get_server_hello(
         let th = get_transcript_hash(&tx)?;
         let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &psk, &th)?;
         Ok((sh,
-            duplex_cipher_stateH(ae, shk, 0, chk, 0),
+            duplex_cipher_state_hs(ae, shk, 0, chk, 0),
             ServerPostServerHello(cr, sr, algs, cert, sigk, ms, cfk, sfk, tx),
         ))
     }
@@ -489,7 +492,7 @@ fn put_client_finished(
     let vd = parse_finished(&algs,&cfin)?;
     hmac_verify(&hash_alg(&algs), &cfk, &th, &vd)?;
     let tx = transcript_add1(tx, &cfin);
-    let th = get_transcript_hash(&tx)?;
+    let th = get_transcript_hash(&tx)?; 
     let rms = derive_rms(&hash_alg(&algs), &ms,&th)?;
     Ok(ServerPostClientFinished(cr, sr, algs, rms, tx))
 }
@@ -501,19 +504,19 @@ fn put_client_finished(
 pub fn server_init(algs: Algorithms,ch: &HandshakeData,db: ServerDB,ent:Entropy)
 -> Res<(HandshakeData,HandshakeData,Option<ServerCipherState0>,DuplexCipherStateH,DuplexCipherState1,ServerPostServerFinished)> {
     let (cipher0,st) = put_client_hello(algs,ch,db)?;
-    let (sh,cipherH,st) = get_server_hello(st,ent.slice(0,32+dh_priv_len(&kem_alg(&algs))))?;
+    let (sh,cipher_hs,st) = get_server_hello(st,ent.slice(0,32+dh_priv_len(&kem_alg(&algs))))?;
     match psk_mode(&algs) {
         false => {
             let (ee,sc,scv,st) = get_server_signature(st,ent.slice(0,32))?; //FIX: use 32 extra bytes
             let (sfin,cipher1,st) = get_server_finished(st)?;
             let flight = handshake_concat(ee,&handshake_concat(sc,&handshake_concat(scv,&sfin)));
-            Ok((sh,flight,cipher0,cipherH,cipher1,st))
+            Ok((sh,flight,cipher0,cipher_hs,cipher1,st))
         },
         true => {
             let (ee,st) = get_skip_server_signature(st)?;
             let (sfin,cipher1,st) = get_server_finished(st)?;
             let flight = handshake_concat(ee,&sfin);
-            Ok((sh,flight,cipher0,cipherH,cipher1,st))
+            Ok((sh,flight,cipher0,cipher_hs,cipher1,st))
         }
     }
 }

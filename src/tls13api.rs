@@ -38,15 +38,15 @@ pub fn client_read_handshake(d:&Bytes,st:Client) -> Res<(Option<Bytes>,Client)> 
             let (cipher1,cstate) = client_set_params(&sf,cstate)?;
             let buf = handshake_data(empty());
             return Ok((None,Client::ClientH(cstate,cipher0,cipher1,buf)))},
-        Client::ClientH(cstate,cipher0,cipherH,buf) => {
-            let (hd, cipherH) = decrypt_handshake(&d, cipherH)?;
+        Client::ClientH(cstate,cipher0,cipher_hs,buf) => {
+            let (hd, cipher_hs) = decrypt_handshake(&d, cipher_hs)?;
             let buf = handshake_concat(buf,&hd);
             if find_handshake_message(HandshakeType::Finished,&buf,0) {
                 let (cfin,cipher1,cstate) = client_finish(&buf,cstate)?;
-                let (cf_rec, _cipherH) = encrypt_handshake(cfin, 0, cipherH)?;
+                let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
                 return Ok((Some(cf_rec),Client::Client1(cstate,cipher1)))
             } else {
-                return Ok((None,Client::ClientH(cstate,cipher0,cipherH,buf)))}},
+                return Ok((None,Client::ClientH(cstate,cipher0,cipher_hs,buf)))}},
         _ => {return Err(parse_failed)} 
     }
 }
@@ -91,16 +91,16 @@ pub enum Server {
 pub fn server_accept(algs:Algorithms,db:ServerDB,ch_rec:&Bytes,ent:Entropy)
 -> Res<(Bytes,Bytes,Server)> {
     let ch = get_handshake_record(ch_rec)?;
-    let (sh,sf,cipher0,cipherH,cipher1,sstate) = server_init(algs,&ch,db,ent)?;
+    let (sh,sf,cipher0,cipher_hs,cipher1,sstate) = server_init(algs,&ch,db,ent)?;
     let sh_rec = handshake_record(&sh)?;
-    let (sf_rec, cipherH) = encrypt_handshake(sf, 0, cipherH)?;
-    Ok((sh_rec,sf_rec,Server::ServerH(sstate,cipher0,cipherH,cipher1)))
+    let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
+    Ok((sh_rec,sf_rec,Server::ServerH(sstate,cipher0,cipher_hs,cipher1)))
 }
     
 pub fn server_read_handshake(cfin_rec:&Bytes,st:Server) -> Res<Server> {
     match st {
-        Server::ServerH(sstate,_cipher0,cipherH,cipher1) => {
-            let (cf,_cipherH) = decrypt_handshake(cfin_rec,cipherH)?;
+        Server::ServerH(sstate,_cipher0,cipher_hs,cipher1) => {
+            let (cf,_cipher_hs) = decrypt_handshake(cfin_rec,cipher_hs)?;
             let sstate = server_finish(&cf,sstate)?;
             Ok(Server::Server1(sstate,cipher1))
         },
