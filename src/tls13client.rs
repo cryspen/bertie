@@ -17,10 +17,12 @@ pub mod tls13utils;
 pub use tls13utils::*;
 pub mod tls13formats;
 pub use tls13formats::*;
-pub mod tls13handshake;
-pub use tls13handshake::*;
 pub mod tls13record;
 pub use tls13record::*;
+pub mod tls13handshake;
+pub use tls13handshake::*;
+pub mod tls13api;
+pub use tls13api::*;
 
 
 // Import hacspec and all needed definitions.
@@ -57,7 +59,7 @@ fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Res<usize> {
     let mut b: [u8; 5] = [0; 5];
     let mut len = 0;
     while (len < 5) {
-        len = stream.peek(&mut b).unwrap();
+        len = stream.peek(&mut b).expect("peek failed");
     }
     let l0 = b[3] as usize;
     let l1 = b[4] as usize;
@@ -122,11 +124,12 @@ fn decrypt_handshake_flight(
     buf: &mut [u8],
     cipherH: DuplexCipherStateH,
 ) -> Res<(HandshakeData, DuplexCipherStateH)> {
-    let mut payload = HandshakeData(empty());
+    let mut payload = handshake_data(empty());
     let mut finished = false;
     let mut cipherH = cipherH;
     while !finished {
         let len = read_record(stream, buf)?;
+        println!("read record");
         let rec = ByteSeq::from_public_slice(&buf[0..len]);
         let (plain, cip) = decrypt_handshake(&rec, cipherH)?;
         payload = handshake_concat(payload, &plain);
@@ -198,40 +201,54 @@ pub fn tls13client(host: &str, port: &str) -> Res<()> {
     println!("Initiating connection to {}", addr);
 
     /* Initialize TLS 1.3. Client */
-    let (ch, _, cstate) = client_init(default_algs, &sni, None, None, ent_c)?;
-    let mut ch_rec = handshake_record(&ch)?;
-    ch_rec[2] = U8(0x01);
+    let (ch_rec, cstate) = client_connect(default_algs, &sni, None, None, ent_c)?;
     put_record(&mut stream, &ch_rec)?;
 
     /* Process Server Response  */
     let mut in_buf = [0; 8192];
-    let (sh, len1_) = get_handshake_message(&mut stream, &mut in_buf)?;
+    let len = read_record(&mut stream, &mut in_buf)?;
+    let sh_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+    
+    //println!("Got SH");
 
-    println!("Got SH");
-
-    let (cipherH, cstate) = client_set_params(&sh, cstate)?;
+    let (_, cstate) = client_read_handshake(&sh_rec, cstate)?;
     get_ccs_message(&mut stream, &mut in_buf)?;
 
-    println!("Got SCCS");
+    //println!("Got SCCS");
 
-    let (sf, cipherH) = decrypt_handshake_flight(&mut stream, &mut in_buf, cipherH)?;
+    let mut cf_rec = None;
+    let mut cstate = cstate;
+    while cf_rec == None {
+        let len = read_record(&mut stream, &mut in_buf)?;
+        let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+        let (cf,st) = client_read_handshake(&rec, cstate)?;
+        cstate = st;
+        cf_rec = cf;
+    }
+    //println!("Got SFIN");
+    let cf_rec = cf_rec.unwrap();
 
-    println!("Got SFIN");
-
-    let (cf, cipher1, cstate) = client_finish(&sf, cstate)?;
-
-    /* Complete Connection */
+   /* Complete Connection */
     put_ccs_message(&mut stream)?;
-    let (cf_rec, cipherH) = encrypt_handshake(&cf, 0, cipherH)?;
     put_record(&mut stream, &cf_rec)?;
     println!("Connected to {}:443", host);
     /* Send HTTP GET  */
-    let (ap, cipher1) = encrypt_data(&AppData(http_get), 0, cipher1)?;
+    let (ap, cstate) = client_write(app_data(http_get), cstate)?;
     put_record(&mut stream, &ap)?;
     println!("Sent HTTP GET to {}:443", host);
 
     /* Process HTTP Response */
-    let (http_resp, cipher1) = decrypt_tickets_and_data(&mut stream, &mut in_buf, cipher1)?;
+    let mut ad = None;
+    let mut cstate = cstate;
+    while ad == None {
+        let len = read_record(&mut stream, &mut in_buf)?;
+        let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+        let (d,st) = client_read(&rec, cstate)?;
+        cstate = st;
+        ad = d;
+    }
+    let http_resp_by = ad.unwrap();
+    let http_resp = app_data_bytes(http_resp_by);
     let html_by = hex::decode(&http_resp.to_hex()).expect("Decoding HTTP Response failed");
     let html = String::from_utf8_lossy(&html_by);
     println!("Received HTTP Response from {}\n\n{}", host, html);

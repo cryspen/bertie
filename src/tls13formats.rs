@@ -371,7 +371,10 @@ pub fn get_hs_type(t: u8) -> Res<HandshakeType> {
 
 // Tagged Handshake Data
 
-pub struct HandshakeData(pub Bytes);
+pub struct HandshakeData(Bytes);
+
+pub fn handshake_data(b:Bytes) -> HandshakeData{HandshakeData(b)}
+pub fn handshake_data_bytes(hd:&HandshakeData) -> Bytes{hd.0.clone()}
 
 pub fn handshake_data_len(p:&HandshakeData) -> usize {p.0.len()}
 
@@ -797,4 +800,44 @@ pub fn check_handshake_record(p: &ByteSeq) -> Res<(HandshakeData, usize)> {
     }
 }
 
+pub fn get_handshake_record(p:&ByteSeq) -> Res<HandshakeData> {
+    let (hd,len) = check_handshake_record(p)?;
+    if len == p.len() {
+        Ok(hd)
+    } else {Err(parse_failed)}
+}
 
+/* Incremental Transcript Construction
+For simplicity, we store the full transcript, but an internal Digest state would suffice. */
+
+pub struct Transcript(HashAlgorithm, HandshakeData);
+
+pub fn transcript_empty(ha: HashAlgorithm) -> Transcript {
+    Transcript(ha,HandshakeData(empty()))
+}
+
+pub fn transcript_add1(
+    tx: Transcript,
+    msg: &HandshakeData,
+) -> Transcript {
+    let Transcript(ha,tx) = tx;
+    Transcript(ha,handshake_concat(tx,msg))
+}
+
+pub fn get_transcript_hash(
+    tx: &Transcript
+) -> Res<Digest> {
+    let Transcript(ha,HandshakeData(txby)) = tx;
+    let th = hash(ha,txby)?;
+    Ok(th)
+}
+
+pub fn get_transcript_hash_truncated_client_hello(
+    tx: &Transcript,
+    ch: &HandshakeData,
+    trunc_len: usize
+) -> Res<Digest> {
+    let Transcript(ha,HandshakeData(tx)) = tx;
+    let HandshakeData(ch) = ch;
+    Ok(hash(&ha, &tx.concat(&ch.slice_range(0..trunc_len)))?)
+}
