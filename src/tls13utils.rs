@@ -1,6 +1,5 @@
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
-use hacspec_cryptolib::*;
 
 // XXX: not hacspec
 pub type Res<T> = Result<T, usize>;

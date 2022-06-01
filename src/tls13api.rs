@@ -43,7 +43,7 @@ pub fn client_read_handshake(d:&Bytes,st:Client) -> Res<(Option<Bytes>,Client)> 
             let buf = handshake_concat(buf,&hd);
             if find_handshake_message(HandshakeType::Finished,&buf,0) {
                 let (cfin,cipher1,cstate) = client_finish(&buf,cstate)?;
-                let (cf_rec, cipherH) = encrypt_handshake(cfin, 0, cipherH)?;
+                let (cf_rec, _cipherH) = encrypt_handshake(cfin, 0, cipherH)?;
                 return Ok((Some(cf_rec),Client::Client1(cstate,cipher1)))
             } else {
                 return Ok((None,Client::ClientH(cstate,cipher0,cipherH,buf)))}},
@@ -99,8 +99,8 @@ pub fn server_accept(algs:Algorithms,db:ServerDB,ch_rec:&Bytes,ent:Entropy)
     
 pub fn server_read_handshake(cfin_rec:&Bytes,st:Server) -> Res<Server> {
     match st {
-        Server::ServerH(sstate,cipher0,cipherH,cipher1) => {
-            let cf = get_handshake_record(cfin_rec)?;
+        Server::ServerH(sstate,_cipher0,cipherH,cipher1) => {
+            let (cf,_cipherH) = decrypt_handshake(cfin_rec,cipherH)?;
             let sstate = server_finish(&cf,sstate)?;
             Ok(Server::Server1(sstate,cipher1))
         },

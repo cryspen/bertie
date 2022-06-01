@@ -39,7 +39,7 @@ pub fn duplex_cipher_state1(ae:AeadAlgorithm,kiv1:AeadKeyIV,c1:u64,kiv2:AeadKeyI
 -> DuplexCipherState1 {DuplexCipherState1(ae,kiv1,c1,kiv2,c2,k)}
 
 
-pub fn derive_iv_ctr(ae: &AeadAlgorithm, iv: &AeadIv, n:u64) -> AeadIv {
+pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIv, n:u64) -> AeadIv {
     let counter = bytes(&U64_to_be_bytes(U64(n)));
     let mut iv_ctr = AeadIv::new(iv.len());
     for i in 0..iv.len()-8 {
