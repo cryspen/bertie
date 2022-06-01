@@ -1,5 +1,9 @@
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
 pub type Bytes = ByteSeq;
 
 pub fn empty() -> ByteSeq {
@@ -222,3 +226,42 @@ pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(),TLSError> {
     }
 }
 
+// Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)
+#[derive(Clone, Copy, PartialEq)]
+pub struct Algorithms(
+    pub HashAlgorithm,
+    pub AeadAlgorithm,
+    pub SignatureScheme,
+    pub KemScheme,
+    pub bool,
+    pub bool,
+);
+
+pub fn hash_alg(algs:&Algorithms) -> HashAlgorithm {algs.0}
+pub fn aead_alg(algs:&Algorithms) -> AeadAlgorithm {algs.1}
+pub fn sig_alg(algs:&Algorithms) -> SignatureScheme {algs.2}
+pub fn kem_alg(algs:&Algorithms) -> KemScheme {algs.3}
+pub fn psk_mode(algs:&Algorithms) -> bool {algs.4}
+pub fn zero_rtt(algs:&Algorithms) -> bool {algs.5}
+
+// Handshake Data
+pub struct HandshakeData(pub Bytes);
+
+pub fn handshake_data(b:Bytes) -> HandshakeData{HandshakeData(b)}
+pub fn handshake_data_bytes(hd:&HandshakeData) -> Bytes{hd.0.clone()}
+
+pub fn handshake_data_len(p:&HandshakeData) -> usize {p.0.len()}
+
+
+pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
+    let HandshakeData(m1) = msg1;
+    let HandshakeData(m2) = msg2;
+    HandshakeData(m1.concat(m2))
+}
+
+// Application Data
+#[derive(PartialEq)]
+pub struct AppData(Bytes);
+
+pub fn app_data(b:Bytes) -> AppData{AppData(b)}
+pub fn app_data_bytes(a:AppData)->Bytes{a.0}

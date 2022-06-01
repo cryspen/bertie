@@ -93,15 +93,10 @@ pub fn decrypt_record_payload(ae:&AeadAlgorithm, kiv:&AeadKeyIV, n:u64, cipherte
 }
 
 /* Record Encryption/Decryption API */
-#[derive(PartialEq)]
-pub struct AppData(Bytes);
-
-pub fn app_data(b:Bytes) -> AppData{AppData(b)}
-pub fn app_data_bytes(a:AppData)->Bytes{a.0}
 
 pub fn encrypt_zerortt(payload:AppData, pad:usize, st: ClientCipherState0) -> Result<(Bytes,ClientCipherState0),TLSError> {
     let ClientCipherState0(ae, kiv, n, exp) = st;
-    let AppData(payload) = payload;
+    let payload = app_data_bytes(payload);
     let rec = encrypt_record_payload(&ae,&kiv,n,ContentType::ApplicationData,&payload,pad)?;
     Ok((rec,ClientCipherState0(ae,kiv,n+1, exp)))
 }
@@ -110,7 +105,7 @@ pub fn decrypt_zerortt(ciphertext:&Bytes, st: ServerCipherState0) -> Result<(App
     let ServerCipherState0(ae, kiv, n, exp) = st;
     let (ct,payload) = decrypt_record_payload(&ae,&kiv,n,ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
-    Ok((AppData(payload),ServerCipherState0(ae,kiv,n+1,exp)))
+    Ok((app_data(payload),ServerCipherState0(ae,kiv,n+1,exp)))
 }
 
 pub fn encrypt_handshake(payload:HandshakeData, pad:usize, st: DuplexCipherStateH) -> Result<(Bytes,DuplexCipherStateH),TLSError> {
@@ -129,7 +124,7 @@ pub fn decrypt_handshake(ciphertext:&Bytes, st: DuplexCipherStateH) -> Result<(H
 
 pub fn encrypt_data(payload:AppData, pad:usize, st: DuplexCipherState1) -> Result<(Bytes,DuplexCipherState1),TLSError> {
     let DuplexCipherState1(ae, kiv, n, x, y, exp) = st;
-    let AppData(payload) = payload;
+    let payload = app_data_bytes(payload);
     let rec = encrypt_record_payload(&ae,&kiv,n,ContentType::ApplicationData,&payload,pad)?;
     Ok((rec,DuplexCipherState1(ae,kiv,n+1,x,y,exp)))
 }
@@ -143,5 +138,5 @@ pub fn decrypt_data(ciphertext:&Bytes, st: DuplexCipherState1) -> Result<(AppDat
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
     let (ct,payload) = decrypt_record_payload(&ae,&kiv,n,ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
-    Ok((AppData(payload),DuplexCipherState1(ae, x, y, kiv, n+1, exp)))
+    Ok((app_data(payload),DuplexCipherState1(ae, x, y, kiv, n+1, exp)))
 }

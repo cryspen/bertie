@@ -1,10 +1,13 @@
 // A module that for the formatting code needed by TLS 1.3
-use crate::tls13utils::*;
-use hacspec_cryptolib::*;
-//use super::*;
-
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
+
+use crate::tls13utils::*;
+
 
 /// Well Known Constants
 
@@ -59,25 +62,6 @@ const SHA256_EMPTY: Bytes32 = Bytes32(secret_bytes!([
     0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
 ]));
 
-
-
-// Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)
-#[derive(Clone, Copy, PartialEq)]
-pub struct Algorithms(
-    pub HashAlgorithm,
-    pub AeadAlgorithm,
-    pub SignatureScheme,
-    pub KemScheme,
-    pub bool,
-    pub bool,
-);
-
-pub fn hash_alg(algs:&Algorithms) -> HashAlgorithm {algs.0}
-pub fn aead_alg(algs:&Algorithms) -> AeadAlgorithm {algs.1}
-pub fn sig_alg(algs:&Algorithms) -> SignatureScheme {algs.2}
-pub fn kem_alg(algs:&Algorithms) -> KemScheme {algs.3}
-pub fn psk_mode(algs:&Algorithms) -> bool {algs.4}
-pub fn zero_rtt(algs:&Algorithms) -> bool {algs.5}
 
 fn ciphersuite(algs: &Algorithms) -> Result<Bytes,TLSError> {
     match (hash_alg(algs), aead_alg(algs)) {
@@ -359,25 +343,12 @@ pub fn get_hs_type(t: u8) -> Result<HandshakeType,TLSError> {
 
 // Tagged Handshake Data
 
-pub struct HandshakeData(Bytes);
-
-pub fn handshake_data(b:Bytes) -> HandshakeData{HandshakeData(b)}
-pub fn handshake_data_bytes(hd:&HandshakeData) -> Bytes{hd.0.clone()}
-
-pub fn handshake_data_len(p:&HandshakeData) -> usize {p.0.len()}
-
 pub fn handshake_message(ty:HandshakeType,by:&ByteSeq) -> Result<HandshakeData,TLSError> {
-    Ok(HandshakeData(bytes1(hs_type(ty)).concat(&lbytes3(by)?)))
-}
-
-pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
-    let HandshakeData(m1) = msg1;
-    let HandshakeData(m2) = msg2;
-    HandshakeData(m1.concat(m2))
+    Ok(handshake_data(bytes1(hs_type(ty)).concat(&lbytes3(by)?)))
 }
 
 pub fn get_first_handshake_message(p: &HandshakeData) -> Result<(HandshakeData, HandshakeData),TLSError> {
-    let HandshakeData(p) = p;
+    let p = handshake_data_bytes(p);
     if p.len() < 4 {
         Err(PARSE_FAILED)
     } else {
