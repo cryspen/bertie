@@ -114,7 +114,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     false,
 );
 
-/*
+
 const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
@@ -123,7 +123,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     false,
     false,
 );
-*/
+
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
@@ -152,10 +152,12 @@ pub fn tls13client(host: &str, port: &str) -> Result<(),TLSError> {
     let mut in_buf = [0; 8192];
     let len = read_record(&mut stream, &mut in_buf)?;
     let sh_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-    
-    //println!("Got SH");
+    //println!("Got SH record: {}",sh_rec.len());
 
     let (_, cstate) = client_read_handshake(&sh_rec, cstate)?;
+
+    //println!("Got SH");
+
     get_ccs_message(&mut stream, &mut in_buf)?;
 
     //println!("Got SCCS");
@@ -169,7 +171,7 @@ pub fn tls13client(host: &str, port: &str) -> Result<(),TLSError> {
         cstate = st;
         cf_rec = cf;
     }
-    //println!("Got SFIN");
+    println!("Got SFIN");
     let cf_rec = cf_rec.unwrap();
 
    /* Complete Connection */

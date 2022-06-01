@@ -614,7 +614,7 @@ fn test_finished() {
     }
     assert!(b);
 }
-/*
+
 #[test]
 fn test_full_round_trip() {
     let cr = Random::from_public_slice(&random_byte_vec(Random::length()));
@@ -634,61 +634,69 @@ fn test_full_round_trip() {
     );
 
     let mut b = true;
-    match client_init(TLS_AES_128_GCM_SHA256_X25519, &sn, None, None, ent_c) {
+    match client_connect(TLS_AES_128_GCM_SHA256_X25519, &sn, None, None, ent_c) {
         Err(x) => {
             println!("Client0 Error {}", x);
             b = false;
         }
         Ok((ch, cstate)) => {
             println!("Client0 Complete");
-            match server_init(TLS_AES_128_GCM_SHA256_X25519, db, &ch, ent_s) {
+            match server_accept(TLS_AES_128_GCM_SHA256_X25519, db, &ch, ent_s) {
                 Err(x) => {
-                    println!("Server0 Error {}", x);
+                    println!("ServerInit Error {}", x);
                     b = false;
                 }
-                Ok((sh, sf, _, server_cipher, sstate)) => {
+                Ok((sh, sf, sstate)) => {
                     println!("Server0 Complete");
-                    match client_set_params(&sh, cstate) {
+                    match client_read_handshake(&sh, cstate) {
                         Err(x) => {
-                            println!("ClientH Error {}", x);
+                            println!("ServerHello Error {}", x);
                             b = false;
-                        }
-                        Ok((_, cstate)) => match client_finish(&sf, cstate) {
+                        },
+                        Ok((Some(_),_)) =>{
+                            println!("ServerHello State Error");
+                            b = false;
+                        },
+                        Ok((None, cstate)) => match client_read_handshake(&sf, cstate) {
                             Err(x) => {
-                                println!("Client1 Error {}", x);
+                                println!("ClientFinish Error {}", x);
                                 b = false;
-                            }
-                            Ok((cf, client_cipher, cstate)) => {
+                            },
+                            Ok((None,_)) =>{
+                                println!("ClientFinish State Error");
+                                b = false;
+                            },
+                            Ok((Some(cf), cstate)) => {
                                 println!("Client Complete");
-                                match server_finish(&cf, sstate) {
+                                match server_read_handshake(&cf, sstate) {
                                     Err(x) => {
                                         println!("Server1 Error {}", x);
                                         b = false;
                                     }
-                                    Ok(_sstate) => {
+                                    Ok(sstate) => {
                                         println!("Server Complete");
 
                                         // Send data from client to server.
                                         let data = Bytes::from_public_slice(
                                             b"Hello server, here is the client",
                                         );
-                                        let (ap, client_cipher) =
-                                            encrypt_data(app_data(data.clone()), 0, client_cipher)
+                                        let (ap, cstate) =
+                                            client_write(app_data(data.clone()), cstate)
                                                 .unwrap();
-                                        let (ap, server_cipher) =
-                                            decrypt_data(&ap, server_cipher).unwrap();
-                                        assert_bytes_eq!(data, app_data_bytes(ap));
+                                        let (apo, sstate) =
+                                            server_read(&ap, sstate).unwrap();
+                                        assert_bytes_eq!(data, app_data_bytes(apo.unwrap()));
 
                                         // Send data from server to client.
                                         let data = Bytes::from_public_slice(
                                             b"Hello client, here is the server.",
                                         );
-                                        let (ap, _server_cipher) =
-                                            encrypt_data(app_data(data.clone()), 0, server_cipher)
+                                        let (ap, _sstate) =
+                                            server_write(app_data(data.clone()), sstate)
                                                 .unwrap();
-                                        let (ap, _client_cipher) =
-                                            decrypt_data(&ap, client_cipher).unwrap();
-                                        assert_bytes_eq!(data, app_data_bytes(ap));
+                                        let (apo, _cstate) =
+                                            client_read(&ap, cstate).unwrap();
+                                        assert_bytes_eq!(data, app_data_bytes(apo.unwrap()));
                                     }
                                 }
                             }
@@ -700,7 +708,7 @@ fn test_full_round_trip() {
     }
     assert!(b);
 }
-*/
+
 use std::io;
 use std::io::prelude::*;
 use std::net::TcpStream;
@@ -710,7 +718,6 @@ use std::str;
 //OpenSSL divides up the server flight into multiple encrypted records, whereas most other servers send one big record
 //We need to process the dummy CCS messages in the TCP layer
 //Google divides messages into 1418-byte chunks and so sends 2 messages for the encrypted server flight
-//(we horribly bake in this Google behavior below)
 
 // use dhat::{Dhat, DhatAlloc};
 // #[global_allocator]
