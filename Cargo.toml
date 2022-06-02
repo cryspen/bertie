@@ -10,11 +10,7 @@ readme = "README.md"
 repository = "https://gitlab.com/bhargava/bertie"
 
 [lib]
-path = "src/tls13client.rs"
-
-[[bin]]
-name = "tls13client"
-path = "src/tls13client.rs"
+path = "src/lib.rs"
 
 [dependencies]
 backtrace = "0.3.0"
