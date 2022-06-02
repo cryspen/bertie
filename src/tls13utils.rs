@@ -265,3 +265,20 @@ pub struct AppData(Bytes);
 
 pub fn app_data(b:Bytes) -> AppData{AppData(b)}
 pub fn app_data_bytes(a:AppData)->Bytes{a.0}
+
+
+pub struct ServerDB(pub Bytes,pub Bytes,pub SignatureKey,pub Option<(Bytes,PSK)>);
+
+pub fn lookup_db(algs:Algorithms, db:&ServerDB,sni:&Bytes,tkt:&Option<Bytes>) ->
+             Result<(Bytes,SignatureKey,Option<PSK>),TLSError> {
+    let ServerDB(server_name,cert,sk,psk_opt) = db;
+    check_eq(sni,server_name)?;
+    match (psk_mode(&algs),tkt, psk_opt) {
+        (true, Some(ctkt), Some((stkt,psk))) => {
+            check_eq(&ctkt,&stkt)?;
+            Ok((cert.clone(),sk.clone(),Some(psk.clone())))},
+        (false, _, _) => Ok((cert.clone(),sk.clone(),None)),
+        _ => Err(PSK_MODE_MISMATCH)
+    }
+}
+
