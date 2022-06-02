@@ -1,19 +1,4 @@
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-
-pub mod tls13utils;
-pub use tls13utils::*;
-pub mod tls13formats;
-pub use tls13formats::*;
-pub mod tls13record;
-pub use tls13record::*;
-pub mod tls13handshake;
-pub use tls13handshake::*;
-pub mod tls13api;
-pub use tls13api::*;
-
+#[allow(non_upper_case_globals)]
 
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
@@ -21,13 +6,20 @@ use rand::*;
 use std::env;
 use std::time::Duration;
 
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
+
+use bertie::tls13utils::*;
+use bertie::tls13api::*;
+
+
 
 // A Simple TLS 1.3 HTTP Client Implementation
 // It connects to a give host at port 443, sends an HTTP "GET /", and prints a prefix of the HTTP response
 // WARNING: This code is not in hacspec since it need to use TCP etc.
 
-//use hex::*;
-//use std::io;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
@@ -114,7 +106,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     false,
 );
 
-
+/*
 const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
@@ -123,7 +115,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     false,
     false,
 );
-
+*/
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
