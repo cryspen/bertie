@@ -350,22 +350,6 @@ pub fn client_finish(payload:&HandshakeData,st:ClientPostServerHello)
 
 /* TLS 1.3 Server Side Handshake Functions */
 
-
-pub struct ServerDB(pub Bytes,pub Bytes,pub SignatureKey,pub Option<(Bytes,PSK)>);
-
-fn lookup_db(algs:Algorithms, db:&ServerDB,sni:&Bytes,tkt:&Option<Bytes>) ->
-             Result<(Bytes,SignatureKey,Option<PSK>),TLSError> {
-    let ServerDB(server_name,cert,sk,psk_opt) = db;
-    check_eq(sni,server_name)?;
-    match (psk_mode(&algs),tkt, psk_opt) {
-        (true, Some(ctkt), Some((stkt,psk))) => {
-            check_eq(&ctkt,&stkt)?;
-            Ok((cert.clone(),sk.clone(),Some(psk.clone())))},
-        (false, _, _) => Ok((cert.clone(),sk.clone(),None)),
-        _ => Err(PSK_MODE_MISMATCH)
-    }
-}
-
 fn put_client_hello(
     algs: Algorithms,
     ch: &HandshakeData,
