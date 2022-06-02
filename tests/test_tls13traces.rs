@@ -709,40 +709,4 @@ fn test_full_round_trip() {
     assert!(b);
 }
 
-use std::io;
-use std::io::prelude::*;
-use std::net::TcpStream;
-use std::str;
 
-//NOTES:
-//OpenSSL divides up the server flight into multiple encrypted records, whereas most other servers send one big record
-//We need to process the dummy CCS messages in the TCP layer
-//Google divides messages into 1418-byte chunks and so sends 2 messages for the encrypted server flight
-
-// use dhat::{Dhat, DhatAlloc};
-// #[global_allocator]
-// static ALLOCATOR: DhatAlloc = DhatAlloc;
-
-#[test]
-fn test_connect() {
-    let mut b = true;
-    match tls13client("www.google.com", "443") {
-        Err(x) => {
-            println!("Connection to www.google.com failed\n");
-            b = false
-        }
-        Ok(x) => {
-            println!("Connection to www.google.com succeeded\n");
-        }
-    }
-    match tls13client("www.cloudflare.com", "443") {
-        Err(x) => {
-            println!("Connection to www.cloudflare.com failed\n");
-            b = false
-        }
-        Ok(x) => {
-            println!("Connection to www.cloudflare.com succeeded\n");
-        }
-    }
-    assert!(b);
-}
