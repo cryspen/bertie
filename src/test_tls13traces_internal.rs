@@ -1,12 +1,17 @@
+#[cfg(test)]
+mod internal_tests {
 
-use hacspec_dev::prelude::*;
-use hacspec_lib::prelude::*;
+use hacspec_lib::*;
 
-use bertie::*;
 #[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
+
+use crate::tls13utils::*;
+use crate::tls13formats::*;
+//use crate::tls13record::*;
+use crate::tls13handshake::*;
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 
@@ -314,7 +319,7 @@ fn test_parse_client_hello_roundtrip() {
     let cr: Random = Random::new();
     let gx = load_hex(client_x25519_pub);
     let sn = Bytes::new(23);
-    let ch = tls13formats::client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cr, &gx, &sn, &None);
+    let ch = crate::tls13formats::client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cr, &gx, &sn, &None);
     let mut b = true;
     match ch {
         Err(x) => {
@@ -368,7 +373,7 @@ fn test_parse_server_hello_roundtrip() {
     let mut sid = Bytes::new(24);
     sid[0] = U8(255);
     let gy = load_hex(server_x25519_pub);
-    let sh = tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
+    let sh = crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
     let mut b = true;
     match sh {
         Err(x) => {
@@ -614,4 +619,5 @@ fn test_finished() {
         _ => b = false,
     }
     assert!(b);
+}
 }
