@@ -47,7 +47,7 @@ pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Cl
             let sf = get_handshake_record(d)?;
             let (cipher1, cstate) = client_set_params(&sf, cstate)?;
             let buf = handshake_data(empty());
-            return Ok((None, Client::ClientH(cstate, cipher0, cipher1, buf)));
+            Ok((None, Client::ClientH(cstate, cipher0, cipher1, buf)))
         }
         Client::ClientH(cstate, cipher0, cipher_hs, buf) => {
             let (hd, cipher_hs) = decrypt_handshake(&d, cipher_hs)?;
@@ -55,12 +55,12 @@ pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Cl
             if find_handshake_message(HandshakeType::Finished, &buf, 0) {
                 let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
                 let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
-                return Ok((Some(cf_rec), Client::Client1(cstate, cipher1)));
+                Ok((Some(cf_rec), Client::Client1(cstate, cipher1)))
             } else {
-                return Ok((None, Client::ClientH(cstate, cipher0, cipher_hs, buf)));
+                Ok((None, Client::ClientH(cstate, cipher0, cipher_hs, buf)))
             }
         }
-        _ => return Err(INCORRECT_STATE),
+        _ => Err(INCORRECT_STATE),
     }
 }
 
@@ -71,13 +71,13 @@ pub fn client_read(d: &Bytes, st: Client) -> Result<(Option<AppData>, Client), T
             let (ty, hd, cipher1) = decrypt_data_or_hs(&d, cipher1)?;
             match ty {
                 ContentType::ApplicationData => {
-                    return Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
+                    Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
                 }
                 ContentType::Handshake => {
                     println!("Received Session Ticket");
-                    return Ok((None, Client::Client1(cstate, cipher1)));
+                    Ok((None, Client::Client1(cstate, cipher1)))
                 }
-                _ => return Err(PARSE_FAILED),
+                _ => Err(PARSE_FAILED),
             }
         }
         _ => return Err(INCORRECT_STATE),
@@ -91,7 +91,7 @@ pub fn client_write(d: AppData, st: Client) -> Result<(Bytes, Client), TLSError>
             let (by, cipher1) = encrypt_data(d, 0, cipher1)?;
             Ok((by, Client::Client1(cstate, cipher1)))
         }
-        _ => return Err(INCORRECT_STATE),
+        _ => Err(INCORRECT_STATE),
     }
 }
 

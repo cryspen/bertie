@@ -141,6 +141,10 @@ pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
     let mut in_buf = [0; 8192];
     let len = read_record(&mut stream, &mut in_buf)?;
     let sh_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+    if eq1(sh_rec[0],U8(21)) { // Alert
+        println!("Server does not support proposed algorithms");
+        Err(UNSUPPORTED_ALGORITHM)
+    } else {
     //println!("Got SH record: {}",sh_rec.len());
 
     let (_, cstate) = client_read_handshake(&sh_rec, cstate)?;
@@ -188,6 +192,7 @@ pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
     let html = String::from_utf8_lossy(&html_by);
     println!("Received HTTP Response from {}\n\n{}", host, html);
     Ok(())
+}
 }
 
 pub fn main() {
