@@ -5,10 +5,10 @@ use hacspec_dev::prelude::*;
 use hacspec_lib::prelude::*;
 
 use bertie::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 
@@ -16,7 +16,6 @@ fn load_hex(s: &str) -> Bytes {
     let s_no_ws: String = s.split_whitespace().collect();
     Bytes::from_hex(&s_no_ws)
 }
-
 
 // ECDH keys
 
@@ -136,20 +135,20 @@ fn test_full_round_trip() {
                         Err(x) => {
                             println!("ServerHello Error {}", x);
                             b = false;
-                        },
-                        Ok((Some(_),_)) =>{
+                        }
+                        Ok((Some(_), _)) => {
                             println!("ServerHello State Error");
                             b = false;
-                        },
+                        }
                         Ok((None, cstate)) => match client_read_handshake(&sf, cstate) {
                             Err(x) => {
                                 println!("ClientFinish Error {}", x);
                                 b = false;
-                            },
-                            Ok((None,_)) =>{
+                            }
+                            Ok((None, _)) => {
                                 println!("ClientFinish State Error");
                                 b = false;
-                            },
+                            }
                             Ok((Some(cf), cstate)) => {
                                 println!("Client Complete");
                                 match server_read_handshake(&cf, sstate) {
@@ -165,10 +164,8 @@ fn test_full_round_trip() {
                                             b"Hello server, here is the client",
                                         );
                                         let (ap, cstate) =
-                                            client_write(app_data(data.clone()), cstate)
-                                                .unwrap();
-                                        let (apo, sstate) =
-                                            server_read(&ap, sstate).unwrap();
+                                            client_write(app_data(data.clone()), cstate).unwrap();
+                                        let (apo, sstate) = server_read(&ap, sstate).unwrap();
                                         assert_bytes_eq!(data, app_data_bytes(apo.unwrap()));
 
                                         // Send data from server to client.
@@ -176,10 +173,8 @@ fn test_full_round_trip() {
                                             b"Hello client, here is the server.",
                                         );
                                         let (ap, _sstate) =
-                                            server_write(app_data(data.clone()), sstate)
-                                                .unwrap();
-                                        let (apo, _cstate) =
-                                            client_read(&ap, cstate).unwrap();
+                                            server_write(app_data(data.clone()), sstate).unwrap();
+                                        let (apo, _cstate) = client_read(&ap, cstate).unwrap();
                                         assert_bytes_eq!(data, app_data_bytes(apo.unwrap()));
                                     }
                                 }
@@ -192,5 +187,3 @@ fn test_full_round_trip() {
     }
     assert!(b);
 }
-
-

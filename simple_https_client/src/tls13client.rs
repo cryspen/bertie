@@ -6,15 +6,13 @@ use rand::*;
 use std::env;
 use std::time::Duration;
 
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
 
-use bertie::tls13utils::*;
 use bertie::tls13api::*;
-
-
+use bertie::tls13utils::*;
 
 // A Simple TLS 1.3 HTTP Client Implementation
 // It connects to a give host at port 443, sends an HTTP "GET /", and prints a prefix of the HTTP response
@@ -24,7 +22,7 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
 
-fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize,TLSError> {
+fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize, TLSError> {
     match stream.read(&mut buf[..]) {
         Ok(len) => {
             if len >= nbytes {
@@ -37,13 +35,13 @@ fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<u
     }
 }
 
-fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize,TLSError> {
+fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize, TLSError> {
     let mut b: [u8; 5] = [0; 5];
     let mut len = 0;
     while len < 5 {
         match stream.peek(&mut b) {
             Result::Ok(l) => len = l,
-            Result::Err(_) => Err(INSUFFICIENT_DATA)?
+            Result::Err(_) => Err(INSUFFICIENT_DATA)?,
         }
     }
     let l0 = b[3] as usize;
@@ -61,7 +59,7 @@ fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize,TLSError>
     }
 }
 
-fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(),TLSError> {
+fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), TLSError> {
     let wire = hex::decode(&rec.to_hex()).expect("Record Decoding Failed");
     match stream.write(&wire) {
         Err(_) => Err(INSUFFICIENT_DATA),
@@ -75,7 +73,7 @@ fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(),TLSError> {
     }
 }
 
-fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(),TLSError> {
+fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), TLSError> {
     let len = read_record(stream, buf)?;
     if len == 6
         && buf[0] == 0x14
@@ -91,11 +89,10 @@ fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(),TLSError
     }
 }
 
-fn put_ccs_message(stream: &mut TcpStream) -> Result<(),TLSError> {
+fn put_ccs_message(stream: &mut TcpStream) -> Result<(), TLSError> {
     let ccs_rec = ByteSeq::from_hex("140303000101");
     put_record(stream, &ccs_rec)
 }
-
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -119,7 +116,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
-pub fn tls13client(host: &str, port: &str) -> Result<(),TLSError> {
+pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
     let mut entropy = [0 as u8; 64];
     let d = Duration::new(1, 0);
     thread_rng().fill(&mut entropy);
@@ -159,14 +156,14 @@ pub fn tls13client(host: &str, port: &str) -> Result<(),TLSError> {
     while cf_rec == None {
         let len = read_record(&mut stream, &mut in_buf)?;
         let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-        let (cf,st) = client_read_handshake(&rec, cstate)?;
+        let (cf, st) = client_read_handshake(&rec, cstate)?;
         cstate = st;
         cf_rec = cf;
     }
     println!("Got SFIN");
     let cf_rec = cf_rec.unwrap();
 
-   /* Complete Connection */
+    /* Complete Connection */
     put_ccs_message(&mut stream)?;
     put_record(&mut stream, &cf_rec)?;
     println!("Connected to {}:443", host);
@@ -181,7 +178,7 @@ pub fn tls13client(host: &str, port: &str) -> Result<(),TLSError> {
     while ad == None {
         let len = read_record(&mut stream, &mut in_buf)?;
         let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-        let (d,st) = client_read(&rec, cstate)?;
+        let (d, st) = client_read(&rec, cstate)?;
         cstate = st;
         ad = d;
     }

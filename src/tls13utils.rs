@@ -1,9 +1,9 @@
 // Import hacspec and all needed definitions.
-use hacspec_lib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
+use hacspec_lib::*;
 pub type Bytes = ByteSeq;
 
 pub fn empty() -> ByteSeq {
@@ -58,9 +58,9 @@ pub const NEGOTIATION_MISMATCH: TLSError = 132;
 pub const PARSE_FAILED: TLSError = 133;
 pub const INSUFFICIENT_DATA: TLSError = 134;
 
-pub fn error_string(c:u8) -> String {
+pub fn error_string(c: u8) -> String {
     match c {
-        _ => format!("{}",c)
+        _ => format!("{}", c),
     }
 }
 /*
@@ -80,7 +80,7 @@ pub fn check(b: bool) -> Result<(), TLSError> {
 pub fn eq1(b1: U8, b2: U8) -> bool {
     b1.declassify() == b2.declassify()
 }
-pub fn check_eq1(b1: U8, b2: U8) -> Result<(),TLSError> {
+pub fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     if eq1(b1, b2) {
         Ok(())
     } else {
@@ -101,7 +101,7 @@ pub fn eq(b1: &ByteSeq, b2: &ByteSeq) -> bool {
     }
 }
 
-pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(),TLSError> {
+pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
     if b1.len() != b2.len() {
         Err(PARSE_FAILED)
     } else {
@@ -112,7 +112,7 @@ pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(),TLSError> {
     }
 }
 
-pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(),TLSError> {
+pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(PARSE_FAILED)
     } else {
@@ -126,7 +126,7 @@ pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(),TLSError> {
     }
 }
 
-pub fn lbytes1(b: &ByteSeq) -> Result<Bytes,TLSError> {
+pub fn lbytes1(b: &ByteSeq) -> Result<Bytes, TLSError> {
     let len = b.len();
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
@@ -137,7 +137,7 @@ pub fn lbytes1(b: &ByteSeq) -> Result<Bytes,TLSError> {
     }
 }
 
-pub fn lbytes2(b: &ByteSeq) -> Result<Bytes,TLSError> {
+pub fn lbytes2(b: &ByteSeq) -> Result<Bytes, TLSError> {
     let len = b.len();
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
@@ -148,7 +148,7 @@ pub fn lbytes2(b: &ByteSeq) -> Result<Bytes,TLSError> {
     }
 }
 
-pub fn lbytes3(b: &ByteSeq) -> Result<Bytes,TLSError> {
+pub fn lbytes3(b: &ByteSeq) -> Result<Bytes, TLSError> {
     let len = b.len();
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
@@ -158,7 +158,7 @@ pub fn lbytes3(b: &ByteSeq) -> Result<Bytes,TLSError> {
     }
 }
 
-pub fn check_lbytes1(b: &ByteSeq) -> Result<usize,TLSError> {
+pub fn check_lbytes1(b: &ByteSeq) -> Result<usize, TLSError> {
     if b.len() < 1 {
         Err(PARSE_FAILED)
     } else {
@@ -171,7 +171,7 @@ pub fn check_lbytes1(b: &ByteSeq) -> Result<usize,TLSError> {
     }
 }
 
-pub fn check_lbytes2(b: &ByteSeq) -> Result<usize,TLSError> {
+pub fn check_lbytes2(b: &ByteSeq) -> Result<usize, TLSError> {
     if b.len() < 2 {
         Err(PARSE_FAILED)
     } else {
@@ -186,7 +186,7 @@ pub fn check_lbytes2(b: &ByteSeq) -> Result<usize,TLSError> {
     }
 }
 
-pub fn check_lbytes3(b: &ByteSeq) -> Result<usize,TLSError> {
+pub fn check_lbytes3(b: &ByteSeq) -> Result<usize, TLSError> {
     if b.len() < 3 {
         Err(PARSE_FAILED)
     } else {
@@ -202,7 +202,7 @@ pub fn check_lbytes3(b: &ByteSeq) -> Result<usize,TLSError> {
     }
 }
 
-pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(),TLSError> {
+pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(), TLSError> {
     if check_lbytes1(b)? + 1 != b.len() {
         Err(PARSE_FAILED)
     } else {
@@ -210,7 +210,7 @@ pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(),TLSError> {
     }
 }
 
-pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(),TLSError> {
+pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(), TLSError> {
     if check_lbytes2(b)? + 2 != b.len() {
         Err(PARSE_FAILED)
     } else {
@@ -218,7 +218,7 @@ pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(),TLSError> {
     }
 }
 
-pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(),TLSError> {
+pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(), TLSError> {
     if check_lbytes3(b)? + 3 != b.len() {
         Err(PARSE_FAILED)
     } else {
@@ -237,21 +237,38 @@ pub struct Algorithms(
     pub bool,
 );
 
-pub fn hash_alg(algs:&Algorithms) -> HashAlgorithm {algs.0}
-pub fn aead_alg(algs:&Algorithms) -> AeadAlgorithm {algs.1}
-pub fn sig_alg(algs:&Algorithms) -> SignatureScheme {algs.2}
-pub fn kem_alg(algs:&Algorithms) -> KemScheme {algs.3}
-pub fn psk_mode(algs:&Algorithms) -> bool {algs.4}
-pub fn zero_rtt(algs:&Algorithms) -> bool {algs.5}
+pub fn hash_alg(algs: &Algorithms) -> HashAlgorithm {
+    algs.0
+}
+pub fn aead_alg(algs: &Algorithms) -> AeadAlgorithm {
+    algs.1
+}
+pub fn sig_alg(algs: &Algorithms) -> SignatureScheme {
+    algs.2
+}
+pub fn kem_alg(algs: &Algorithms) -> KemScheme {
+    algs.3
+}
+pub fn psk_mode(algs: &Algorithms) -> bool {
+    algs.4
+}
+pub fn zero_rtt(algs: &Algorithms) -> bool {
+    algs.5
+}
 
 // Handshake Data
 pub struct HandshakeData(pub Bytes);
 
-pub fn handshake_data(b:Bytes) -> HandshakeData{HandshakeData(b)}
-pub fn handshake_data_bytes(hd:&HandshakeData) -> Bytes{hd.0.clone()}
+pub fn handshake_data(b: Bytes) -> HandshakeData {
+    HandshakeData(b)
+}
+pub fn handshake_data_bytes(hd: &HandshakeData) -> Bytes {
+    hd.0.clone()
+}
 
-pub fn handshake_data_len(p:&HandshakeData) -> usize {p.0.len()}
-
+pub fn handshake_data_len(p: &HandshakeData) -> usize {
+    p.0.len()
+}
 
 pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
     let HandshakeData(m1) = msg1;
@@ -263,22 +280,34 @@ pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeD
 #[derive(PartialEq)]
 pub struct AppData(Bytes);
 
-pub fn app_data(b:Bytes) -> AppData{AppData(b)}
-pub fn app_data_bytes(a:AppData)->Bytes{a.0}
-
-
-pub struct ServerDB(pub Bytes,pub Bytes,pub SignatureKey,pub Option<(Bytes,PSK)>);
-
-pub fn lookup_db(algs:Algorithms, db:&ServerDB,sni:&Bytes,tkt:&Option<Bytes>) ->
-             Result<(Bytes,SignatureKey,Option<PSK>),TLSError> {
-    let ServerDB(server_name,cert,sk,psk_opt) = db;
-    check_eq(sni,server_name)?;
-    match (psk_mode(&algs),tkt, psk_opt) {
-        (true, Some(ctkt), Some((stkt,psk))) => {
-            check_eq(&ctkt,&stkt)?;
-            Ok((cert.clone(),sk.clone(),Some(psk.clone())))},
-        (false, _, _) => Ok((cert.clone(),sk.clone(),None)),
-        _ => Err(PSK_MODE_MISMATCH)
-    }
+pub fn app_data(b: Bytes) -> AppData {
+    AppData(b)
+}
+pub fn app_data_bytes(a: AppData) -> Bytes {
+    a.0
 }
 
+pub struct ServerDB(
+    pub Bytes,
+    pub Bytes,
+    pub SignatureKey,
+    pub Option<(Bytes, PSK)>,
+);
+
+pub fn lookup_db(
+    algs: Algorithms,
+    db: &ServerDB,
+    sni: &Bytes,
+    tkt: &Option<Bytes>,
+) -> Result<(Bytes, SignatureKey, Option<PSK>), TLSError> {
+    let ServerDB(server_name, cert, sk, psk_opt) = db;
+    check_eq(sni, server_name)?;
+    match (psk_mode(&algs), tkt, psk_opt) {
+        (true, Some(ctkt), Some((stkt, psk))) => {
+            check_eq(&ctkt, &stkt)?;
+            Ok((cert.clone(), sk.clone(), Some(psk.clone())))
+        }
+        (false, _, _) => Ok((cert.clone(), sk.clone(), None)),
+        _ => Err(PSK_MODE_MISMATCH),
+    }
+}
