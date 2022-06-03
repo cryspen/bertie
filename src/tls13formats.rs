@@ -434,7 +434,7 @@ pub fn client_hello(
             trunc_len = len;
         }
         (false, None) => {}
-        _ => return Err(PSK_MODE_MISMATCH),
+        _ => Err(PSK_MODE_MISMATCH)?,
     }
 
     let ch = handshake_message(HandshakeType::ClientHello,
@@ -603,7 +603,7 @@ pub fn parse_server_certificate(_algs: &Algorithms, sc: &HandshakeData) -> Resul
 
 fn ecdsa_signature(sv: &ByteSeq) -> Result<Bytes,TLSError> {
     if sv.len() != 64 {
-        return Err(PARSE_FAILED);
+        Err(PARSE_FAILED)
     } else {
         let b0 = bytes1(0x0);
         let b1 = bytes1(0x30);
@@ -624,7 +624,7 @@ fn ecdsa_signature(sv: &ByteSeq) -> Result<Bytes,TLSError> {
 
 fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes,TLSError> {
     if sig.len() < 4 {
-        return Err(PARSE_FAILED);
+        Err(PARSE_FAILED)
     } else {
         check_eq(&bytes1(0x30), &sig.slice_range(0..1))?;
         check_lbytes1_full(&sig.slice_range(1..sig.len()))?;
@@ -632,12 +632,12 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes,TLSError> {
         let rlen = check_lbytes1(&sig.slice_range(3..sig.len()))?;
         let r = sig.slice(4 + rlen - 32, 32);
         if sig.len() < 6 + rlen + 32 {
-            return Err(PARSE_FAILED);
+            Err(PARSE_FAILED)
         } else {
             check_eq(&bytes1(0x02), &sig.slice_range(4 + rlen..5 + rlen))?;
             check_lbytes1_full(&sig.slice_range(5 + rlen..sig.len()))?;
             let s = sig.slice(sig.len() - 32, 32);
-            return Ok(r.concat(&s));
+            Ok(r.concat(&s))
         }
     }
 }

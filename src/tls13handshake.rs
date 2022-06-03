@@ -187,14 +187,14 @@ fn get_client_hello(
 ) -> Result<(HandshakeData, Option<ClientCipherState0>, ClientPostClientHello),TLSError> {
     let gx_len = dh_priv_len(&kem_alg(&algs0));
     if ent.len() < 32 + gx_len {
-        return Err(INSUFFICIENT_ENTROPY)
+        Err(INSUFFICIENT_ENTROPY)
     } else {
         let tx = transcript_empty(hash_alg(&algs0));
         let cr = Random::from_seq(&ent.slice_range(0..32));
         let (x, gx) = kem_keygen(&kem_alg(&algs0), ent.slice_range(32..32 + gx_len))?;
         let (ch,trunc_len) = client_hello(&algs0,&cr,&gx,sn,&tkt)?;
         let (nch,cipher0,tx_ch) = compute_psk_binder_zero_rtt(algs0,ch,trunc_len,&psk,tx)?;
-        return Ok((nch,cipher0,ClientPostClientHello(cr, algs0, x, psk,tx_ch)))
+        Ok((nch,cipher0,ClientPostClientHello(cr, algs0, x, psk,tx_ch)))
     }
 }
 
@@ -217,16 +217,16 @@ fn compute_psk_binder_zero_rtt(
                 let th = get_transcript_hash(&tx_ch)?;
                 let (aek, key) = derive_0rtt_keys(&ha, &ae, &k, &th)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
-                return Ok((nch, cipher0, tx_ch))
+                Ok((nch, cipher0, tx_ch))
             } else {
-                return Ok((nch, None, tx_ch))
+                Ok((nch, None, tx_ch))
             }
         },
         (false, None, 0) => {
             let tx_ch = transcript_add1(tx,&ch);
-            return Ok((ch,None,tx_ch))
+            Ok((ch,None,tx_ch))
         },
-        _ => return Err(PSK_MODE_MISMATCH),
+        _ => Err(PSK_MODE_MISMATCH),
     }
 }
 
@@ -362,7 +362,7 @@ fn put_client_hello(
     let th = get_transcript_hash(&tx)?;
     let (cert,sigk,psko) = lookup_db(algs,&db,&sni,&tkto)?;
     let cipher0 = process_psk_binder_zero_rtt(algs,th,th_trunc,&psko,bindero)?;
-    return Ok((cipher0,ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psko, tx)))
+    Ok((cipher0,ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psko, tx)))
 }
 
 fn process_psk_binder_zero_rtt(
@@ -380,14 +380,14 @@ fn process_psk_binder_zero_rtt(
             if zero_rtt {
                 let (aek, key) = derive_0rtt_keys(&ha, &ae, &k, &th)?;
                 let cipher0 = Some(server_cipher_state0(ae, aek, 0, key));
-                return Ok(cipher0)
+                Ok(cipher0)
             }
             else {
-                return Ok(None)
+                Ok(None)
              }
         },
-        (false, None, None) => return Ok(None),
-        _ => return Err(PSK_MODE_MISMATCH),
+        (false, None, None) => Ok(None),
+        _ => Err(PSK_MODE_MISMATCH),
         }
 }
 
@@ -398,7 +398,7 @@ fn get_server_hello(
     let ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psk, tx) = st;
     let Algorithms(ha, ae, _sa, ks, _psk_mode, _zero_rtt) = algs;
     if ent.len() < 32 + dh_priv_len(&ks) {
-        return Err(INSUFFICIENT_ENTROPY)
+        Err(INSUFFICIENT_ENTROPY)
     } else {
         let sr = Random::from_seq(&ent.slice_range(0..32));
         let (gxy, gy) = kem_encap(&ks, &gx, ent.slice_range(32..32 + dh_priv_len(&ks)))?;

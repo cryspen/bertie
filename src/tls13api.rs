@@ -116,7 +116,7 @@ pub fn server_write(d:AppData,st:Server) -> Result<(Bytes,Server),TLSError> {
             let (by,cipher1) = encrypt_data(d, 0, cipher1)?;
             Ok((by,Server::Server1(sstate,cipher1)))
         },
-        _ => {return Err(INCORRECT_STATE)}
+        _ => {Err(INCORRECT_STATE)}
     }    
 }
 
@@ -126,6 +126,6 @@ pub fn server_read(d:&Bytes,st:Server) -> Result<(Option<AppData>,Server),TLSErr
             let (ad, cipher1) = decrypt_data(&d, cipher1)?;
             Ok((Some(ad),Server::Server1(sstate,cipher1)))
         }
-        _ => {return Err(INCORRECT_STATE)}
+        _ => {Err(INCORRECT_STATE)}
     }
 }
