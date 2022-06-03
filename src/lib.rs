@@ -1,4 +1,5 @@
 #![allow(non_upper_case_globals)]
+#![allow(dead_code)]
 
 mod tls13formats;
 mod tls13record;

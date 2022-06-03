@@ -1,4 +1,6 @@
 #![allow(non_upper_case_globals)]
+#![allow(dead_code)]
+
 use hacspec_dev::prelude::*;
 use hacspec_lib::prelude::*;
 
