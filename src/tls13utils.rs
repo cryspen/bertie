@@ -15,7 +15,7 @@ pub fn zeros(u: usize) -> ByteSeq {
 }
 
 pub fn bytes<T: SeqTrait<U8>>(x: &T) -> ByteSeq {
-    return Seq::from_seq(x);
+    Seq::from_seq(x)
 }
 
 bytes!(Random, 32);
