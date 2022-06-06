@@ -33,3 +33,7 @@ rayon = "1.3.0"
 hacspec-dev = { git = "https://github.com/hacspec/hacspec", package = "hacspec-dev" }
 criterion = "0.3"
 
+[workspace]
+members = [
+    "simple_https_client",
+]
