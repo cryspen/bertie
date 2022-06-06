@@ -1,0 +1,37 @@
+[bans]
+multiple-versions = "deny"
+
+# Just wait for a new release of csv, see ...
+#
+#   https://github.com/BurntSushi/rust-csv/issues/271
+#
+# error[B004]: found 2 duplicate entries for crate 'itoa'
+#
+#    = itoa v0.4.8
+#      └── csv v1.1.6
+#          └── criterion v0.3.5
+#              ├── (dev) imap-codec v0.5.0
+#              └── (dev) imap-types v0.5.0
+#                  └── imap-codec v0.5.0 (*)
+#    = itoa v1.0.2
+#      └── serde_json v1.0.81
+#           ├── criterion v0.3.5
+#           │   ├── (dev) imap-codec v0.5.0
+#           │   └── (dev) imap-types v0.5.0
+#           │       └── imap-codec v0.5.0 (*)
+#           └── tinytemplate v1.2.1
+#               └── criterion v0.3.5 (*)
+[[bans.skip-tree]]
+name = "criterion"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-git = [
+    "https://github.com/cryspen/utils",
+    "https://github.com/hacspec/hacspec",
+]
+
+# TODO: Agree on some license ...
+[licenses]
+allow = ["Apache-2.0", "MIT"]
