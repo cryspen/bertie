@@ -1,3 +1,7 @@
+//! A Simple TLS 1.3 HTTP Client Implementation
+//! It connects to a give host at port 443, sends an HTTP "GET /", and prints a prefix of the HTTP response
+//! WARNING: This code is not in hacspec since it need to use TCP etc.
+
 #![allow(non_upper_case_globals)]
 
 // Import hacspec and all needed definitions.
@@ -13,10 +17,6 @@ use hacspec_cryptolib::*;
 
 use bertie::tls13api::*;
 use bertie::tls13utils::*;
-
-// A Simple TLS 1.3 HTTP Client Implementation
-// It connects to a give host at port 443, sends an HTTP "GET /", and prints a prefix of the HTTP response
-// WARNING: This code is not in hacspec since it need to use TCP etc.
 
 use std::io::prelude::*;
 use std::net::TcpStream;
