@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        rust: [ stable ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build code
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all
+
+      - name: Test code
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all --all-targets
+
+  audit:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Audit dependencies
+      uses: EmbarkStudios/cargo-deny-action@v1
+      # TODO: Check licenses, too.
+      with:
+        command: check bans advisories sources
+
+  lint:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: clippy
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check code formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Check for common mistakes and missed improvements
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
