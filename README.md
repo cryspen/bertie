@@ -1,4 +1,4 @@
-<img src="bertie-logo.png" width="200px"/>
+<img src="assets/bertie-logo.png" width="200px"/>
 
 Bertie is a minimal, high-assurance implementation of TLS 1.3 written in subset of Rust called [hacspec](https://github.com/hacspec/hacspec).
 
@@ -18,4 +18,3 @@ If you are looking for commercial support for Bertie, please [reach out](mailto:
 The Bertie project is supported by the [nlnet foundation](https://nlnet.nl/project/Bertie/).
 
 *WARNING*: This is an early draft and work-in-progress. Do not use in production.
-
