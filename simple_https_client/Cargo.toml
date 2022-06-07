@@ -7,9 +7,6 @@ edition = "2021"
 name = "tls13client"
 path = "src/tls13client.rs"
 
-[lib]
-path = "src/tls13client.rs"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
