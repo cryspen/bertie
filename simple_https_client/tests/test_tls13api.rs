@@ -1,9 +1,9 @@
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
 
-use hacspec_lib::*;
-use hacspec_dev::rand::random_byte_vec;
 use bertie::*;
+use hacspec_dev::rand::random_byte_vec;
+use hacspec_lib::*;
 
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
