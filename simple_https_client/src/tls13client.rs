@@ -141,58 +141,59 @@ pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
     let mut in_buf = [0; 8192];
     let len = read_record(&mut stream, &mut in_buf)?;
     let sh_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-    if eq1(sh_rec[0],U8(21)) { // Alert
+    if eq1(sh_rec[0], U8(21)) {
+        // Alert
         println!("Server does not support proposed algorithms");
         Err(UNSUPPORTED_ALGORITHM)
     } else {
-    //println!("Got SH record: {}",sh_rec.len());
+        //println!("Got SH record: {}",sh_rec.len());
 
-    let (_, cstate) = client_read_handshake(&sh_rec, cstate)?;
+        let (_, cstate) = client_read_handshake(&sh_rec, cstate)?;
 
-    //println!("Got SH");
+        //println!("Got SH");
 
-    get_ccs_message(&mut stream, &mut in_buf)?;
+        get_ccs_message(&mut stream, &mut in_buf)?;
 
-    //println!("Got SCCS");
+        //println!("Got SCCS");
 
-    let mut cf_rec = None;
-    let mut cstate = cstate;
-    while cf_rec == None {
-        let len = read_record(&mut stream, &mut in_buf)?;
-        let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-        let (cf, st) = client_read_handshake(&rec, cstate)?;
-        cstate = st;
-        cf_rec = cf;
+        let mut cf_rec = None;
+        let mut cstate = cstate;
+        while cf_rec == None {
+            let len = read_record(&mut stream, &mut in_buf)?;
+            let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+            let (cf, st) = client_read_handshake(&rec, cstate)?;
+            cstate = st;
+            cf_rec = cf;
+        }
+        println!("Got SFIN");
+        let cf_rec = cf_rec.unwrap();
+
+        /* Complete Connection */
+        put_ccs_message(&mut stream)?;
+        put_record(&mut stream, &cf_rec)?;
+        println!("Connected to {}:443", host);
+        /* Send HTTP GET  */
+        let (ap, cstate) = client_write(app_data(http_get), cstate)?;
+        put_record(&mut stream, &ap)?;
+        println!("Sent HTTP GET to {}:443", host);
+
+        /* Process HTTP Response */
+        let mut ad = None;
+        let mut cstate = cstate;
+        while ad == None {
+            let len = read_record(&mut stream, &mut in_buf)?;
+            let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+            let (d, st) = client_read(&rec, cstate)?;
+            cstate = st;
+            ad = d;
+        }
+        let http_resp_by = ad.unwrap();
+        let http_resp = app_data_bytes(http_resp_by);
+        let html_by = hex::decode(&http_resp.to_hex()).expect("Decoding HTTP Response failed");
+        let html = String::from_utf8_lossy(&html_by);
+        println!("Received HTTP Response from {}\n\n{}", host, html);
+        Ok(())
     }
-    println!("Got SFIN");
-    let cf_rec = cf_rec.unwrap();
-
-    /* Complete Connection */
-    put_ccs_message(&mut stream)?;
-    put_record(&mut stream, &cf_rec)?;
-    println!("Connected to {}:443", host);
-    /* Send HTTP GET  */
-    let (ap, cstate) = client_write(app_data(http_get), cstate)?;
-    put_record(&mut stream, &ap)?;
-    println!("Sent HTTP GET to {}:443", host);
-
-    /* Process HTTP Response */
-    let mut ad = None;
-    let mut cstate = cstate;
-    while ad == None {
-        let len = read_record(&mut stream, &mut in_buf)?;
-        let rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-        let (d, st) = client_read(&rec, cstate)?;
-        cstate = st;
-        ad = d;
-    }
-    let http_resp_by = ad.unwrap();
-    let http_resp = app_data_bytes(http_resp_by);
-    let html_by = hex::decode(&http_resp.to_hex()).expect("Decoding HTTP Response failed");
-    let html = String::from_utf8_lossy(&html_by);
-    println!("Received HTTP Response from {}\n\n{}", host, html);
-    Ok(())
-}
 }
 
 pub fn main() {
