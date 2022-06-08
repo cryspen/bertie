@@ -13,7 +13,7 @@ It is licensed under [Apache 2.0](LICENSE) but is not yet ready for public consu
 
 Before contributing please have a look at the [contributing guidelines](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
 
-If you are looking for commercial support for Bertie, please [reach out](info@cryspen.com).
+If you are looking for commercial support for Bertie, please [reach out](mailto:info@cryspen.com).
 
 The Bertie project is supported by the [nlnet foundation](https://nlnet.nl/project/Bertie/).
 
