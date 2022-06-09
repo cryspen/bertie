@@ -50,7 +50,7 @@ pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Cl
             Ok((None, Client::ClientH(cstate, cipher0, cipher1, buf)))
         }
         Client::ClientH(cstate, cipher0, cipher_hs, buf) => {
-            let (hd, cipher_hs) = decrypt_handshake(&d, cipher_hs)?;
+            let (hd, cipher_hs) = decrypt_handshake(d, cipher_hs)?;
             let buf = handshake_concat(buf, &hd);
             if find_handshake_message(HandshakeType::Finished, &buf, 0) {
                 let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
@@ -68,7 +68,7 @@ pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Cl
 pub fn client_read(d: &Bytes, st: Client) -> Result<(Option<AppData>, Client), TLSError> {
     match st {
         Client::Client1(cstate, cipher1) => {
-            let (ty, hd, cipher1) = decrypt_data_or_hs(&d, cipher1)?;
+            let (ty, hd, cipher1) = decrypt_data_or_hs(d, cipher1)?;
             match ty {
                 ContentType::ApplicationData => {
                     Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
@@ -80,7 +80,7 @@ pub fn client_read(d: &Bytes, st: Client) -> Result<(Option<AppData>, Client), T
                 _ => Err(PARSE_FAILED),
             }
         }
-        _ => return Err(INCORRECT_STATE),
+        _ => Err(INCORRECT_STATE),
     }
 }
 
@@ -148,7 +148,7 @@ pub fn server_write(d: AppData, st: Server) -> Result<(Bytes, Server), TLSError>
 pub fn server_read(d: &Bytes, st: Server) -> Result<(Option<AppData>, Server), TLSError> {
     match st {
         Server::Server1(sstate, cipher1) => {
-            let (ad, cipher1) = decrypt_data(&d, cipher1)?;
+            let (ad, cipher1) = decrypt_data(d, cipher1)?;
             Ok((Some(ad), Server::Server1(sstate, cipher1)))
         }
         _ => Err(INCORRECT_STATE),

@@ -30,7 +30,7 @@ pub fn hkdf_expand_label(
         let info = lenb
             .concat(&lbytes1(&tls13_label)?)
             .concat(&lbytes1(context)?);
-        hkdf_expand(&ha, k, &info, len as usize)
+        hkdf_expand(ha, k, &info, len as usize)
     }
 }
 
@@ -44,7 +44,7 @@ pub fn derive_secret(
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    let early_secret = hkdf_extract(&ha, k, &zero_key(ha))?;
+    let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
     derive_secret(
         ha,
         &early_secret,
@@ -72,7 +72,7 @@ pub fn derive_0rtt_keys(
     k: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, Key), TLSError> {
-    let early_secret = hkdf_extract(&ha, k, &zero_key(ha))?;
+    let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
     let client_early_traffic_secret =
         derive_secret(ha, &early_secret, &bytes(&LABEL_C_E_TRAFFIC), tx)?;
     let early_exporter_master_secret =
@@ -97,11 +97,11 @@ pub fn derive_hk_ms(
     } else {
         zero_key(ha)
     };
-    let early_secret = hkdf_extract(&ha, &psk, &zero_key(ha))?;
+    let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
     let digest_emp = hash_empty(ha)?;
     let derived_secret = derive_secret(ha, &early_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
     //    println!("derived secret: {}", derived_secret.to_hex());
-    let handshake_secret = hkdf_extract(&ha, gxy, &derived_secret)?;
+    let handshake_secret = hkdf_extract(ha, gxy, &derived_secret)?;
     //    println!("handshake secret: {}", handshake_secret.to_hex());
     let client_handshake_traffic_secret =
         derive_secret(ha, &handshake_secret, &bytes(&LABEL_C_HS_TRAFFIC), tx)?;
@@ -118,7 +118,7 @@ pub fn derive_hk_ms(
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
     //   let (k,iv) = &server_write_key_iv; println!("shk: {}\n     {}", k.to_hex(), iv.to_hex());
     let master_secret_ = derive_secret(ha, &handshake_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
-    let master_secret = hkdf_extract(&ha, &zero_key(ha), &master_secret_)?;
+    let master_secret = hkdf_extract(ha, &zero_key(ha), &master_secret_)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
@@ -135,9 +135,9 @@ pub fn derive_app_keys(
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, Key), TLSError> {
     let client_application_traffic_secret_0 =
-        derive_secret(ha, &master_secret, &bytes(&LABEL_C_AP_TRAFFIC), tx)?;
+        derive_secret(ha, master_secret, &bytes(&LABEL_C_AP_TRAFFIC), tx)?;
     let server_application_traffic_secret_0 =
-        derive_secret(ha, &master_secret, &bytes(&LABEL_S_AP_TRAFFIC), tx)?;
+        derive_secret(ha, master_secret, &bytes(&LABEL_S_AP_TRAFFIC), tx)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0)?;
     let exporter_master_secret = derive_secret(ha, master_secret, &bytes(&LABEL_EXP_MASTER), tx)?;
@@ -247,13 +247,13 @@ fn compute_psk_binder_zero_rtt(
     match (psk_mode, psk, trunc_len) {
         (true, Some(k), _) => {
             let th_trunc = get_transcript_hash_truncated_client_hello(&tx, &ch, trunc_len)?;
-            let mk = derive_binder_key(&ha, &k)?;
+            let mk = derive_binder_key(&ha, k)?;
             let binder = hmac_tag(&ha, &mk, &th_trunc)?;
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = transcript_add1(tx, &nch);
             if zero_rtt {
                 let th = get_transcript_hash(&tx_ch)?;
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, &k, &th)?;
+                let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
             } else {
@@ -274,8 +274,8 @@ fn put_server_hello(
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
     let ClientPostClientHello(cr, algs0, x, psk, tx) = st;
     let Algorithms(ha, ae, _sa, ks, _psk_mode, _zero_rtt) = algs0;
-    let (sr, gy) = parse_server_hello(&algs0, &sh)?;
-    let tx = transcript_add1(tx, &sh);
+    let (sr, gy) = parse_server_hello(&algs0, sh)?;
+    let tx = transcript_add1(tx, sh);
     let gxy = kem_decap(&ks, &gy, x)?;
     let th = get_transcript_hash(&tx)?;
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &psk, &th)?;
@@ -293,13 +293,13 @@ fn put_server_signature(
 ) -> Result<ClientPostCertificateVerify, TLSError> {
     let ClientPostServerHello(cr, sr, algs, ms, cfk, sfk, tx) = st;
     if !psk_mode(&algs) {
-        parse_encrypted_extensions(&algs, &ee)?;
+        parse_encrypted_extensions(&algs, ee)?;
         let tx = transcript_add1(tx, ee);
-        let cert = parse_server_certificate(&algs, &sc)?;
+        let cert = parse_server_certificate(&algs, sc)?;
         let tx = transcript_add1(tx, sc);
         let th_sc = get_transcript_hash(&tx)?;
         let pk = verification_key_from_cert(&cert)?;
-        let sig = parse_certificate_verify(&algs, &scv)?;
+        let sig = parse_certificate_verify(&algs, scv)?;
         let sigval = PREFIX_SERVER_SIGNATURE.concat(&th_sc);
         verify(&sig_alg(&algs), &pk, &bytes(&sigval), &sig)?;
         let tx = transcript_add1(tx, scv);
@@ -315,7 +315,7 @@ fn put_psk_skip_server_signature(
 ) -> Result<ClientPostCertificateVerify, TLSError> {
     let ClientPostServerHello(cr, sr, algs, ms, cfk, sfk, tx) = st;
     if psk_mode(&algs) {
-        parse_encrypted_extensions(&algs, &ee)?;
+        parse_encrypted_extensions(&algs, ee)?;
         let tx = transcript_add1(tx, ee);
         Ok(ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx))
     } else {
@@ -330,9 +330,9 @@ fn put_server_finished(
     let ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx) = st;
     let Algorithms(ha, ae, _sa, _gn, _psk_mode, _zero_rtt) = algs;
     let th = get_transcript_hash(&tx)?;
-    let vd = parse_finished(&algs, &sfin)?;
+    let vd = parse_finished(&algs, sfin)?;
     hmac_verify(&ha, &sfk, &th, &vd)?;
-    let tx = transcript_add1(tx, &sfin);
+    let tx = transcript_add1(tx, sfin);
     let th_sfin = get_transcript_hash(&tx)?;
     let (cak, sak, exp) = derive_app_keys(&ha, &ae, &ms, &th_sfin)?;
     let cipher1 = duplex_cipher_state1(ae, cak, 0, sak, 0, exp);
@@ -410,10 +410,10 @@ fn put_client_hello(
     ch: &HandshakeData,
     db: ServerDB,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
-    let (cr, sid, sni, gx, tkto, bindero, trunc_len) = parse_client_hello(&algs, &ch)?;
+    let (cr, sid, sni, gx, tkto, bindero, trunc_len) = parse_client_hello(&algs, ch)?;
     let tx = transcript_empty(hash_alg(&algs));
-    let th_trunc = get_transcript_hash_truncated_client_hello(&tx, &ch, trunc_len)?;
-    let tx = transcript_add1(tx, &ch);
+    let th_trunc = get_transcript_hash_truncated_client_hello(&tx, ch, trunc_len)?;
+    let tx = transcript_add1(tx, ch);
     let th = get_transcript_hash(&tx)?;
     let (cert, sigk, psko) = lookup_db(algs, &db, &sni, &tkto)?;
     let cipher0 = process_psk_binder_zero_rtt(algs, th, th_trunc, &psko, bindero)?;
@@ -433,10 +433,10 @@ fn process_psk_binder_zero_rtt(
     let Algorithms(ha, ae, _sa, _ks, psk_mode, zero_rtt) = algs;
     match (psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
-            let mk = derive_binder_key(&ha, &k)?;
+            let mk = derive_binder_key(&ha, k)?;
             hmac_verify(&ha, &mk, &th_trunc, &binder)?;
             if zero_rtt {
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, &k, &th)?;
+                let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
                 let cipher0 = Some(server_cipher_state0(ae, aek, 0, key));
                 Ok(cipher0)
             } else {
@@ -546,9 +546,9 @@ fn put_client_finished(
 ) -> Result<ServerPostClientFinished, TLSError> {
     let ServerPostServerFinished(cr, sr, algs, ms, cfk, tx) = st;
     let th = get_transcript_hash(&tx)?;
-    let vd = parse_finished(&algs, &cfin)?;
+    let vd = parse_finished(&algs, cfin)?;
     hmac_verify(&hash_alg(&algs), &cfk, &th, &vd)?;
-    let tx = transcript_add1(tx, &cfin);
+    let tx = transcript_add1(tx, cfin);
     let th = get_transcript_hash(&tx)?;
     let rms = derive_rms(&hash_alg(&algs), &ms, &th)?;
     Ok(ServerPostClientFinished(cr, sr, algs, rms, tx))

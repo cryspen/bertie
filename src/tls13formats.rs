@@ -203,7 +203,7 @@ pub fn server_pre_shared_key(_algs: &Algorithms) -> Result<Bytes, TLSError> {
 }
 
 pub fn check_server_psk_shared_key(_algs: &Algorithms, b: &ByteSeq) -> Result<(), TLSError> {
-    check_eq(&bytes2(0, 0), &b)
+    check_eq(&bytes2(0, 0), b)
 }
 
 pub struct EXTS(
@@ -613,10 +613,7 @@ pub fn server_certificate(_algs: &Algorithms, cert: &ByteSeq) -> Result<Handshak
     let crt = lbytes3(cert)?;
     let ext = lbytes2(&empty())?;
     let crts = lbytes3(&crt.concat(&ext))?;
-    Ok(handshake_message(
-        HandshakeType::Certificate,
-        &creq.concat(&crts),
-    )?)
+    handshake_message(HandshakeType::Certificate, &creq.concat(&crts))
 }
 
 pub fn parse_server_certificate(_algs: &Algorithms, sc: &HandshakeData) -> Result<Bytes, TLSError> {
@@ -703,7 +700,7 @@ pub fn parse_certificate_verify(algs: &Algorithms, cv: &HandshakeData) -> Result
 }
 
 pub fn finished(_algs: &Algorithms, vd: &ByteSeq) -> Result<HandshakeData, TLSError> {
-    Ok(handshake_message(HandshakeType::Finished, vd)?)
+    handshake_message(HandshakeType::Finished, vd)
 }
 
 pub fn parse_finished(_algs: &Algorithms, fin: &HandshakeData) -> Result<Bytes, TLSError> {
@@ -715,17 +712,17 @@ pub fn session_ticket(_algs: &Algorithms, tkt: &ByteSeq) -> Result<HandshakeData
     let lifetime = U32_to_be_bytes(U32(172800));
     let age = U32_to_be_bytes(U32(9999));
     let nonce = lbytes1(&bytes1(1))?;
-    let stkt = lbytes2(&tkt)?;
+    let stkt = lbytes2(tkt)?;
     let grease_ext = bytes2(0x5a, 0x5a).concat(&lbytes2(&empty())?);
     let ext = lbytes2(&grease_ext)?;
-    Ok(handshake_message(
+    handshake_message(
         HandshakeType::NewSessionTicket,
         &lifetime
             .concat(&age)
             .concat(&nonce)
             .concat(&stkt)
             .concat(&ext),
-    )?)
+    )
 }
 
 pub fn parse_session_ticket(
@@ -829,5 +826,5 @@ pub fn get_transcript_hash_truncated_client_hello(
 ) -> Result<Digest, TLSError> {
     let Transcript(ha, HandshakeData(tx)) = tx;
     let HandshakeData(ch) = ch;
-    Ok(hash(&ha, &tx.concat(&ch.slice_range(0..trunc_len)))?)
+    hash(ha, &tx.concat(&ch.slice_range(0..trunc_len)))
 }
