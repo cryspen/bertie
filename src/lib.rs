@@ -1,6 +1,10 @@
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
+// hacspec doesn't allow +=
+#![allow(clippy::assign_op_pattern)]
+// FIXME(performance)
+#![allow(clippy::large_enum_variant)]
 
 mod test_tls13traces_internal;
 mod tls13formats;
