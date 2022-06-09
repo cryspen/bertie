@@ -59,9 +59,7 @@ pub const PARSE_FAILED: TLSError = 133;
 pub const INSUFFICIENT_DATA: TLSError = 134;
 
 pub fn error_string(c: u8) -> String {
-    match c {
-        _ => format!("{}", c),
-    }
+    format!("{}", c)
 }
 /*
 pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
@@ -304,7 +302,7 @@ pub fn lookup_db(
     check_eq(sni, server_name)?;
     match (psk_mode(&algs), tkt, psk_opt) {
         (true, Some(ctkt), Some((stkt, psk))) => {
-            check_eq(&ctkt, &stkt)?;
+            check_eq(ctkt, stkt)?;
             Ok((cert.clone(), sk.clone(), Some(psk.clone())))
         }
         (false, _, _) => Ok((cert.clone(), sk.clone(), None)),
