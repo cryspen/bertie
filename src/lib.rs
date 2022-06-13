@@ -5,6 +5,7 @@
 #![allow(clippy::assign_op_pattern)]
 // FIXME(performance)
 #![allow(clippy::large_enum_variant)]
+#![allow(clippy::zero_prefixed_literal)]
 
 mod test_tls13traces_internal;
 mod tls13formats;
