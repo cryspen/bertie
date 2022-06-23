@@ -11,10 +11,28 @@ It follows design principles:
 Bertie was first authored by Karthikeyan Bhargavan at Inria in 2021 and subsequently transferred to Cryspen in 2022.
 It is licensed under [Apache 2.0](LICENSE) but is not yet ready for public consumption.
 
-Before contributing please have a look at the [contributing guidelines](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+**USING BERTIE**
+
+An example application using Bertie is provided in the `simple_https_client` crate that implements an HTTPS client that
+connects to and retrieves a web page using Bertie as the underlying TLS implementation.
+
+You can try out this client by executing in `simple_https_client`:
+```
+cargo run example.com
+```
+
+*WARNING*: This is an early draft of Bertie and strictly work-in-progress. Do not use in production.
 
 If you are looking for commercial support for Bertie, please [reach out](mailto:info@cryspen.com).
 
-The Bertie project is supported by the [nlnet foundation](https://nlnet.nl/project/Bertie/).
+**CONTRIBUTING**
 
-*WARNING*: This is an early draft and work-in-progress. Do not use in production.
+To see what we are working on and what is in the pipeline, you can follow our [project tasks](https://github.com/orgs/cryspen/projects/2/views/2).
+
+Before contributing please have a look at the [contributing guidelines](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+
+**ACKNOWLEDGEMENTS**
+
+The Bertie project is supported by [Inria](https://www.inria.fr) and the [nlnet foundation](https://nlnet.nl/project/Bertie/).
+
+
