@@ -8,4 +8,4 @@ By making a contribution to this project, I certify that:
 
 (d) I understand and agree that this project and the contribution are public and that a record of the contribution (including all personal information I submit with it) is maintained indefinitely and may be redistributed consistent with this project or the open source license(s) involved.
 
-(e) I understand that any contribution to this repository is sibject to the contribution guidelines of Apache 2.0. In particular, I grant Cryspen a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute my contribution and such Derivative Works in Source or Object form.
+(e) I understand that any contribution to this repository is subject to the contribution guidelines of Apache 2.0. In particular, I grant Cryspen a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute my contribution and such Derivative Works in Source or Object form.
