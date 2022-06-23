@@ -31,6 +31,15 @@ To see what we are working on and what is in the pipeline, you can follow our [p
 
 Before contributing please have a look at the [contributing guidelines](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
 
+**PUBLICATIONS**
+
+Bertie is inspired by a number of prior research works, including works on [hacspec](https://github.com/hacspec/hacspec) and TLS 1.3.
+Some of the most relevant publications are listed below:
+
+* Hacspec: succinct, executable, verifiable specifications for high-assurance cryptography embedded in Rust. Denis Merigoux, Franziskus Kiefer, Karthikeyan Bhargavan.  Inria Technical Report, 2021. [hal-03176482](https://hal.inria.fr/hal-03176482)
+* Verified Models and Reference Implementations for the TLS 1.3 Standard Candidate. Karthikeyan Bhargavan, Bruno Blanchet, Nadim Kobeissi.  38th IEEE Symposium on Security and Privacy, 2017. [hal-01575920](https://hal.inria.fr/hal-01575920)
+* A Messy State of the Union: Taming the Composite State Machines of TLS. Benjamin Beurdouche, Karthikeyan Bhargavan, Antoine Delignat-Lavaud, Cédric Fournet, Markulf Kohlweiss, Alfredo Pironti, Pierre-yves Strub, Jean Karim Zinzindohoue.  IEEE Symposium on Security & Privacy, 2015. [hal-01114250](https://hal.inria.fr/hal-01114250/)
+
 **ACKNOWLEDGEMENTS**
 
 The Bertie project is supported by [Inria](https://www.inria.fr) and the [nlnet foundation](https://nlnet.nl/project/Bertie/).
