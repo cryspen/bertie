@@ -51,9 +51,6 @@ jobs:
 
     - name: Audit dependencies
       uses: EmbarkStudios/cargo-deny-action@v1
-      # TODO: Check licenses, too.
-      with:
-        command: check bans advisories sources
 
   lint:
     needs: test
