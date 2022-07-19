@@ -297,6 +297,7 @@ mod io {
         // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
         let wire = hex::decode(&rec.to_hex()).unwrap();
 
+        // TODO: write_all?
         match stream.write(&wire) {
             Ok(len) => {
                 if len < wire.len() {
