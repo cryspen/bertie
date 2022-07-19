@@ -1,5 +1,8 @@
 <img src="assets/bertie-logo.png" width="200px"/>
 
+[![CI](https://github.com/cryspen/bertie/actions/workflows/ci.yml/badge.svg)](https://github.com/cryspen/bertie/actions/workflows/ci.yml)
+[![Scheduled](https://github.com/cryspen/bertie/actions/workflows/scheduled.yml/badge.svg)](https://github.com/cryspen/bertie/actions/workflows/scheduled.yml)
+
 Bertie is a minimal, high-assurance implementation of TLS 1.3 written in a subset of Rust called [hacspec].
 
 It is built upon the following design principles:
