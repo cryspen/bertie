@@ -173,7 +173,7 @@ pub fn tls13client(host: &str, port: u16) -> Result<Vec<u8>, TLSError> {
             cstate = new_cstate;
         }
 
-        let body = {
+        let response_prefix = {
             // Safety: Safe to unwrap().
             let body = app_data_bytes(ad.unwrap());
 
@@ -182,7 +182,7 @@ pub fn tls13client(host: &str, port: u16) -> Result<Vec<u8>, TLSError> {
             hex::decode(body.to_hex()).unwrap()
         };
 
-        Ok(body)
+        Ok(response_prefix)
     }
 }
 
