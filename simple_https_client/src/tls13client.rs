@@ -22,6 +22,40 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::str;
 
+// This is a demo of a simple HTTPS client.
+//
+// The client connects to host:port via TCP, executes a TLS 1.3 handshake,
+// sends an encrypted HTTP GET, and prints the servers HTTP response.
+
+pub fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Obtain host and port from arguments.
+    let (host, port) = {
+        let mut args = env::args();
+
+        let _ = args.next().ok_or("Unexpected environment.")?;
+
+        let host = args.next().unwrap_or("www.google.com".to_string());
+        let port = args.next().unwrap_or("443".to_string());
+
+        (host, u16::from_str(&port)?)
+    };
+
+    // Initiate HTTPS connection to host:port.
+    match tls13client(&host, port) {
+        Ok(()) => {
+            println!("Connection to \"{}:{}\" succeeded.\n", host, port);
+        }
+        Err(error) => {
+            println!(
+                "Connection to \"{}:{}\" failed with ...\n\n\t{}\n\n.\n",
+                host, port, error
+            );
+        }
+    }
+
+    Ok(())
+}
+
 fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize, TLSError> {
     match stream.read(&mut buf[..]) {
         Ok(len) => {
@@ -117,7 +151,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
-pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
+pub fn tls13client(host: &str, port: u16) -> Result<(), TLSError> {
     let mut entropy = [0 as u8; 64];
     let d = Duration::new(1, 0);
     thread_rng().fill(&mut entropy);
@@ -127,7 +161,7 @@ pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
     let http_get = ByteSeq::from_public_slice(http_get_str.as_bytes());
 
     /* Initiate TCP Connection */
-    let addr = [host, port].join(":");
+    let addr = format!("{}:{}", host, port);
     let mut stream = TcpStream::connect(&addr).unwrap();
     stream
         .set_read_timeout(Some(d))
@@ -194,23 +228,5 @@ pub fn tls13client(host: &str, port: &str) -> Result<(), TLSError> {
         let html = String::from_utf8_lossy(&html_by);
         println!("Received HTTP Response from {}\n\n{}", host, html);
         Ok(())
-    }
-}
-
-pub fn main() {
-    let args: Vec<String> = env::args().collect();
-    let host = if args.len() <= 1 {
-        "www.google.com"
-    } else {
-        &args[1]
-    };
-    let port = if args.len() <= 2 { "443" } else { &args[2] };
-    match tls13client(host, port) {
-        Err(x) => {
-            println!("Connection to {} failed with {}\n", host, x);
-        }
-        Ok(()) => {
-            println!("Connection to {} succeeded\n", host);
-        }
     }
 }
