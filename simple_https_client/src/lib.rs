@@ -45,7 +45,11 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
-pub fn tls13client(host: &str, port: u16, request: &str) -> Result<Vec<u8>, TLSError> {
+pub fn tls13client(
+    host: &str,
+    port: u16,
+    request: &str,
+) -> Result<(TcpStream, Client, Vec<u8>), TLSError> {
     // # Demo of a simple HTTPS client.
     //
     // The client ...
@@ -179,8 +183,40 @@ pub fn tls13client(host: &str, port: u16, request: &str) -> Result<Vec<u8>, TLSE
             hex::decode(body.to_hex()).unwrap()
         };
 
-        Ok(response_prefix)
+        Ok((stream, cstate, response_prefix))
     }
+}
+
+pub fn tls13client_continue(
+    mut stream: TcpStream,
+    cstate: Client,
+) -> Result<(TcpStream, Client, Vec<u8>), TLSError> {
+    // Create input buffer.
+    let mut in_buf = [0; 8192];
+
+    let mut ad = None;
+    let mut cstate = cstate;
+    while ad == None {
+        let rec = {
+            let len = io::read_record(&mut stream, &mut in_buf)?;
+            ByteSeq::from_public_slice(&in_buf[0..len])
+        };
+
+        let (new_ad, new_cstate) = client_read(&rec, cstate)?;
+        ad = new_ad;
+        cstate = new_cstate;
+    }
+
+    let response_prefix = {
+        // Safety: Safe to unwrap().
+        let body = app_data_bytes(ad.unwrap());
+
+        // Safety: Safe to unwrap().
+        // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
+        hex::decode(body.to_hex()).unwrap()
+    };
+
+    Ok((stream, cstate, response_prefix))
 }
 
 mod io {

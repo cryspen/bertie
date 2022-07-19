@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initiate HTTPS connection to host:port.
     match tls13client(&host, port, &request) {
-        Ok(response_prefix) => {
+        Ok((_, _, response_prefix)) => {
             println!("[!] Received HTTP response (prefix):");
             println!("{}", String::from_utf8_lossy(&response_prefix));
             println!("[!] Connection to \"{}:{}\" succeeded.", host, port);
