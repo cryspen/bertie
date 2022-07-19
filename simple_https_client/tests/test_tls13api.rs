@@ -2,13 +2,12 @@
 #![allow(dead_code)]
 
 use bertie::*;
-use hacspec_dev::rand::random_byte_vec;
-use hacspec_lib::*;
-
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
 #[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
+use hacspec_dev::rand::random_byte_vec;
+use hacspec_lib::*;
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 

@@ -1,11 +1,16 @@
-use simple_https_client::tls13client;
 use std::{env, str::FromStr};
+
+use simple_https_client::tls13client;
+use tracing_subscriber;
 
 /// This is a demo of a simple HTTPS client.
 ///
 /// The client connects to host:port via TCP, executes a TLS 1.3 handshake,
 /// sends an encrypted HTTP GET, and prints the servers HTTP response.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Setup tracing.
+    tracing_subscriber::fmt::init();
+
     // Obtain host and port from arguments.
     let (host, port) = {
         let mut args = env::args();

@@ -17,6 +17,8 @@ hacspec-dev = { git = "https://github.com/hacspec/hacspec", package = "hacspec-d
 hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
 evercrypt_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "evercrypt_cryptolib" }
 bertie = {path = "../"}
+tracing = "0.1"
+tracing-subscriber = "0.2"
 
 [features]
 default = ["hacspec"]
