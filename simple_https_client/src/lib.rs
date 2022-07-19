@@ -93,7 +93,7 @@ pub fn tls13client(
         client_connect(default_algs, &sni, None, None, ent)?
     };
 
-    io::put_record(&mut stream, &ch_rec)?;
+    io::write_record(&mut stream, &ch_rec)?;
 
     // Process server response.
     let sh_rec = {
@@ -113,7 +113,7 @@ pub fn tls13client(
 
         //println!("Got SH");
 
-        io::get_ccs_message(&mut stream, &mut in_buf)?;
+        io::read_ccs_message(&mut stream, &mut in_buf)?;
 
         //println!("Got SCCS");
 
@@ -140,8 +140,8 @@ pub fn tls13client(
 
         print!("[!] Sending CSS + CF...");
         std::io::stdout().flush().unwrap();
-        io::put_ccs_message(&mut stream)?;
-        io::put_record(&mut stream, &cf_rec)?;
+        io::write_ccs_message(&mut stream)?;
+        io::write_record(&mut stream, &cf_rec)?;
         println!(" done.");
 
         println!("[!] --- Handshake finished ---");
@@ -156,7 +156,7 @@ pub fn tls13client(
 
         print!("[!] Sending \"HTTP GET ...\"...");
         std::io::stdout().flush().unwrap();
-        io::put_record(&mut stream, &ap)?;
+        io::write_record(&mut stream, &ap)?;
         println!(" done.");
 
         /* Process HTTP response */
@@ -267,7 +267,7 @@ mod io {
         }
     }
 
-    pub(crate) fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), TLSError> {
+    pub(crate) fn write_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), TLSError> {
         // Safe to unwrap().
         // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
         let wire = hex::decode(&rec.to_hex()).unwrap();
@@ -284,7 +284,7 @@ mod io {
         }
     }
 
-    pub(crate) fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), TLSError> {
+    pub(crate) fn read_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), TLSError> {
         let len = read_record(stream, buf)?;
         if len == 6
             && buf[0] == 0x14
@@ -300,8 +300,8 @@ mod io {
         }
     }
 
-    pub(crate) fn put_ccs_message(stream: &mut TcpStream) -> Result<(), TLSError> {
+    pub(crate) fn write_ccs_message(stream: &mut TcpStream) -> Result<(), TLSError> {
         let ccs_rec = ByteSeq::from_hex("140303000101");
-        put_record(stream, &ccs_rec)
+        write_record(stream, &ccs_rec)
     }
 }
