@@ -230,16 +230,36 @@ mod io {
         buf: &mut [u8],
         nbytes: usize,
     ) -> Result<usize, TLSError> {
-        match stream.read(&mut buf[..]) {
-            Ok(len) => {
-                if len >= nbytes {
-                    Ok(len - nbytes)
-                } else {
-                    // TODO: Adversarial testing: stack-overflow?
-                    read_bytes(stream, &mut buf[len..], nbytes - len)
+        // TODO: Avoid this invariant.
+        assert!(nbytes <= buf.len());
+
+        let mut total = 0;
+
+        loop {
+            match stream.read(&mut buf[total..]) {
+                // Connection closed.
+                Ok(0) => {
+                    if total >= nbytes {
+                        let extra = total - nbytes;
+                        return Ok(extra);
+                    } else {
+                        return Err(INSUFFICIENT_DATA);
+                    }
+                }
+                // Data received.
+                Ok(amt) => {
+                    total += amt;
+
+                    if total >= nbytes {
+                        let extra = total - nbytes;
+                        return Ok(extra);
+                    }
+                }
+                // Error.
+                Err(_) => {
+                    return Err(INSUFFICIENT_DATA);
                 }
             }
-            Err(_) => Err(INSUFFICIENT_DATA),
         }
     }
 
