@@ -28,6 +28,7 @@ fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<u
             if len >= nbytes {
                 Ok(len - nbytes)
             } else {
+                // TODO: Adversarial testing: stack-overflow?
                 read_bytes(stream, &mut buf[len..], nbytes - len)
             }
         }
