@@ -45,7 +45,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
-pub fn tls13client(host: &str, port: u16) -> Result<Vec<u8>, TLSError> {
+pub fn tls13client(host: &str, port: u16, request: &str) -> Result<Vec<u8>, TLSError> {
     // # Demo of a simple HTTPS client.
     //
     // The client ...
@@ -145,10 +145,7 @@ pub fn tls13client(host: &str, port: u16) -> Result<Vec<u8>, TLSError> {
         /* Send HTTP GET  */
 
         let (ap, cstate) = {
-            let http_get = {
-                let http_get = format!("GET / HTTP/1.1\r\nHost: {}\r\n\r\n", host);
-                ByteSeq::from_public_slice(http_get.as_bytes())
-            };
+            let http_get = ByteSeq::from_public_slice(request.as_bytes());
 
             client_write(app_data(http_get), cstate)?
         };

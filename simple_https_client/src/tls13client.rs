@@ -18,8 +18,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (host, u16::from_str(&port)?)
     };
 
+    let request = format!("GET / HTTP/1.1\r\nHost: {}\r\n\r\n", host);
+
     // Initiate HTTPS connection to host:port.
-    match tls13client(&host, port) {
+    match tls13client(&host, port, &request) {
         Ok(response_prefix) => {
             println!("[!] Received HTTP response (prefix):");
             println!("{}", String::from_utf8_lossy(&response_prefix));
