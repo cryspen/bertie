@@ -6,6 +6,7 @@
 
 #![allow(non_upper_case_globals)]
 
+use std::net::ToSocketAddrs;
 use std::{io::prelude::*, net::TcpStream, str, time::Duration};
 
 use anyhow::Result;
@@ -79,14 +80,13 @@ pub fn tls13client(
 
     // Create TCP stream.
     let mut stream = {
-        info!("Initiating connection ...");
-        std::io::stdout().flush()?;
+        info!("Initiating connection.");
 
-        let stream = TcpStream::connect((host, port))?;
+        let addr = (host, port).to_socket_addrs()?.next().unwrap();
         let duration = Duration::new(1, 0);
-        stream.set_read_timeout(Some(duration))?;
 
-        info!("Initiating connection done.");
+        let stream = TcpStream::connect_timeout(&addr, duration)?;
+        stream.set_read_timeout(Some(duration))?;
 
         stream
     };
