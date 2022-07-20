@@ -111,11 +111,7 @@ pub fn tls13client(
     io::write_record(&mut stream, &ch_rec)?;
 
     // Process server response.
-    let sh_rec = {
-        let len = io::read_record(&mut stream, &mut in_buf)?;
-
-        ByteSeq::from_public_slice(&in_buf[0..len])
-    };
+    let sh_rec = io::read_record(&mut stream, &mut in_buf)?;
 
     if eq1(sh_rec[0], U8(21)) {
         // Alert
@@ -135,11 +131,7 @@ pub fn tls13client(
         let mut cf_rec = None;
         let mut cstate = cstate;
         while cf_rec == None {
-            let rec = {
-                let len = io::read_record(&mut stream, &mut in_buf)?;
-
-                ByteSeq::from_public_slice(&in_buf[0..len])
-            };
+            let rec = io::read_record(&mut stream, &mut in_buf)?;
 
             let (new_cf, new_cstate) = client_read_handshake(&rec, cstate)?;
             cf_rec = new_cf;
@@ -179,10 +171,7 @@ pub fn tls13client(
         let mut ad = None;
         let mut cstate = cstate;
         while ad == None {
-            let rec = {
-                let len = io::read_record(&mut stream, &mut in_buf)?;
-                ByteSeq::from_public_slice(&in_buf[0..len])
-            };
+            let rec = io::read_record(&mut stream, &mut in_buf)?;
 
             let (new_ad, new_cstate) = client_read(&rec, cstate)?;
             ad = new_ad;
@@ -212,10 +201,7 @@ pub fn tls13client_continue(
     let mut ad = None;
     let mut cstate = cstate;
     while ad == None {
-        let rec = {
-            let len = io::read_record(&mut stream, &mut in_buf)?;
-            ByteSeq::from_public_slice(&in_buf[0..len])
-        };
+        let rec = io::read_record(&mut stream, &mut in_buf)?;
 
         let (new_ad, new_cstate) = client_read(&rec, cstate)?;
         ad = new_ad;
@@ -291,7 +277,7 @@ mod io {
     pub(crate) fn read_record(
         stream: &mut TcpStream,
         buf: &mut [u8],
-    ) -> Result<usize, ClientError> {
+    ) -> Result<ByteSeq, ClientError> {
         let mut b: [u8; 5] = [0; 5];
         let mut len = 0;
         while len < 5 {
@@ -307,7 +293,7 @@ mod io {
             if extra > 0 {
                 Err(PAYLOAD_TOO_LONG.into())
             } else {
-                Ok(len + 5)
+                Ok(ByteSeq::from_public_slice(&buf[..len + 5]))
             }
         }
     }
@@ -326,8 +312,8 @@ mod io {
         stream: &mut TcpStream,
         buf: &mut [u8],
     ) -> Result<(), ClientError> {
-        let len = read_record(stream, buf)?;
-        if len == 6
+        let rec = read_record(stream, buf)?;
+        if rec.len() == 6
             && buf[0] == 0x14
             && buf[1] == 0x03
             && buf[2] == 0x03
