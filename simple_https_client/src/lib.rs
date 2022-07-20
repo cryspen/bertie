@@ -205,7 +205,7 @@ pub fn tls13client(
 pub fn tls13client_continue(
     mut stream: TcpStream,
     cstate: Client,
-) -> Result<(TcpStream, Client, Vec<u8>), TLSError> {
+) -> Result<(TcpStream, Client, Vec<u8>), ClientError> {
     // Create input buffer.
     let mut in_buf = [0; 8192];
 
@@ -240,24 +240,26 @@ mod io {
         net::TcpStream,
     };
 
-    use bertie::{Bytes, TLSError, INSUFFICIENT_DATA, PARSE_FAILED, PAYLOAD_TOO_LONG};
+    use bertie::{Bytes, INSUFFICIENT_DATA, PARSE_FAILED, PAYLOAD_TOO_LONG};
     use hacspec_lib::ByteSeq;
     use tracing::{debug, error};
+
+    use crate::ClientError;
 
     #[tracing::instrument(skip(stream, buf, required))]
     pub(crate) fn read_bytes(
         stream: &mut TcpStream,
         buf: &mut [u8],
         required: usize,
-    ) -> Result<usize, TLSError> {
+    ) -> Result<usize, ClientError> {
         // TODO: Avoid this invariant.
         assert!(required <= buf.len());
 
         let mut got = 0;
 
         loop {
-            match stream.read(&mut buf[got..]) {
-                Ok(0) => {
+            match stream.read(&mut buf[got..])? {
+                0 => {
                     debug!(%got, "Connection closed.");
 
                     if got >= required {
@@ -266,10 +268,10 @@ mod io {
                     } else {
                         error!(%got, %required, "Connection closed with insufficient data.");
 
-                        return Err(INSUFFICIENT_DATA);
+                        return Err(INSUFFICIENT_DATA.into());
                     }
                 }
-                Ok(received) => {
+                received => {
                     got += received;
 
                     debug!(%received, %got, "Data received.");
@@ -281,36 +283,29 @@ mod io {
                         return Ok(extra);
                     }
                 }
-                Err(error) => {
-                    assert!(got < required);
-
-                    error!(%got, %error, "Error received.");
-
-                    return Err(INSUFFICIENT_DATA);
-                }
             }
         }
     }
 
     #[tracing::instrument(skip(stream, buf))]
-    pub(crate) fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize, TLSError> {
+    pub(crate) fn read_record(
+        stream: &mut TcpStream,
+        buf: &mut [u8],
+    ) -> Result<usize, ClientError> {
         let mut b: [u8; 5] = [0; 5];
         let mut len = 0;
         while len < 5 {
-            match stream.peek(&mut b) {
-                Result::Ok(l) => len = l,
-                Result::Err(_) => Err(INSUFFICIENT_DATA)?,
-            }
+            len = stream.peek(&mut b)?;
         }
         let l0 = b[3] as usize;
         let l1 = b[4] as usize;
         let len = l0 * 256 + l1;
         if len + 5 > buf.len() {
-            Err(INSUFFICIENT_DATA)
+            Err(INSUFFICIENT_DATA.into())
         } else {
             let extra = read_bytes(stream, &mut buf[0..len + 5], len + 5)?;
             if extra > 0 {
-                Err(PAYLOAD_TOO_LONG)
+                Err(PAYLOAD_TOO_LONG.into())
             } else {
                 Ok(len + 5)
             }
@@ -327,7 +322,10 @@ mod io {
     }
 
     #[tracing::instrument(skip(stream, buf))]
-    pub(crate) fn read_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), TLSError> {
+    pub(crate) fn read_ccs_message(
+        stream: &mut TcpStream,
+        buf: &mut [u8],
+    ) -> Result<(), ClientError> {
         let len = read_record(stream, buf)?;
         if len == 6
             && buf[0] == 0x14
@@ -339,7 +337,7 @@ mod io {
         {
             Ok(())
         } else {
-            Err(PARSE_FAILED)
+            Err(PARSE_FAILED.into())
         }
     }
 
