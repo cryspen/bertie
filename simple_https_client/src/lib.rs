@@ -244,41 +244,47 @@ mod io {
     use hacspec_lib::ByteSeq;
     use tracing::{debug, error};
 
-    #[tracing::instrument(skip(stream, buf, nbytes))]
+    #[tracing::instrument(skip(stream, buf, required))]
     pub(crate) fn read_bytes(
         stream: &mut TcpStream,
         buf: &mut [u8],
-        nbytes: usize,
+        required: usize,
     ) -> Result<usize, TLSError> {
         // TODO: Avoid this invariant.
-        assert!(nbytes <= buf.len());
+        assert!(required <= buf.len());
 
-        let mut total = 0;
+        let mut got = 0;
 
         loop {
-            match stream.read(&mut buf[total..]) {
+            match stream.read(&mut buf[got..]) {
                 Ok(0) => {
-                    debug!(%total, "Connection closed.");
+                    debug!(%got, "Connection closed.");
 
-                    if total >= nbytes {
-                        let extra = total - nbytes;
+                    if got >= required {
+                        let extra = got - required;
                         return Ok(extra);
                     } else {
+                        error!(%got, %required, "Connection closed with insufficient data.");
+
                         return Err(INSUFFICIENT_DATA);
                     }
                 }
-                Ok(amt) => {
-                    total += amt;
+                Ok(received) => {
+                    got += received;
 
-                    debug!(%total, %amt, "Data received.");
+                    debug!(%received, %got, "Data received.");
 
-                    if total >= nbytes {
-                        let extra = total - nbytes;
+                    if got >= required {
+                        let extra = got - required;
+                        debug!(%extra, "Leaving.");
+
                         return Ok(extra);
                     }
                 }
                 Err(error) => {
-                    error!(%error, "Error received.");
+                    assert!(got < required);
+
+                    error!(%got, %error, "Error received.");
 
                     return Err(INSUFFICIENT_DATA);
                 }
