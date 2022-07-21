@@ -1,0 +1,8 @@
+{
+  "DisabledTests": {
+  },
+  "ErrorMap": {
+    ":NO_SHARED_CIPHER:": "XXX Server does not support proposed algorithms. XXX"
+  }
+}
+
