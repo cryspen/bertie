@@ -100,65 +100,65 @@ where
     if eq1(server_hello[0], U8(21)) {
         // Alert
         error!("Server does not support proposed algorithms.");
-        Err(UNSUPPORTED_ALGORITHM.into())
-    } else {
-        let (_, cstate) = client_read_handshake(&server_hello, cstate)?;
+        return Err(UNSUPPORTED_ALGORITHM.into());
+    }
 
-        let change_cipher_spec = stream.read_record()?;
-        verify_ccs_message(change_cipher_spec)?;
+    let (_, cstate) = client_read_handshake(&server_hello, cstate)?;
 
-        let mut cf_rec = None;
-        let mut cstate = cstate;
-        while cf_rec == None {
-            let rec = stream.read_record()?;
+    let change_cipher_spec = stream.read_record()?;
+    verify_ccs_message(change_cipher_spec)?;
 
-            let (new_cf_rec, new_cstate) = client_read_handshake(&rec, cstate)?;
-            cf_rec = new_cf_rec;
-            cstate = new_cstate;
-        }
+    let mut cf_rec = None;
+    let mut cstate = cstate;
+    while cf_rec == None {
+        let rec = stream.read_record()?;
 
-        let change_cipher_spec = ByteSeq::from_hex("140303000101");
-        stream.write_record(change_cipher_spec)?;
+        let (new_cf_rec, new_cstate) = client_read_handshake(&rec, cstate)?;
+        cf_rec = new_cf_rec;
+        cstate = new_cstate;
+    }
+
+    let change_cipher_spec = ByteSeq::from_hex("140303000101");
+    stream.write_record(change_cipher_spec)?;
+
+    // Safety: Safe to unwrap().
+    let cf_rec = cf_rec.unwrap();
+    stream.write_record(cf_rec)?;
+
+    info!("----- Handshake finished -----");
+
+    /* Send HTTP GET  */
+
+    let (ap, cstate) = {
+        let http_get = ByteSeq::from_public_slice(request.as_bytes());
+
+        client_write(app_data(http_get), cstate)?
+    };
+
+    stream.write_record(ap)?;
+
+    /* Process HTTP response */
+
+    let mut ad = None;
+    let mut cstate = cstate;
+    while ad == None {
+        let rec = stream.read_record()?;
+
+        let (new_ad, new_cstate) = client_read(&rec, cstate)?;
+        ad = new_ad;
+        cstate = new_cstate;
+    }
+
+    let response_prefix = {
+        // Safety: Safe to unwrap().
+        let body = app_data_bytes(ad.unwrap());
 
         // Safety: Safe to unwrap().
-        let cf_rec = cf_rec.unwrap();
-        stream.write_record(cf_rec)?;
+        // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
+        hex::decode(body.to_hex()).unwrap()
+    };
 
-        info!("----- Handshake finished -----");
-
-        /* Send HTTP GET  */
-
-        let (ap, cstate) = {
-            let http_get = ByteSeq::from_public_slice(request.as_bytes());
-
-            client_write(app_data(http_get), cstate)?
-        };
-
-        stream.write_record(ap)?;
-
-        /* Process HTTP response */
-
-        let mut ad = None;
-        let mut cstate = cstate;
-        while ad == None {
-            let rec = stream.read_record()?;
-
-            let (new_ad, new_cstate) = client_read(&rec, cstate)?;
-            ad = new_ad;
-            cstate = new_cstate;
-        }
-
-        let response_prefix = {
-            // Safety: Safe to unwrap().
-            let body = app_data_bytes(ad.unwrap());
-
-            // Safety: Safe to unwrap().
-            // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
-            hex::decode(body.to_hex()).unwrap()
-        };
-
-        Ok((stream, cstate, response_prefix))
-    }
+    Ok((stream, cstate, response_prefix))
 }
 
 pub fn tls13client_continue<Stream>(
