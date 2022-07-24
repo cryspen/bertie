@@ -1,9 +1,13 @@
-use std::io::{Error, Read, Write};
+use std::io::{Read, Write};
 
+use bertie::{INSUFFICIENT_DATA, PAYLOAD_TOO_LONG};
 use hacspec_lib::ByteSeq;
 use tracing::{debug, trace};
 
-use crate::debug::{info_record, Hex};
+use crate::{
+    debug::{info_record, Hex},
+    ClientError,
+};
 
 #[derive(Debug)]
 pub struct RecordStream<Stream>
@@ -31,7 +35,7 @@ where
     Stream: Read + Write,
 {
     #[tracing::instrument(skip(self))]
-    pub fn read_record(&mut self) -> Result<ByteSeq, RecordStreamError> {
+    pub fn read_record(&mut self) -> Result<ByteSeq, ClientError> {
         // Buffer to read chunks into.
         let mut tmp = [0u8; 4096];
 
@@ -53,7 +57,8 @@ where
                 // exceed 2^14 bytes. An endpoint that receives a record that exceeds this length
                 // MUST terminate the connection with a "record_overflow" alert.
                 if length > 16384 {
-                    return Err(RecordStreamError::RecordOverflow);
+                    // TODO: Correct error?
+                    return Err(PAYLOAD_TOO_LONG.into());
                 }
 
                 if self.buffer.len() >= 5 + length {
@@ -81,7 +86,8 @@ where
             match self.stream.read(&mut tmp)? {
                 0 => {
                     debug!("Connection closed.");
-                    return Err(RecordStreamError::UnexpectedEof);
+                    // TODO: Correct error?
+                    return Err(INSUFFICIENT_DATA.into());
                 }
                 amt => {
                     let data = &tmp[..amt];
@@ -96,7 +102,7 @@ where
     }
 
     #[tracing::instrument(skip(self, record))]
-    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), RecordStreamError> {
+    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), ClientError> {
         // Safety: Safe to unwrap().
         let data = hex::decode(record.to_hex()).unwrap();
         self.stream.write_all(&data)?;
@@ -108,19 +114,3 @@ where
         Ok(())
     }
 }
-
-#[derive(Debug)]
-pub enum RecordStreamError {
-    IoError(std::io::Error),
-    RecordOverflow,
-    UnexpectedEof,
-}
-
-impl From<std::io::Error> for RecordStreamError {
-    fn from(error: Error) -> Self {
-        RecordStreamError::IoError(error)
-    }
-}
-
-#[cfg(test)]
-mod test {}

@@ -19,7 +19,7 @@ use rand::*;
 use thiserror::Error;
 use tracing::{error, info};
 
-use crate::stream::{RecordStream, RecordStreamError};
+use crate::stream::RecordStream;
 
 mod debug;
 mod stream;
@@ -48,21 +48,21 @@ const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
 #[derive(Error, Debug)]
 pub enum ClientError {
-    #[error("Stream error: {0:?}")]
-    Stream(RecordStreamError),
+    #[error("I/O error: {0:?}")]
+    Io(std::io::Error),
     #[error("TLS error: {0:?}")]
     TLS(TLSError),
+}
+
+impl From<std::io::Error> for ClientError {
+    fn from(error: std::io::Error) -> Self {
+        ClientError::Io(error)
+    }
 }
 
 impl From<TLSError> for ClientError {
     fn from(error: TLSError) -> Self {
         ClientError::TLS(error)
-    }
-}
-
-impl From<RecordStreamError> for ClientError {
-    fn from(error: RecordStreamError) -> Self {
-        ClientError::Stream(error)
     }
 }
 
