@@ -312,7 +312,7 @@ pub fn check_server_extensions(algs: &Algorithms, b: &ByteSeq) -> Result<Option<
 ///     (255)
 /// } HandshakeType;
 /// ```
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum HandshakeType {
     ClientHello,
     ServerHello,
@@ -766,7 +766,7 @@ pub fn parse_session_ticket(
 ///     (255)
 /// } ContentType;
 /// ```
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ContentType {
     Invalid,
     ChangeCipherSpec,
