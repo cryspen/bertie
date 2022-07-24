@@ -296,6 +296,22 @@ pub fn check_server_extensions(algs: &Algorithms, b: &ByteSeq) -> Result<Option<
     }
 }
 
+/// ```TLS
+/// enum {
+///     client_hello(1),
+///     server_hello(2),
+///     new_session_ticket(4),
+///     end_of_early_data(5),
+///     encrypted_extensions(8),
+///     certificate(11),
+///     certificate_request(13),
+///     certificate_verify(15),
+///     finished(20),
+///     key_update(24),
+///     message_hash(254),
+///     (255)
+/// } HandshakeType;
+/// ```
 #[derive(Clone, Copy, PartialEq)]
 pub enum HandshakeType {
     ClientHello,
@@ -740,6 +756,16 @@ pub fn parse_session_ticket(
 }
 
 /* Record Layer Serialization and Parsing */
+/// ```TLS
+/// enum {
+///     invalid(0),
+///     change_cipher_spec(20),
+///     alert(21),
+///     handshake(22),
+///     application_data(23),
+///     (255)
+/// } ContentType;
+/// ```
 #[derive(Clone, Copy, PartialEq)]
 pub enum ContentType {
     Invalid,
