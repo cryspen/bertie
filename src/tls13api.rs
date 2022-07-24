@@ -74,7 +74,7 @@ pub fn client_read(d: &Bytes, st: Client) -> Result<(Option<AppData>, Client), T
                     Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
                 }
                 ContentType::Handshake => {
-                    println!("Received Session Ticket");
+                    // println!("Received Session Ticket");
                     Ok((None, Client::Client1(cstate, cipher1)))
                 }
                 _ => Err(PARSE_FAILED),
