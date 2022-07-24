@@ -360,6 +360,168 @@ pub fn get_hs_type(t: u8) -> Result<HandshakeType, TLSError> {
     }
 }
 
+// ```TLS
+// struct {
+//     AlertLevel level;
+//     AlertDescription description;
+// } Alert;
+// ```
+
+/// ```TLS
+/// enum {
+///     warning(1),
+///     fatal(2),
+///     (255)
+/// } AlertLevel;
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum AlertLevel {
+    Warning,
+    Fatal,
+}
+
+pub fn alert_level(t: AlertLevel) -> u8 {
+    match t {
+        AlertLevel::Warning => 1,
+        AlertLevel::Fatal => 2,
+    }
+}
+
+pub fn get_alert_level(t: u8) -> Result<AlertLevel, TLSError> {
+    match t {
+        1 => Ok(AlertLevel::Warning),
+        2 => Ok(AlertLevel::Fatal),
+        _ => Err(PARSE_FAILED),
+    }
+}
+
+/// ```TLS
+/// enum {
+///     close_notify(0),
+///     unexpected_message(10),
+///     bad_record_mac(20),
+///     record_overflow(22),
+///     handshake_failure(40),
+///     bad_certificate(42),
+///     unsupported_certificate(43),
+///     certificate_revoked(44),
+///     certificate_expired(45),
+///     certificate_unknown(46),
+///     illegal_parameter(47),
+///     unknown_ca(48),
+///     access_denied(49),
+///     decode_error(50),
+///     decrypt_error(51),
+///     protocol_version(70),
+///     insufficient_security(71),
+///     internal_error(80),
+///     inappropriate_fallback(86),
+///     user_canceled(90),
+///     missing_extension(109),
+///     unsupported_extension(110),
+///     unrecognized_name(112),
+///     bad_certificate_status_response(113),
+///     unknown_psk_identity(115),
+///     certificate_required(116),
+///     no_application_protocol(120),
+///     (255)
+/// } AlertDescription;
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum AlertDescription {
+    CloseNotify,
+    UnexpectedMessage,
+    BadRecordMac,
+    RecordOverflow,
+    HandshakeFailure,
+    BadCertificate,
+    UnsupportedCertificate,
+    CertificateRevoked,
+    CertificateExpired,
+    CertificateUnknown,
+    IllegalParameter,
+    UnknownCa,
+    AccessDenied,
+    DecodeError,
+    DecryptError,
+    ProtocolVersion,
+    InsufficientSecurity,
+    InternalError,
+    InappropriateFallback,
+    UserCanceled,
+    MissingExtension,
+    UnsupportedExtension,
+    UnrecognizedName,
+    BadCertificateStatusResponse,
+    UnknownPskIdentity,
+    CertificateRequired,
+    NoApplicationProtocol,
+}
+
+pub fn alert_description(t: AlertDescription) -> u8 {
+    match t {
+        AlertDescription::CloseNotify => 0,
+        AlertDescription::UnexpectedMessage => 10,
+        AlertDescription::BadRecordMac => 20,
+        AlertDescription::RecordOverflow => 22,
+        AlertDescription::HandshakeFailure => 40,
+        AlertDescription::BadCertificate => 42,
+        AlertDescription::UnsupportedCertificate => 43,
+        AlertDescription::CertificateRevoked => 44,
+        AlertDescription::CertificateExpired => 45,
+        AlertDescription::CertificateUnknown => 46,
+        AlertDescription::IllegalParameter => 47,
+        AlertDescription::UnknownCa => 48,
+        AlertDescription::AccessDenied => 49,
+        AlertDescription::DecodeError => 50,
+        AlertDescription::DecryptError => 51,
+        AlertDescription::ProtocolVersion => 70,
+        AlertDescription::InsufficientSecurity => 71,
+        AlertDescription::InternalError => 80,
+        AlertDescription::InappropriateFallback => 86,
+        AlertDescription::UserCanceled => 90,
+        AlertDescription::MissingExtension => 109,
+        AlertDescription::UnsupportedExtension => 110,
+        AlertDescription::UnrecognizedName => 112,
+        AlertDescription::BadCertificateStatusResponse => 113,
+        AlertDescription::UnknownPskIdentity => 115,
+        AlertDescription::CertificateRequired => 116,
+        AlertDescription::NoApplicationProtocol => 120,
+    }
+}
+
+pub fn get_alert_description(t: u8) -> Result<AlertDescription, TLSError> {
+    match t {
+        0 => Ok(AlertDescription::CloseNotify),
+        10 => Ok(AlertDescription::UnexpectedMessage),
+        20 => Ok(AlertDescription::BadRecordMac),
+        22 => Ok(AlertDescription::RecordOverflow),
+        40 => Ok(AlertDescription::HandshakeFailure),
+        42 => Ok(AlertDescription::BadCertificate),
+        43 => Ok(AlertDescription::UnsupportedCertificate),
+        44 => Ok(AlertDescription::CertificateRevoked),
+        45 => Ok(AlertDescription::CertificateExpired),
+        46 => Ok(AlertDescription::CertificateUnknown),
+        47 => Ok(AlertDescription::IllegalParameter),
+        48 => Ok(AlertDescription::UnknownCa),
+        49 => Ok(AlertDescription::AccessDenied),
+        50 => Ok(AlertDescription::DecodeError),
+        51 => Ok(AlertDescription::DecryptError),
+        70 => Ok(AlertDescription::ProtocolVersion),
+        71 => Ok(AlertDescription::InsufficientSecurity),
+        80 => Ok(AlertDescription::InternalError),
+        86 => Ok(AlertDescription::InappropriateFallback),
+        90 => Ok(AlertDescription::UserCanceled),
+        109 => Ok(AlertDescription::MissingExtension),
+        110 => Ok(AlertDescription::UnsupportedExtension),
+        112 => Ok(AlertDescription::UnrecognizedName),
+        113 => Ok(AlertDescription::BadCertificateStatusResponse),
+        115 => Ok(AlertDescription::UnknownPskIdentity),
+        116 => Ok(AlertDescription::CertificateRequired),
+        120 => Ok(AlertDescription::NoApplicationProtocol),
+        _ => Err(PARSE_FAILED),
+    }
+}
+
 // Tagged Handshake Data
 
 pub fn handshake_message(ty: HandshakeType, by: &ByteSeq) -> Result<HandshakeData, TLSError> {
