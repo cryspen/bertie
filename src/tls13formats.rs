@@ -651,7 +651,7 @@ pub fn set_client_hello_binder(
     trunc_len: Option<usize>,
 ) -> Result<HandshakeData, TLSError> {
     let HandshakeData(ch) = ch;
-    let chlen = &ch.len();
+    let chlen = ch.len();
     let hlen = hash_len(&hash_alg(algs));
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
