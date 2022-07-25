@@ -97,6 +97,7 @@ where
     // Process server response.
     let sh_rec = stream.read_record()?;
 
+    // TODO: Who should do this check?
     if eq1(sh_rec[0], U8(21)) {
         // Alert
         error!("Server does not support proposed algorithms.");
