@@ -1,8 +1,4 @@
-use std::{
-    io::{Error, Read, Write},
-    net::{TcpStream, ToSocketAddrs},
-    time::Duration,
-};
+use std::io::{Error, Read, Write};
 
 use hacspec_lib::ByteSeq;
 use tracing::{debug, trace};
@@ -10,23 +6,19 @@ use tracing::{debug, trace};
 use crate::debug::{info_record, Hex};
 
 #[derive(Debug)]
-pub struct FramedStream {
-    stream: TcpStream,
+pub struct RecordStream<Stream>
+where
+    Stream: Read + Write,
+{
+    stream: Stream,
     buffer: Vec<u8>,
 }
 
-impl FramedStream {
-    pub fn connect(host: &str, port: u16) -> Result<Self, FramedStreamError> {
-        let addr = (host, port).to_socket_addrs()?.next().unwrap();
-        let duration = Duration::new(1, 0);
-
-        let stream = TcpStream::connect_timeout(&addr, duration)?;
-        stream.set_read_timeout(Some(duration))?;
-
-        Ok(Self::with_stream(stream))
-    }
-
-    pub fn with_stream(stream: TcpStream) -> Self {
+impl<Stream> RecordStream<Stream>
+where
+    Stream: Read + Write,
+{
+    pub fn new(stream: Stream) -> Self {
         Self {
             stream,
             buffer: Vec::new(),
@@ -34,9 +26,12 @@ impl FramedStream {
     }
 }
 
-impl FramedStream {
+impl<Stream> RecordStream<Stream>
+where
+    Stream: Read + Write,
+{
     #[tracing::instrument(skip(self))]
-    pub fn read_record(&mut self) -> Result<ByteSeq, FramedStreamError> {
+    pub fn read_record(&mut self) -> Result<ByteSeq, RecordStreamError> {
         // Buffer to read chunks into.
         let mut tmp = [0u8; 4096];
 
@@ -58,7 +53,7 @@ impl FramedStream {
                 // exceed 2^14 bytes. An endpoint that receives a record that exceeds this length
                 // MUST terminate the connection with a "record_overflow" alert.
                 if length > 16384 {
-                    return Err(FramedStreamError::RecordOverflow);
+                    return Err(RecordStreamError::RecordOverflow);
                 }
 
                 if self.buffer.len() >= 5 + length {
@@ -86,7 +81,7 @@ impl FramedStream {
             match self.stream.read(&mut tmp)? {
                 0 => {
                     debug!("Connection closed.");
-                    return Err(FramedStreamError::UnexpectedEof);
+                    return Err(RecordStreamError::UnexpectedEof);
                 }
                 amt => {
                     let data = &tmp[..amt];
@@ -101,7 +96,7 @@ impl FramedStream {
     }
 
     #[tracing::instrument(skip(self, record))]
-    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), FramedStreamError> {
+    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), RecordStreamError> {
         // Safety: Safe to unwrap().
         let data = hex::decode(record.to_hex()).unwrap();
         self.stream.write_all(&data)?;
@@ -115,15 +110,15 @@ impl FramedStream {
 }
 
 #[derive(Debug)]
-pub enum FramedStreamError {
+pub enum RecordStreamError {
     IoError(std::io::Error),
     RecordOverflow,
     UnexpectedEof,
 }
 
-impl From<std::io::Error> for FramedStreamError {
+impl From<std::io::Error> for RecordStreamError {
     fn from(error: Error) -> Self {
-        FramedStreamError::IoError(error)
+        RecordStreamError::IoError(error)
     }
 }
 

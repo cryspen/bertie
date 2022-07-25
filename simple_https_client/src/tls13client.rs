@@ -1,4 +1,4 @@
-use std::{env, str::FromStr};
+use std::{env, net::TcpStream, str::FromStr};
 
 use anyhow::Context;
 use simple_https_client::tls13client;
@@ -30,7 +30,9 @@ fn main() -> anyhow::Result<()> {
     let request = format!("GET / HTTP/1.1\r\nHost: {}\r\n\r\n", host);
 
     // Initiate HTTPS connection to host:port.
-    let (_, _, response_prefix) = tls13client(&host, port, &request)?;
+    let stream = TcpStream::connect((host.clone(), port))?;
+
+    let (_, _, response_prefix) = tls13client(&host, stream, &request)?;
 
     println!("[!] Received HTTP response (prefix):");
     println!("{}", String::from_utf8_lossy(&response_prefix));

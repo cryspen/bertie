@@ -6,7 +6,7 @@
 
 #![allow(non_upper_case_globals)]
 
-use std::str;
+use std::io::{Read, Write};
 
 use anyhow::Result;
 use bertie::{tls13api::*, tls13utils::*};
@@ -19,10 +19,10 @@ use rand::*;
 use thiserror::Error;
 use tracing::{error, info};
 
-use crate::frame::{FramedStream, FramedStreamError};
+use crate::stream::{RecordStream, RecordStreamError};
 
 mod debug;
-mod frame;
+mod stream;
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -49,7 +49,7 @@ const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 #[derive(Error, Debug)]
 pub enum ClientError {
     #[error("Stream error: {0:?}")]
-    Stream(FramedStreamError),
+    Stream(RecordStreamError),
     #[error("TLS error: {0:?}")]
     TLS(TLSError),
 }
@@ -60,30 +60,23 @@ impl From<TLSError> for ClientError {
     }
 }
 
-impl From<FramedStreamError> for ClientError {
-    fn from(error: FramedStreamError) -> Self {
+impl From<RecordStreamError> for ClientError {
+    fn from(error: RecordStreamError) -> Self {
         ClientError::Stream(error)
     }
 }
 
-#[tracing::instrument(skip(request))]
-pub fn tls13client(
+#[tracing::instrument(skip(stream, request))]
+pub fn tls13client<Stream>(
     host: &str,
-    port: u16,
+    stream: Stream,
     request: &str,
-) -> Result<(FramedStream, Client, Vec<u8>), ClientError> {
-    // # Demo of a simple HTTPS client.
-    //
-    // The client ...
-    //   * connects to host:port via TCP,
-    //   * executes a TLS 1.3 handshake,
-    //   * sends an encrypted HTTP GET, and
-    //   * prints a prefix of the servers HTTP response.
-
-    // # Connect to host:port via TCP.
-
-    // Create TCP stream.
-    let mut stream = FramedStream::connect(host, port)?;
+) -> Result<(RecordStream<Stream>, Client, Vec<u8>), ClientError>
+where
+    Stream: Read + Write,
+{
+    // Create a stream that is framed by TLS records.
+    let mut stream = RecordStream::new(stream);
 
     // # Execute the TLS 1.3 handshake.
 
@@ -176,10 +169,13 @@ pub fn tls13client(
     }
 }
 
-pub fn tls13client_continue(
-    mut stream: FramedStream,
+pub fn tls13client_continue<Stream>(
+    mut stream: RecordStream<Stream>,
     cstate: Client,
-) -> Result<(FramedStream, Client, Vec<u8>), ClientError> {
+) -> Result<(RecordStream<Stream>, Client, Vec<u8>), ClientError>
+where
+    Stream: Read + Write,
+{
     let mut ad = None;
     let mut cstate = cstate;
     while ad == None {
