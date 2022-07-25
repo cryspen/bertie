@@ -201,7 +201,8 @@ pub fn check_lbytes3(b: &ByteSeq) -> Result<usize, TLSError> {
 }
 
 pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(), TLSError> {
-    if check_lbytes1(b)? + 1 != b.len() {
+    let a = check_lbytes1(b)?;
+    if a + 1 != b.len() {
         Err(PARSE_FAILED)
     } else {
         Ok(())
@@ -209,7 +210,8 @@ pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(), TLSError> {
 }
 
 pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(), TLSError> {
-    if check_lbytes2(b)? + 2 != b.len() {
+    let a = check_lbytes2(b)?;
+    if a + 2 != b.len() {
         Err(PARSE_FAILED)
     } else {
         Ok(())
@@ -217,7 +219,8 @@ pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(), TLSError> {
 }
 
 pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(), TLSError> {
-    if check_lbytes3(b)? + 3 != b.len() {
+    let a = check_lbytes3(b)?;
+    if a + 3 != b.len() {
         Err(PARSE_FAILED)
     } else {
         Ok(())
