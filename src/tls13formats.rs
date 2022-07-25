@@ -767,10 +767,10 @@ pub fn parse_server_hello(
     check_lbytes2_full(&sh.slice_range(next..sh.len()))?;
     next = next + 2;
     let gy = check_server_extensions(algs, &sh.slice_range(next..sh.len()))?;
-    if let Some(gy) = gy {
-        Ok((Random::from_seq(&srand), gy))
-    } else {
-        Err(UNSUPPORTED_ALGORITHM)
+
+    match gy {
+        Some(gy) => Ok((Random::from_seq(&srand), gy)),
+        None => Err(UNSUPPORTED_ALGORITHM),
     }
 }
 

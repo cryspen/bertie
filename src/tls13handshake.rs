@@ -92,10 +92,9 @@ pub fn derive_hk_ms(
     psko: &Option<PSK>,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
-    let psk = if let Some(k) = psko {
-        Key::from_seq(k)
-    } else {
-        zero_key(ha)
+    let psk = match psko {
+        Option::Some(k) => Key::from_seq(k),
+        Option::None => zero_key(ha),
     };
     let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
     let digest_emp = hash_empty(ha)?;
