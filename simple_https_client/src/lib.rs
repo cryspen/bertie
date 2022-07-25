@@ -6,8 +6,7 @@
 
 #![allow(non_upper_case_globals)]
 
-use std::net::ToSocketAddrs;
-use std::{io::prelude::*, net::TcpStream, str, time::Duration};
+use std::str;
 
 use anyhow::Result;
 use bertie::{tls13api::*, tls13utils::*};
@@ -19,6 +18,11 @@ use hacspec_lib::*;
 use rand::*;
 use thiserror::Error;
 use tracing::{error, info};
+
+use crate::frame::{FramedStream, FramedStreamError};
+
+mod debug;
+mod frame;
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -44,21 +48,21 @@ const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
 #[derive(Error, Debug)]
 pub enum ClientError {
-    #[error("Input/Output error: {0})")]
-    IoError(std::io::Error),
-    #[error("TLS error: {0}")]
-    TLSError(TLSError),
+    #[error("Stream error: {0:?}")]
+    Stream(FramedStreamError),
+    #[error("TLS error: {0:?}")]
+    TLS(TLSError),
 }
 
 impl From<TLSError> for ClientError {
     fn from(error: TLSError) -> Self {
-        ClientError::TLSError(error)
+        ClientError::TLS(error)
     }
 }
 
-impl From<std::io::Error> for ClientError {
-    fn from(error: std::io::Error) -> Self {
-        ClientError::IoError(error)
+impl From<FramedStreamError> for ClientError {
+    fn from(error: FramedStreamError) -> Self {
+        ClientError::Stream(error)
     }
 }
 
@@ -67,7 +71,7 @@ pub fn tls13client(
     host: &str,
     port: u16,
     request: &str,
-) -> Result<(TcpStream, Client, Vec<u8>), ClientError> {
+) -> Result<(FramedStream, Client, Vec<u8>), ClientError> {
     // # Demo of a simple HTTPS client.
     //
     // The client ...
@@ -79,20 +83,7 @@ pub fn tls13client(
     // # Connect to host:port via TCP.
 
     // Create TCP stream.
-    let mut stream = {
-        info!("Initiating connection.");
-
-        let addr = (host, port).to_socket_addrs()?.next().unwrap();
-        let duration = Duration::new(1, 0);
-
-        let stream = TcpStream::connect_timeout(&addr, duration)?;
-        stream.set_read_timeout(Some(duration))?;
-
-        stream
-    };
-
-    // Create input buffer.
-    let mut in_buf = [0; 8192];
+    let mut stream = FramedStream::connect(host, port)?;
 
     // # Execute the TLS 1.3 handshake.
 
@@ -108,10 +99,10 @@ pub fn tls13client(
         client_connect(default_algs, &sni, None, None, ent)?
     };
 
-    io::write_record(&mut stream, &ch_rec)?;
+    stream.write_record(ch_rec)?;
 
     // Process server response.
-    let sh_rec = io::read_record(&mut stream, &mut in_buf)?;
+    let sh_rec = stream.read_record()?;
 
     if eq1(sh_rec[0], U8(21)) {
         // Alert
@@ -124,32 +115,29 @@ pub fn tls13client(
 
         //println!("Got SH");
 
-        io::read_ccs_message(&mut stream, &mut in_buf)?;
+        let rec_ccs = stream.read_record()?;
+        verify_ccs_message(rec_ccs)?;
 
         //println!("Got SCCS");
 
         let mut cf_rec = None;
         let mut cstate = cstate;
         while cf_rec == None {
-            let rec = io::read_record(&mut stream, &mut in_buf)?;
+            let rec = stream.read_record()?;
 
             let (new_cf, new_cstate) = client_read_handshake(&rec, cstate)?;
             cf_rec = new_cf;
             cstate = new_cstate;
         }
 
-        info!("Received SFIN.");
+        /* Complete Connection */
+
+        let ccs_rec = ByteSeq::from_hex("140303000101");
+        stream.write_record(ccs_rec)?;
 
         // Safety: Safe to unwrap().
         let cf_rec = cf_rec.unwrap();
-
-        /* Complete Connection */
-
-        info!("Sending CSS + CF ...");
-        std::io::stdout().flush()?;
-        io::write_ccs_message(&mut stream)?;
-        io::write_record(&mut stream, &cf_rec)?;
-        info!("Sending CSS + CF done.");
+        stream.write_record(cf_rec)?;
 
         info!("----- Handshake finished -----");
 
@@ -161,17 +149,14 @@ pub fn tls13client(
             client_write(app_data(http_get), cstate)?
         };
 
-        info!("Sending request ...");
-        std::io::stdout().flush()?;
-        io::write_record(&mut stream, &ap)?;
-        info!("Sending request done.");
+        stream.write_record(ap)?;
 
         /* Process HTTP response */
 
         let mut ad = None;
         let mut cstate = cstate;
         while ad == None {
-            let rec = io::read_record(&mut stream, &mut in_buf)?;
+            let rec = stream.read_record()?;
 
             let (new_ad, new_cstate) = client_read(&rec, cstate)?;
             ad = new_ad;
@@ -192,16 +177,13 @@ pub fn tls13client(
 }
 
 pub fn tls13client_continue(
-    mut stream: TcpStream,
+    mut stream: FramedStream,
     cstate: Client,
-) -> Result<(TcpStream, Client, Vec<u8>), ClientError> {
-    // Create input buffer.
-    let mut in_buf = [0; 8192];
-
+) -> Result<(FramedStream, Client, Vec<u8>), ClientError> {
     let mut ad = None;
     let mut cstate = cstate;
     while ad == None {
-        let rec = io::read_record(&mut stream, &mut in_buf)?;
+        let rec = stream.read_record()?;
 
         let (new_ad, new_cstate) = client_read(&rec, cstate)?;
         ad = new_ad;
@@ -220,116 +202,19 @@ pub fn tls13client_continue(
     Ok((stream, cstate, response_prefix))
 }
 
-mod io {
-    use std::{
-        io::{Read, Write},
-        net::TcpStream,
-    };
+pub(crate) fn verify_ccs_message(rec: ByteSeq) -> Result<(), ClientError> {
+    let rec = rec.declassify();
 
-    use bertie::{Bytes, INSUFFICIENT_DATA, PARSE_FAILED, PAYLOAD_TOO_LONG};
-    use hacspec_lib::ByteSeq;
-    use tracing::{debug, error};
-
-    use crate::ClientError;
-
-    #[tracing::instrument(skip(stream, buf, required))]
-    pub(crate) fn read_bytes(
-        stream: &mut TcpStream,
-        buf: &mut [u8],
-        required: usize,
-    ) -> Result<usize, ClientError> {
-        // TODO: Avoid this invariant.
-        assert!(required <= buf.len());
-
-        let mut got = 0;
-
-        loop {
-            match stream.read(&mut buf[got..])? {
-                0 => {
-                    debug!(%got, "Connection closed.");
-
-                    if got >= required {
-                        let extra = got - required;
-                        return Ok(extra);
-                    } else {
-                        error!(%got, %required, "Connection closed with insufficient data.");
-
-                        return Err(INSUFFICIENT_DATA.into());
-                    }
-                }
-                received => {
-                    got += received;
-
-                    debug!(%received, %got, "Data received.");
-
-                    if got >= required {
-                        let extra = got - required;
-                        debug!(%extra, "Leaving.");
-
-                        return Ok(extra);
-                    }
-                }
-            }
-        }
-    }
-
-    #[tracing::instrument(skip(stream, buf))]
-    pub(crate) fn read_record(
-        stream: &mut TcpStream,
-        buf: &mut [u8],
-    ) -> Result<ByteSeq, ClientError> {
-        let mut b: [u8; 5] = [0; 5];
-        let mut len = 0;
-        while len < 5 {
-            len = stream.peek(&mut b)?;
-        }
-        let l0 = b[3] as usize;
-        let l1 = b[4] as usize;
-        let len = l0 * 256 + l1;
-        if len + 5 > buf.len() {
-            Err(INSUFFICIENT_DATA.into())
-        } else {
-            let extra = read_bytes(stream, &mut buf[0..len + 5], len + 5)?;
-            if extra > 0 {
-                Err(PAYLOAD_TOO_LONG.into())
-            } else {
-                Ok(ByteSeq::from_public_slice(&buf[..len + 5]))
-            }
-        }
-    }
-
-    #[tracing::instrument(skip(stream, rec))]
-    pub(crate) fn write_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), std::io::Error> {
-        // Safe to unwrap().
-        // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
-        let wire = hex::decode(&rec.to_hex()).unwrap();
-        stream.write_all(&wire)?;
+    if rec.len() == 6
+        && rec[0] == 0x14u8
+        && rec[1] == 0x03u8
+        && rec[2] == 0x03u8
+        && rec[3] == 0x00u8
+        && rec[4] == 0x01u8
+        && rec[5] == 0x01u8
+    {
         Ok(())
-    }
-
-    #[tracing::instrument(skip(stream, buf))]
-    pub(crate) fn read_ccs_message(
-        stream: &mut TcpStream,
-        buf: &mut [u8],
-    ) -> Result<(), ClientError> {
-        let rec = read_record(stream, buf)?;
-        if rec.len() == 6
-            && buf[0] == 0x14
-            && buf[1] == 0x03
-            && buf[2] == 0x03
-            && buf[3] == 0x00
-            && buf[4] == 0x01
-            && buf[5] == 0x01
-        {
-            Ok(())
-        } else {
-            Err(PARSE_FAILED.into())
-        }
-    }
-
-    #[tracing::instrument(skip(stream))]
-    pub(crate) fn write_ccs_message(stream: &mut TcpStream) -> Result<(), std::io::Error> {
-        let ccs_rec = ByteSeq::from_hex("140303000101");
-        write_record(stream, &ccs_rec)
+    } else {
+        Err(PARSE_FAILED.into())
     }
 }
