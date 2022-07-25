@@ -213,7 +213,7 @@ pub struct EXTS(
     pub Option<Bytes>, //Binder
 );
 
-pub fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError> {
+pub fn merge_opts(o1: Option<Bytes>, o2: Option<Bytes>) -> Result<Option<Bytes>, TLSError> {
     match (o1, o2) {
         (None, Some(o)) => Ok(Some(o)),
         (Some(o), None) => Ok(Some(o)),
@@ -221,6 +221,7 @@ pub fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError
         _ => Err(PARSE_FAILED),
     }
 }
+
 pub fn merge_exts(e1: EXTS, e2: EXTS) -> Result<EXTS, TLSError> {
     let EXTS(sn1, ks1, tkt1, bd1) = e1;
     let EXTS(sn2, ks2, tkt2, bd2) = e2;
