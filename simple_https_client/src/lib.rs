@@ -296,19 +296,10 @@ mod io {
         // Safe to unwrap().
         // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
         let wire = hex::decode(&rec.to_hex()).unwrap();
-
-        // TODO: write_all?
-        match stream.write(&wire) {
-            Ok(len) => {
-                if len < wire.len() {
-                    // TODO: Wrong error?
-                    Err(PARSE_FAILED)
-                } else {
-                    Ok(())
-                }
-            }
-            Err(_) => Err(INSUFFICIENT_DATA),
-        }
+        // FIXME: Do not use unwrap().
+        // Note: Will be fixed in next commit.
+        stream.write_all(&wire).unwrap();
+        Ok(())
     }
 
     #[tracing::instrument(skip(stream, buf))]
