@@ -81,7 +81,7 @@ where
     // # Execute the TLS 1.3 handshake.
 
     // Initialize TLS 1.3 client.
-    let (ch_rec, cstate) = {
+    let (client_hello, cstate) = {
         let sni = ByteSeq::from_public_slice(&host.as_bytes());
         let ent = {
             let mut entropy = [0 as u8; 64];
@@ -92,42 +92,33 @@ where
         client_connect(default_algs, &sni, None, None, ent)?
     };
 
-    stream.write_record(ch_rec)?;
+    stream.write_record(client_hello)?;
 
-    // Process server response.
-    let sh_rec = stream.read_record()?;
+    let server_hello = stream.read_record()?;
 
     // TODO: Who should do this check?
-    if eq1(sh_rec[0], U8(21)) {
+    if eq1(server_hello[0], U8(21)) {
         // Alert
         error!("Server does not support proposed algorithms.");
         Err(UNSUPPORTED_ALGORITHM.into())
     } else {
-        //println!("Got SH record: {}",sh_rec.len());
+        let (_, cstate) = client_read_handshake(&server_hello, cstate)?;
 
-        let (_, cstate) = client_read_handshake(&sh_rec, cstate)?;
-
-        //println!("Got SH");
-
-        let rec_ccs = stream.read_record()?;
-        verify_ccs_message(rec_ccs)?;
-
-        //println!("Got SCCS");
+        let change_cipher_spec = stream.read_record()?;
+        verify_ccs_message(change_cipher_spec)?;
 
         let mut cf_rec = None;
         let mut cstate = cstate;
         while cf_rec == None {
             let rec = stream.read_record()?;
 
-            let (new_cf, new_cstate) = client_read_handshake(&rec, cstate)?;
-            cf_rec = new_cf;
+            let (new_cf_rec, new_cstate) = client_read_handshake(&rec, cstate)?;
+            cf_rec = new_cf_rec;
             cstate = new_cstate;
         }
 
-        /* Complete Connection */
-
-        let ccs_rec = ByteSeq::from_hex("140303000101");
-        stream.write_record(ccs_rec)?;
+        let change_cipher_spec = ByteSeq::from_hex("140303000101");
+        stream.write_record(change_cipher_spec)?;
 
         // Safety: Safe to unwrap().
         let cf_rec = cf_rec.unwrap();
