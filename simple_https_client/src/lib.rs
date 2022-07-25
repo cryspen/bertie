@@ -8,6 +8,7 @@
 
 use std::{io::prelude::*, net::TcpStream, str, time::Duration};
 
+use anyhow::Result;
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
@@ -15,6 +16,7 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
+use thiserror::Error;
 use tracing::{error, info};
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
@@ -39,12 +41,32 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
+#[derive(Error, Debug)]
+pub enum ClientError {
+    #[error("Input/Output error: {0})")]
+    IoError(std::io::Error),
+    #[error("TLS error: {0}")]
+    TLSError(TLSError),
+}
+
+impl From<TLSError> for ClientError {
+    fn from(error: TLSError) -> Self {
+        ClientError::TLSError(error)
+    }
+}
+
+impl From<std::io::Error> for ClientError {
+    fn from(error: std::io::Error) -> Self {
+        ClientError::IoError(error)
+    }
+}
+
 #[tracing::instrument(skip(request))]
 pub fn tls13client(
     host: &str,
     port: u16,
     request: &str,
-) -> Result<(TcpStream, Client, Vec<u8>), TLSError> {
+) -> Result<(TcpStream, Client, Vec<u8>), ClientError> {
     // # Demo of a simple HTTPS client.
     //
     // The client ...
@@ -58,13 +80,11 @@ pub fn tls13client(
     // Create TCP stream.
     let mut stream = {
         info!("Initiating connection ...");
-        std::io::stdout().flush().unwrap();
+        std::io::stdout().flush()?;
 
-        let stream = TcpStream::connect((host, port)).unwrap();
+        let stream = TcpStream::connect((host, port))?;
         let duration = Duration::new(1, 0);
-        stream
-            .set_read_timeout(Some(duration))
-            .expect("set_read_timeout call failed");
+        stream.set_read_timeout(Some(duration))?;
 
         info!("Initiating connection done.");
 
@@ -100,7 +120,7 @@ pub fn tls13client(
     if eq1(sh_rec[0], U8(21)) {
         // Alert
         error!("Server does not support proposed algorithms.");
-        Err(UNSUPPORTED_ALGORITHM)
+        Err(UNSUPPORTED_ALGORITHM.into())
     } else {
         //println!("Got SH record: {}",sh_rec.len());
 
@@ -134,7 +154,7 @@ pub fn tls13client(
         /* Complete Connection */
 
         info!("Sending CSS + CF ...");
-        std::io::stdout().flush().unwrap();
+        std::io::stdout().flush()?;
         io::write_ccs_message(&mut stream)?;
         io::write_record(&mut stream, &cf_rec)?;
         info!("Sending CSS + CF done.");
@@ -150,7 +170,7 @@ pub fn tls13client(
         };
 
         info!("Sending request ...");
-        std::io::stdout().flush().unwrap();
+        std::io::stdout().flush()?;
         io::write_record(&mut stream, &ap)?;
         info!("Sending request done.");
 
@@ -292,13 +312,11 @@ mod io {
     }
 
     #[tracing::instrument(skip(stream, rec))]
-    pub(crate) fn write_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), TLSError> {
+    pub(crate) fn write_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), std::io::Error> {
         // Safe to unwrap().
         // TODO: Provide `Bytes` -> `Vec<u8>` conversion?
         let wire = hex::decode(&rec.to_hex()).unwrap();
-        // FIXME: Do not use unwrap().
-        // Note: Will be fixed in next commit.
-        stream.write_all(&wire).unwrap();
+        stream.write_all(&wire)?;
         Ok(())
     }
 
@@ -320,7 +338,7 @@ mod io {
     }
 
     #[tracing::instrument(skip(stream))]
-    pub(crate) fn write_ccs_message(stream: &mut TcpStream) -> Result<(), TLSError> {
+    pub(crate) fn write_ccs_message(stream: &mut TcpStream) -> Result<(), std::io::Error> {
         let ccs_rec = ByteSeq::from_hex("140303000101");
         write_record(stream, &ccs_rec)
     }
