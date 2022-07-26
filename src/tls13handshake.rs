@@ -391,21 +391,18 @@ pub fn client_finish(
     payload: &HandshakeData,
     st: ClientPostServerHello,
 ) -> Result<(HandshakeData, DuplexCipherState1, ClientPostClientFinished), TLSError> {
-    match psk_mode(&algs_post_server_hello(&st)) {
-        false => {
-            let (ee, sc, scv, sfin) = get_handshake_messages4(payload)?;
-            let cstate_cv = put_server_signature(&ee, &sc, &scv, st)?;
-            let (cipher, cstate_fin) = put_server_finished(&sfin, cstate_cv)?;
-            let (cfin, cstate) = get_client_finished(cstate_fin)?;
-            Ok((cfin, cipher, cstate))
-        }
-        true => {
-            let (ee, sfin) = get_handshake_messages2(payload)?;
-            let cstate_cv = put_psk_skip_server_signature(&ee, st)?;
-            let (cipher, cstate_fin) = put_server_finished(&sfin, cstate_cv)?;
-            let (cfin, cstate) = get_client_finished(cstate_fin)?;
-            Ok((cfin, cipher, cstate))
-        }
+    if psk_mode(&algs_post_server_hello(&st)) {
+        let (ee, sfin) = get_handshake_messages2(payload)?;
+        let cstate_cv = put_psk_skip_server_signature(&ee, st)?;
+        let (cipher, cstate_fin) = put_server_finished(&sfin, cstate_cv)?;
+        let (cfin, cstate) = get_client_finished(cstate_fin)?;
+        Ok((cfin, cipher, cstate))
+    } else {
+        let (ee, sc, scv, sfin) = get_handshake_messages4(payload)?;
+        let cstate_cv = put_server_signature(&ee, &sc, &scv, st)?;
+        let (cipher, cstate_fin) = put_server_finished(&sfin, cstate_cv)?;
+        let (cfin, cstate) = get_client_finished(cstate_fin)?;
+        Ok((cfin, cipher, cstate))
     }
 }
 
@@ -583,19 +580,17 @@ pub fn server_init(
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
     let (sh, cipher_hs, st) =
         get_server_hello(st, ent.slice(0, 32 + dh_priv_len(&kem_alg(&algs))))?;
-    match psk_mode(&algs) {
-        false => {
-            let (ee, sc, scv, st) = get_server_signature(st, ent.slice(0, 32))?; //FIX: use 32 extra bytes
-            let (sfin, cipher1, st) = get_server_finished(st)?;
-            let flight = handshake_concat(ee, &handshake_concat(sc, &handshake_concat(scv, &sfin)));
-            Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
-        }
-        true => {
-            let (ee, st) = get_skip_server_signature(st)?;
-            let (sfin, cipher1, st) = get_server_finished(st)?;
-            let flight = handshake_concat(ee, &sfin);
-            Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
-        }
+
+    if psk_mode(&algs) {
+        let (ee, st) = get_skip_server_signature(st)?;
+        let (sfin, cipher1, st) = get_server_finished(st)?;
+        let flight = handshake_concat(ee, &sfin);
+        Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+    } else {
+        let (ee, sc, scv, st) = get_server_signature(st, ent.slice(0, 32))?; //FIX: use 32 extra bytes
+        let (sfin, cipher1, st) = get_server_finished(st)?;
+        let flight = handshake_concat(ee, &handshake_concat(sc, &handshake_concat(scv, &sfin)));
+        Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
     }
 }
 
