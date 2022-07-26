@@ -12,8 +12,11 @@ mod tls13formats;
 mod tls13handshake;
 mod tls13record;
 
-pub mod tls13utils;
-pub use tls13utils::*;
 pub mod tls13api;
+pub mod tls13utils;
+
 pub use tls13api::*;
 pub use tls13formats::*;
+pub use tls13handshake::*;
+pub use tls13record::*;
+pub use tls13utils::*;
