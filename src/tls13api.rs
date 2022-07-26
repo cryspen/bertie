@@ -1,8 +1,5 @@
 // Import hacspec and all needed definitions.
-use crate::tls13formats::*;
-use crate::tls13handshake::*;
-use crate::tls13record::*;
-use crate::tls13utils::*;
+use crate::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 
