@@ -686,15 +686,15 @@ pub fn client_hello(
     let ks = key_shares(algs, gx)?;
     let mut exts = sn.concat(&sv).concat(&sg).concat(&sa).concat(&ks);
     let mut trunc_len = 0;
-    match (psk_mode(algs), tkt) {
-        (true, Some(tkt)) => {
-            let pskm = psk_key_exchange_modes(algs)?;
-            let (psk, len) = pre_shared_key(algs, tkt)?;
-            exts = exts.concat(&pskm).concat(&psk);
-            trunc_len = len;
-        }
-        (false, None) => {}
-        _ => {
+
+    if psk_mode(algs) {
+        let tkt = tkt.as_ref().ok_or(PSK_MODE_MISMATCH)?;
+        let pskm = psk_key_exchange_modes(algs)?;
+        let (psk, len) = pre_shared_key(algs, tkt)?;
+        exts = exts.concat(&pskm).concat(&psk);
+        trunc_len = len;
+    } else {
+        if tkt.is_some() {
             Err(PSK_MODE_MISMATCH)?;
         }
     }
@@ -720,16 +720,22 @@ pub fn set_client_hello_binder(
     let HandshakeData(ch) = ch;
     let chlen = ch.len();
     let hlen = hash_len(&hash_alg(algs));
-    match (binder, trunc_len) {
-        (Some(m), Some(trunc_len)) => {
-            if chlen - hlen == trunc_len {
-                Ok(HandshakeData(ch.update_slice(trunc_len, m, 0, hlen)))
-            } else {
-                Err(PARSE_FAILED)
+
+    match binder {
+        Option::Some(binder) => match trunc_len {
+            Option::Some(trunc_len) => {
+                if chlen - hlen == trunc_len {
+                    Ok(HandshakeData(ch.update_slice(trunc_len, binder, 0, hlen)))
+                } else {
+                    Err(PARSE_FAILED)
+                }
             }
-        }
-        (None, None) => Ok(HandshakeData(ch)),
-        (_, _) => Err(PARSE_FAILED),
+            Option::None => Err(PARSE_FAILED),
+        },
+        Option::None => match trunc_len {
+            Option::Some(trunc_len) => Err(PARSE_FAILED),
+            Option::None => Ok(HandshakeData(ch)),
+        },
     }
 }
 
@@ -767,20 +773,44 @@ pub fn parse_client_hello(
     next = next + 2;
     let exts = check_extensions(algs, &ch.slice_range(next..ch.len()))?;
     let trunc_len = ch.len() - hash_len(&hash_alg(algs)) - 3;
-    match (psk_mode(algs), exts) {
-        (true, EXTS(Some(sn), Some(gx), Some(tkt), Some(binder))) => Ok((
-            Random::from_seq(&crand),
-            sid,
-            sn,
-            gx,
-            Some(tkt),
-            Some(binder),
-            trunc_len,
-        )),
-        (false, EXTS(Some(sn), Some(gx), None, None)) => {
-            Ok((Random::from_seq(&crand), sid, sn, gx, None, None, 0))
+
+    let EXTS(sn, gx, tkt, binder) = exts;
+    if psk_mode(algs) {
+        match sn {
+            Option::Some(sn) => match gx {
+                Option::Some(gx) => match tkt {
+                    Option::Some(tkt) => match binder {
+                        Option::Some(binder) => Ok((
+                            Random::from_seq(&crand),
+                            sid,
+                            sn,
+                            gx,
+                            Some(tkt),
+                            Some(binder),
+                            trunc_len,
+                        )),
+                        Option::None => Err(PARSE_FAILED),
+                    },
+                    Option::None => Err(PARSE_FAILED),
+                },
+                Option::None => Err(PARSE_FAILED),
+            },
+            Option::None => Err(PARSE_FAILED),
         }
-        _ => Err(PARSE_FAILED),
+    } else {
+        match sn {
+            Option::Some(sn) => match gx {
+                Option::Some(gx) => match tkt {
+                    Option::Some(tkt) => Err(PARSE_FAILED),
+                    Option::None => match binder {
+                        Option::Some(binder) => Err(PARSE_FAILED),
+                        Option::None => Ok((Random::from_seq(&crand), sid, sn, gx, None, None, 0)),
+                    },
+                },
+                Option::None => Err(PARSE_FAILED),
+            },
+            Option::None => Err(PARSE_FAILED),
+        }
     }
 }
 
