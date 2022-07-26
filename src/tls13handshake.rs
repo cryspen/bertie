@@ -238,27 +238,30 @@ fn compute_psk_binder_zero_rtt(
     tx: Transcript,
 ) -> Result<(HandshakeData, Option<ClientCipherState0>, Transcript), TLSError> {
     let Algorithms(ha, ae, _sa, _ks, psk_mode, zero_rtt) = algs0;
-    match (psk_mode, psk, trunc_len) {
-        (true, Some(k), _) => {
-            let th_trunc = get_transcript_hash_truncated_client_hello(&tx, &ch, trunc_len)?;
-            let mk = derive_binder_key(&ha, k)?;
-            let binder = hmac_tag(&ha, &mk, &th_trunc)?;
-            let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
-            let tx_ch = transcript_add1(tx, &nch);
-            if zero_rtt {
-                let th = get_transcript_hash(&tx_ch)?;
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
-                let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
-                Ok((nch, cipher0, tx_ch))
-            } else {
-                Ok((nch, None, tx_ch))
-            }
+
+    if psk_mode {
+        let k = psk.as_ref().ok_or(PSK_MODE_MISMATCH)?;
+
+        let th_trunc = get_transcript_hash_truncated_client_hello(&tx, &ch, trunc_len)?;
+        let mk = derive_binder_key(&ha, k)?;
+        let binder = hmac_tag(&ha, &mk, &th_trunc)?;
+        let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
+        let tx_ch = transcript_add1(tx, &nch);
+        if zero_rtt {
+            let th = get_transcript_hash(&tx_ch)?;
+            let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
+            let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
+            Ok((nch, cipher0, tx_ch))
+        } else {
+            Ok((nch, None, tx_ch))
         }
-        (false, None, 0) => {
-            let tx_ch = transcript_add1(tx, &ch);
-            Ok((ch, None, tx_ch))
+    } else {
+        if psk.is_some() {
+            Err(PSK_MODE_MISMATCH)?;
         }
-        _ => Err(PSK_MODE_MISMATCH),
+
+        let tx_ch = transcript_add1(tx, &ch);
+        Ok((ch, None, tx_ch))
     }
 }
 
@@ -434,20 +437,31 @@ fn process_psk_binder_zero_rtt(
     bindero: Option<Bytes>,
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     let Algorithms(ha, ae, _sa, _ks, psk_mode, zero_rtt) = algs;
-    match (psk_mode, psko, bindero) {
-        (true, Some(k), Some(binder)) => {
-            let mk = derive_binder_key(&ha, k)?;
-            hmac_verify(&ha, &mk, &th_trunc, &binder)?;
-            if zero_rtt {
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
-                let cipher0 = Some(server_cipher_state0(ae, aek, 0, key));
-                Ok(cipher0)
-            } else {
-                Ok(None)
-            }
+
+    if psk_mode {
+        match psko {
+            Option::Some(k) => match bindero {
+                Option::Some(binder) => {
+                    let mk = derive_binder_key(&ha, k)?;
+                    hmac_verify(&ha, &mk, &th_trunc, &binder)?;
+                    if zero_rtt {
+                        let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
+                        let cipher0 = Some(server_cipher_state0(ae, aek, 0, key));
+                        Ok(cipher0)
+                    } else {
+                        Ok(None)
+                    }
+                }
+                Option::None => Err(PSK_MODE_MISMATCH),
+            },
+            Option::None => Err(PSK_MODE_MISMATCH),
         }
-        (false, None, None) => Ok(None),
-        _ => Err(PSK_MODE_MISMATCH),
+    } else {
+        if psko.is_none() && bindero.is_none() {
+            Ok(None)
+        } else {
+            Err(PSK_MODE_MISMATCH)
+        }
     }
 }
 
