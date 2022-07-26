@@ -160,13 +160,19 @@ pub struct ClientPostServerFinished(Random, Random, Algorithms, Key, MacKey, Tra
 pub struct ClientPostClientFinished(Random, Random, Algorithms, Key, Transcript);
 
 pub fn algs_post_client_hello(st: &ClientPostClientHello) -> Algorithms {
-    st.1
+    let ClientPostClientHello(_, algs, _, _, _) = st;
+
+    algs.clone()
 }
 pub fn algs_post_server_hello(st: &ClientPostServerHello) -> Algorithms {
-    st.2
+    let ClientPostServerHello(_, _, algs, _, _, _, _) = st;
+
+    algs.clone()
 }
 pub fn algs_post_client_finished(st: &ClientPostClientFinished) -> Algorithms {
-    st.2
+    let ClientPostClientFinished(_, _, algs, _, _) = st;
+
+    algs.clone()
 }
 
 pub struct ServerPostClientHello(
