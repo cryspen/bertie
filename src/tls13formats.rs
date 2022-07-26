@@ -785,12 +785,9 @@ pub fn server_hello(
     let ks = server_key_shares(algs, gy)?;
     let sv = server_supported_version(algs)?;
     let mut exts = ks.concat(&sv);
-    match psk_mode(algs) {
-        true => {
-            let a = server_pre_shared_key(algs)?;
-            exts = exts.concat(&a);
-        }
-        false => {}
+    if psk_mode(algs) {
+        let a = server_pre_shared_key(algs)?;
+        exts = exts.concat(&a);
     }
     let a = lbytes2(&exts)?;
     let sh = handshake_message(
