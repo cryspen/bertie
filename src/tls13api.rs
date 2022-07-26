@@ -57,38 +57,43 @@ pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Cl
                 Ok((None, Client::ClientH(cstate, cipher0, cipher_hs, buf)))
             }
         }
-        _ => Err(INCORRECT_STATE),
+        Client::Client1(_, _) => Err(INCORRECT_STATE),
     }
 }
 
 // Reads AppData and Tickets
 pub fn client_read(d: &Bytes, st: Client) -> Result<(Option<AppData>, Client), TLSError> {
     match st {
+        Client::Client0(_, _) => Err(INCORRECT_STATE),
+        Client::ClientH(_, _, _, _) => Err(INCORRECT_STATE),
         Client::Client1(cstate, cipher1) => {
             let (ty, hd, cipher1) = decrypt_data_or_hs(d, cipher1)?;
+
             match ty {
-                ContentType::ApplicationData => {
-                    Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
-                }
+                ContentType::Invalid => Err(PARSE_FAILED),
+                ContentType::ChangeCipherSpec => Err(PARSE_FAILED),
+                ContentType::Alert => Err(PARSE_FAILED),
                 ContentType::Handshake => {
                     println!("Received Session Ticket");
                     Ok((None, Client::Client1(cstate, cipher1)))
                 }
-                _ => Err(PARSE_FAILED),
+                ContentType::ApplicationData => {
+                    Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
+                }
             }
         }
-        _ => Err(INCORRECT_STATE),
     }
 }
 
 // Writes AppData
 pub fn client_write(d: AppData, st: Client) -> Result<(Bytes, Client), TLSError> {
     match st {
+        Client::Client0(_, _) => Err(INCORRECT_STATE),
+        Client::ClientH(_, _, _, _) => Err(INCORRECT_STATE),
         Client::Client1(cstate, cipher1) => {
             let (by, cipher1) = encrypt_data(d, 0, cipher1)?;
             Ok((by, Client::Client1(cstate, cipher1)))
         }
-        _ => Err(INCORRECT_STATE),
     }
 }
 
@@ -128,26 +133,26 @@ pub fn server_read_handshake(cfin_rec: &Bytes, st: Server) -> Result<Server, TLS
             let sstate = server_finish(&cf, sstate)?;
             Ok(Server::Server1(sstate, cipher1))
         }
-        _ => Err(INCORRECT_STATE),
+        Server::Server1(_, _) => Err(INCORRECT_STATE),
     }
 }
 
 pub fn server_write(d: AppData, st: Server) -> Result<(Bytes, Server), TLSError> {
     match st {
+        Server::ServerH(_, _, _, _) => Err(INCORRECT_STATE),
         Server::Server1(sstate, cipher1) => {
             let (by, cipher1) = encrypt_data(d, 0, cipher1)?;
             Ok((by, Server::Server1(sstate, cipher1)))
         }
-        _ => Err(INCORRECT_STATE),
     }
 }
 
 pub fn server_read(d: &Bytes, st: Server) -> Result<(Option<AppData>, Server), TLSError> {
     match st {
+        Server::ServerH(_, _, _, _) => Err(INCORRECT_STATE),
         Server::Server1(sstate, cipher1) => {
             let (ad, cipher1) = decrypt_data(d, cipher1)?;
             Ok((Some(ad), Server::Server1(sstate, cipher1)))
         }
-        _ => Err(INCORRECT_STATE),
     }
 }
