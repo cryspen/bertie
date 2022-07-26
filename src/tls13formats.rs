@@ -10,51 +10,52 @@ use crate::*;
 
 /// Well Known Constants
 
-pub const LABEL_IV: Bytes2 = Bytes2(secret_bytes!([105, 118]));
-pub const LABEL_KEY: Bytes3 = Bytes3(secret_bytes!([107, 101, 121]));
-pub const LABEL_TLS13: Bytes6 = Bytes6(secret_bytes!([116, 108, 115, 049, 051, 032]));
-pub const LABEL_DERIVED: Bytes7 = Bytes7(secret_bytes!([100, 101, 114, 105, 118, 101, 100]));
-pub const LABEL_FINISHED: Bytes8 = Bytes8(secret_bytes!([102, 105, 110, 105, 115, 104, 101, 100]));
-pub const LABEL_RES_BINDER: Bytes10 = Bytes10(secret_bytes!([
-    114, 101, 115, 032, 098, 105, 110, 100, 101, 114
-]));
-pub const LABEL_EXT_BINDER: Bytes10 = Bytes10(secret_bytes!([
-    101, 120, 116, 032, 098, 105, 110, 100, 101, 114
-]));
-pub const LABEL_EXP_MASTER: Bytes10 = Bytes10(secret_bytes!([
-    101, 120, 112, 032, 109, 097, 115, 116, 101, 114
-]));
-pub const LABEL_RES_MASTER: Bytes10 = Bytes10(secret_bytes!([
-    114, 101, 115, 032, 109, 097, 115, 116, 101, 114
-]));
-pub const LABEL_C_E_TRAFFIC: Bytes11 = Bytes11(secret_bytes!([
-    099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const LABEL_E_EXP_MASTER: Bytes12 = Bytes12(secret_bytes!([
-    101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114
-]));
-pub const LABEL_C_HS_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
-    099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const LABEL_S_HS_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
-    115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const LABEL_C_AP_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
-    099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-pub const LABEL_S_AP_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
-    115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
-]));
-
-pub const PREFIX_SERVER_SIGNATURE: Bytes98 = Bytes98(secret_bytes!([
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-    0x54, 0x4c, 0x53, 0x20, 0x31, 0x2e, 0x33, 0x2c, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x20,
-    0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x56, 0x65, 0x72, 0x69, 0x66,
-    0x79, 0x00
-]));
+// Hack...
+// pub const LABEL_IV: Bytes2 = Bytes2(secret_bytes!([105, 118]));
+// pub const LABEL_KEY: Bytes3 = Bytes3(secret_bytes!([107, 101, 121]));
+// pub const LABEL_TLS13: Bytes6 = Bytes6(secret_bytes!([116, 108, 115, 049, 051, 032]));
+// pub const LABEL_DERIVED: Bytes7 = Bytes7(secret_bytes!([100, 101, 114, 105, 118, 101, 100]));
+// pub const LABEL_FINISHED: Bytes8 = Bytes8(secret_bytes!([102, 105, 110, 105, 115, 104, 101, 100]));
+// pub const LABEL_RES_BINDER: Bytes10 = Bytes10(secret_bytes!([
+//     114, 101, 115, 032, 098, 105, 110, 100, 101, 114
+// ]));
+// pub const LABEL_EXT_BINDER: Bytes10 = Bytes10(secret_bytes!([
+//     101, 120, 116, 032, 098, 105, 110, 100, 101, 114
+// ]));
+// pub const LABEL_EXP_MASTER: Bytes10 = Bytes10(secret_bytes!([
+//     101, 120, 112, 032, 109, 097, 115, 116, 101, 114
+// ]));
+// pub const LABEL_RES_MASTER: Bytes10 = Bytes10(secret_bytes!([
+//     114, 101, 115, 032, 109, 097, 115, 116, 101, 114
+// ]));
+// pub const LABEL_C_E_TRAFFIC: Bytes11 = Bytes11(secret_bytes!([
+//     099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099
+// ]));
+// pub const LABEL_E_EXP_MASTER: Bytes12 = Bytes12(secret_bytes!([
+//     101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114
+// ]));
+// pub const LABEL_C_HS_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
+//     099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
+// ]));
+// pub const LABEL_S_HS_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
+//     115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
+// ]));
+// pub const LABEL_C_AP_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
+//     099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
+// ]));
+// pub const LABEL_S_AP_TRAFFIC: Bytes12 = Bytes12(secret_bytes!([
+//     115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
+// ]));
+//
+// pub const PREFIX_SERVER_SIGNATURE: Bytes98 = Bytes98(secret_bytes!([
+//     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+//     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+//     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+//     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+//     0x54, 0x4c, 0x53, 0x20, 0x31, 0x2e, 0x33, 0x2c, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x20,
+//     0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x56, 0x65, 0x72, 0x69, 0x66,
+//     0x79, 0x00
+// ]));
 
 /*
 const SHA256_EMPTY: Bytes32 = Bytes32(secret_bytes!([

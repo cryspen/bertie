@@ -20,6 +20,9 @@ pub fn hkdf_expand_label(
     context: &Bytes,
     len: usize,
 ) -> Result<Key, TLSError> {
+    // Hack...
+    let LABEL_TLS13 = ByteSeq::from_hex("746c733133");
+
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
@@ -43,9 +46,12 @@ pub fn derive_secret(
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
+    // Hack...
+    let LABEL_RES_BINDER = ByteSeq::from_hex("7265732062696e646572");
+
     let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
     let a = hash_empty(ha)?;
-    derive_secret(ha, &early_secret, &bytes(&LABEL_RES_BINDER), &a)
+    derive_secret(ha, &early_secret, &LABEL_RES_BINDER, &a)
 }
 
 pub fn derive_aead_key_iv(
@@ -53,8 +59,12 @@ pub fn derive_aead_key_iv(
     ae: &AeadAlgorithm,
     k: &Key,
 ) -> Result<AeadKeyIV, TLSError> {
-    let sender_write_key = hkdf_expand_label(ha, k, &bytes(&LABEL_KEY), &empty(), ae_key_len(ae))?;
-    let sender_write_iv = hkdf_expand_label(ha, k, &bytes(&LABEL_IV), &empty(), ae_iv_len(ae))?;
+    // Hack...
+    let LABEL_KEY = ByteSeq::from_hex("6b6579");
+    let LABEL_IV = ByteSeq::from_hex("6976");
+
+    let sender_write_key = hkdf_expand_label(ha, k, &LABEL_KEY, &empty(), ae_key_len(ae))?;
+    let sender_write_iv = hkdf_expand_label(ha, k, &LABEL_IV, &empty(), ae_iv_len(ae))?;
     Ok((
         AeadKey::from_seq(&sender_write_key),
         AeadIv::from_seq(&sender_write_iv),
@@ -67,17 +77,22 @@ pub fn derive_0rtt_keys(
     k: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, Key), TLSError> {
+    // Hack...
+    let LABEL_C_E_TRAFFIC = ByteSeq::from_hex("6320652074726166666963");
+    let LABEL_E_EXP_MASTER = ByteSeq::from_hex("6520657870206d6173746572");
+
     let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
-    let client_early_traffic_secret =
-        derive_secret(ha, &early_secret, &bytes(&LABEL_C_E_TRAFFIC), tx)?;
-    let early_exporter_master_secret =
-        derive_secret(ha, &early_secret, &bytes(&LABEL_E_EXP_MASTER), tx)?;
+    let client_early_traffic_secret = derive_secret(ha, &early_secret, &LABEL_C_E_TRAFFIC, tx)?;
+    let early_exporter_master_secret = derive_secret(ha, &early_secret, &LABEL_E_EXP_MASTER, tx)?;
     let sender_write_key_iv = derive_aead_key_iv(ha, ae, &client_early_traffic_secret)?;
     Ok((sender_write_key_iv, early_exporter_master_secret))
 }
 
 pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    hkdf_expand_label(ha, k, &bytes(&LABEL_FINISHED), &empty(), hmac_tag_len(ha))
+    // Hack...
+    let LABEL_FINISHED = ByteSeq::from_hex("66696e6973686564");
+
+    hkdf_expand_label(ha, k, &LABEL_FINISHED, &empty(), hmac_tag_len(ha))
 }
 
 pub fn derive_hk_ms(
@@ -87,21 +102,26 @@ pub fn derive_hk_ms(
     psko: &Option<PSK>,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
+    // Hack...
+    let LABEL_DERIVED = ByteSeq::from_hex("64657269766564");
+    let LABEL_C_HS_TRAFFIC = ByteSeq::from_hex("632068732074726166666963");
+    let LABEL_S_HS_TRAFFIC = ByteSeq::from_hex("732068732074726166666963");
+
     let psk = match psko {
         Option::Some(k) => Key::from_seq(k),
         Option::None => zero_key(ha),
     };
     let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
     let digest_emp = hash_empty(ha)?;
-    let derived_secret = derive_secret(ha, &early_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
+    let derived_secret = derive_secret(ha, &early_secret, &LABEL_DERIVED, &digest_emp)?;
     //    println!("derived secret: {}", derived_secret.to_hex());
     let handshake_secret = hkdf_extract(ha, gxy, &derived_secret)?;
     //    println!("handshake secret: {}", handshake_secret.to_hex());
     let client_handshake_traffic_secret =
-        derive_secret(ha, &handshake_secret, &bytes(&LABEL_C_HS_TRAFFIC), tx)?;
+        derive_secret(ha, &handshake_secret, &LABEL_C_HS_TRAFFIC, tx)?;
     //    println!("c h ts: {}", client_handshake_traffic_secret.to_hex());
     let server_handshake_traffic_secret =
-        derive_secret(ha, &handshake_secret, &bytes(&LABEL_S_HS_TRAFFIC), tx)?;
+        derive_secret(ha, &handshake_secret, &LABEL_S_HS_TRAFFIC, tx)?;
     //   println!("s h ts: {}", server_handshake_traffic_secret.to_hex());
     let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret)?;
     //   println!("cfk: {}", client_finished_key.to_hex());
@@ -111,7 +131,7 @@ pub fn derive_hk_ms(
     //   let (k,iv) = &client_write_key_iv; println!("chk: {}\n     {}", k.to_hex(), iv.to_hex());
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
     //   let (k,iv) = &server_write_key_iv; println!("shk: {}\n     {}", k.to_hex(), iv.to_hex());
-    let master_secret_ = derive_secret(ha, &handshake_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
+    let master_secret_ = derive_secret(ha, &handshake_secret, &LABEL_DERIVED, &digest_emp)?;
     let master_secret = hkdf_extract(ha, &zero_key(ha), &master_secret_)?;
     Ok((
         client_write_key_iv,
@@ -128,13 +148,18 @@ pub fn derive_app_keys(
     master_secret: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, Key), TLSError> {
+    // Hack...
+    let LABEL_C_AP_TRAFFIC = ByteSeq::from_hex("632061702074726166666963");
+    let LABEL_S_AP_TRAFFIC = ByteSeq::from_hex("732061702074726166666963");
+    let LABEL_EXP_MASTER = ByteSeq::from_hex("657870206d6173746572");
+
     let client_application_traffic_secret_0 =
-        derive_secret(ha, master_secret, &bytes(&LABEL_C_AP_TRAFFIC), tx)?;
+        derive_secret(ha, master_secret, &LABEL_C_AP_TRAFFIC, tx)?;
     let server_application_traffic_secret_0 =
-        derive_secret(ha, master_secret, &bytes(&LABEL_S_AP_TRAFFIC), tx)?;
+        derive_secret(ha, master_secret, &LABEL_S_AP_TRAFFIC, tx)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0)?;
-    let exporter_master_secret = derive_secret(ha, master_secret, &bytes(&LABEL_EXP_MASTER), tx)?;
+    let exporter_master_secret = derive_secret(ha, master_secret, &LABEL_EXP_MASTER, tx)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
@@ -143,7 +168,10 @@ pub fn derive_app_keys(
 }
 
 pub fn derive_rms(ha: &HashAlgorithm, master_secret: &Key, tx: &Digest) -> Result<Key, TLSError> {
-    derive_secret(ha, master_secret, &bytes(&LABEL_RES_MASTER), tx)
+    // Hack...
+    let LABEL_RES_MASTER = ByteSeq::from_hex("726573206d6173746572");
+
+    derive_secret(ha, master_secret, &LABEL_RES_MASTER, tx)
 }
 
 /* Handshake State Machine */
@@ -294,6 +322,9 @@ fn put_server_signature(
     scv: &HandshakeData,
     st: ClientPostServerHello,
 ) -> Result<ClientPostCertificateVerify, TLSError> {
+    // Hack...
+    let PREFIX_SERVER_SIGNATURE = ByteSeq::from_hex("20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020544c5320312e332c2073657276657220436572746966696361746556657269667900");
+
     let ClientPostServerHello(cr, sr, algs, ms, cfk, sfk, tx) = st;
     if !psk_mode(&algs) {
         parse_encrypted_extensions(&algs, ee)?;
@@ -506,6 +537,9 @@ fn get_server_signature(
     ),
     TLSError,
 > {
+    // Hack...
+    let PREFIX_SERVER_SIGNATURE = ByteSeq::from_hex("20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020544c5320312e332c2073657276657220436572746966696361746556657269667900");
+
     let ServerPostServerHello(cr, sr, algs, cert, sigk, ms, cfk, sfk, tx) = st;
     let ee = encrypted_extensions(&algs)?;
     let tx = transcript_add1(tx, &ee);
