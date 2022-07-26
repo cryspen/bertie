@@ -284,32 +284,39 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
     let l1 = (b[1] as U8).declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let mut out = EXTS(None, None, None, None);
-    match (l0, l1) {
-        (0, 0) => {
-            let sn = check_server_name(&b.slice_range(4..4 + len))?;
-            out = EXTS(Some(sn), None, None, None);
-        }
-        (0, 0x2d) => {
+
+    // TODO: Support mechanical transformation of `else if` into `else { if }`?
+    if (l0, l1) == (0, 0) {
+        let sn = check_server_name(&b.slice_range(4..4 + len))?;
+        out = EXTS(Some(sn), None, None, None);
+    } else {
+        if (l0, l1) == (0, 0x2d) {
             check_psk_key_exchange_modes(algs, &b.slice_range(4..4 + len))?;
+        } else {
+            if (l0, l1) == (0, 0x2b) {
+                check_supported_versions(algs, &b.slice_range(4..4 + len))?;
+            } else {
+                if (l0, l1) == (0, 0x0a) {
+                    check_supported_groups(algs, &b.slice_range(4..4 + len))?;
+                } else {
+                    if (l0, l1) == (0, 0x0d) {
+                        check_signature_algorithms(algs, &b.slice_range(4..4 + len))?;
+                    } else {
+                        if (l0, l1) == (0, 0x33) {
+                            let gx = check_key_share(algs, &b.slice_range(4..4 + len))?;
+                            out = EXTS(None, Some(gx), None, None);
+                        } else {
+                            if (l0, l1) == (0, 41) {
+                                // TODO: 41 or 0x41?
+                                check_psk_shared_key(algs, &b.slice_range(4..4 + len))?;
+                            }
+                        }
+                    }
+                }
+            }
         }
-        (0, 0x2b) => {
-            check_supported_versions(algs, &b.slice_range(4..4 + len))?;
-        }
-        (0, 0x0a) => {
-            check_supported_groups(algs, &b.slice_range(4..4 + len))?;
-        }
-        (0, 0x0d) => {
-            check_signature_algorithms(algs, &b.slice_range(4..4 + len))?;
-        }
-        (0, 0x33) => {
-            let gx = check_key_share(algs, &b.slice_range(4..4 + len))?;
-            out = EXTS(None, Some(gx), None, None);
-        }
-        (0, 41) => {
-            check_psk_shared_key(algs, &b.slice_range(4..4 + len))?;
-        }
-        _ => (),
     }
+
     Ok((4 + len, out))
 }
 
@@ -321,19 +328,22 @@ pub fn check_server_extension(
     let l1 = (b[1] as U8).declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let mut out = None;
-    match (l0, l1) {
-        (0, 0x2b) => {
-            check_server_supported_version(algs, &b.slice_range(4..4 + len))?;
-        }
-        (0, 0x33) => {
+
+    // TODO: Support mechanical transformation of `else if` into `else { if }`?
+    if (l0, l1) == (0, 0x2b) {
+        check_server_supported_version(algs, &b.slice_range(4..4 + len))?;
+    } else {
+        if (l0, l1) == (0, 0x33) {
             let gx = check_server_key_share(algs, &b.slice_range(4..4 + len))?;
             out = Some(gx);
+        } else {
+            if (l0, l1) == (0, 41) {
+                // TODO: 41 or 0x41?
+                check_server_psk_shared_key(algs, &b.slice_range(4..4 + len))?;
+            }
         }
-        (0, 41) => {
-            check_server_psk_shared_key(algs, &b.slice_range(4..4 + len))?;
-        }
-        _ => (),
     }
+
     Ok((4 + len, out))
 }
 
@@ -405,19 +415,51 @@ pub fn hs_type(t: HandshakeType) -> u8 {
 }
 
 pub fn get_hs_type(t: u8) -> Result<HandshakeType, TLSError> {
-    match t {
-        1 => Ok(HandshakeType::ClientHello),
-        2 => Ok(HandshakeType::ServerHello),
-        4 => Ok(HandshakeType::NewSessionTicket),
-        5 => Ok(HandshakeType::EndOfEarlyData),
-        8 => Ok(HandshakeType::EncryptedExtensions),
-        11 => Ok(HandshakeType::Certificate),
-        13 => Ok(HandshakeType::CertificateRequest),
-        15 => Ok(HandshakeType::CertificateVerify),
-        20 => Ok(HandshakeType::Finished),
-        24 => Ok(HandshakeType::KeyUpdate),
-        254 => Ok(HandshakeType::MessageHash),
-        _ => Err(PARSE_FAILED),
+    // TODO: Support mechanical transformation of `else if` into `else { if }`?
+    if t == 1 {
+        Ok(HandshakeType::ClientHello)
+    } else {
+        if t == 2 {
+            Ok(HandshakeType::ServerHello)
+        } else {
+            if t == 4 {
+                Ok(HandshakeType::NewSessionTicket)
+            } else {
+                if t == 5 {
+                    Ok(HandshakeType::EndOfEarlyData)
+                } else {
+                    if t == 8 {
+                        Ok(HandshakeType::EncryptedExtensions)
+                    } else {
+                        if t == 11 {
+                            Ok(HandshakeType::Certificate)
+                        } else {
+                            if t == 13 {
+                                Ok(HandshakeType::CertificateRequest)
+                            } else {
+                                if t == 15 {
+                                    Ok(HandshakeType::CertificateVerify)
+                                } else {
+                                    if t == 20 {
+                                        Ok(HandshakeType::Finished)
+                                    } else {
+                                        if t == 24 {
+                                            Ok(HandshakeType::KeyUpdate)
+                                        } else {
+                                            if t == 254 {
+                                                Ok(HandshakeType::MessageHash)
+                                            } else {
+                                                Err(PARSE_FAILED)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -449,10 +491,15 @@ pub fn alert_level(t: AlertLevel) -> u8 {
 }
 
 pub fn get_alert_level(t: u8) -> Result<AlertLevel, TLSError> {
-    match t {
-        1 => Ok(AlertLevel::Warning),
-        2 => Ok(AlertLevel::Fatal),
-        _ => Err(PARSE_FAILED),
+    // TODO: Support mechanical transformation of `else if` into `else { if }`?
+    if t == 1 {
+        Ok(AlertLevel::Warning)
+    } else {
+        if t == 2 {
+            Ok(AlertLevel::Fatal)
+        } else {
+            Err(PARSE_FAILED)
+        }
     }
 }
 
@@ -551,35 +598,117 @@ pub fn alert_description(t: AlertDescription) -> u8 {
 }
 
 pub fn get_alert_description(t: u8) -> Result<AlertDescription, TLSError> {
-    match t {
-        0 => Ok(AlertDescription::CloseNotify),
-        10 => Ok(AlertDescription::UnexpectedMessage),
-        20 => Ok(AlertDescription::BadRecordMac),
-        22 => Ok(AlertDescription::RecordOverflow),
-        40 => Ok(AlertDescription::HandshakeFailure),
-        42 => Ok(AlertDescription::BadCertificate),
-        43 => Ok(AlertDescription::UnsupportedCertificate),
-        44 => Ok(AlertDescription::CertificateRevoked),
-        45 => Ok(AlertDescription::CertificateExpired),
-        46 => Ok(AlertDescription::CertificateUnknown),
-        47 => Ok(AlertDescription::IllegalParameter),
-        48 => Ok(AlertDescription::UnknownCa),
-        49 => Ok(AlertDescription::AccessDenied),
-        50 => Ok(AlertDescription::DecodeError),
-        51 => Ok(AlertDescription::DecryptError),
-        70 => Ok(AlertDescription::ProtocolVersion),
-        71 => Ok(AlertDescription::InsufficientSecurity),
-        80 => Ok(AlertDescription::InternalError),
-        86 => Ok(AlertDescription::InappropriateFallback),
-        90 => Ok(AlertDescription::UserCanceled),
-        109 => Ok(AlertDescription::MissingExtension),
-        110 => Ok(AlertDescription::UnsupportedExtension),
-        112 => Ok(AlertDescription::UnrecognizedName),
-        113 => Ok(AlertDescription::BadCertificateStatusResponse),
-        115 => Ok(AlertDescription::UnknownPskIdentity),
-        116 => Ok(AlertDescription::CertificateRequired),
-        120 => Ok(AlertDescription::NoApplicationProtocol),
-        _ => Err(PARSE_FAILED),
+    // Here comes a beautiful waterfall <3
+    // TODO: Support mechanical transformation of `else if` into `else { if }`?
+    if t == 0 {
+        Ok(AlertDescription::CloseNotify)
+    } else {
+        if t == 10 {
+            Ok(AlertDescription::UnexpectedMessage)
+        } else {
+            if t == 20 {
+                Ok(AlertDescription::BadRecordMac)
+            } else {
+                if t == 22 {
+                    Ok(AlertDescription::RecordOverflow)
+                } else {
+                    if t == 40 {
+                        Ok(AlertDescription::HandshakeFailure)
+                    } else {
+                        if t == 42 {
+                            Ok(AlertDescription::BadCertificate)
+                        } else {
+                            if t == 43 {
+                                Ok(AlertDescription::UnsupportedCertificate)
+                            } else {
+                                if t == 44 {
+                                    Ok(AlertDescription::CertificateRevoked)
+                                } else {
+                                    if t == 45 {
+                                        Ok(AlertDescription::CertificateExpired)
+                                    } else {
+                                        if t == 46 {
+                                            Ok(AlertDescription::CertificateUnknown)
+                                        } else {
+                                            if t == 47 {
+                                                Ok(AlertDescription::IllegalParameter)
+                                            } else {
+                                                if t == 48 {
+                                                    Ok(AlertDescription::UnknownCa)
+                                                } else {
+                                                    if t == 49 {
+                                                        Ok(AlertDescription::AccessDenied)
+                                                    } else {
+                                                        if t == 50 {
+                                                            Ok(AlertDescription::DecodeError)
+                                                        } else {
+                                                            if t == 51 {
+                                                                Ok(AlertDescription::DecryptError)
+                                                            } else {
+                                                                if t == 70 {
+                                                                    Ok(AlertDescription::ProtocolVersion)
+                                                                } else {
+                                                                    if t == 71 {
+                                                                        Ok(AlertDescription::InsufficientSecurity)
+                                                                    } else {
+                                                                        if t == 80 {
+                                                                            Ok(AlertDescription::InternalError)
+                                                                        } else {
+                                                                            if t == 86 {
+                                                                                Ok(AlertDescription::InappropriateFallback)
+                                                                            } else {
+                                                                                if t == 90 {
+                                                                                    Ok(AlertDescription::UserCanceled)
+                                                                                } else {
+                                                                                    if t == 109 {
+                                                                                        Ok(AlertDescription::MissingExtension)
+                                                                                    } else {
+                                                                                        if t == 110
+                                                                                        {
+                                                                                            Ok(AlertDescription::UnsupportedExtension)
+                                                                                        } else {
+                                                                                            if t == 112 {
+                                                                                                Ok(AlertDescription::UnrecognizedName)
+                                                                                            } else {
+                                                                                                if t == 113 {
+                                                                                                    Ok(AlertDescription::BadCertificateStatusResponse)
+                                                                                                } else {
+                                                                                                    if t == 115 {
+                                                                                                        Ok(AlertDescription::UnknownPskIdentity)
+                                                                                                    } else {
+                                                                                                        if t == 116 {
+                                                                                                            Ok(AlertDescription::CertificateRequired)
+                                                                                                        } else {
+                                                                                                            if t == 120 {
+                                                                                                                Ok(AlertDescription::NoApplicationProtocol)
+                                                                                                            } else {
+                                                                                                                Err(PARSE_FAILED)
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1059,13 +1188,27 @@ pub fn content_type(t: ContentType) -> u8 {
 }
 
 pub fn get_content_type(t: u8) -> Result<ContentType, TLSError> {
-    match t {
-        0 => Err(PARSE_FAILED),
-        20 => Ok(ContentType::ChangeCipherSpec),
-        21 => Ok(ContentType::Alert),
-        22 => Ok(ContentType::Handshake),
-        23 => Ok(ContentType::ApplicationData),
-        _ => Err(PARSE_FAILED),
+    // TODO: Support mechanical transformation of `else if` into `else { if }`?
+    if t == 0 {
+        Err(PARSE_FAILED)
+    } else {
+        if t == 20 {
+            Ok(ContentType::ChangeCipherSpec)
+        } else {
+            if t == 21 {
+                Ok(ContentType::Alert)
+            } else {
+                if t == 22 {
+                    Ok(ContentType::Handshake)
+                } else {
+                    if t == 23 {
+                        Ok(ContentType::ApplicationData)
+                    } else {
+                        Err(PARSE_FAILED)
+                    }
+                }
+            }
+        }
     }
 }
 
