@@ -64,10 +64,18 @@ const SHA256_EMPTY: Bytes32 = Bytes32(secret_bytes!([
 */
 
 fn ciphersuite(algs: &Algorithms) -> Result<Bytes, TLSError> {
-    match (hash_alg(algs), aead_alg(algs)) {
-        (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok(bytes2(0x13, 0x01)),
-        (HashAlgorithm::SHA256, AeadAlgorithm::Chacha20Poly1305) => Ok(bytes2(0x13, 0x03)),
-        _ => Err(UNSUPPORTED_ALGORITHM),
+    if hash_alg(algs) == HashAlgorithm::SHA256 {
+        if aead_alg(algs) == AeadAlgorithm::Aes128Gcm {
+            Ok(bytes2(0x13, 0x01))
+        } else {
+            if aead_alg(algs) == AeadAlgorithm::Chacha20Poly1305 {
+                Ok(bytes2(0x13, 0x03))
+            } else {
+                Err(UNSUPPORTED_ALGORITHM)
+            }
+        }
+    } else {
+        Err(UNSUPPORTED_ALGORITHM)
     }
 }
 
@@ -248,11 +256,15 @@ pub struct EXTS(
 );
 
 pub fn merge_opts(o1: Option<Bytes>, o2: Option<Bytes>) -> Result<Option<Bytes>, TLSError> {
-    match (o1, o2) {
-        (None, Some(o)) => Ok(Some(o)),
-        (Some(o), None) => Ok(Some(o)),
-        (None, None) => Ok(None),
-        _ => Err(PARSE_FAILED),
+    match o1 {
+        Option::Some(o1) => match o2 {
+            Option::Some(o2) => Err(PARSE_FAILED),
+            Option::None => Ok(Some(o1)),
+        },
+        Option::None => match o2 {
+            Option::Some(o2) => Ok(Some(o2)),
+            Option::None => Ok(None),
+        },
     }
 }
 
@@ -642,14 +654,14 @@ pub fn find_handshake_message(ty: HandshakeType, payload: &HandshakeData, start:
         false
     } else {
         match check_lbytes3(&p.slice_range(start + 1..p.len())) {
-            Err(_) => false,
-            Ok(len) => {
+            Result::Ok(len) => {
                 if eq1(p[start], U8(hs_type(ty))) {
                     true
                 } else {
                     find_handshake_message(ty, payload, start + 4 + len)
                 }
             }
+            Result::Err(_) => false,
         }
     }
 }
@@ -825,8 +837,8 @@ pub fn parse_server_hello(
     let gy = check_server_extensions(algs, &sh.slice_range(next..sh.len()))?;
 
     match gy {
-        Some(gy) => Ok((Random::from_seq(&srand), gy)),
-        None => Err(UNSUPPORTED_ALGORITHM),
+        Option::Some(gy) => Ok((Random::from_seq(&srand), gy)),
+        Option::None => Err(UNSUPPORTED_ALGORITHM),
     }
 }
 
