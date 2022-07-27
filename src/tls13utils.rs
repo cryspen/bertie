@@ -244,22 +244,33 @@ pub struct Algorithms(
 );
 
 pub fn hash_alg(algs: Algorithms) -> HashAlgorithm {
-    algs.0
+    let Algorithms(hash_algorithm, _, _, _, _, _) = algs;
+    hash_algorithm
 }
+
 pub fn aead_alg(algs: Algorithms) -> AeadAlgorithm {
-    algs.1
+    let Algorithms(_, aead_algorithm, _, _, _, _) = algs;
+    aead_algorithm
 }
+
 pub fn sig_alg(algs: Algorithms) -> SignatureScheme {
-    algs.2
+    let Algorithms(_, _, signature_algorithm, _, _, _) = algs;
+    signature_algorithm
 }
+
 pub fn kem_alg(algs: Algorithms) -> KemScheme {
-    algs.3
+    let Algorithms(_, _, _, kem_scheme, _, _) = algs;
+    kem_scheme
 }
+
 pub fn psk_mode(algs: Algorithms) -> bool {
-    algs.4
+    let Algorithms(_, _, _, _, psk_mode, _) = algs;
+    psk_mode
 }
+
 pub fn zero_rtt(algs: Algorithms) -> bool {
-    algs.5
+    let Algorithms(_, _, _, _, _, zero_rtt) = algs;
+    zero_rtt
 }
 
 // Handshake Data
@@ -268,12 +279,14 @@ pub struct HandshakeData(pub Bytes);
 pub fn handshake_data(b: Bytes) -> HandshakeData {
     HandshakeData(b)
 }
+
 pub fn handshake_data_bytes(hd: &HandshakeData) -> Bytes {
-    hd.0.clone()
+    let HandshakeData(bytes) = hd;
+    bytes.clone()
 }
 
 pub fn handshake_data_len(p: &HandshakeData) -> usize {
-    p.0.len()
+    handshake_data_bytes(p).len()
 }
 
 pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
@@ -289,8 +302,10 @@ pub struct AppData(Bytes);
 pub fn app_data(b: Bytes) -> AppData {
     AppData(b)
 }
+
 pub fn app_data_bytes(a: AppData) -> Bytes {
-    a.0
+    let AppData(bytes) = a;
+    bytes
 }
 
 pub struct ServerDB(
