@@ -479,15 +479,7 @@ fn process_psk_binder_zero_rtt(
         match psko {
             Option::Some(k) => match bindero {
                 Option::Some(binder) => {
-                    let mk = derive_binder_key(&ha, k)?;
-                    hmac_verify(&ha, &mk, &th_trunc, &binder)?;
-                    if zero_rtt {
-                        let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
-                        let cipher0 = Some(server_cipher_state0(ae, aek, 0, key));
-                        Ok(cipher0)
-                    } else {
-                        Ok(None)
-                    }
+                    process_psk_binder_zero_rtt_a(&th_trunc, &th, &ha, &ae, zero_rtt, k, &binder)
                 }
                 Option::None => Err(PSK_MODE_MISMATCH),
             },
@@ -499,6 +491,26 @@ fn process_psk_binder_zero_rtt(
         } else {
             Err(PSK_MODE_MISMATCH)
         }
+    }
+}
+
+fn process_psk_binder_zero_rtt_a(
+    th_trunc: &Digest,
+    th: &Digest,
+    ha: &HashAlgorithm,
+    ae: &AeadAlgorithm,
+    zero_rtt: bool,
+    k: &PSK,
+    binder: &Bytes,
+) -> Result<Option<ServerCipherState0>, TLSError> {
+    let mk = derive_binder_key(&ha, k)?;
+    hmac_verify(&ha, &mk, &th_trunc, &binder)?;
+    if zero_rtt {
+        let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
+        let cipher0 = Some(server_cipher_state0(ae.clone(), aek, 0, key));
+        Ok(cipher0)
+    } else {
+        Ok(None)
     }
 }
 
