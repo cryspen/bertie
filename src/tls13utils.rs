@@ -59,9 +59,6 @@ pub const PARSE_FAILED: TLSError = 133;
 pub const INSUFFICIENT_DATA: TLSError = 134;
 pub const UNSUPPORTED: TLSError = 135;
 
-pub fn error_string(c: u8) -> String {
-    format!("{}", c)
-}
 /*
 pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     if s1 == s2 {Ok(())}
