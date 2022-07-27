@@ -134,7 +134,7 @@ pub fn lbytes1(b: &ByteSeq) -> Result<Bytes, TLSError> {
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let mut lenb = Seq::new(1);
+        let mut lenb = Seq::<U8>::new(1);
         lenb[0] = U8(len as u8);
         Ok(lenb.concat(b))
     }
@@ -146,7 +146,7 @@ pub fn lbytes2(b: &ByteSeq) -> Result<Bytes, TLSError> {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let len: u16 = len as u16;
-        let lenb = Seq::from_seq(&U16_to_be_bytes(U16(len)));
+        let lenb = Seq::<U8>::from_seq(&U16_to_be_bytes(U16(len)));
         Ok(lenb.concat(b))
     }
 }
