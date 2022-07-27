@@ -1,5 +1,6 @@
 Cargo.lock
 /target
+/rust-toolchain
 
 # CLion
 .idea

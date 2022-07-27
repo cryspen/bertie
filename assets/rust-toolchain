@@ -1,0 +1,5 @@
+# Copy this file to you workspace root to simplify your hacspec workflow.
+
+[toolchain]
+channel = "nightly-2021-11-14"
+components = [ "rustc-dev", "llvm-tools-preview" ]
