@@ -14,10 +14,6 @@ pub fn zeros(u: usize) -> ByteSeq {
     ByteSeq::new(u)
 }
 
-pub fn bytes<T: SeqTrait<U8>>(x: &T) -> ByteSeq {
-    Seq::from_seq(x)
-}
-
 bytes!(Random, 32);
 
 bytes!(Bytes1, 1);
@@ -36,16 +32,19 @@ bytes!(Bytes32, 32);
 bytes!(Bytes98, 98);
 
 pub fn bytes1(x: u8) -> ByteSeq {
-    bytes(&Bytes1([U8(x)]))
+    ByteSeq::from_seq(&Bytes1([U8(x)]))
 }
+
 pub fn bytes2(x: u8, y: u8) -> ByteSeq {
-    bytes(&Bytes2([U8(x), U8(y)]))
+    ByteSeq::from_seq(&Bytes2([U8(x), U8(y)]))
 }
+
 pub fn bytes3(x: u8, y: u8, z: u8) -> ByteSeq {
-    bytes(&Bytes3([U8(x), U8(y), U8(z)]))
+    ByteSeq::from_seq(&Bytes3([U8(x), U8(y), U8(z)]))
 }
+
 pub fn bytes5(x0: u8, x1: u8, x2: u8, x3: u8, x4: u8) -> ByteSeq {
-    bytes(&Bytes5([U8(x0), U8(x1), U8(x2), U8(x3), U8(x4)]))
+    ByteSeq::from_seq(&Bytes5([U8(x0), U8(x1), U8(x2), U8(x3), U8(x4)]))
 }
 
 // Local error codes
