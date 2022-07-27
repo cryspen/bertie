@@ -179,7 +179,7 @@ pub fn check_psk_key_exchange_modes(_algs: &Algorithms, ch: &ByteSeq) -> Result<
 
 pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
     let b = supported_group(algs)?;
-    let a = lbytes2(&bytes(gx))?;
+    let a = lbytes2(&gx)?;
     let ks = b.concat(&a);
 
     let b = lbytes2(&ks)?;
@@ -198,7 +198,7 @@ pub fn check_key_share(algs: &Algorithms, ch: &ByteSeq) -> Result<Bytes, TLSErro
 
 pub fn server_key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
     let b = supported_group(algs)?;
-    let a = lbytes2(&bytes(gx))?;
+    let a = lbytes2(&gx)?;
     let ks = b.concat(&a);
 
     let a = lbytes2(&ks)?;

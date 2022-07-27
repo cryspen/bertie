@@ -26,7 +26,7 @@ pub fn hkdf_expand_label(
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let lenb = bytes(&U16_to_be_bytes(U16(len as u16)));
+        let lenb = U16_to_be_bytes(U16(len as u16));
         let tls13_label = LABEL_TLS13.concat(label);
 
         let a = lbytes1(&tls13_label)?;
@@ -42,7 +42,7 @@ pub fn derive_secret(
     label: &Bytes,
     tx: &Digest,
 ) -> Result<Key, TLSError> {
-    hkdf_expand_label(ha, k, label, &bytes(tx), hash_len(ha))
+    hkdf_expand_label(ha, k, label, tx, hash_len(ha))
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
@@ -335,7 +335,7 @@ fn put_server_signature(
         let pk = verification_key_from_cert(&cert)?;
         let sig = parse_certificate_verify(&algs, scv)?;
         let sigval = PREFIX_SERVER_SIGNATURE.concat(&th_sc);
-        verify(&sig_alg(&algs), &pk, &bytes(&sigval), &sig)?;
+        verify(&sig_alg(&algs), &pk, &sigval, &sig)?;
         let tx = transcript_add1(tx, scv);
         Ok(ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx))
     } else {
