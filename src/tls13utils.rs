@@ -89,12 +89,15 @@ pub fn eq(b1: &ByteSeq, b2: &ByteSeq) -> bool {
     if b1.len() != b2.len() {
         false
     } else {
+        let mut found_difference = true;
+
         for i in 0..b1.len() {
             if !eq1(b1[i], b2[i]) {
-                return false;
+                found_difference = false;
             };
         }
-        true
+
+        found_difference
     }
 }
 
