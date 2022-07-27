@@ -116,13 +116,16 @@ pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(PARSE_FAILED)
     } else {
+        let mut result = Err(PARSE_FAILED);
+
         for i in 0..(b2.len() / b1.len()) {
             let snip = b2.slice_range(i * b1.len()..(i + 1) * b1.len());
             if eq(b1, &snip) {
-                return Ok(());
+                result = Ok(());
             }
         }
-        Err(PARSE_FAILED)
+
+        result
     }
 }
 
