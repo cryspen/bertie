@@ -113,11 +113,17 @@ fn test_full_round_trip() {
         sn_,
         Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
         SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
-        None,
+        Option::None,
     );
 
     let mut b = true;
-    match client_connect(TLS_AES_128_GCM_SHA256_X25519, &sn, None, None, ent_c) {
+    match client_connect(
+        TLS_AES_128_GCM_SHA256_X25519,
+        &sn,
+        Option::None,
+        Option::None,
+        ent_c,
+    ) {
         Err(x) => {
             println!("Client0 Error {}", x);
             b = false;
@@ -140,12 +146,12 @@ fn test_full_round_trip() {
                             println!("ServerHello State Error");
                             b = false;
                         }
-                        Ok((None, cstate)) => match client_read_handshake(&sf, cstate) {
+                        Ok((Option::None, cstate)) => match client_read_handshake(&sf, cstate) {
                             Err(x) => {
                                 println!("ClientFinish Error {}", x);
                                 b = false;
                             }
-                            Ok((None, _)) => {
+                            Ok((Option::None, _)) => {
                                 println!("ClientFinish State Error");
                                 b = false;
                             }

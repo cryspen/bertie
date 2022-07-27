@@ -264,7 +264,7 @@ pub fn merge_opts(o1: Option<Bytes>, o2: Option<Bytes>) -> Result<Option<Bytes>,
         },
         Option::None => match o2 {
             Option::Some(o2) => Ok(Some(o2)),
-            Option::None => Ok(None),
+            Option::None => Ok(Option::None),
         },
     }
 }
@@ -284,12 +284,12 @@ fn check_extension(algs: Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSEr
     let l0 = (b[0] as U8).declassify() as usize;
     let l1 = (b[1] as U8).declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
-    let mut out = EXTS(None, None, None, None);
+    let mut out = EXTS(Option::None, Option::None, Option::None, Option::None);
 
     // TODO: Support mechanical transformation of `else if` into `else { if }`?
     if (l0, l1) == (0, 0) {
         let sn = check_server_name(&b.slice_range(4..4 + len))?;
-        out = EXTS(Some(sn), None, None, None);
+        out = EXTS(Some(sn), Option::None, Option::None, Option::None);
     } else {
         if (l0, l1) == (0, 0x2d) {
             check_psk_key_exchange_modes(algs, &b.slice_range(4..4 + len))?;
@@ -305,7 +305,7 @@ fn check_extension(algs: Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSEr
                     } else {
                         if (l0, l1) == (0, 0x33) {
                             let gx = check_key_share(algs, &b.slice_range(4..4 + len))?;
-                            out = EXTS(None, Some(gx), None, None);
+                            out = EXTS(Option::None, Some(gx), Option::None, Option::None);
                         } else {
                             if (l0, l1) == (0, 41) {
                                 // TODO: 41 or 0x41?
@@ -328,7 +328,7 @@ pub fn check_server_extension(
     let l0 = (b[0] as U8).declassify() as usize;
     let l1 = (b[1] as U8).declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
-    let mut out = None;
+    let mut out = Option::None;
 
     // TODO: Support mechanical transformation of `else if` into `else { if }`?
     if (l0, l1) == (0, 0x2b) {
@@ -934,7 +934,15 @@ pub fn parse_client_hello(
                     Option::Some(tkt) => Err(PARSE_FAILED),
                     Option::None => match binder {
                         Option::Some(binder) => Err(PARSE_FAILED),
-                        Option::None => Ok((Random::from_seq(&crand), sid, sn, gx, None, None, 0)),
+                        Option::None => Ok((
+                            Random::from_seq(&crand),
+                            sid,
+                            sn,
+                            gx,
+                            Option::None,
+                            Option::None,
+                            0,
+                        )),
                     },
                 },
                 Option::None => Err(PARSE_FAILED),
