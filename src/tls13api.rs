@@ -56,7 +56,7 @@ fn client_read_handshake_a(
     let sf = get_handshake_record(d)?;
     let (cipher1, cstate) = client_set_params(&sf, cstate)?;
     let buf = handshake_data(empty());
-    Ok((None, Client::ClientH(cstate, cipher0, cipher1, buf)))
+    Ok((Option::None, Client::ClientH(cstate, cipher0, cipher1, buf)))
 }
 
 fn client_read_handshake_b(
@@ -73,7 +73,10 @@ fn client_read_handshake_b(
         let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
         Ok((Some(cf_rec), Client::Client1(cstate, cipher1)))
     } else {
-        Ok((None, Client::ClientH(cstate, cipher0, cipher_hs, buf)))
+        Ok((
+            Option::None,
+            Client::ClientH(cstate, cipher0, cipher_hs, buf),
+        ))
     }
 }
 
@@ -99,7 +102,7 @@ fn client_read_a(
         ContentType::Alert => Err(PARSE_FAILED),
         ContentType::Handshake => {
             println!("Received Session Ticket");
-            Ok((None, Client::Client1(cstate, cipher1)))
+            Ok((Option::None, Client::Client1(cstate, cipher1)))
         }
         ContentType::ApplicationData => Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1))),
     }

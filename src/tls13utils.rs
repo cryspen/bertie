@@ -328,6 +328,6 @@ pub fn lookup_db(
         check_eq(ctkt, stkt)?;
         Ok((cert.clone(), sk.clone(), Some(psk.clone())))
     } else {
-        Ok((cert.clone(), sk.clone(), None))
+        Ok((cert.clone(), sk.clone(), Option::None))
     }
 }

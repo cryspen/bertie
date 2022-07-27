@@ -297,7 +297,7 @@ fn compute_psk_binder_zero_rtt(
             let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
             Ok((nch, cipher0, tx_ch))
         } else {
-            Ok((nch, None, tx_ch))
+            Ok((nch, Option::None, tx_ch))
         }
     } else {
         if psk.is_some() {
@@ -305,7 +305,7 @@ fn compute_psk_binder_zero_rtt(
         }
 
         let tx_ch = transcript_add1(tx, &ch);
-        Ok((ch, None, tx_ch))
+        Ok((ch, Option::None, tx_ch))
     }
 }
 
@@ -497,7 +497,7 @@ fn process_psk_binder_zero_rtt(
         }
     } else {
         if psko.is_none() && bindero.is_none() {
-            Ok(None)
+            Ok(Option::None)
         } else {
             Err(PSK_MODE_MISMATCH)
         }
@@ -520,7 +520,7 @@ fn process_psk_binder_zero_rtt_a(
         let cipher0 = Some(server_cipher_state0(ae.clone(), aek, 0, key));
         Ok(cipher0)
     } else {
-        Ok(None)
+        Ok(Option::None)
     }
 }
 

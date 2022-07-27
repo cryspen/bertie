@@ -89,7 +89,7 @@ where
             Entropy::from_public_slice(&entropy)
         };
 
-        client_connect(default_algs, &sni, None, None, ent)?
+        client_connect(default_algs, &sni, Option::None, Option::None, ent)?
     };
 
     stream.write_record(client_hello)?;
@@ -108,9 +108,9 @@ where
     let change_cipher_spec = stream.read_record()?;
     verify_ccs_message(change_cipher_spec)?;
 
-    let mut cf_rec = None;
+    let mut cf_rec = Option::None;
     let mut cstate = cstate;
-    while cf_rec == None {
+    while cf_rec == Option::None {
         let rec = stream.read_record()?;
 
         let (new_cf_rec, new_cstate) = client_read_handshake(&rec, cstate)?;
@@ -139,9 +139,9 @@ where
 
     /* Process HTTP response */
 
-    let mut ad = None;
+    let mut ad = Option::None;
     let mut cstate = cstate;
-    while ad == None {
+    while ad == Option::None {
         let rec = stream.read_record()?;
 
         let (new_ad, new_cstate) = client_read(&rec, cstate)?;
@@ -168,9 +168,9 @@ pub fn tls13client_continue<Stream>(
 where
     Stream: Read + Write,
 {
-    let mut ad = None;
+    let mut ad = Option::None;
     let mut cstate = cstate;
-    while ad == None {
+    while ad == Option::None {
         let rec = stream.read_record()?;
 
         let (new_ad, new_cstate) = client_read(&rec, cstate)?;

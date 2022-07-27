@@ -327,7 +327,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             &cr,
             &gx,
             &sn,
-            &None,
+            &Option::None,
         );
         let mut b = true;
         match ch {
@@ -527,7 +527,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 println!("Error: {}", x);
             }
             Ok(tx_hash) => {
-                let keys = derive_hk_ms(&ha, &ae, &gxy, &None, &tx_hash);
+                let keys = derive_hk_ms(&ha, &ae, &gxy, &Option::None, &tx_hash);
                 b = keys.is_ok();
                 match keys {
                     Err(x) => {
