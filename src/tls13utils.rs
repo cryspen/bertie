@@ -84,6 +84,7 @@ pub fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     }
 }
 
+// TODO: This is not constant time. Should it be?
 pub fn eq(b1: &ByteSeq, b2: &ByteSeq) -> bool {
     if b1.len() != b2.len() {
         false
