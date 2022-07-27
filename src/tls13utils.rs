@@ -322,12 +322,12 @@ pub fn lookup_db(
 ) -> Result<(Bytes, SignatureKey, Option<PSK>), TLSError> {
     let ServerDB(server_name, cert, sk, psk_opt) = db;
     check_eq(sni, server_name)?;
-    match (psk_mode(algs), tkt, psk_opt) {
-        (true, Some(ctkt), Some((stkt, psk))) => {
-            check_eq(ctkt, stkt)?;
-            Ok((cert.clone(), sk.clone(), Some(psk.clone())))
-        }
-        (false, _, _) => Ok((cert.clone(), sk.clone(), None)),
-        _ => Err(PSK_MODE_MISMATCH),
+    if psk_mode(algs) {
+        let ctkt = tkt.as_ref().ok_or(PSK_MODE_MISMATCH)?;
+        let (stkt, psk) = psk_opt.as_ref().ok_or(PSK_MODE_MISMATCH)?;
+        check_eq(ctkt, stkt)?;
+        Ok((cert.clone(), sk.clone(), Some(psk.clone())))
+    } else {
+        Ok((cert.clone(), sk.clone(), None))
     }
 }
