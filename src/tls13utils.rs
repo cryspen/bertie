@@ -243,22 +243,22 @@ pub struct Algorithms(
     pub bool,
 );
 
-pub fn hash_alg(algs: &Algorithms) -> HashAlgorithm {
+pub fn hash_alg(algs: Algorithms) -> HashAlgorithm {
     algs.0
 }
-pub fn aead_alg(algs: &Algorithms) -> AeadAlgorithm {
+pub fn aead_alg(algs: Algorithms) -> AeadAlgorithm {
     algs.1
 }
-pub fn sig_alg(algs: &Algorithms) -> SignatureScheme {
+pub fn sig_alg(algs: Algorithms) -> SignatureScheme {
     algs.2
 }
-pub fn kem_alg(algs: &Algorithms) -> KemScheme {
+pub fn kem_alg(algs: Algorithms) -> KemScheme {
     algs.3
 }
-pub fn psk_mode(algs: &Algorithms) -> bool {
+pub fn psk_mode(algs: Algorithms) -> bool {
     algs.4
 }
-pub fn zero_rtt(algs: &Algorithms) -> bool {
+pub fn zero_rtt(algs: Algorithms) -> bool {
     algs.5
 }
 
@@ -308,7 +308,7 @@ pub fn lookup_db(
 ) -> Result<(Bytes, SignatureKey, Option<PSK>), TLSError> {
     let ServerDB(server_name, cert, sk, psk_opt) = db;
     check_eq(sni, server_name)?;
-    match (psk_mode(&algs), tkt, psk_opt) {
+    match (psk_mode(algs), tkt, psk_opt) {
         (true, Some(ctkt), Some((stkt, psk))) => {
             check_eq(ctkt, stkt)?;
             Ok((cert.clone(), sk.clone(), Some(psk.clone())))

@@ -270,7 +270,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     fn test_parse_client_hello() {
         let ch = handshake_data(load_hex(client_hello));
         //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-        let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
+        let res = parse_client_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -299,7 +299,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 println!("Error: {}", x);
                 b = false;
             }
-            Ok((hs, len)) => match parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &hs) {
+            Ok((hs, len)) => match parse_client_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &hs) {
                 Err(x) => {
                     println!("Error: {}", x);
                     b = false;
@@ -323,7 +323,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
         let gx = load_hex(client_x25519_pub);
         let sn = Bytes::new(23);
         let ch = crate::tls13formats::client_hello(
-            &TLS_AES_128_GCM_SHA256_X25519_RSA,
+            TLS_AES_128_GCM_SHA256_X25519_RSA,
             &cr,
             &gx,
             &sn,
@@ -337,7 +337,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             Ok((ch, _)) => {
                 //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-                let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
+                let res = parse_client_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
                 let b = res.is_ok();
                 match res {
                     Err(x) => {
@@ -361,7 +361,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     fn test_parse_server_hello() {
         let sh = handshake_data(load_hex(server_hello));
         //   let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
-        let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+        let res = parse_server_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -377,13 +377,21 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     }
 
     #[test]
+    #[ignore = "Enable this later."]
+    fn test_parse_server_hello_length_zero() {
+        let sh = handshake_data(load_hex("02000000"));
+        // let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
+        let res = parse_server_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+    }
+
+    #[test]
     fn test_parse_server_hello_roundtrip() {
         let sr: Random = Random::new();
         let mut sid = Bytes::new(24);
         sid[0] = U8(255);
         let gy = load_hex(server_x25519_pub);
         let sh =
-            crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
+            crate::tls13formats::server_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
         let mut b = true;
         match sh {
             Err(x) => {
@@ -392,7 +400,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             Ok(sh) => {
                 //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-                let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+                let res = parse_server_hello(TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
                 let b = res.is_ok();
                 match res {
                     Err(x) => {
@@ -412,7 +420,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_encrypted_extensions() {
         let ee = handshake_data(load_hex(encrypted_extensions));
-        let res = parse_encrypted_extensions(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ee);
+        let res = parse_encrypted_extensions(TLS_AES_128_GCM_SHA256_X25519_RSA, &ee);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -428,7 +436,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_server_certificate() {
         let sc = handshake_data(load_hex(server_certificate));
-        let res = parse_server_certificate(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sc);
+        let res = parse_server_certificate(TLS_AES_128_GCM_SHA256_X25519_RSA, &sc);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -444,7 +452,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_server_certificate_verify() {
         let cv = handshake_data(load_hex(server_certificate_verify));
-        let res = parse_certificate_verify(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cv);
+        let res = parse_certificate_verify(TLS_AES_128_GCM_SHA256_X25519_RSA, &cv);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -460,7 +468,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_server_finished() {
         let sf = handshake_data(load_hex(server_finished));
-        let res = parse_finished(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sf);
+        let res = parse_finished(TLS_AES_128_GCM_SHA256_X25519_RSA, &sf);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -476,7 +484,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_client_finished() {
         let cf = handshake_data(load_hex(client_finished));
-        let res = parse_finished(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cf);
+        let res = parse_finished(TLS_AES_128_GCM_SHA256_X25519_RSA, &cf);
         let b = res.is_ok();
         match res {
             Err(x) => {
