@@ -8,6 +8,8 @@ use hacspec_lib::*;
 
 use crate::*;
 
+pub const PARSE_FAILED: u8 = 133;
+
 /// Well Known Constants
 
 // Hack...

@@ -9,6 +9,8 @@ use crate::*;
 // Import hacspec and all needed definitions.
 use hacspec_lib::*;
 
+pub const PARSE_FAILED: u8 = 133;
+
 /* CipherStates Exported by the TLS 1.3 Handshake */
 pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, Key);
 pub fn client_cipher_state0(

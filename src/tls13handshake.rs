@@ -7,6 +7,8 @@ use hacspec_lib::*;
 
 use crate::*;
 
+pub const PARSE_FAILED: u8 = 133;
+
 /* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
 
 pub fn hash_empty(ha: &HashAlgorithm) -> Result<Digest, TLSError> {

@@ -3,6 +3,8 @@ use crate::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 
+pub const PARSE_FAILED: u8 = 133;
+
 pub enum Client {
     Client0(ClientPostClientHello, Option<ClientCipherState0>),
     ClientH(
