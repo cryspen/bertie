@@ -10,6 +10,7 @@ use crate::*;
 
 pub const PARSE_FAILED: u8 = 133;
 pub const UNSUPPORTED_ALGORITHM: u8 = 6u8;
+pub const PSK_MODE_MISMATCH: u8 = 131;
 
 /// Well Known Constants
 
