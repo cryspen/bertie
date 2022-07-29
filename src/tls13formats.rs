@@ -9,6 +9,7 @@ use hacspec_lib::*;
 use crate::*;
 
 pub const PARSE_FAILED: u8 = 133;
+pub const UNSUPPORTED_ALGORITHM: u8 = 6u8;
 
 /// Well Known Constants
 
