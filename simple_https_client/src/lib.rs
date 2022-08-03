@@ -9,7 +9,10 @@
 use std::io::{Read, Write};
 
 use anyhow::Result;
-use bertie::{tls13api::*, tls13utils::*};
+use bertie::{
+    tls13api::*,
+    tls13utils::{app_data, app_data_bytes, eq1, Algorithms, TLSError},
+};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
 #[cfg(not(feature = "evercrypt"))]
