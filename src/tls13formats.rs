@@ -157,11 +157,23 @@ pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
     Ok(bytes2(0, 0x33).concat(&lbytes2(&lbytes2(&ks)?)?))
 }
 
-pub fn check_key_share(algs: &Algorithms, ch: &ByteSeq) -> Result<Bytes, TLSError> {
+pub fn find_key_share(g:&Bytes, ch: &ByteSeq) -> Result<Bytes, TLSError> {
+    if ch.len() < 4 {
+        Err(PARSE_FAILED)
+    } else {
+        if eq(&g,&ch.slice_range(0..2)) {
+            let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
+            Ok(ch.slice_range(4..4+len))
+        } else {
+            let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
+            find_key_share(g,&ch.slice_range(4+len..ch.len()))
+        }
+    }
+}
+
+pub fn check_key_shares(algs: &Algorithms, ch: &ByteSeq) -> Result<Bytes, TLSError> {
     check_lbytes2_full(ch)?;
-    check_eq(&supported_group(algs)?, &ch.slice_range(2..4))?;
-    check_lbytes2_full(&ch.slice_range(4..ch.len()))?;
-    Ok(ch.slice_range(6..ch.len()))
+    find_key_share(&supported_group(algs)?, &ch.slice_range(2..ch.len()))
 }
 
 pub fn server_key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
@@ -237,6 +249,7 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
     let l1 = (b[1] as U8).declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let mut out = EXTS(None, None, None, None);
+    //println!("extension {},{}",l0,l1);
     match (l0, l1) {
         (0, 0) => {
             let sn = check_server_name(&b.slice_range(4..4 + len))?;
@@ -247,7 +260,8 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
         (0, 0x0a) => check_supported_groups(algs, &b.slice_range(4..4 + len))?,
         (0, 0x0d) => check_signature_algorithms(algs, &b.slice_range(4..4 + len))?,
         (0, 0x33) => {
-            let gx = check_key_share(algs, &b.slice_range(4..4 + len))?;
+            let gx = check_key_shares(algs, &b.slice_range(4..4 + len))?;
+            //println!("check_key_share");
             out = EXTS(None, Some(gx), None, None)
         }
         (0, 41) => check_psk_shared_key(algs, &b.slice_range(4..4 + len))?,
@@ -278,6 +292,7 @@ pub fn check_server_extension(
 
 fn check_extensions(algs: &Algorithms, b: &ByteSeq) -> Result<EXTS, TLSError> {
     let (len, out) = check_extension(algs, b)?;
+    //println!("checked 1 extension");
     if len == b.len() {
         Ok(out)
     } else {
@@ -521,6 +536,7 @@ pub fn parse_client_hello(
     check_lbytes2_full(&ch.slice_range(next..ch.len()))?;
     next = next + 2;
     let exts = check_extensions(algs, &ch.slice_range(next..ch.len()))?;
+    //println!("check_extensions");
     let trunc_len = ch.len() - hash_len(&hash_alg(algs)) - 3;
     match (psk_mode(algs), exts) {
         (true, EXTS(Some(sn), Some(gx), Some(tkt), Some(binder))) => Ok((
@@ -532,8 +548,20 @@ pub fn parse_client_hello(
             Some(binder),
             trunc_len,
         )),
+        (true, EXTS(None, Some(gx), Some(tkt), Some(binder))) => Ok((
+            Random::from_seq(&crand),
+            sid,
+            empty(),
+            gx,
+            Some(tkt),
+            Some(binder),
+            trunc_len,
+        )),
         (false, EXTS(Some(sn), Some(gx), None, None)) => {
             Ok((Random::from_seq(&crand), sid, sn, gx, None, None, 0))
+        },
+        (false, EXTS(None, Some(gx), None, None)) => {
+            Ok((Random::from_seq(&crand), sid, empty(), gx, None, None, 0))
         }
         _ => Err(PARSE_FAILED),
     }
@@ -598,7 +626,7 @@ pub fn parse_server_hello(
 
 pub fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let ty = bytes1(hs_type(HandshakeType::EncryptedExtensions));
-    Ok(HandshakeData(ty.concat(&lbytes3(&empty())?)))
+    Ok(HandshakeData(ty.concat(&lbytes3(&lbytes2(&empty())?)?)))
 }
 
 pub fn parse_encrypted_extensions(_algs: &Algorithms, ee: &HandshakeData) -> Result<(), TLSError> {
