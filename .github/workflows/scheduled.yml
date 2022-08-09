@@ -1,4 +1,5 @@
 name: Scheduled
+
 on:
   schedule:
     # 13:37 on Wednesday and Sunday. (Thanks, crontab.guru)
