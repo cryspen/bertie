@@ -55,7 +55,7 @@ pub fn duplex_cipher_state1(
 }
 
 pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIv, n: u64) -> AeadIv {
-    let counter = bytes(&U64_to_be_bytes(U64(n)));
+    let counter = U64_to_be_bytes(U64(n));
     let mut iv_ctr = AeadIv::new(iv.len());
     for i in 0..iv.len() - 8 {
         iv_ctr[i] = iv[i];

@@ -25,7 +25,7 @@ pub fn hkdf_expand_label(
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let lenb = bytes(&U16_to_be_bytes(U16(len as u16)));
+        let lenb = U16_to_be_bytes(U16(len as u16));
         let tls13_label = LABEL_TLS13.concat(label);
         let info = lenb
             .concat(&lbytes1(&tls13_label)?)
@@ -40,7 +40,7 @@ pub fn derive_secret(
     label: &Bytes,
     tx: &Digest,
 ) -> Result<Key, TLSError> {
-    hkdf_expand_label(ha, k, label, &bytes(tx), hash_len(ha))
+    hkdf_expand_label(ha, k, label, tx, hash_len(ha))
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
