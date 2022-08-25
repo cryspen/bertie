@@ -157,11 +157,23 @@ pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
     Ok(bytes2(0, 0x33).concat(&lbytes2(&lbytes2(&ks)?)?))
 }
 
+pub fn find_key_share(g:&Bytes, ch: &ByteSeq) -> Result<Bytes, TLSError> {
+    if ch.len() < 4 {
+        Err(PARSE_FAILED)
+    } else {
+        if eq(&g,&ch.slice_range(0..2)) {
+            let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
+            Ok(ch.slice_range(4..4+len))
+        } else {
+            let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
+            find_key_share(g,&ch.slice_range(4+len..ch.len()))
+        }
+    }
+}
+
 pub fn check_key_share(algs: &Algorithms, ch: &ByteSeq) -> Result<Bytes, TLSError> {
     check_lbytes2_full(ch)?;
-    check_eq(&supported_group(algs)?, &ch.slice_range(2..4))?;
-    check_lbytes2_full(&ch.slice_range(4..ch.len()))?;
-    Ok(ch.slice_range(6..ch.len()))
+    find_key_share(&supported_group(algs)?, &ch.slice_range(2..ch.len()))
 }
 
 pub fn server_key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
@@ -710,8 +722,20 @@ pub fn parse_client_hello(
             Some(binder),
             trunc_len,
         )),
+        (true, EXTS(None, Some(gx), Some(tkt), Some(binder))) => Ok((
+            Random::from_seq(&crand),
+            sid,
+            empty(),
+            gx,
+            Some(tkt),
+            Some(binder),
+            trunc_len,
+        )),
         (false, EXTS(Some(sn), Some(gx), None, None)) => {
             Ok((Random::from_seq(&crand), sid, sn, gx, None, None, 0))
+        },
+        (false, EXTS(None, Some(gx), None, None)) => {
+            Ok((Random::from_seq(&crand), sid, empty(), gx, None, None, 0))
         }
         _ => Err(PARSE_FAILED),
     }
@@ -776,7 +800,7 @@ pub fn parse_server_hello(
 
 pub fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let ty = bytes1(hs_type(HandshakeType::EncryptedExtensions));
-    Ok(HandshakeData(ty.concat(&lbytes3(&empty())?)))
+    Ok(HandshakeData(ty.concat(&lbytes3(&lbytes2(&empty())?)?)))
 }
 
 pub fn parse_encrypted_extensions(_algs: &Algorithms, ee: &HandshakeData) -> Result<(), TLSError> {
