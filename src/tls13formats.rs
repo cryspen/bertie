@@ -249,6 +249,7 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
     let l1 = (b[1] as U8).declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let mut out = EXTS(None, None, None, None);
+    //println!("extension {},{}",l0,l1);
     match (l0, l1) {
         (0, 0) => {
             let sn = check_server_name(&b.slice_range(4..4 + len))?;
@@ -260,6 +261,7 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
         (0, 0x0d) => check_signature_algorithms(algs, &b.slice_range(4..4 + len))?,
         (0, 0x33) => {
             let gx = check_key_share(algs, &b.slice_range(4..4 + len))?;
+            //println!("check_key_share");
             out = EXTS(None, Some(gx), None, None)
         }
         (0, 41) => check_psk_shared_key(algs, &b.slice_range(4..4 + len))?,
@@ -290,6 +292,7 @@ pub fn check_server_extension(
 
 fn check_extensions(algs: &Algorithms, b: &ByteSeq) -> Result<EXTS, TLSError> {
     let (len, out) = check_extension(algs, b)?;
+    //println!("checked 1 extension");
     if len == b.len() {
         Ok(out)
     } else {
@@ -711,6 +714,7 @@ pub fn parse_client_hello(
     check_lbytes2_full(&ch.slice_range(next..ch.len()))?;
     next = next + 2;
     let exts = check_extensions(algs, &ch.slice_range(next..ch.len()))?;
+    //println!("check_extensions");
     let trunc_len = ch.len() - hash_len(&hash_alg(algs)) - 3;
     match (psk_mode(algs), exts) {
         (true, EXTS(Some(sn), Some(gx), Some(tkt), Some(binder))) => Ok((

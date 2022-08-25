@@ -423,6 +423,7 @@ fn put_client_hello(
     db: ServerDB,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
     let (cr, sid, sni, gx, tkto, bindero, trunc_len) = parse_client_hello(&algs, ch)?;
+    //println!("parse_client_hello");
     let tx = transcript_empty(hash_alg(&algs));
     let th_trunc = get_transcript_hash_truncated_client_hello(&tx, ch, trunc_len)?;
     let tx = transcript_add1(tx, ch);
@@ -587,8 +588,10 @@ pub fn server_init(
     TLSError,
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
+    //println!("put_client_hello");
     let (sh, cipher_hs, st) =
         get_server_hello(st, ent.slice(0, 32 + dh_priv_len(&kem_alg(&algs))))?;
+    //println!("get_server_hello");
     match psk_mode(&algs) {
         false => {
             let (ee, sc, scv, st) = get_server_signature(st, ent.slice(0, 32))?; //FIX: use 32 extra bytes

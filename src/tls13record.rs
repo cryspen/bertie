@@ -162,7 +162,9 @@ pub fn decrypt_handshake(
 ) -> Result<(HandshakeData, DuplexCipherStateH), TLSError> {
     let DuplexCipherStateH(ae, x, y, kiv, n) = st;
     let (ct, payload) = decrypt_record_payload(&ae, &kiv, n, ciphertext)?;
+    //println!("dec payload"); 
     check(ct == ContentType::Handshake)?;
+    //println!("dec payload hs"); 
     Ok((
         handshake_data(payload),
         DuplexCipherStateH(ae, x, y, kiv, n + 1),
