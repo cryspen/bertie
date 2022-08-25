@@ -353,12 +353,14 @@ fn put_server_signature(
             let verification_key = ecdsa_public_key(&cert, certificate_key)?;
             let pk = PublicVerificationKey::EcDsa(verification_key);
             verify(&sig_alg(algs), &pk, &sigval, &sig)?;
-        } else if signature_scheme == SignatureScheme::RsaPssRsaSha256 {
-            let verification_key = rsa_public_key(&cert, certificate_key)?;
-            let pk = PublicVerificationKey::Rsa(verification_key);
-            verify(&sig_alg(algs), &pk, &sigval, &sig)?;
         } else {
-            Err(UNSUPPORTED)?;
+            if signature_scheme == SignatureScheme::RsaPssRsaSha256 {
+                let verification_key = rsa_public_key(&cert, certificate_key)?;
+                let pk = PublicVerificationKey::Rsa(verification_key);
+                verify(&sig_alg(algs), &pk, &sigval, &sig)?;
+            } else {
+                Err(UNSUPPORTED)?;
+            }
         }
         let tx = transcript_add1(tx, scv);
         Ok(ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx))
