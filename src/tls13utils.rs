@@ -57,6 +57,7 @@ pub const PSK_MODE_MISMATCH: TLSError = 131;
 pub const NEGOTIATION_MISMATCH: TLSError = 132;
 pub const PARSE_FAILED: TLSError = 133;
 pub const INSUFFICIENT_DATA: TLSError = 134;
+pub const UNSUPPORTED: TLSError = 135;
 
 pub fn error_string(c: u8) -> String {
     format!("{}", c)
