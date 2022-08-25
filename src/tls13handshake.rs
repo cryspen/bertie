@@ -350,11 +350,11 @@ fn put_server_signature(
         if signature_scheme == SignatureScheme::EcdsaSecp256r1Sha256 {
             let verification_key = ecdsa_public_key(&cert, certificate_key)?;
             let pk = PublicVerificationKey::EcDsa(verification_key);
-            verify(&sig_alg(algs), &pk, &bytes(&sigval), &sig)?;
+            verify(&sig_alg(algs), &pk, &sigval, &sig)?;
         } else if signature_scheme == SignatureScheme::RsaPssRsaSha256 {
             let verification_key = rsa_public_key(&cert, certificate_key)?;
             let pk = PublicVerificationKey::Rsa(verification_key);
-            verify(&sig_alg(algs), &pk, &bytes(&sigval), &sig)?;
+            verify(&sig_alg(algs), &pk, &sigval, &sig)?;
         } else {
             Err(UNSUPPORTED)?;
         }
