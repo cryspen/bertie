@@ -27,9 +27,10 @@ pub fn hkdf_expand_label(
     } else {
         let lenb = U16_to_be_bytes(U16(len as u16));
         let tls13_label = LABEL_TLS13.concat(label);
-        let info = lenb
-            .concat(&lbytes1(&tls13_label)?)
-            .concat(&lbytes1(context)?);
+
+        let a = lbytes1(&tls13_label)?;
+        let b = lbytes1(context)?;
+        let info = lenb.concat(&a).concat(&b);
         hkdf_expand(ha, k, &info, len as usize)
     }
 }
@@ -45,12 +46,8 @@ pub fn derive_secret(
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
     let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
-    derive_secret(
-        ha,
-        &early_secret,
-        &bytes(&LABEL_RES_BINDER),
-        &hash_empty(ha)?,
-    )
+    let a = hash_empty(ha)?;
+    derive_secret(ha, &early_secret, &bytes(&LABEL_RES_BINDER), &a)
 }
 
 pub fn derive_aead_key_iv(
