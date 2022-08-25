@@ -171,7 +171,7 @@ pub fn find_key_share(g:&Bytes, ch: &ByteSeq) -> Result<Bytes, TLSError> {
     }
 }
 
-pub fn check_key_share(algs: &Algorithms, ch: &ByteSeq) -> Result<Bytes, TLSError> {
+pub fn check_key_shares(algs: &Algorithms, ch: &ByteSeq) -> Result<Bytes, TLSError> {
     check_lbytes2_full(ch)?;
     find_key_share(&supported_group(algs)?, &ch.slice_range(2..ch.len()))
 }
@@ -260,7 +260,7 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
         (0, 0x0a) => check_supported_groups(algs, &b.slice_range(4..4 + len))?,
         (0, 0x0d) => check_signature_algorithms(algs, &b.slice_range(4..4 + len))?,
         (0, 0x33) => {
-            let gx = check_key_share(algs, &b.slice_range(4..4 + len))?;
+            let gx = check_key_shares(algs, &b.slice_range(4..4 + len))?;
             //println!("check_key_share");
             out = EXTS(None, Some(gx), None, None)
         }
