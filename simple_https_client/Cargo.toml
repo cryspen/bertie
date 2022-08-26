@@ -20,7 +20,7 @@ hex = "0.4.3"
 rand = "0.8.0"
 thiserror = "1"
 tracing = "0.1"
-tracing-subscriber = "0.2"
+tracing-subscriber = "0.3"
 
 [features]
 default = ["hacspec"]
