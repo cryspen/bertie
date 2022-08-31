@@ -1,5 +1,5 @@
 [package]
-name = "bertie_bogo_shim"
+name = "bogo_shim"
 version = "0.1.0"
 edition = "2021"
 
