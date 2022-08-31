@@ -5,6 +5,8 @@ use std::io::{Cursor, Read, Write};
 use libfuzzer_sys::fuzz_target;
 use simple_https_client::tls13client;
 
+/// This struct is used to disguise a `&[u8]` as a stream, i.e.,
+/// something that implements `Read` and `Write`.
 struct Stream<'a> {
     cursor: Cursor<&'a [u8]>,
 }
@@ -24,8 +26,8 @@ impl<'a> Read for Stream<'a> {
 }
 
 impl<'a> Write for Stream<'a> {
+    /// Fake a successful write.
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        // Fake successful write.
         Ok(buf.len())
     }
 
@@ -35,6 +37,7 @@ impl<'a> Write for Stream<'a> {
 }
 
 fuzz_target!(|data: &[u8]| {
+    /// We use `Stream` to feed the libFuzzer input (`&[u8]`) into `tls13client()`.
     let stream = Stream::new(data);
 
     match tls13client("127.0.0.1", stream, "") {
