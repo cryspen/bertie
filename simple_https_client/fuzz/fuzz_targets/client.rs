@@ -37,7 +37,7 @@ impl<'a> Write for Stream<'a> {
 }
 
 fuzz_target!(|data: &[u8]| {
-    /// We use `Stream` to feed the libFuzzer input (`&[u8]`) into `tls13client()`.
+    // We use `Stream` to feed the libFuzzer input (`&[u8]`) into `tls13client()`.
     let stream = Stream::new(data);
 
     match tls13client("127.0.0.1", stream, "") {
