@@ -1,0 +1,13 @@
+[package]
+name = "bogo_shim"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.13.0"
+simple_https_client = { path = "../simple_https_client" }
+tracing = "*"
+tracing-subscriber = "*"
+
