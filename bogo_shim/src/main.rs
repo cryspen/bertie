@@ -37,6 +37,11 @@ impl Default for Role {
     }
 }
 
+/// When a BoGo test contains one of these parameters, it will be skipped.
+/// BoGo will be notified about the skip via the return code BOGO_NACK.
+/// (See https://github.com/google/boringssl/blob/master/ssl/test/PORTING.md#unimplemented-features.)
+///
+/// Note: This list is expected to decrease over time when the Bertie API stabilizes.
 const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-advertise-alpn",
     "-async",
@@ -93,6 +98,17 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-write-settings",
 ];
 
+/// The BoGo shim receives command-line parameters from the BoGo test runner.
+/// These arguments are used to configure Bertie for the upcoming test.
+///
+/// The last step in this shim is always to connect/accept a connection from BoGo --
+/// depending if working as a client or server -- and to compare if BoGo and Bertie agree
+/// on the outcome of the connection.
+///
+/// Note: In order to make this work, we will need to adjust the configuration file in assets/config.json.
+///
+///       Also, many arguments are currently not supported. Thus, we use `skip_currently`
+///       to signal to the BoGo test runner that a specific test should be skipped.
 fn main() {
     tracing_subscriber::fmt::fmt()
         .with_max_level(Level::DEBUG)
@@ -157,10 +173,12 @@ fn main() {
                 skip(&arg);
             }
             arg => {
+                // When an argument is not handled, it must be explicitly ignored.
                 if UNHANDLED_ARGUMENTS.contains(&arg) {
                     skip_currently(arg);
                 }
 
+                // Otherwise we exit with an error.
                 println!("Unhandled argument | \"{}\",", arg);
                 process::exit(1);
             }
@@ -185,12 +203,14 @@ fn main() {
     }
 }
 
+// Use this function when an argument will not be supported by Bertie.
 fn skip(due_to: &str) {
     println!("Skipping test due to \"{}\" argument.", due_to);
     process::exit(BOGO_NACK);
 }
 
-// TODO: Remove eventually.
+// Use this function when an argument is *currently* not be supported by Bertie.
+// Note: This function will eventually be removed.
 fn skip_currently(due_to: &str) {
     println!(
         "Skipping test due to \"{}\" argument. Will be changed in the future.",
