@@ -380,7 +380,6 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[ignore = "Enable this later."]
     fn test_parse_server_hello_length_zero() {
         let sh = handshake_data(load_hex("02000000"));
-        // let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
         let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
     }
 
