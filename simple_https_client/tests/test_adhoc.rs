@@ -1,3 +1,9 @@
+//! This test file is used to allow for easy reproduction of crashes that happened
+//! during fuzzing.
+//!
+//! libFuzzer provides a crash-file which content can be pasted here to reproduce the crash
+//! with the help of a debugger (and a typical debugging workflow.)
+
 use std::io::{Cursor, Read, Write};
 
 use simple_https_client::tls13client;
