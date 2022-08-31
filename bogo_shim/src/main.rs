@@ -14,7 +14,7 @@ use tracing::Level;
 
 static BOGO_NACK: i32 = 89;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Options {
     port: u16,
     role: Role,
@@ -25,24 +25,16 @@ struct Options {
     expect_extended_master_secret: bool,
 }
 
-impl Default for Options {
-    fn default() -> Self {
-        Options {
-            port: 0,
-            role: Role::Client,
-            key_file: "".into(),
-            cert_file: "".into(),
-            hostname: "example.com".into(),
-            expect_fallback_scsv: false,
-            expect_extended_master_secret: false,
-        }
-    }
-}
-
 #[derive(Debug)]
 enum Role {
     Client,
     Server,
+}
+
+impl Default for Role {
+    fn default() -> Self {
+        Role::Client
+    }
 }
 
 const UNHANDLED_ARGUMENTS: &[&str] = &[
