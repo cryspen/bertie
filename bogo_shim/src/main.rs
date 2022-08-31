@@ -7,12 +7,10 @@
 //     https://github.com/rustls/rustls/blob/main/rustls/examples/internal/bogo_shim.rs
 //
 
-extern crate core;
-
 use std::{env, net::TcpStream, process};
-use tracing::Level;
 
 use simple_https_client::tls13client;
+use tracing::Level;
 
 static BOGO_NACK: i32 = 89;
 
