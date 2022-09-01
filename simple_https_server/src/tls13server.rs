@@ -5,23 +5,21 @@
 #![allow(non_upper_case_globals)]
 
 // Import hacspec and all needed definitions.
-use hacspec_lib::*;
-use rand::*;
-use std::env;
-use std::time::Duration;
+use std::{
+    env,
+    io::prelude::*,
+    net::{TcpListener, TcpStream},
+    str,
+    time::Duration,
+};
 
+use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
 #[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
-
-use bertie::tls13api::*;
-use bertie::tls13utils::*;
-
-use std::io::prelude::*;
-use std::net::TcpStream;
-use std::net::TcpListener;
-use std::str;
+use hacspec_lib::*;
+use rand::*;
 
 fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize, TLSError> {
     match stream.read(&mut buf[..]) {
@@ -161,18 +159,18 @@ const ECDSA_P256_SHA256_Key: [u8; 32] = [
 static response : &str = "HTTP/1.1 200 OK\r\nDate: Mon, 08 Aug 2022 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT
 Content-Length: 88\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>Hello from localhost!</h1>\r\n</body>\r\n</html>\r\n\r\n";
 
-pub fn tls13server_aux(stream: &mut TcpStream,host:&str) -> Result<(), TLSError> {
+pub fn tls13server_aux(stream: &mut TcpStream, host: &str) -> Result<(), TLSError> {
     let mut in_buf = [0; 8192];
-    let ch_len = read_record(stream,&mut in_buf)?;
+    let ch_len = read_record(stream, &mut in_buf)?;
     let ch_rec = ByteSeq::from_public_slice(&in_buf[0..ch_len]);
 
     let sni = ByteSeq::from_public_slice(&host.as_bytes());
     let db = ServerDB(
-            sni,
-            Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
-            SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
-            None,
-        );
+        sni,
+        Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
+        SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
+        None,
+    );
 
     let mut entropy = [0 as u8; 64];
     thread_rng().fill(&mut entropy);
@@ -180,42 +178,42 @@ pub fn tls13server_aux(stream: &mut TcpStream,host:&str) -> Result<(), TLSError>
 
     match server_accept(default_algs, db, &ch_rec, ent_s) {
         Err(x) => {
-                println!("ServerInit Error {}", x);
-                Err(PARSE_FAILED)
+            println!("ServerInit Error {}", x);
+            Err(PARSE_FAILED)
         }
         Ok((sh, sf, sstate)) => {
-                println!("Negotiation Complete");
-                put_record(stream, &sh)?;
-                put_ccs_message(stream)?;
-                put_record(stream, &sf)?;
-                //println!("Server0.5 Complete");
+            println!("Negotiation Complete");
+            put_record(stream, &sh)?;
+            put_ccs_message(stream)?;
+            put_record(stream, &sf)?;
+            //println!("Server0.5 Complete");
 
-                get_ccs_message(stream, &mut in_buf)?;
-                //println!("Got CCS message");
-                let len = read_record(stream, &mut in_buf)?;
-                //println!("Got fin record");
-                let cf_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-                let sstate = server_read_handshake(&cf_rec, sstate)?;
-                println!("Handshake Complete");
+            get_ccs_message(stream, &mut in_buf)?;
+            //println!("Got CCS message");
+            let len = read_record(stream, &mut in_buf)?;
+            //println!("Got fin record");
+            let cf_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+            let sstate = server_read_handshake(&cf_rec, sstate)?;
+            println!("Handshake Complete");
 
-                let len = read_record(stream, &mut in_buf)?;
-                let app_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-                let (_,sstate) = server_read(&app_rec,sstate)?;
-                println!("Got HTTP Request");
+            let len = read_record(stream, &mut in_buf)?;
+            let app_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+            let (_, sstate) = server_read(&app_rec, sstate)?;
+            println!("Got HTTP Request");
 
-                let http_get_resp = ByteSeq::from_public_slice(response.as_bytes());
-                let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
-                put_record(stream, &ap)?;
-                println!("Sent HTTP Response: Hello from localhost");
-                
-                Ok(())
+            let http_get_resp = ByteSeq::from_public_slice(response.as_bytes());
+            let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
+            put_record(stream, &ap)?;
+            println!("Sent HTTP Response: Hello from localhost");
+
+            Ok(())
         }
     }
 }
 
-pub fn tls13server(host:&str, port: &str) -> Result<(), TLSError> {
+pub fn tls13server(host: &str, port: &str) -> Result<(), TLSError> {
     let addr = ["127.0.0.1", port].join(":");
- 
+
     let listener = TcpListener::bind(addr).unwrap();
 
     for stream in listener.incoming() {
@@ -226,9 +224,13 @@ pub fn tls13server(host:&str, port: &str) -> Result<(), TLSError> {
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
         println!("New connection established!");
-        match tls13server_aux(&mut stream,host) {
-            Ok(_) => {println!("Connection complete!")}
-            Err(_) => {println!("Connection failed!")}
+        match tls13server_aux(&mut stream, host) {
+            Ok(_) => {
+                println!("Connection complete!")
+            }
+            Err(_) => {
+                println!("Connection failed!")
+            }
         }
     }
     Ok(())

@@ -157,16 +157,16 @@ pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
     Ok(bytes2(0, 0x33).concat(&lbytes2(&lbytes2(&ks)?)?))
 }
 
-pub fn find_key_share(g:&Bytes, ch: &ByteSeq) -> Result<Bytes, TLSError> {
+pub fn find_key_share(g: &Bytes, ch: &ByteSeq) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         Err(PARSE_FAILED)
     } else {
-        if eq(&g,&ch.slice_range(0..2)) {
+        if eq(&g, &ch.slice_range(0..2)) {
             let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
-            Ok(ch.slice_range(4..4+len))
+            Ok(ch.slice_range(4..4 + len))
         } else {
             let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
-            find_key_share(g,&ch.slice_range(4+len..ch.len()))
+            find_key_share(g, &ch.slice_range(4 + len..ch.len()))
         }
     }
 }
@@ -737,7 +737,7 @@ pub fn parse_client_hello(
         )),
         (false, EXTS(Some(sn), Some(gx), None, None)) => {
             Ok((Random::from_seq(&crand), sid, sn, gx, None, None, 0))
-        },
+        }
         (false, EXTS(None, Some(gx), None, None)) => {
             Ok((Random::from_seq(&crand), sid, empty(), gx, None, None, 0))
         }
