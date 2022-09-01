@@ -377,6 +377,13 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     }
 
     #[test]
+    #[ignore = "Enable this later."]
+    fn test_parse_server_hello_length_zero() {
+        let sh = handshake_data(load_hex("02000000"));
+        let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+    }
+
+    #[test]
     fn test_parse_server_hello_roundtrip() {
         let sr: Random = Random::new();
         let mut sid = Bytes::new(24);

@@ -36,5 +36,7 @@ criterion = "0.3"
 [workspace]
 members = [
     "simple_https_client",
+    "simple_https_client/fuzz",
     "simple_https_server",
+    "bogo_shim",
 ]
