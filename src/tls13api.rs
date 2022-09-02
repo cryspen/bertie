@@ -114,7 +114,9 @@ pub fn server_accept(
     let mut ch_rec = ch_rec.clone();
     ch_rec[2] = U8(0x03);
     let ch = get_handshake_record(&ch_rec)?;
+    //println!("pre-init succeeded");
     let (sh, sf, cipher0, cipher_hs, cipher1, sstate) = server_init(algs, &ch, db, ent)?;
+    //println!("init succeeded");
     let sh_rec = handshake_record(&sh)?;
     let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
     Ok((
@@ -127,7 +129,9 @@ pub fn server_accept(
 pub fn server_read_handshake(cfin_rec: &Bytes, st: Server) -> Result<Server, TLSError> {
     match st {
         Server::ServerH(sstate, _cipher0, cipher_hs, cipher1) => {
+            //println!("to decrypt");
             let (cf, _cipher_hs) = decrypt_handshake(cfin_rec, cipher_hs)?;
+            //println!("decrypted");
             let sstate = server_finish(&cf, sstate)?;
             Ok(Server::Server1(sstate, cipher1))
         }

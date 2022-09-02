@@ -37,5 +37,6 @@ criterion = "0.3"
 members = [
     "simple_https_client",
     "simple_https_client/fuzz",
+    "simple_https_server",
     "bogo_shim",
 ]
