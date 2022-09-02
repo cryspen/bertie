@@ -14,6 +14,9 @@ libfuzzer-sys = "0.4"
 [dependencies.simple_https_client]
 path = ".."
 
+[workspace]
+members = ["."]
+
 [[bin]]
 name = "client"
 path = "fuzz_targets/client.rs"
