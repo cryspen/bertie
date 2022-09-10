@@ -30,6 +30,17 @@ $ cargo run -- example.com
 
 If you are looking for commercial support for Bertie, please [reach out to Crypsen](mailto:info@cryspen.com).
 
+### WORKING ON BERTIE
+
+Keep in mind that Bertie is written in [hacspec] -- a more "restrictive" version of Rust that lends itself to formal verification.
+Working on Bertie feels a lot like working on a typical Rust crate but all code needs to be valid according to hacspec.
+Thus, you may also find that some code is "unusual" compared to vanilla Rust.
+
+But no worries!
+There is a Cargo plugin to verify that everything is valid according to hacspec.
+Just follow the instructions on the [hacspec] website to install it.
+Then, copy the `assets/toolchain` file into Bertie's root directory, i.e., `cp assets/toolchain .`, `cargo clean` Bertie, and run `cargo hacspec bertie`.
+
 ### CONTRIBUTING
 
 To see what we are working on and what is in the pipeline, you can follow our [project tasks].
