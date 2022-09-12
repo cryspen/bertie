@@ -7,7 +7,7 @@
 // Import hacspec and all needed definitions.
 use std::{env, io::prelude::*, net::TcpListener, str, time::Duration};
 
-use base::{ClientError, RecordStream};
+use base::{AppError, RecordStream};
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
@@ -82,7 +82,7 @@ const ECDSA_P256_SHA256_Key: [u8; 32] = [
 static response : &str = "HTTP/1.1 200 OK\r\nDate: Mon, 08 Aug 2022 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT
 Content-Length: 88\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>Hello from localhost!</h1>\r\n</body>\r\n</html>\r\n\r\n";
 
-pub fn tls13server_aux<Stream>(stream: Stream, host: &str) -> Result<(), ClientError>
+pub fn tls13server_aux<Stream>(stream: Stream, host: &str) -> Result<(), AppError>
 where
     Stream: Read + Write,
 {
