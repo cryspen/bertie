@@ -147,7 +147,7 @@ pub fn tls13server(host: &str, port: &str) -> Result<(), TLSError> {
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
 
-        let d = Duration::new(1, 0);
+        let d = Duration::new(15, 0);
         stream
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
