@@ -9,6 +9,7 @@
 use std::io::{Read, Write};
 
 use anyhow::Result;
+use base::{ClientError, RecordStream};
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
@@ -16,13 +17,7 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
-use thiserror::Error;
 use tracing::{error, info};
-
-use crate::stream::RecordStream;
-
-mod debug;
-mod stream;
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -45,26 +40,6 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 */
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
-
-#[derive(Error, Debug)]
-pub enum ClientError {
-    #[error("I/O error: {0:?}")]
-    Io(std::io::Error),
-    #[error("TLS error: {0:?}")]
-    TLS(TLSError),
-}
-
-impl From<std::io::Error> for ClientError {
-    fn from(error: std::io::Error) -> Self {
-        ClientError::Io(error)
-    }
-}
-
-impl From<TLSError> for ClientError {
-    fn from(error: TLSError) -> Self {
-        ClientError::TLS(error)
-    }
-}
 
 #[tracing::instrument(skip(stream, request))]
 pub fn tls13client<Stream>(
