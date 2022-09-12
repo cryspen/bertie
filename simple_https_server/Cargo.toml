@@ -10,6 +10,7 @@ path = "src/tls13server.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+base = { path = "../base" }
 rand = "0.8.0"
 hex = "0.4.3"
 hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
