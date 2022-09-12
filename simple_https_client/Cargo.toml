@@ -11,6 +11,7 @@ path = "src/tls13client.rs"
 
 [dependencies]
 anyhow = "1"
+base = { path = "../base" }
 bertie = { path = "../" }
 evercrypt_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "evercrypt_cryptolib" }
 hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
