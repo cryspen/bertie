@@ -9,7 +9,7 @@
 use std::io::{Read, Write};
 
 use anyhow::Result;
-use base::{ClientError, RecordStream};
+use base::{AppError, RecordStream};
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
@@ -46,7 +46,7 @@ pub fn tls13client<Stream>(
     host: &str,
     stream: Stream,
     request: &str,
-) -> Result<(RecordStream<Stream>, Client, Vec<u8>), ClientError>
+) -> Result<(RecordStream<Stream>, Client, Vec<u8>), AppError>
 where
     Stream: Read + Write,
 {
@@ -139,7 +139,7 @@ where
 pub fn tls13client_continue<Stream>(
     mut stream: RecordStream<Stream>,
     cstate: Client,
-) -> Result<(RecordStream<Stream>, Client, Vec<u8>), ClientError>
+) -> Result<(RecordStream<Stream>, Client, Vec<u8>), AppError>
 where
     Stream: Read + Write,
 {
@@ -165,7 +165,7 @@ where
     Ok((stream, cstate, response_prefix))
 }
 
-pub(crate) fn verify_ccs_message(rec: ByteSeq) -> Result<(), ClientError> {
+pub(crate) fn verify_ccs_message(rec: ByteSeq) -> Result<(), AppError> {
     let rec = rec.declassify();
 
     if rec.len() == 6
