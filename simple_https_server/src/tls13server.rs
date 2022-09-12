@@ -5,14 +5,9 @@
 #![allow(non_upper_case_globals)]
 
 // Import hacspec and all needed definitions.
-use std::{
-    env,
-    io::prelude::*,
-    net::{TcpListener, TcpStream},
-    str,
-    time::Duration,
-};
+use std::{env, io::prelude::*, net::TcpListener, str, time::Duration};
 
+use base::{ClientError, RecordStream};
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
@@ -20,78 +15,6 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
-
-fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize, TLSError> {
-    match stream.read(&mut buf[..]) {
-        Ok(len) => {
-            if len >= nbytes {
-                Ok(len - nbytes)
-            } else {
-                read_bytes(stream, &mut buf[len..], nbytes - len)
-            }
-        }
-        Err(_) => Err(INSUFFICIENT_DATA),
-    }
-}
-
-fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize, TLSError> {
-    let mut b: [u8; 5] = [0; 5];
-    let mut len = 0;
-    while len < 5 {
-        match stream.peek(&mut b) {
-            Result::Ok(l) => len = l,
-            Result::Err(_) => Err(INSUFFICIENT_DATA)?,
-        }
-    }
-    let l0 = b[3] as usize;
-    let l1 = b[4] as usize;
-    let len = l0 * 256 + l1;
-    if len + 5 > buf.len() {
-        Err(INSUFFICIENT_DATA)
-    } else {
-        let extra = read_bytes(stream, &mut buf[0..len + 5], len + 5)?;
-        if extra > 0 {
-            Err(PAYLOAD_TOO_LONG)
-        } else {
-            Ok(len + 5)
-        }
-    }
-}
-
-fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), TLSError> {
-    let wire = hex::decode(&rec.to_hex()).expect("Record Decoding Failed");
-    match stream.write(&wire) {
-        Err(_) => Err(INSUFFICIENT_DATA),
-        Ok(len) => {
-            if len < wire.len() {
-                Err(PARSE_FAILED)
-            } else {
-                Ok(())
-            }
-        }
-    }
-}
-
-fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), TLSError> {
-    let len = read_record(stream, buf)?;
-    if len == 6
-        && buf[0] == 0x14
-        && buf[1] == 0x03
-        && buf[2] == 0x03
-        && buf[3] == 0x00
-        && buf[4] == 0x01
-        && buf[5] == 0x01
-    {
-        Ok(())
-    } else {
-        Err(PARSE_FAILED)
-    }
-}
-
-fn put_ccs_message(stream: &mut TcpStream) -> Result<(), TLSError> {
-    let ccs_rec = ByteSeq::from_hex("140303000101");
-    put_record(stream, &ccs_rec)
-}
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -159,51 +82,60 @@ const ECDSA_P256_SHA256_Key: [u8; 32] = [
 static response : &str = "HTTP/1.1 200 OK\r\nDate: Mon, 08 Aug 2022 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT
 Content-Length: 88\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>Hello from localhost!</h1>\r\n</body>\r\n</html>\r\n\r\n";
 
-pub fn tls13server_aux(stream: &mut TcpStream, host: &str) -> Result<(), TLSError> {
-    let mut in_buf = [0; 8192];
-    let ch_len = read_record(stream, &mut in_buf)?;
-    let ch_rec = ByteSeq::from_public_slice(&in_buf[0..ch_len]);
+pub fn tls13server_aux<Stream>(stream: Stream, host: &str) -> Result<(), ClientError>
+where
+    Stream: Read + Write,
+{
+    let mut stream = RecordStream::new(stream);
 
-    let sni = ByteSeq::from_public_slice(&host.as_bytes());
-    let db = ServerDB(
-        sni,
-        Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
-        SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
-        None,
-    );
+    let ch_rec = stream.read_record()?;
 
-    let mut entropy = [0 as u8; 64];
-    thread_rng().fill(&mut entropy);
-    let ent_s = Entropy::from_public_slice(&entropy);
+    let db = {
+        let sni = ByteSeq::from_public_slice(&host.as_bytes());
+
+        ServerDB(
+            sni,
+            Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
+            SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
+            None,
+        )
+    };
+
+    let ent_s = {
+        let mut entropy = [0 as u8; 64];
+        thread_rng().fill(&mut entropy);
+
+        Entropy::from_public_slice(&entropy)
+    };
 
     match server_accept(default_algs, db, &ch_rec, ent_s) {
         Err(x) => {
             println!("ServerInit Error {}", x);
-            Err(PARSE_FAILED)
+            Err(PARSE_FAILED.into())
         }
         Ok((sh, sf, sstate)) => {
             println!("Negotiation Complete");
-            put_record(stream, &sh)?;
-            put_ccs_message(stream)?;
-            put_record(stream, &sf)?;
+            stream.write_record(sh)?;
+            let ccs_rec = ByteSeq::from_hex("140303000101");
+            stream.write_record(ccs_rec)?;
+            stream.write_record(sf)?;
             //println!("Server0.5 Complete");
 
-            get_ccs_message(stream, &mut in_buf)?;
+            let ccs = stream.read_record()?;
+            check_ccs_message(ccs.declassify().native_slice())?;
             //println!("Got CCS message");
-            let len = read_record(stream, &mut in_buf)?;
+            let cf_rec = stream.read_record()?;
             //println!("Got fin record");
-            let cf_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
             let sstate = server_read_handshake(&cf_rec, sstate)?;
             println!("Handshake Complete");
 
-            let len = read_record(stream, &mut in_buf)?;
-            let app_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
+            let app_rec = stream.read_record()?;
             let (_, sstate) = server_read(&app_rec, sstate)?;
             println!("Got HTTP Request");
 
             let http_get_resp = ByteSeq::from_public_slice(response.as_bytes());
             let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
-            put_record(stream, &ap)?;
+            stream.write_record(ap)?;
             println!("Sent HTTP Response: Hello from localhost");
 
             Ok(())
@@ -251,5 +183,20 @@ pub fn main() {
         Ok(()) => {
             println!("Connection to {} succeeded\n", host);
         }
+    }
+}
+
+fn check_ccs_message(buf: &[u8]) -> Result<(), TLSError> {
+    if buf.len() == 6
+        && buf[0] == 0x14
+        && buf[1] == 0x03
+        && buf[2] == 0x03
+        && buf[3] == 0x00
+        && buf[4] == 0x01
+        && buf[5] == 0x01
+    {
+        Ok(())
+    } else {
+        Err(PARSE_FAILED)
     }
 }
