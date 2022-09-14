@@ -103,7 +103,7 @@ fn client_read_a(
         ContentType::ChangeCipherSpec => Err(PARSE_FAILED),
         ContentType::Alert => Err(PARSE_FAILED),
         ContentType::Handshake => {
-            println!("Received Session Ticket");
+            /*println!("Received Session Ticket");*/
             Ok((Option::None, Client::Client1(cstate, cipher1)))
         }
         ContentType::ApplicationData => Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1))),
