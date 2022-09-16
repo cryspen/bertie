@@ -3,3 +3,6 @@ Cargo.lock
 
 # CLion
 .idea
+
+.DS_Store
+.vscode
