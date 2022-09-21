@@ -37,7 +37,7 @@ simple_https_server = { path = "simple_https_server" }
 
 [workspace]
 members = [
-    "base",
+    "record",
     "simple_https_client",
     "simple_https_server",
     "bogo_shim",
