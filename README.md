@@ -38,6 +38,17 @@ To see what we are working on and what is in the pipeline, you can follow our [p
 
 Before contributing, please have a look at the [contributing guidelines] and the [code of conduct].
 
+#### PROJECT STRUCTURE
+
+* `.github` contains the configuration for GitHub Actions CI.
+* `assets` contains non-code files that are used in the Bertie project. (Only logo for now.)
+* `bogo_shim` contains the BoGo shim application that is used for testing against BoringSSL's test runner.
+* `record` is a crate that provides common functionality used in `simple_https_client` and `simple_https_server`.
+* `simple_https_client` is an example crate that implements a Bertie HTTPS client.
+* `simple_https_server` is an example crate that implements a Bertie HTTPS server.
+* `src` contains the Bertie source code (that must be valid according to Hacspec.)
+* `tests` contains all tests.
+
 ### PUBLICATIONS
 
 Bertie is inspired by a number of prior research works, including works on [hacspec] and TLS 1.3.
