@@ -26,6 +26,8 @@ $ cd simple_https_client
 $ cargo run -- example.com
 ```
 
+There is also a HTTPS server available as `simple_https_server`.
+
 *WARNING*: Do not use in production. This is an early draft of Bertie and strictly work-in-progress.
 
 If you are looking for commercial support for Bertie, please [reach out to Crypsen](mailto:info@cryspen.com).
