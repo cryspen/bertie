@@ -3,7 +3,6 @@
 // Import hacspec and all needed definitions.
 use std::{io::prelude::*, net::TcpListener, str, time::Duration};
 
-use base::{AppError, RecordStream};
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
@@ -11,6 +10,7 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
+use record::{AppError, RecordStream};
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
