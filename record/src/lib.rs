@@ -1,3 +1,7 @@
+//! This crate provides common functionality used in both the `simple_https_client`
+//! and `simple_https_server` such as the `RecordStream`, common error types,
+//! debug functions, and helpers.
+
 use bertie::TLSError;
 pub use debug::{info_record, Hex};
 pub use stream::RecordStream;
