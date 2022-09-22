@@ -41,7 +41,7 @@ Before contributing, please have a look at the [contributing guidelines] and the
 #### PROJECT STRUCTURE
 
 * `.github` contains the configuration for GitHub Actions CI.
-* `assets` contains non-code files that are used in the Bertie project. (Only logo for now.)
+* `assets` contains non-code files that are used in the Bertie project.
 * `bogo_shim` contains the BoGo shim application that is used for testing against BoringSSL's test runner.
 * `record` is a crate that provides common functionality used in `simple_https_client` and `simple_https_server`.
 * `simple_https_client` is an example crate that implements a Bertie HTTPS client.
