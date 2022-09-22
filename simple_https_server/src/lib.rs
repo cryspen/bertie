@@ -1,7 +1,7 @@
 #![allow(non_upper_case_globals)]
 
 // Import hacspec and all needed definitions.
-use std::{io::prelude::*, net::TcpListener, str, time::Duration};
+use std::io::prelude::*;
 
 use bertie::{tls13api::*, tls13utils::*};
 #[cfg(feature = "evercrypt")]
@@ -137,31 +137,6 @@ where
             Ok(())
         }
     }
-}
-
-pub fn tls13server(host: &str, port: &str) -> Result<(), TLSError> {
-    let addr = ["127.0.0.1", port].join(":");
-
-    let listener = TcpListener::bind(addr).unwrap();
-
-    for stream in listener.incoming() {
-        let mut stream = stream.unwrap();
-
-        let d = Duration::new(15, 0);
-        stream
-            .set_read_timeout(Some(d))
-            .expect("set_read_timeout call failed");
-        println!("New connection established!");
-        match tls13server_aux(&mut stream, host) {
-            Ok(_) => {
-                println!("Connection complete!")
-            }
-            Err(_) => {
-                println!("Connection failed!")
-            }
-        }
-    }
-    Ok(())
 }
 
 fn check_ccs_message(buf: &[u8]) -> Result<(), TLSError> {
