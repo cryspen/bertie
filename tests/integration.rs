@@ -1,7 +1,7 @@
 use std::net::{TcpListener, TcpStream};
 
 use simple_https_client::tls13client;
-use simple_https_server::tls13server_aux;
+use simple_https_server::tls13server;
 
 #[test]
 fn self_test() {
@@ -21,7 +21,7 @@ fn self_test() {
             listener.accept().unwrap()
         };
 
-        tls13server_aux(stream, "127.0.0.1").unwrap();
+        tls13server(stream, "127.0.0.1").unwrap();
 
         println!("Server finished.");
     });

@@ -4,7 +4,7 @@
 
 use std::{env, net::TcpListener, time::Duration};
 
-use simple_https_server::tls13server_aux;
+use simple_https_server::tls13server;
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
@@ -27,7 +27,7 @@ pub fn main() {
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
         println!("New connection established!");
-        match tls13server_aux(&mut stream, host) {
+        match tls13server(&mut stream, host) {
             Ok(()) => {
                 println!("Connection to {} succeeded\n", host);
             }
