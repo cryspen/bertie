@@ -46,7 +46,7 @@ Before contributing, please have a look at the [contributing guidelines] and the
 * `record` is a crate that provides common functionality used in `simple_https_client` and `simple_https_server`.
 * `simple_https_client` is an example crate that implements a Bertie HTTPS client.
 * `simple_https_server` is an example crate that implements a Bertie HTTPS server.
-* `src` contains the Bertie source code (that must be valid according to Hacspec.)
+* `src` contains the Bertie source code (that must be valid according to hacspec.)
 * `tests` contains all tests.
 
 ### PUBLICATIONS
