@@ -87,7 +87,7 @@ where
     let ch_rec = stream.read_record()?;
 
     let db = {
-        let sni = ByteSeq::from_public_slice(&host.as_bytes());
+        let sni = ByteSeq::from_public_slice(host.as_bytes());
 
         ServerDB(
             sni,
@@ -98,7 +98,7 @@ where
     };
 
     let ent_s = {
-        let mut entropy = [0 as u8; 64];
+        let mut entropy = [0u8; 64];
         thread_rng().fill(&mut entropy);
 
         Entropy::from_public_slice(&entropy)

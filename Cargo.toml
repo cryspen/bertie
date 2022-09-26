@@ -42,3 +42,10 @@ members = [
     "simple_https_server",
     "bogo_shim",
 ]
+
+default-members = [
+    "record",
+    "simple_https_client",
+    "simple_https_server",
+    "bogo_shim",
+]

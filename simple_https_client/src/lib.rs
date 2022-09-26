@@ -57,9 +57,9 @@ where
 
     // Initialize TLS 1.3 client.
     let (client_hello, cstate) = {
-        let sni = ByteSeq::from_public_slice(&host.as_bytes());
+        let sni = ByteSeq::from_public_slice(host.as_bytes());
         let ent = {
-            let mut entropy = [0 as u8; 64];
+            let mut entropy = [0u8; 64];
             thread_rng().fill(&mut entropy);
             Entropy::from_public_slice(&entropy)
         };

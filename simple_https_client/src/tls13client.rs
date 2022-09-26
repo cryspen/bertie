@@ -2,7 +2,6 @@ use std::{env, net::TcpStream, str::FromStr};
 
 use anyhow::Context;
 use simple_https_client::tls13client;
-use tracing_subscriber;
 
 /// This is a demo of a simple HTTPS client.
 ///
@@ -18,8 +17,8 @@ fn main() -> anyhow::Result<()> {
 
         let _ = args.next().context("Unexpected parameter environment.")?;
 
-        let host = args.next().unwrap_or("www.google.com".to_string());
-        let port = args.next().unwrap_or("443".to_string());
+        let host = args.next().unwrap_or_else(|| "www.google.com".to_string());
+        let port = args.next().unwrap_or_else(|| "443".to_string());
 
         (
             host,
