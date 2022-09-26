@@ -5,7 +5,6 @@
 use anyhow::Context;
 use std::str::FromStr;
 use std::{env, net::TcpListener, time::Duration};
-use tracing_subscriber;
 
 use simple_https_server::tls13server;
 
@@ -19,8 +18,8 @@ pub fn main() -> anyhow::Result<()> {
 
         let _ = args.next().context("Unexpected parameter environment.")?;
 
-        let host = args.next().unwrap_or("localhost".to_string());
-        let port = args.next().unwrap_or("443".to_string());
+        let host = args.next().unwrap_or_else(|| "localhost".to_string());
+        let port = args.next().unwrap_or_else(|| "443".to_string());
 
         (
             host,

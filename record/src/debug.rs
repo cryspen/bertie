@@ -5,7 +5,7 @@ use tracing::{error, info};
 
 /// For debugging only.
 pub fn info_record(record: &[u8]) {
-    if record.len() >= 1 {
+    if !record.is_empty() {
         let content_type = get_content_type(record[0]);
 
         match content_type {
