@@ -1,4 +1,4 @@
-#![allow(non_upper_case_globals)]
+#![allow(non_upper_case_globals, dead_code)]
 
 // Import hacspec and all needed definitions.
 use std::io::prelude::*;
@@ -10,11 +10,30 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
-use record::{AppError, RecordStream};
+pub use record::AppError;
+use record::RecordStream;
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    NamedGroup::X25519,
+    false,
+    false,
+);
+
+const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    NamedGroup::Secp256r1,
+    false,
+    false,
+);
+
+const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
     NamedGroup::X25519,
     false,
@@ -32,7 +51,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 );
 */
 
-const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
+const default_algs: Algorithms = SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
 
 // Cert and Key
 const ECDSA_P256_SHA256_CERT: [u8; 522] = [
@@ -107,7 +126,22 @@ where
     match server_accept(default_algs, db, &ch_rec, ent_s) {
         Err(x) => {
             println!("ServerInit Error {}", x);
-            Err(PARSE_FAILED.into())
+            match x {
+                136 => {
+                    stream
+                        .write_record(ByteSeq::from_public_slice(&[21, 03, 03, 00, 02, 2, 47]))?;
+                }
+                137 => {
+                    stream
+                        .write_record(ByteSeq::from_public_slice(&[21, 03, 03, 00, 02, 2, 70]))?;
+                }
+                139 => {
+                    // alerts here are optional
+                    eprintln!("Hello message was missing a key share.");
+                }
+                _ => unimplemented!("unknown error {}", x),
+            }
+            Err(x.into())
         }
         Ok((sh, sf, sstate)) => {
             println!("Negotiation Complete");

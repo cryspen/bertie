@@ -17,11 +17,20 @@ use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
 use record::{AppError, RecordStream};
-use tracing::{error, info};
+use tracing::info;
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    NamedGroup::X25519,
+    false,
+    false,
+);
+
+const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
     NamedGroup::X25519,
     false,
@@ -39,7 +48,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 );
 */
 
-const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
+const default_algs: Algorithms = SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
 
 #[tracing::instrument(skip(stream, request))]
 pub fn tls13client<Stream>(
@@ -74,11 +83,23 @@ where
     // TODO: Who should do this check?
     if eq1(server_hello[0], U8(21)) {
         // Alert
-        error!("Server does not support proposed algorithms.");
+        eprintln!("Server does not support proposed algorithms.");
         return Err(UNSUPPORTED_ALGORITHM.into());
     }
 
-    let (_, cstate) = client_read_handshake(&server_hello, cstate)?;
+    let cstate = match client_read_handshake(&server_hello, cstate) {
+        Ok((_, cstate)) => cstate,
+        Err(e) => {
+            match e {
+                6 => eprintln!("Server does not support proposed algorithms."),
+                137 => eprintln!("Wrong TLS protocol version TLS({:?})", e),
+                138 => eprintln!("Server sent application data instead of a handshake message."),
+                139 => eprintln!("Hello message was missing a key share."),
+                _ => eprintln!("Bertie client error {}", e),
+            }
+            return Err(e.into());
+        }
+    };
 
     let change_cipher_spec = stream.read_record()?;
     verify_ccs_message(change_cipher_spec)?;
@@ -88,7 +109,17 @@ where
     while cf_rec == None {
         let rec = stream.read_record()?;
 
-        let (new_cf_rec, new_cstate) = client_read_handshake(&rec, cstate)?;
+        let (new_cf_rec, new_cstate) = match client_read_handshake(&rec, cstate) {
+            Ok((new_cf_rec, new_cstate)) => (new_cf_rec, new_cstate),
+            Err(e) => {
+                match e {
+                    7 => eprintln!("Invalid server signature"), // signature verification failed
+                    140 => eprintln!("Invalid server signature"), // parsing of the certificate failed
+                    _ => eprintln!("Bertie client error {}", e),
+                }
+                return Err(e.into());
+            }
+        };
         cf_rec = new_cf_rec;
         cstate = new_cstate;
     }
