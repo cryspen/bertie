@@ -4,6 +4,9 @@ use evercrypt_cryptolib::*;
 #[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
+
+use crate::*;
+
 pub type Bytes = ByteSeq;
 
 pub fn empty() -> ByteSeq {
@@ -50,14 +53,19 @@ pub fn bytes5(x0: u8, x1: u8, x2: u8, x3: u8, x4: u8) -> ByteSeq {
 
 // Local error codes
 pub type TLSError = u8;
-pub const INCORRECT_STATE: TLSError = 128;
-pub const ZERO_RTT_DISABLED: TLSError = 129;
-pub const PAYLOAD_TOO_LONG: TLSError = 130;
-pub const PSK_MODE_MISMATCH: TLSError = 131;
-pub const NEGOTIATION_MISMATCH: TLSError = 132;
-pub const PARSE_FAILED: TLSError = 133;
-pub const INSUFFICIENT_DATA: TLSError = 134;
-pub const UNSUPPORTED: TLSError = 135;
+pub const INCORRECT_STATE: TLSError = 128u8;
+pub const ZERO_RTT_DISABLED: TLSError = 129u8;
+pub const PAYLOAD_TOO_LONG: TLSError = 130u8;
+pub const PSK_MODE_MISMATCH: TLSError = 131u8;
+pub const NEGOTIATION_MISMATCH: TLSError = 132u8;
+pub const PARSE_FAILED: TLSError = 133u8;
+pub const INSUFFICIENT_DATA: TLSError = 134u8;
+pub const UNSUPPORTED: TLSError = 135u8;
+pub const INVALID_COMPRESSION_LIST: TLSError = 136u8;
+pub const PROTOCOL_VERSION_ALERT: TLSError = 137u8;
+pub const APPLICATION_DATA_INSTEAD_OF_HANDSHAKE: TLSError = 138u8;
+pub const MISSING_KEY_SHARE: TLSError = 139u8;
+pub const INVALID_SIGNATURE: TLSError = 140u8;
 
 pub fn error_string(c: u8) -> String {
     format!("{}", c)
@@ -65,14 +73,14 @@ pub fn error_string(c: u8) -> String {
 /*
 pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     if s1 == s2 {Ok(())}
-    else {Err(PARSE_FAILED)}
+    else {Err(parse_failed())}
 }*/
 
 pub fn check(b: bool) -> Result<(), TLSError> {
     if b {
         Ok(())
     } else {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     }
 }
 
@@ -83,7 +91,7 @@ pub fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     if eq1(b1, b2) {
         Ok(())
     } else {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     }
 }
 
@@ -102,7 +110,7 @@ pub fn eq(b1: &ByteSeq, b2: &ByteSeq) -> bool {
 
 pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
     if b1.len() != b2.len() {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         for i in 0..b1.len() {
             check_eq1(b1[i], b2[i])?;
@@ -113,7 +121,7 @@ pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
 
 pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         for i in 0..(b2.len() / b1.len()) {
             let snip = b2.slice_range(i * b1.len()..(i + 1) * b1.len());
@@ -121,7 +129,7 @@ pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
                 return Ok(());
             }
         }
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     }
 }
 
@@ -159,11 +167,11 @@ pub fn lbytes3(b: &ByteSeq) -> Result<Bytes, TLSError> {
 
 pub fn check_lbytes1(b: &ByteSeq) -> Result<usize, TLSError> {
     if b.len() < 1 {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         let l = (b[0] as U8).declassify() as usize;
         if b.len() - 1 < l {
-            Err(PARSE_FAILED)
+            Err(parse_failed())
         } else {
             Ok(l)
         }
@@ -172,13 +180,13 @@ pub fn check_lbytes1(b: &ByteSeq) -> Result<usize, TLSError> {
 
 pub fn check_lbytes2(b: &ByteSeq) -> Result<usize, TLSError> {
     if b.len() < 2 {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         let l0 = (b[0] as U8).declassify() as usize;
         let l1 = (b[1] as U8).declassify() as usize;
         let l = l0 * 256 + l1;
         if b.len() - 2 < l as usize {
-            Err(PARSE_FAILED)
+            Err(parse_failed())
         } else {
             Ok(l)
         }
@@ -187,14 +195,14 @@ pub fn check_lbytes2(b: &ByteSeq) -> Result<usize, TLSError> {
 
 pub fn check_lbytes3(b: &ByteSeq) -> Result<usize, TLSError> {
     if b.len() < 3 {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         let l0 = (b[0] as U8).declassify() as usize;
         let l1 = (b[1] as U8).declassify() as usize;
         let l2 = (b[2] as U8).declassify() as usize;
         let l = l0 * 65536 + l1 * 256 + l2;
         if b.len() - 3 < l {
-            Err(PARSE_FAILED)
+            Err(parse_failed())
         } else {
             Ok(l)
         }
@@ -203,7 +211,7 @@ pub fn check_lbytes3(b: &ByteSeq) -> Result<usize, TLSError> {
 
 pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(), TLSError> {
     if check_lbytes1(b)? + 1 != b.len() {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         Ok(())
     }
@@ -211,7 +219,7 @@ pub fn check_lbytes1_full(b: &ByteSeq) -> Result<(), TLSError> {
 
 pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(), TLSError> {
     if check_lbytes2(b)? + 2 != b.len() {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         Ok(())
     }
@@ -219,7 +227,7 @@ pub fn check_lbytes2_full(b: &ByteSeq) -> Result<(), TLSError> {
 
 pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(), TLSError> {
     if check_lbytes3(b)? + 3 != b.len() {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     } else {
         Ok(())
     }
@@ -310,6 +318,6 @@ pub fn lookup_db(
             _ => Err(PSK_MODE_MISMATCH),
         }
     } else {
-        Err(PARSE_FAILED)
+        Err(parse_failed())
     }
 }
