@@ -17,3 +17,10 @@ pub use tls13utils::*;
 pub mod tls13api;
 pub use tls13api::*;
 pub use tls13formats::*;
+
+// FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
+pub(crate) fn parse_failed() -> TLSError {
+    let bt = backtrace::Backtrace::new();
+    println!("{:?}", bt);
+    PARSE_FAILED
+}
