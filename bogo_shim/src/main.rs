@@ -10,6 +10,7 @@
 use std::{env, net::TcpStream, process};
 
 use simple_https_client::tls13client;
+use simple_https_server::{tls13server, AppError};
 use tracing::Level;
 
 static BOGO_NACK: i32 = 89;
@@ -111,7 +112,7 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
 ///       to signal to the BoGo test runner that a specific test should be skipped.
 fn main() {
     tracing_subscriber::fmt::fmt()
-        .with_max_level(Level::DEBUG)
+        .with_max_level(Level::INFO)
         .init();
 
     let mut args: Vec<_> = env::args().collect();
@@ -133,7 +134,6 @@ fn main() {
         match arg.as_ref() {
             "-server" => {
                 options.role = Role::Server;
-                skip_currently(&arg);
             }
             "-key-file" => {
                 options.key_file = args.remove(0);
@@ -198,7 +198,18 @@ fn main() {
             let _ = tls13client(&options.hostname, stream, "hello");
         }
         Role::Server => {
-            unimplemented!()
+            let addrs = [
+                std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, options.port)),
+                std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, options.port)),
+            ];
+            let stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
+
+            if let Err(e) = tls13server(stream, &options.hostname) {
+                match e {
+                    AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
+                    _ => eprintln!("Bertie server error {:?}", e),
+                }
+            }
         }
     }
 }

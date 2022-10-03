@@ -17,7 +17,7 @@ Check out [BoringSSL], go to `boringssl/ssl/test/runner`, and run
 
 ```
 go test \
-  -shim-path $BERTIE_PATH../target/debug/bogo_shim \
+  -shim-path $BERTIE_PATH/target/debug/bogo_shim \
   -shim-config $BERTIE_PATH/bogo_shim/assets/config.json \
   -allow-unimplemented
 ```
