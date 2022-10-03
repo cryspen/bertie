@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -14,8 +14,8 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        rust: [ stable ]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -27,42 +27,52 @@ jobs:
           override: true
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Checkout BoringSSL
+        uses: actions/checkout@v3
+        with:
+          repository: google/boringssl
+          path: boringssl
+
+      - name: Setup Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install ninja-build
+
+      - name: Setup macOS
+        if: matrix.os == 'macos-latest'
+        run: brew install ninja
 
       - name: Build code
         if: matrix.os != 'windows-latest'
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --workspace
-
-      # Do not build fuzz targets on Windows.
-      - name: Build code (on Windows)
-        if: matrix.os == 'windows-latest'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --workspace --exclude simple_https_client_fuzz
 
       - name: Test code
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --exclude simple_https_client_fuzz
+
+      - name: BoGo
+        if: matrix.os != 'windows-latest'
+        run: BORINGSSL_ROOT=./boringssl ./bogo_shim/run.sh
 
   audit:
     needs: test
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Audit dependencies
-      uses: EmbarkStudios/cargo-deny-action@v1
-      # TODO: Check licenses, too.
-      with:
-        command: check bans advisories sources
+      - name: Audit dependencies
+        uses: EmbarkStudios/cargo-deny-action@v1
+        # TODO: Check licenses, too.
+        with:
+          command: check bans advisories sources
 
   lint:
     needs: test
