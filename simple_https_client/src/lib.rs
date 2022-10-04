@@ -16,13 +16,8 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 use rand::*;
-use thiserror::Error;
+use record::{AppError, RecordStream};
 use tracing::{error, info};
-
-use crate::stream::RecordStream;
-
-mod debug;
-mod stream;
 
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
@@ -46,32 +41,12 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
 
 const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
 
-#[derive(Error, Debug)]
-pub enum ClientError {
-    #[error("I/O error: {0:?}")]
-    Io(std::io::Error),
-    #[error("TLS error: {0:?}")]
-    TLS(TLSError),
-}
-
-impl From<std::io::Error> for ClientError {
-    fn from(error: std::io::Error) -> Self {
-        ClientError::Io(error)
-    }
-}
-
-impl From<TLSError> for ClientError {
-    fn from(error: TLSError) -> Self {
-        ClientError::TLS(error)
-    }
-}
-
 #[tracing::instrument(skip(stream, request))]
 pub fn tls13client<Stream>(
     host: &str,
     stream: Stream,
     request: &str,
-) -> Result<(RecordStream<Stream>, Client, Vec<u8>), ClientError>
+) -> Result<(RecordStream<Stream>, Client, Vec<u8>), AppError>
 where
     Stream: Read + Write,
 {
@@ -82,9 +57,9 @@ where
 
     // Initialize TLS 1.3 client.
     let (client_hello, cstate) = {
-        let sni = ByteSeq::from_public_slice(&host.as_bytes());
+        let sni = ByteSeq::from_public_slice(host.as_bytes());
         let ent = {
-            let mut entropy = [0 as u8; 64];
+            let mut entropy = [0u8; 64];
             thread_rng().fill(&mut entropy);
             Entropy::from_public_slice(&entropy)
         };
@@ -164,7 +139,7 @@ where
 pub fn tls13client_continue<Stream>(
     mut stream: RecordStream<Stream>,
     cstate: Client,
-) -> Result<(RecordStream<Stream>, Client, Vec<u8>), ClientError>
+) -> Result<(RecordStream<Stream>, Client, Vec<u8>), AppError>
 where
     Stream: Read + Write,
 {
@@ -190,7 +165,7 @@ where
     Ok((stream, cstate, response_prefix))
 }
 
-pub(crate) fn verify_ccs_message(rec: ByteSeq) -> Result<(), ClientError> {
+pub(crate) fn verify_ccs_message(rec: ByteSeq) -> Result<(), AppError> {
     let rec = rec.declassify();
 
     if rec.len() == 6

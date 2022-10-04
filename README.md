@@ -26,6 +26,8 @@ $ cd simple_https_client
 $ cargo run -- example.com
 ```
 
+There is also a HTTPS server available as `simple_https_server`.
+
 *WARNING*: Do not use in production. This is an early draft of Bertie and strictly work-in-progress.
 
 If you are looking for commercial support for Bertie, please [reach out to Crypsen](mailto:info@cryspen.com).
@@ -54,6 +56,17 @@ You can then `cargo clean`, `cargo build`, and `cargo hacspec` to verify that yo
 To see what we are working on and what is in the pipeline, you can follow our [project tasks].
 
 Before contributing, please have a look at the [contributing guidelines] and the [code of conduct].
+
+#### PROJECT STRUCTURE
+
+* `.github` contains the configuration for GitHub Actions CI.
+* `assets` contains non-code files that are used in the Bertie project.
+* `bogo_shim` contains the BoGo shim application that is used for testing against BoringSSL's test runner.
+* `record` is a crate that provides common functionality used in `simple_https_client` and `simple_https_server`.
+* `simple_https_client` is an example crate that implements a Bertie HTTPS client.
+* `simple_https_server` is an example crate that implements a Bertie HTTPS server.
+* `src` contains the Bertie source code (that must be valid according to hacspec.)
+* `tests` contains all tests.
 
 ### PUBLICATIONS
 

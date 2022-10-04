@@ -6,7 +6,7 @@ use tracing::{debug, trace};
 
 use crate::{
     debug::{info_record, Hex},
-    ClientError,
+    AppError,
 };
 
 #[derive(Debug)]
@@ -35,7 +35,7 @@ where
     Stream: Read + Write,
 {
     #[tracing::instrument(skip(self))]
-    pub fn read_record(&mut self) -> Result<ByteSeq, ClientError> {
+    pub fn read_record(&mut self) -> Result<ByteSeq, AppError> {
         // Buffer to read chunks into.
         let mut tmp = [0u8; 4096];
 
@@ -102,7 +102,7 @@ where
     }
 
     #[tracing::instrument(skip(self, record))]
-    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), ClientError> {
+    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), AppError> {
         // Safety: Safe to unwrap().
         let data = hex::decode(record.to_hex()).unwrap();
         self.stream.write_all(&data)?;

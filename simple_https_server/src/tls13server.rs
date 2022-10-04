@@ -2,254 +2,50 @@
 //! It waits for a connection at port 443, receives an HTTP "GET /", and prints a constant string
 //! WARNING: This code is not in hacspec since it need to use TCP etc.
 
-#![allow(non_upper_case_globals)]
+use anyhow::Context;
+use std::str::FromStr;
+use std::{env, net::TcpListener, time::Duration};
 
-// Import hacspec and all needed definitions.
-use std::{
-    env,
-    io::prelude::*,
-    net::{TcpListener, TcpStream},
-    str,
-    time::Duration,
-};
+use simple_https_server::tls13server;
 
-use bertie::{tls13api::*, tls13utils::*};
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
-use hacspec_lib::*;
-use rand::*;
+pub fn main() -> anyhow::Result<()> {
+    // Setup tracing.
+    tracing_subscriber::fmt::init();
 
-fn read_bytes(stream: &mut TcpStream, buf: &mut [u8], nbytes: usize) -> Result<usize, TLSError> {
-    match stream.read(&mut buf[..]) {
-        Ok(len) => {
-            if len >= nbytes {
-                Ok(len - nbytes)
-            } else {
-                read_bytes(stream, &mut buf[len..], nbytes - len)
-            }
-        }
-        Err(_) => Err(INSUFFICIENT_DATA),
-    }
-}
+    // Obtain host and port from arguments.
+    let (host, port) = {
+        let mut args = env::args();
 
-fn read_record(stream: &mut TcpStream, buf: &mut [u8]) -> Result<usize, TLSError> {
-    let mut b: [u8; 5] = [0; 5];
-    let mut len = 0;
-    while len < 5 {
-        match stream.peek(&mut b) {
-            Result::Ok(l) => len = l,
-            Result::Err(_) => Err(INSUFFICIENT_DATA)?,
-        }
-    }
-    let l0 = b[3] as usize;
-    let l1 = b[4] as usize;
-    let len = l0 * 256 + l1;
-    if len + 5 > buf.len() {
-        Err(INSUFFICIENT_DATA)
-    } else {
-        let extra = read_bytes(stream, &mut buf[0..len + 5], len + 5)?;
-        if extra > 0 {
-            Err(PAYLOAD_TOO_LONG)
-        } else {
-            Ok(len + 5)
-        }
-    }
-}
+        let _ = args.next().context("Unexpected parameter environment.")?;
 
-fn put_record(stream: &mut TcpStream, rec: &Bytes) -> Result<(), TLSError> {
-    let wire = hex::decode(&rec.to_hex()).expect("Record Decoding Failed");
-    match stream.write(&wire) {
-        Err(_) => Err(INSUFFICIENT_DATA),
-        Ok(len) => {
-            if len < wire.len() {
-                Err(PARSE_FAILED)
-            } else {
-                Ok(())
-            }
-        }
-    }
-}
+        let host = args.next().unwrap_or_else(|| "localhost".to_string());
+        let port = args.next().unwrap_or_else(|| "443".to_string());
 
-fn get_ccs_message(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), TLSError> {
-    let len = read_record(stream, buf)?;
-    if len == 6
-        && buf[0] == 0x14
-        && buf[1] == 0x03
-        && buf[2] == 0x03
-        && buf[3] == 0x00
-        && buf[4] == 0x01
-        && buf[5] == 0x01
-    {
-        Ok(())
-    } else {
-        Err(PARSE_FAILED)
-    }
-}
+        (
+            host,
+            u16::from_str(&port).context("Failed to parse port number.")?,
+        )
+    };
 
-fn put_ccs_message(stream: &mut TcpStream) -> Result<(), TLSError> {
-    let ccs_rec = ByteSeq::from_hex("140303000101");
-    put_record(stream, &ccs_rec)
-}
-
-const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
-    HashAlgorithm::SHA256,
-    AeadAlgorithm::Aes128Gcm,
-    SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
-    false,
-    false,
-);
-
-/*
-const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
-    HashAlgorithm::SHA256,
-    AeadAlgorithm::Chacha20Poly1305,
-    SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::X25519,
-    false,
-    false,
-);
-*/
-
-const default_algs: Algorithms = SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519;
-
-// Cert and Key
-const ECDSA_P256_SHA256_CERT: [u8; 522] = [
-    0x30, 0x82, 0x02, 0x06, 0x30, 0x82, 0x01, 0xAC, 0x02, 0x09, 0x00, 0xD1, 0xA2, 0xE4, 0xD5, 0x78,
-    0x05, 0x08, 0x61, 0x30, 0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02, 0x30,
-    0x81, 0x8A, 0x31, 0x0B, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x44, 0x45, 0x31,
-    0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E,
-    0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x07, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69,
-    0x6E, 0x31, 0x10, 0x30, 0x0E, 0x06, 0x03, 0x55, 0x04, 0x0A, 0x0C, 0x07, 0x68, 0x61, 0x63, 0x73,
-    0x70, 0x65, 0x63, 0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x0B, 0x0C, 0x06, 0x62, 0x65,
-    0x72, 0x74, 0x69, 0x65, 0x31, 0x17, 0x30, 0x15, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0C, 0x0E, 0x62,
-    0x65, 0x72, 0x74, 0x69, 0x65, 0x2E, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31, 0x1D, 0x30,
-    0x1B, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x01, 0x16, 0x0E, 0x62, 0x65,
-    0x72, 0x74, 0x69, 0x65, 0x40, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x30, 0x1E, 0x17, 0x0D,
-    0x32, 0x31, 0x30, 0x34, 0x32, 0x39, 0x31, 0x31, 0x34, 0x37, 0x34, 0x35, 0x5A, 0x17, 0x0D, 0x33,
-    0x31, 0x30, 0x34, 0x32, 0x37, 0x31, 0x31, 0x34, 0x37, 0x34, 0x35, 0x5A, 0x30, 0x81, 0x8A, 0x31,
-    0x0B, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x44, 0x45, 0x31, 0x0F, 0x30, 0x0D,
-    0x06, 0x03, 0x55, 0x04, 0x08, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31, 0x0F, 0x30,
-    0x0D, 0x06, 0x03, 0x55, 0x04, 0x07, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31, 0x10,
-    0x30, 0x0E, 0x06, 0x03, 0x55, 0x04, 0x0A, 0x0C, 0x07, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63,
-    0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x0B, 0x0C, 0x06, 0x62, 0x65, 0x72, 0x74, 0x69,
-    0x65, 0x31, 0x17, 0x30, 0x15, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0C, 0x0E, 0x62, 0x65, 0x72, 0x74,
-    0x69, 0x65, 0x2E, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31, 0x1D, 0x30, 0x1B, 0x06, 0x09,
-    0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x01, 0x16, 0x0E, 0x62, 0x65, 0x72, 0x74, 0x69,
-    0x65, 0x40, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A,
-    0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07,
-    0x03, 0x42, 0x00, 0x04, 0xD8, 0xE0, 0x74, 0xF7, 0xCB, 0xEF, 0x19, 0xC7, 0x56, 0xA4, 0x52, 0x59,
-    0x0C, 0x02, 0x70, 0xCC, 0x9B, 0xFC, 0x45, 0x8D, 0x73, 0x28, 0x39, 0x1D, 0x3B, 0xF5, 0x26, 0x17,
-    0x8B, 0x0D, 0x25, 0x04, 0x91, 0xE8, 0xC8, 0x72, 0x22, 0x59, 0x9A, 0x2C, 0xBB, 0x26, 0x31, 0xB1,
-    0xCC, 0x6B, 0x6F, 0x5A, 0x10, 0xD9, 0x7D, 0xD7, 0x86, 0x56, 0xFB, 0x89, 0x39, 0x9E, 0x0A, 0x91,
-    0x9F, 0x35, 0x81, 0xE7, 0x30, 0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02,
-    0x03, 0x48, 0x00, 0x30, 0x45, 0x02, 0x21, 0x00, 0xA1, 0x81, 0xB3, 0xD6, 0x8C, 0x9F, 0x62, 0x66,
-    0xC6, 0xB7, 0x3F, 0x26, 0xE7, 0xFD, 0x88, 0xF9, 0x4B, 0xD8, 0x15, 0xD1, 0x45, 0xC7, 0x66, 0x69,
-    0x40, 0xC2, 0x55, 0x21, 0x84, 0x9F, 0xE6, 0x8C, 0x02, 0x20, 0x10, 0x7E, 0xEF, 0xF3, 0x1D, 0x58,
-    0x32, 0x6E, 0xF7, 0xCB, 0x0A, 0x47, 0xF2, 0xBA, 0xEB, 0xBC, 0xB7, 0x8F, 0x46, 0x56, 0xF1, 0x5B,
-    0xCC, 0x2E, 0xD5, 0xB3, 0xC4, 0x0F, 0x5B, 0x22, 0xBD, 0x02,
-];
-const ECDSA_P256_SHA256_Key: [u8; 32] = [
-    0xA6, 0xDE, 0x48, 0x21, 0x0E, 0x56, 0x12, 0xDD, 0x95, 0x3A, 0x91, 0x4E, 0x9F, 0x56, 0xC3, 0xA2,
-    0xDB, 0x7A, 0x36, 0x20, 0x08, 0xE9, 0x52, 0xEE, 0xDB, 0xCE, 0xAC, 0x3B, 0x26, 0xF9, 0x20, 0xBD,
-];
-
-static response : &str = "HTTP/1.1 200 OK\r\nDate: Mon, 08 Aug 2022 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT
-Content-Length: 88\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html>\r\n<body>\r\n<h1>Hello from localhost!</h1>\r\n</body>\r\n</html>\r\n\r\n";
-
-pub fn tls13server_aux(stream: &mut TcpStream, host: &str) -> Result<(), TLSError> {
-    let mut in_buf = [0; 8192];
-    let ch_len = read_record(stream, &mut in_buf)?;
-    let ch_rec = ByteSeq::from_public_slice(&in_buf[0..ch_len]);
-
-    let sni = ByteSeq::from_public_slice(&host.as_bytes());
-    let db = ServerDB(
-        sni,
-        Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
-        SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
-        None,
-    );
-
-    let mut entropy = [0 as u8; 64];
-    thread_rng().fill(&mut entropy);
-    let ent_s = Entropy::from_public_slice(&entropy);
-
-    match server_accept(default_algs, db, &ch_rec, ent_s) {
-        Err(x) => {
-            println!("ServerInit Error {}", x);
-            Err(PARSE_FAILED)
-        }
-        Ok((sh, sf, sstate)) => {
-            println!("Negotiation Complete");
-            put_record(stream, &sh)?;
-            put_ccs_message(stream)?;
-            put_record(stream, &sf)?;
-            //println!("Server0.5 Complete");
-
-            get_ccs_message(stream, &mut in_buf)?;
-            //println!("Got CCS message");
-            let len = read_record(stream, &mut in_buf)?;
-            //println!("Got fin record");
-            let cf_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-            let sstate = server_read_handshake(&cf_rec, sstate)?;
-            println!("Handshake Complete");
-
-            let len = read_record(stream, &mut in_buf)?;
-            let app_rec = ByteSeq::from_public_slice(&in_buf[0..len]);
-            let (_, sstate) = server_read(&app_rec, sstate)?;
-            println!("Got HTTP Request");
-
-            let http_get_resp = ByteSeq::from_public_slice(response.as_bytes());
-            let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
-            put_record(stream, &ap)?;
-            println!("Sent HTTP Response: Hello from localhost");
-
-            Ok(())
-        }
-    }
-}
-
-pub fn tls13server(host: &str, port: &str) -> Result<(), TLSError> {
-    let addr = ["127.0.0.1", port].join(":");
-
-    let listener = TcpListener::bind(addr).unwrap();
+    let listener = TcpListener::bind((host.as_str(), port)).unwrap();
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
 
-        let d = Duration::new(1, 0);
+        let d = Duration::new(15, 0);
         stream
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
         println!("New connection established!");
-        match tls13server_aux(&mut stream, host) {
-            Ok(_) => {
-                println!("Connection complete!")
+        match tls13server(&mut stream, &host) {
+            Ok(()) => {
+                println!("Connection to {} succeeded\n", host);
             }
-            Err(_) => {
-                println!("Connection failed!")
+            Err(error) => {
+                println!("Connection to {} failed with {:?}\n", host, error);
             }
         }
     }
-    Ok(())
-}
 
-pub fn main() {
-    let args: Vec<String> = env::args().collect();
-    let host = if args.len() <= 1 {
-        "localhost"
-    } else {
-        &args[1]
-    };
-    let port = if args.len() <= 2 { "443" } else { &args[2] };
-    match tls13server(host, port) {
-        Err(x) => {
-            println!("Connection to {} failed with {}\n", host, x);
-        }
-        Ok(()) => {
-            println!("Connection to {} succeeded\n", host);
-        }
-    }
+    Ok(())
 }

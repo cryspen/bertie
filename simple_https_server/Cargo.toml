@@ -10,13 +10,17 @@ path = "src/tls13server.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.8.0"
-hex = "0.4.3"
-hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
-hacspec-dev = { git = "https://github.com/hacspec/hacspec", package = "hacspec-dev" }
-hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
+anyhow = "1"
+bertie = { path = "../" }
 evercrypt_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "evercrypt_cryptolib" }
-bertie = {path = "../"}
+hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
+hacspec-dev = { git = "https://github.com/hacspec/hacspec", package = "hacspec-dev" }
+hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
+hex = "0.4.3"
+rand = "0.8.0"
+record = { path = "../record" }
+tracing = "0.1"
+tracing-subscriber = "0.3"
 
 [features]
 default = ["hacspec"]

@@ -1,0 +1,14 @@
+[package]
+name = "record"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hex = "0.4.3"
+tracing = "0.1"
+bertie = { path = ".." }
+anyhow = "1"
+thiserror = "1"
+hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
