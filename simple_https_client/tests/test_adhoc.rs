@@ -6,7 +6,13 @@
 
 use std::io::{Cursor, Read, Write};
 
+use bertie::Algorithms;
 use simple_https_client::tls13client;
+
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
+#[cfg(not(feature = "evercrypt"))]
+use hacspec_cryptolib::*;
 
 struct Stream<'a> {
     cursor: Cursor<&'a [u8]>,
@@ -51,6 +57,18 @@ fn test_adhoc() {
         let data = hex::decode(test).unwrap();
         let stream = Stream::new(&data);
 
-        let _ = tls13client("127.0.0.1", stream, "");
+        let _ = tls13client(
+            "127.0.0.1",
+            stream,
+            Algorithms(
+                HashAlgorithm::SHA256,
+                AeadAlgorithm::Chacha20Poly1305,
+                SignatureScheme::EcdsaSecp256r1Sha256,
+                NamedGroup::Secp256r1,
+                false,
+                false,
+            ),
+            "",
+        );
     }
 }

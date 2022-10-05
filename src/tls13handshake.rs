@@ -298,22 +298,12 @@ fn put_server_signature(
         let cert = parse_server_certificate(&algs, sc)?;
         let tx = transcript_add1(tx, sc);
         let th_sc = get_transcript_hash(&tx)?;
-        let (signature_scheme, certificate_key) = verification_key_from_cert(&cert)?;
+        let spki = verification_key_from_cert(&cert)?;
+        println!("Server signature scheme: {:?}", spki.0);
+        let pk = cert_public_key(&cert, &spki)?;
         let sig = parse_certificate_verify(&algs, scv)?;
         let sigval = PREFIX_SERVER_SIGNATURE.concat(&th_sc);
-        // TODO(Refactor): This is used because the API of `evercrypt_cryptolib::verify` wants a `PublicVerificationKey`.
-        //                 That enum is directly unpacked in `verify`, though.
-        if signature_scheme == SignatureScheme::EcdsaSecp256r1Sha256 {
-            let verification_key = ecdsa_public_key(&cert, certificate_key)?;
-            let pk = PublicVerificationKey::EcDsa(verification_key);
-            verify(&sig_alg(&algs), &pk, &bytes(&sigval), &sig)?;
-        } else if signature_scheme == SignatureScheme::RsaPssRsaSha256 {
-            let verification_key = rsa_public_key(&cert, certificate_key)?;
-            let pk = PublicVerificationKey::Rsa(verification_key);
-            verify(&sig_alg(&algs), &pk, &bytes(&sigval), &sig)?;
-        } else {
-            Err(UNSUPPORTED)?;
-        }
+        verify(&sig_alg(&algs), &pk, &bytes(&sigval), &sig)?;
         let tx = transcript_add1(tx, scv);
         Ok(ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx))
     } else {

@@ -42,7 +42,7 @@ const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorith
     false,
 );
 
-/*
+#[allow(dead_code)]
 const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
@@ -51,7 +51,6 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     false,
     false,
 );
-*/
 
 const default_algs: Algorithms = SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
 

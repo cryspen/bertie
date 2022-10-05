@@ -1,0 +1,124 @@
+Connecting to google.com
+Connecting to linkedin.com
+Error: TLS error: 6
+Connecting to apple.com
+Connecting to yahoo.com
+Connecting to facebook.com
+Connecting to youtube.com
+Connecting to instagram.com
+Connecting to twitter.com
+Connecting to wikipedia.org
+Connecting to cloudflare.com
+Connecting to amazon.com
+Error: TLS error: 6
+Connecting to live.com
+Error: TLS error: 6
+Connecting to qq.com
+Error: TLS error: 6
+Connecting to bilibili.com
+Error: TLS error: 6
+Connecting to bing.com
+Error: TLS error: 6
+Connecting to azure.com
+Error: TLS error: 6
+Connecting to googletagmanager.com
+Connecting to office.com
+Error: TLS error: 6
+Connecting to wordpress.org
+Connecting to l-msedge.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to trafficmanager.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to whatsapp.com
+Connecting to fastly.net
+Error: TLS error: 6
+Connecting to pinterest.com
+Error: TLS error: 133
+Connecting to github.com
+Connecting to #netflix.net
+Error: failed to lookup address information: Name or service not known
+Connecting to reddit.com
+Error: TLS error: 133
+Connecting to youtu.be
+Connecting to yandex.ru
+Connecting to windowsupdate.com
+Error: failed to lookup address information: No address associated with hostname
+Connecting to googlevideo.com
+Error: TLS error: 133
+Connecting to mail.ru
+Error: TLS error: 6
+Connecting to microsoftonline.com
+Error: failed to lookup address information: No address associated with hostname
+Connecting to domaincontrol.com
+Error: Connection refused (os error 111)
+Connecting to zoom.us
+Error: TLS error: 6
+Connecting to gandi.net
+Error: TLS error: 133
+Connecting to adobe.com
+Connecting to vimeo.com
+Connecting to nflxso.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to doubleclick.net
+Connecting to s-msedge.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to wordpress.com
+Connecting to sharepoint.com
+Error: TLS error: 6
+Connecting to cloudapp.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to vk.com
+Connecting to goo.gl
+Connecting to aaplimg.com
+Error: failed to lookup address information: No address associated with hostname
+Connecting to edgekey.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to zhihu.com
+Error: TLS error: 6
+Connecting to msn.com
+Error: TLS error: 6
+Connecting to windows.net
+Error: TLS error: 6
+Connecting to bit.ly
+Error: TLS error: 133
+Connecting to webex.com
+Error: TLS error: 6
+Connecting to myfritz.net
+Connecting to tiktok.com
+Error: TLS error: 133
+Connecting to yandex.net
+Connecting to apple-dns.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to googleusercontent.com
+Error: failed to lookup address information: No address associated with hostname
+Connecting to intuit.com
+Connecting to t.co
+Connecting to paypal.com
+Error: TLS error: 6
+Connecting to blogspot.com
+Connecting to mozilla.org
+Connecting to tumblr.com
+Connecting to xvideos.com
+Error: TLS error: 6
+Connecting to office365.com
+Error: TLS error: 6
+Connecting to pornhub.com
+Connecting to taobao.com
+Error: TLS error: 6
+Connecting to googledomains.com
+Connecting to #macromedia.com
+Error: failed to lookup address information: Name or service not known
+Connecting to nih.gov
+Error: TLS error: 6
+Connecting to nytimes.com
+Error: TLS error: 6
+Connecting to t-msedge.net
+Error: failed to lookup address information: No address associated with hostname
+Connecting to csdn.net
+Error: TLS error: 6
+Connecting to spotify.com
+Error: TLS error: 133
+Connecting to nic.ru
+Connecting to skype.com
+Error: TLS error: 6
+Connecting to opera.com

@@ -234,7 +234,7 @@ pub fn check_lbytes3_full(b: &ByteSeq) -> Result<(), TLSError> {
 }
 
 // Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Algorithms(
     pub HashAlgorithm,
     pub AeadAlgorithm,

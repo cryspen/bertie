@@ -24,6 +24,9 @@ evercrypt_cryptolib = { git = "https://github.com/cryspen/utils", optional = tru
 # hacspec_cryptolib = { path = "../cryspen-util/hacspec_cryptolib" }
 # evercrypt_cryptolib = { path = "../cryspen-util/evercrypt_cryptolib" }
 
+# [patch."https://github.com/cryspen/hacl-packages"]
+# evercrypt = { path = "../hacl-packages/rust", package = "hacl-rust" }
+
 [features]
 default = ["hacspec"]
 hacspec = ["hacspec_cryptolib"]

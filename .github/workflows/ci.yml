@@ -26,6 +26,10 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
+      - name: Setup HACL toolchain
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: sudo apt-get install ninja-build
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -59,6 +63,13 @@ jobs:
       - name: BoGo
         if: matrix.os != 'windows-latest'
         run: BORINGSSL_ROOT=./boringssl ./bogo_shim/run.sh
+
+      - name: Test code /w hacl
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all --all-targets --no-default-features --features evercrypt
 
   audit:
     needs: test
