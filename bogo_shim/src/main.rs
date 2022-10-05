@@ -195,7 +195,7 @@ fn main() {
             ];
             let stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
 
-            let _ = tls13client(&options.hostname, stream, "hello");
+            let _ = tls13client(&options.hostname, stream, None, "hello");
         }
         Role::Server => {
             let addrs = [

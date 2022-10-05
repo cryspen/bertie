@@ -38,7 +38,6 @@ const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorith
     false,
 );
 
-/*
 const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
@@ -47,19 +46,59 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     false,
     false,
 );
-*/
 
-const default_algs: Algorithms = SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
+const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    NamedGroup::Secp256r1,
+    false,
+    false,
+);
+
+const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::RsaPssRsaSha256,
+    NamedGroup::Secp256r1,
+    false,
+    false,
+);
+
+const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    NamedGroup::Secp256r1,
+    false,
+    false,
+);
+
+pub fn ciphersuites() -> Vec<Algorithms> {
+    vec![
+        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
+        SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
+        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+        SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
+        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
+        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
+    ]
+}
 
 #[tracing::instrument(skip(stream, request))]
 pub fn tls13client<Stream>(
     host: &str,
     stream: Stream,
+    algorithms: impl Into<Option<Algorithms>> + Debug,
     request: &str,
 ) -> Result<(RecordStream<Stream>, Client, Vec<u8>), AppError>
 where
     Stream: Read + Write,
 {
+    let algorithms = match algorithms.into() {
+        Some(a) => a,
+        None => SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+    };
     // Create a stream that is framed by TLS records.
     let mut stream = RecordStream::new(stream);
 
@@ -74,7 +113,7 @@ where
             Entropy::from_public_slice(&entropy)
         };
 
-        client_connect(default_algs, &sni, None, None, ent)?
+        client_connect(algorithms, &sni, None, None, ent)?
     };
 
     stream.write_record(client_hello)?;
@@ -84,7 +123,10 @@ where
     // TODO: Who should do this check?
     if eq1(server_hello[0], U8(21)) {
         // Alert
-        eprintln!("Server does not support proposed algorithms.");
+        eprintln!(
+            "Server does not support proposed algorithms. {:?}",
+            algorithms
+        );
         return Err(UNSUPPORTED_ALGORITHM.into());
     }
 

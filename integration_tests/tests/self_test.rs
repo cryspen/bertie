@@ -36,6 +36,7 @@ fn self_test() {
     let (_, _, data) = tls13client(
         "127.0.0.1",
         client,
+        None,
         "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n",
     )
     .unwrap();

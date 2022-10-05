@@ -116,14 +116,14 @@ fn test_full_round_trip() {
     );
 
     let mut b = true;
-    match client_connect(TLS_AES_128_GCM_SHA256_X25519, &sn, None, None, ent_c) {
+    match client_connect(TLS_CHACHA20_POLY1305_SHA256_X25519, &sn, None, None, ent_c) {
         Err(x) => {
             println!("Client0 Error {}", x);
             b = false;
         }
         Ok((ch, cstate)) => {
             println!("Client0 Complete");
-            match server_accept(TLS_AES_128_GCM_SHA256_X25519, db, &ch, ent_s) {
+            match server_accept(TLS_CHACHA20_POLY1305_SHA256_X25519, db, &ch, ent_s) {
                 Err(x) => {
                     println!("ServerInit Error {}", x);
                     b = false;

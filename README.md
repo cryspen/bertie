@@ -22,8 +22,7 @@ The client retrieves a web page using Bertie as the underlying TLS implementatio
 You can try it out by executing ...
 
 ```bash
-$ cd simple_https_client
-$ cargo run -- example.com
+$ cargo run -p simple_https_client -- google.com
 ```
 
 There is also a HTTPS server available as `simple_https_server`.

@@ -3,6 +3,9 @@ use crate::tls13formats::*;
 use crate::tls13handshake::*;
 use crate::tls13record::*;
 use crate::tls13utils::*;
+#[cfg(feature = "evercrypt")]
+use evercrypt_cryptolib::*;
+#[cfg(not(feature = "evercrypt"))]
 use hacspec_cryptolib::*;
 use hacspec_lib::*;
 
