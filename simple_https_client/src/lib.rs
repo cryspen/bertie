@@ -19,6 +19,7 @@ use rand::*;
 use record::{AppError, RecordStream};
 use tracing::info;
 
+#[allow(dead_code)]
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
