@@ -34,7 +34,7 @@ If you are looking for commercial support for Bertie, please [reach out to Cryps
 
 ### WORKING ON BERTIE
 
-Note: You do not need to do anything of this when you just want to build and run Bertie. This is only if you intend to *work* on Bertie, i.e., change its core and contribute the changes to the project.
+Note: You do not need to do any of this when you just want to build and run Bertie. This is only if you intend to *work* on Bertie, i.e., change its core and contribute the changes to the project.
 
 Keep in mind that Bertie is written in [hacspec] -- a more "restrictive" version of Rust that lends itself to formal verification.
 Working on Bertie feels a lot like working on a typical Rust crate but all code needs to be valid according to hacspec.
