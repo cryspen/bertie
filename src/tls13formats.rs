@@ -1,5 +1,6 @@
-// A module that for the formatting code needed by TLS 1.3
-// Import hacspec and all needed definitions.
+/// A module that for the formatting code needed by TLS 1.3
+/// Import hacspec and all needed definitions.
+#[allow(clippy::manual_range_contains)]
 #[cfg(feature = "evercrypt")]
 use evercrypt_cryptolib::*;
 #[cfg(not(feature = "evercrypt"))]
@@ -161,7 +162,7 @@ pub fn find_key_share(g: &Bytes, ch: &ByteSeq) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         Err(parse_failed())
     } else {
-        if eq(&g, &ch.slice_range(0..2)) {
+        if eq(g, &ch.slice_range(0..2)) {
             let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
             Ok(ch.slice_range(4..4 + len))
         } else {
@@ -292,7 +293,6 @@ fn check_extension(algs: &Algorithms, b: &ByteSeq) -> Result<(usize, EXTS), TLSE
         }
         _ => Ok((4 + len, out)),
     }
-    // Ok((4 + len, out))
 }
 
 pub fn check_server_extension(

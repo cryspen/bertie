@@ -1,4 +1,4 @@
-#![allow(non_upper_case_globals, dead_code)]
+#![allow(non_upper_case_globals, clippy::zero_prefixed_literal)]
 
 // Import hacspec and all needed definitions.
 use std::io::prelude::*;
@@ -13,6 +13,7 @@ use rand::*;
 pub use record::AppError;
 use record::RecordStream;
 
+#[allow(dead_code)]
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
@@ -22,6 +23,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     false,
 );
 
+#[allow(dead_code)]
 const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
