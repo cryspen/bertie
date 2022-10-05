@@ -57,6 +57,9 @@
     "ServerAuth-Enforced": "TLS 1.2",
     "Verify-ServerAuth-SignatureType": "TLS 1.2",
     "Agree-Digest-Default": "TLS 1.2",
+    "RSAKeyUsage-Client-WantEncipherment-GotEnciphermentTLS12": "",
+    "RSAKeyUsage-Client-WantEncipherment-GotEnciphermentTLS11": "",
+    "RSAKeyUsage-Client-WantEncipherment-GotEnciphermentTLS1": "",
 
     "### Unsupported features": "###",
     "*ClientAuth*": "",
@@ -209,6 +212,9 @@
     "TLS-ECH-Client-UnsolictedHRRExtension": "ECH is not supported yet",
     "RSAKeyUsage-Client-WantSignature-GotEncipherment-EnforcedTLS13": "",
     "ECDSAKeyUsage-Client-TLS13": "",
+    "RSAKeyUsage-Client-WantSignature-GotEncipherment-TLS13": "",
+    "RSAKeyUsage-Client-WantSignature-GotSignature-TLS13": "",
+    "RSAKeyUsage-Client-WantSignature-GotEncipherment-AlwaysEnforcedTLS13": "",
 
     "### BERTIE AS SERVER": "###",
     "FallbackSCSV": "TLS 1.1",
