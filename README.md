@@ -32,6 +32,25 @@ There is also a HTTPS server available as `simple_https_server`.
 
 If you are looking for commercial support for Bertie, please [reach out to Crypsen](mailto:info@cryspen.com).
 
+### WORKING ON BERTIE
+
+Note: You do not need to do any of this when you just want to build and run Bertie. This is only if you intend to *work* on Bertie, i.e., change its core and contribute the changes to the project.
+
+Keep in mind that Bertie is written in [hacspec] -- a more "restrictive" version of Rust that lends itself to formal verification.
+Working on Bertie feels a lot like working on a typical Rust crate but all code needs to be valid according to hacspec.
+Thus, you may also find that some code is "unusual" compared to vanilla Rust.
+
+But no worries!
+There is a Cargo plugin to verify that everything is valid according to hacspec.
+Just follow the instructions on the [hacspec] website to install it.
+Then, set a [rustup override](https://rust-lang.github.io/rustup/overrides.html) to the channel currently used in the [hacspec repository](https://github.com/hacspec/hacspec/blob/master/rust-toolchain), i.e., ...
+
+```sh
+rustup override set <channel>
+```
+
+You can then `cargo clean`, `cargo build`, and `cargo hacspec` to verify that your changes conform to the hacspec specification.
+
 ### CONTRIBUTING
 
 To see what we are working on and what is in the pipeline, you can follow our [project tasks].
