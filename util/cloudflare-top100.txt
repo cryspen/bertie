@@ -1,0 +1,100 @@
+google.com
+googleapis.com
+facebook.com
+gstatic.com
+apple.com
+microsoft.com
+doubleclick.net
+amazonaws.com
+#tiktokcdn.com # failed to lookup address
+youtube.com
+fbcdn.net
+googlevideo.com
+googlesyndication.com
+#root-servers.net # failed to lookup address
+tiktokv.com
+instagram.com
+amazon.com
+icloud.com
+facebook-hardware.com
+google-analytics.com
+yahoo.com
+#apple-dns.net # failed to lookup address
+#googleusercontent.com # failed to lookup address
+#akadns.net # failed to lookup address
+#akamaiedge.net # failed to lookup address
+netflix.com
+twitter.com
+whatsapp.net
+#cloudfront.net # failed to lookup address
+ntp.org
+gvt2.com
+criteo.com
+live.com
+#akamai.net # failed to lookup address
+#ytimg.com # failed to lookup address
+#adnxs.com # failed to lookup address
+app-measurement.com
+bing.com
+pki.goog
+office.com
+mozilla.com
+cloudflare.com
+spotify.com
+googletagmanager.com
+#ttlivecdn.com # failed to lookup address
+cloudflare-dns.com
+aaplimg.com
+#trafficmanager.net # failed to lookup address
+snapchat.com
+rubiconproject.com
+#msftncsi.com # failed to lookup address
+office365.com
+#cdninstagram.com # failed to lookup address
+ui.com
+msn.com
+#amazon-adsystem.com # failed to lookup address
+digicert.com
+azure.com
+#gvt1.com # failed to lookup address
+pubmatic.com
+googleadservices.com
+lencr.org
+#ggpht.com # failed to lookup address
+#nr-data.net # failed to lookup address
+taboola.com
+#2mdn.net # failed to lookup address
+linkedin.com
+doubleverify.com
+roblox.com
+windows.net
+#facebook.net # failed to lookup address
+gmail.com
+#googletagservices.com # failed to lookup address
+applovin.com
+#office.net # failed to lookup address
+fastly.net
+adsrvr.org
+#worldfcdn.com # failed to lookup address
+smartadserver.com
+#windowsupdate.com # failed to lookup address
+casalemedia.com
+#tiktokcdn-us.com # failed to lookup address
+windows.com
+dns.google
+skype.com
+#microsoftonline.com # failed to lookup address
+unity3d.com
+#mozilla.net # failed to lookup address
+criteo.net
+appsflyer.com
+scorecardresearch.com
+adsafeprotected.com
+#twimg.com # failed to lookup address
+bidswitch.net
+outlook.com
+#cdn77.org # failed to lookup address
+mozilla.org
+outbrain.com
+ampproject.org
+dropbox.com

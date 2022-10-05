@@ -1,7 +1,7 @@
 #!/bin/bash
 # Test to run Bertie against the X domains in top1m.txt
 
-url_file="top1m.txt"
+url_file="cloudflare-top100.txt"
 count=10
 verbose=0
 while [ $# -gt 0 ]; do
@@ -27,7 +27,7 @@ while [ $# -gt 0 ]; do
         echo "    -e aborts the script on an error"
         echo "    -v makes the script more verbose"
         echo ""
-        echo "    By default the util/top1m.txt file is used with a count of 10."
+        echo "    By default the util/cloudflare-top100.txt file is used with a count of 10."
         exit 2
         ;;
     esac
@@ -54,7 +54,13 @@ while IFS= read -r line || [ -n "$line" ]; do
         break
     fi
     line=$(echo "${line//[$'\t\r\n']/}")
-    echo "Connecting to $line"
+
+    if [[ $line = \#* ]]; then
+        echo -e "Skipping ${line:1}\n"
+        continue
+    else
+        echo "Connecting to $line"
+    fi
 
     log=$(RUST_LOG=$rust_log \
         timeout 30s \
@@ -69,5 +75,5 @@ while IFS= read -r line || [ -n "$line" ]; do
     fi
 
     i=$((i + 1))
-    echo -e " ---------------------"
+    echo ""
 done <$file
