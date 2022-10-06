@@ -67,6 +67,7 @@ const SHA256_EMPTY: Bytes32 = Bytes32(secret_bytes!([
 fn ciphersuite(algs: &Algorithms) -> Result<Bytes, TLSError> {
     match (hash_alg(algs), aead_alg(algs)) {
         (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok(bytes2(0x13, 0x01)),
+        (HashAlgorithm::SHA384, AeadAlgorithm::Aes256Gcm) => Ok(bytes2(0x13, 0x02)),
         (HashAlgorithm::SHA256, AeadAlgorithm::Chacha20Poly1305) => Ok(bytes2(0x13, 0x03)),
         _ => Err(UNSUPPORTED_ALGORITHM),
     }
