@@ -7,7 +7,7 @@ use evercrypt_cryptolib::*;
 use hacspec_cryptolib::*;
 use record::AppError;
 use simple_https_client::{ciphersuites, tls13client};
-use tracing::error;
+use tracing::{error, trace};
 
 /// This is a demo of a simple HTTPS client.
 ///
@@ -45,6 +45,7 @@ fn main() -> anyhow::Result<()> {
         response_prefix = match tls13client(&host, stream, algorithms, &request) {
             Ok((_, _, response_prefix)) => response_prefix,
             Err(e) => {
+                trace!("tls13connet failed with {}", e);
                 // We ignore unsupported algorithm errors here for now and keep trying.
                 if let AppError::TLS(ee) = e {
                     if ee != UNSUPPORTED_ALGORITHM {
