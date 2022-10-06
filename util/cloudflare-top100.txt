@@ -27,17 +27,17 @@ netflix.com
 twitter.com
 whatsapp.net
 #cloudfront.net # failed to lookup address
-ntp.org
+#ntp.org # no tls1.3
 gvt2.com
 criteo.com
-live.com
+#live.com # not tls1.3 - forwarding to outlook.live.com
 #akamai.net # failed to lookup address
 #ytimg.com # failed to lookup address
 #adnxs.com # failed to lookup address
 app-measurement.com
 bing.com
 pki.goog
-office.com
+#office.com # no tls1.3
 mozilla.com
 cloudflare.com
 spotify.com
@@ -49,22 +49,22 @@ aaplimg.com
 snapchat.com
 rubiconproject.com
 #msftncsi.com # failed to lookup address
-office365.com
+#office365.com # not tls1.3 - forwarding to microsoft.com
 #cdninstagram.com # failed to lookup address
 ui.com
 msn.com
 #amazon-adsystem.com # failed to lookup address
 digicert.com
-azure.com
+#azure.com # no tls1.3
 #gvt1.com # failed to lookup address
-pubmatic.com
+#pubmatic.com # no tls1.3
 googleadservices.com
 lencr.org
 #ggpht.com # failed to lookup address
 #nr-data.net # failed to lookup address
 taboola.com
 #2mdn.net # failed to lookup address
-linkedin.com
+#linkedin.com # no tls1.3
 doubleverify.com
 roblox.com
 windows.net
@@ -73,8 +73,8 @@ gmail.com
 #googletagservices.com # failed to lookup address
 applovin.com
 #office.net # failed to lookup address
-fastly.net
-adsrvr.org
+#fastly.net # no tls1.3 - forwarding to fastly.com
+#adsrvr.org # no tls1.3
 #worldfcdn.com # failed to lookup address
 smartadserver.com
 #windowsupdate.com # failed to lookup address
@@ -84,17 +84,20 @@ windows.com
 dns.google
 skype.com
 #microsoftonline.com # failed to lookup address
-unity3d.com
+#unity3d.com # no tls1.3 - forwarding to unity.com
 #mozilla.net # failed to lookup address
 criteo.net
 appsflyer.com
-scorecardresearch.com
+#scorecardresearch.com # no tls.13
 adsafeprotected.com
 #twimg.com # failed to lookup address
 bidswitch.net
-outlook.com
+#outlook.com # no tls1.3 - forwarding to outlook.live.com
 #cdn77.org # failed to lookup address
 mozilla.org
-outbrain.com
+#outbrain.com # no tls1.3
 ampproject.org
 dropbox.com
+outlook.live.com
+fastly.com
+unity.com
