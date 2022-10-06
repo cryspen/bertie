@@ -50,7 +50,7 @@ if [ $verbose -eq 1 ]; then
 fi
 
 while IFS= read -r line || [ -n "$line" ]; do
-    if [ $i -ge $count ]; then
+    if [[ $count != 'all' && $i -ge $count ]]; then
         break
     fi
     line=$(echo "${line//[$'\t\r\n']/}")
