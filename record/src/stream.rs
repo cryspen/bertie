@@ -2,7 +2,7 @@ use std::io::{Read, Write};
 
 use bertie::{INSUFFICIENT_DATA, PAYLOAD_TOO_LONG};
 use hacspec_lib::ByteSeq;
-use tracing::{debug, trace};
+use tracing::{debug, error, trace};
 
 use crate::{
     debug::{info_record, Hex},
@@ -49,17 +49,20 @@ where
         // ```
         loop {
             debug!("Search for TLS record in stream buffer.");
+            trace!(buffer = %Hex(&self.buffer), "Buffered data");
+
             if self.buffer.len() >= 5 {
                 let length = self.buffer[3] as usize * 256 + self.buffer[4] as usize;
 
-                // TODO: Who does this?
-                // The length (in bytes) of the following TLSPlaintext.fragment. The length MUST NOT
-                // exceed 2^14 bytes. An endpoint that receives a record that exceeds this length
-                // MUST terminate the connection with a "record_overflow" alert.
-                if length > 16384 {
-                    // TODO: Correct error?
-                    return Err(PAYLOAD_TOO_LONG.into());
-                }
+                // // TODO: Who does this?
+                // // The length (in bytes) of the following TLSPlaintext.fragment. The length MUST NOT
+                // // exceed 2^14 bytes. An endpoint that receives a record that exceeds this length
+                // // MUST terminate the connection with a "record_overflow" alert.
+                // if length > 16384 {
+                //     // TODO: Correct error?
+                //     panic!("payload has length {}", length);
+                //     return Err(PAYLOAD_TOO_LONG.into());
+                // }
 
                 if self.buffer.len() >= 5 + length {
                     let record = {
@@ -82,20 +85,29 @@ where
                 }
             }
 
-            debug!("No complete TLS record found in stream buffer.");
-            match self.stream.read(&mut tmp)? {
-                0 => {
-                    debug!("Connection closed.");
-                    // TODO: Correct error?
-                    return Err(INSUFFICIENT_DATA.into());
-                }
-                amt => {
-                    let data = &tmp[..amt];
+            debug!(
+                buffer=%Hex(&self.buffer),"No complete TLS record found in stream buffer."
+            );
+            match self.stream.read(&mut tmp) {
+                Ok(l) => match l {
+                    0 => {
+                        error!("Connection closed.");
+                        // TODO: Correct error?
+                        return Err(INSUFFICIENT_DATA.into());
+                    }
+                    amt => {
+                        eprintln!("Read {}", amt);
+                        let data = &tmp[..amt];
 
-                    debug!(amt, "Read data into stream buffer.");
-                    trace!(data=%Hex(data), "Read data into stream buffer (content).");
+                        debug!(amt, "Read data into stream buffer.");
+                        trace!(data=%Hex(data), "Read data into stream buffer (content).");
 
-                    self.buffer.extend_from_slice(data);
+                        self.buffer.extend_from_slice(data);
+                    }
+                },
+                Err(e) => {
+                    error!("Reading from stream failed with {}", e);
+                    return Err(e.into());
                 }
             }
         }
@@ -103,8 +115,7 @@ where
 
     #[tracing::instrument(skip(self, record))]
     pub fn write_record(&mut self, record: ByteSeq) -> Result<(), AppError> {
-        // Safety: Safe to unwrap().
-        let data = hex::decode(record.to_hex()).unwrap();
+        let data = record.into_native();
         self.stream.write_all(&data)?;
 
         debug!(amt = data.len(), "Wrote data.");
