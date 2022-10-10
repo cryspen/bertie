@@ -41,21 +41,18 @@ fn main() -> anyhow::Result<()> {
     for algorithms in ciphersuites.drain(..) {
         // Initiate HTTPS connection to host:port.
         let stream = TcpStream::connect((host.clone(), port))?;
+        stream.set_nodelay(true).expect("set_nodelay call failed");
+        trace!(
+            host = format!("{}:{}", host, port),
+            "Opened TCP connection to host."
+        );
 
         response_prefix = match tls13client(&host, stream, algorithms, &request) {
             Ok((_, _, response_prefix)) => response_prefix,
             Err(e) => {
-                trace!("tls13connet failed with {}", e);
-                // We ignore unsupported algorithm errors here for now and keep trying.
-                if let AppError::TLS(ee) = e {
-                    if ee != UNSUPPORTED_ALGORITHM {
-                        return Err(e.into());
-                    } else {
-                        continue;
-                    }
-                } else {
-                    continue;
-                }
+                // We ignore all errors here for now and keep trying.
+                eprintln!("tls13connet failed with {}", e);
+                continue;
             }
         };
         break;

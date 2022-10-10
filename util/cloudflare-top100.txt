@@ -5,7 +5,7 @@ gstatic.com
 apple.com
 microsoft.com
 doubleclick.net
-amazonaws.com
+#amazonaws.com # connection refused
 #tiktokcdn.com # failed to lookup address
 youtube.com
 fbcdn.net
@@ -14,7 +14,7 @@ googlesyndication.com
 #root-servers.net # failed to lookup address
 tiktokv.com
 instagram.com
-amazon.com
+www.amazon.com
 icloud.com
 facebook-hardware.com
 google-analytics.com
@@ -28,14 +28,14 @@ twitter.com
 whatsapp.net
 #cloudfront.net # failed to lookup address
 #ntp.org # no tls1.3
-gvt2.com
+#gvt2.com # failed to lookup address
 criteo.com
 #live.com # not tls1.3 - forwarding to outlook.live.com
 #akamai.net # failed to lookup address
 #ytimg.com # failed to lookup address
 #adnxs.com # failed to lookup address
 app-measurement.com
-bing.com
+www.bing.com
 pki.goog
 #office.com # no tls1.3
 mozilla.com
@@ -44,7 +44,7 @@ spotify.com
 googletagmanager.com
 #ttlivecdn.com # failed to lookup address
 cloudflare-dns.com
-aaplimg.com
+#aaplimg.com # failed to lookup address
 #trafficmanager.net # failed to lookup address
 snapchat.com
 rubiconproject.com
@@ -52,7 +52,7 @@ rubiconproject.com
 #office365.com # not tls1.3 - forwarding to microsoft.com
 #cdninstagram.com # failed to lookup address
 ui.com
-msn.com
+#msn.com # no tls1.3
 #amazon-adsystem.com # failed to lookup address
 digicert.com
 #azure.com # no tls1.3
@@ -87,7 +87,7 @@ skype.com
 #unity3d.com # no tls1.3 - forwarding to unity.com
 #mozilla.net # failed to lookup address
 criteo.net
-appsflyer.com
+www.appsflyer.com
 #scorecardresearch.com # no tls.13
 adsafeprotected.com
 #twimg.com # failed to lookup address
@@ -97,7 +97,7 @@ bidswitch.net
 mozilla.org
 #outbrain.com # no tls1.3
 ampproject.org
-dropbox.com
+#dropbox.com # no tls1.3
 outlook.live.com
 fastly.com
 unity.com

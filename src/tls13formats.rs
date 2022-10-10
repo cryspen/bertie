@@ -1074,7 +1074,6 @@ pub fn check_handshake_record(p: &ByteSeq) -> Result<(HandshakeData, usize), TLS
 }
 
 pub fn get_handshake_record(p: &ByteSeq) -> Result<HandshakeData, TLSError> {
-    println!("handshake record: {}", p.to_hex());
     let (hd, len) = check_handshake_record(p)?;
     if len == p.len() {
         Ok(hd)
