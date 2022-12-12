@@ -214,6 +214,7 @@
     "RSAKeyUsage-Client-WantSignature-GotEncipherment-TLS13": "",
     "RSAKeyUsage-Client-WantSignature-GotSignature-TLS13": "",
     "RSAKeyUsage-Client-WantSignature-GotEncipherment-AlwaysEnforcedTLS13": "",
+    "RSAKeyUsage-Client-WantSignature-GotEncipherment-Enforced-TLS13": "",
 
     "### BERTIE AS SERVER": "###",
     "FallbackSCSV": "TLS 1.1",
