@@ -24,3 +24,8 @@ pub(crate) fn parse_failed() -> TLSError {
     println!("{:?}", bt);
     PARSE_FAILED
 }
+
+// === Public API that is NOT in hacspec
+
+#[cfg(feature = "api")]
+pub mod stream;
