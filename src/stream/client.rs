@@ -207,28 +207,6 @@ impl BertieStream<ClientState> {
 
         Ok(())
     }
-
-    // /// Read bytes from the stream
-    // fn read_tls(&mut self) -> Result<Vec<u8>, BertieError> {
-    //     let cstate = match self.state.cstate.take() {
-    //         Some(state) => state,
-    //         None => return Err(BertieError::InvalidState),
-    //     };
-
-    //     let mut cstate = cstate;
-    //     let application_data = loop {
-    //         let record = self.read_record()?;
-    //         let ad;
-    //         (ad, cstate) = client_read(&record, cstate)?;
-    //         match ad {
-    //             Some(application_data) => break application_data,
-    //             None => continue,
-    //         }
-    //     };
-    //     let app_data = app_data_bytes(application_data);
-    //     self.state.cstate = Some(cstate);
-    //     Ok(app_data.into_native())
-    // }
 }
 
 #[cfg(test)]
