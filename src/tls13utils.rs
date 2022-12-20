@@ -295,6 +295,7 @@ pub fn app_data_bytes(a: AppData) -> Bytes {
     a.0
 }
 
+#[derive(Debug, Clone)]
 pub struct ServerDB(
     pub Bytes,
     pub Bytes,

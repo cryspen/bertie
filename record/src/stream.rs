@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use bertie::{INSUFFICIENT_DATA, PAYLOAD_TOO_LONG};
+use bertie::INSUFFICIENT_DATA;
 use hacspec_lib::ByteSeq;
 use tracing::{debug, error, trace};
 
