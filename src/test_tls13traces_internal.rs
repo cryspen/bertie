@@ -8,6 +8,7 @@ mod internal_tests {
     #[cfg(not(feature = "evercrypt"))]
     use hacspec_cryptolib::*;
 
+    use crate::*;
     use crate::tls13formats::*;
     use crate::tls13utils::*;
     //use crate::tls13record::*;

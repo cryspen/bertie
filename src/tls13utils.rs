@@ -21,23 +21,6 @@ pub fn bytes<T: SeqTrait<U8>>(x: &T) -> ByteSeq {
     Seq::from_seq(x)
 }
 
-bytes!(Random, 32);
-
-bytes!(Bytes1, 1);
-bytes!(Bytes2, 2);
-bytes!(Bytes3, 3);
-bytes!(Bytes4, 4);
-bytes!(Bytes5, 5);
-bytes!(Bytes6, 6);
-bytes!(Bytes7, 7);
-bytes!(Bytes8, 8);
-bytes!(Bytes9, 9);
-bytes!(Bytes10, 10);
-bytes!(Bytes11, 11);
-bytes!(Bytes12, 12);
-bytes!(Bytes32, 32);
-bytes!(Bytes98, 98);
-
 pub fn bytes1(x: u8) -> ByteSeq {
     bytes(&Bytes1([U8(x)]))
 }
@@ -96,41 +79,40 @@ pub fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     }
 }
 
+// TODO: This function should short-circuit once hax supports returns within loops
 pub fn eq(b1: &ByteSeq, b2: &ByteSeq) -> bool {
     if b1.len() != b2.len() {
         false
     } else {
+        let mut b:bool = true; 
         for i in 0..b1.len() {
             if !eq1(b1[i], b2[i]) {
-                return false;
+                b=false;
             };
         }
-        true
+        return b
     }
 }
 
 pub fn check_eq(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
-    if b1.len() != b2.len() {
-        Err(parse_failed())
-    } else {
-        for i in 0..b1.len() {
-            check_eq1(b1[i], b2[i])?;
-        }
-        Ok(())
-    }
+    let b = eq(b1,b2);
+    if b {Ok(())}
+    else {Err(parse_failed())}
 }
 
+// TODO: This function should short-circuit once hax supports returns within loops
 pub fn check_mem(b1: &ByteSeq, b2: &ByteSeq) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {
+        let mut b = Err(parse_failed());
         for i in 0..(b2.len() / b1.len()) {
             let snip = b2.slice_range(i * b1.len()..(i + 1) * b1.len());
             if eq(b1, &snip) {
-                return Ok(());
+                b = Ok(());
             }
         }
-        Err(parse_failed())
+        return b
     }
 }
 
