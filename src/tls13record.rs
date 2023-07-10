@@ -1,14 +1,8 @@
 // TLS 1.3 Record Layer Computations
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
 
 use crate::tls13formats::*;
 use crate::tls13utils::*;
-
-// Import hacspec and all needed definitions.
-use hacspec_lib::*;
+use crate::tls13crypto::*;
 
 /* CipherStates Exported by the TLS 1.3 Handshake */
 pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, Key);
@@ -54,9 +48,9 @@ pub fn duplex_cipher_state1(
     DuplexCipherState1(ae, kiv1, c1, kiv2, c2, k)
 }
 
-pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIv, n: u64) -> AeadIv {
-    let counter = bytes(&U64_to_be_bytes(U64(n)));
-    let mut iv_ctr = AeadIv::new(iv.len());
+pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIV, n: u64) -> AeadIV {
+    let counter = n.to_be_bytes().classify();
+    let mut iv_ctr = AeadIV::zeroes(iv.len());
     for i in 0..iv.len() - 8 {
         iv_ctr[i] = iv[i];
     }
@@ -81,8 +75,8 @@ pub fn encrypt_record_payload(
         .concat(&zeros(pad));
     let clen = inner_plaintext.len() + 16;
     if clen <= 65536 {
-        let clenb = u16_to_be_bytes(clen as u16);
-        let ad = bytes5(23, 3, 3, clenb[0], clenb[1]);
+        let clenb = (clen as u16).to_be_bytes();
+        let ad = [23, 3, 3, clenb[0], clenb[1]].classify();
         let cip = aead_encrypt(ae, k, &iv_ctr, &inner_plaintext, &ad)?;
         let rec = ad.concat(&cip);
         Ok(rec)
@@ -108,8 +102,8 @@ pub fn decrypt_record_payload(
     let iv_ctr = derive_iv_ctr(ae, iv, n);
     let clen = ciphertext.len() - 5;
     if clen <= 65536 && clen > 16 {
-        let clenb = u16_to_be_bytes(clen as u16);
-        let ad = bytes5(23, 3, 3, clenb[0], clenb[1]);
+        let clenb = (clen as u16).to_be_bytes();
+        let ad = [23, 3, 3, clenb[0], clenb[1]].classify();
         check_eq(&ad, &ciphertext.slice_range(0..5))?;
         let cip = ciphertext.slice_range(5..ciphertext.len());
         let plain = aead_decrypt(ae, k, &iv_ctr, &cip, &ad)?;

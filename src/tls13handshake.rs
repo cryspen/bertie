@@ -1,9 +1,3 @@
-// Import hacspec and all needed definitions.
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
-use hacspec_lib::*;
 
 use crate::tls13formats::*;
 use crate::tls13record::*;
@@ -26,8 +20,8 @@ pub fn hkdf_expand_label(
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let lenb = bytes(&U16_to_be_bytes(U16(len as u16)));
-        let tls13_label = LABEL_TLS13.concat(label);
+        let lenb = U16_to_be_bytes(U16(len as u16));
+        let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
         let info = lenb
             .concat(&lbytes1(&tls13_label)?)
             .concat(&lbytes1(context)?);
@@ -41,7 +35,7 @@ pub fn derive_secret(
     label: &Bytes,
     tx: &Digest,
 ) -> Result<Key, TLSError> {
-    hkdf_expand_label(ha, k, label, &bytes(tx), hash_len(ha))
+    hkdf_expand_label(ha, k, label, tx, hash_len(ha))
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
@@ -62,8 +56,8 @@ pub fn derive_aead_key_iv(
     let sender_write_key = hkdf_expand_label(ha, k, &bytes(&LABEL_KEY), &empty(), ae_key_len(ae))?;
     let sender_write_iv = hkdf_expand_label(ha, k, &bytes(&LABEL_IV), &empty(), ae_iv_len(ae))?;
     Ok((
-        AeadKey::from_seq(&sender_write_key),
-        AeadIv::from_seq(&sender_write_iv),
+        sender_write_key,
+        sender_write_iv,
     ))
 }
 
@@ -94,7 +88,7 @@ pub fn derive_hk_ms(
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
     let psk = if let Some(k) = psko {
-        Key::from_seq(k)
+        k.clone()
     } else {
         zero_key(ha)
     };
@@ -220,12 +214,12 @@ fn get_client_hello(
     ),
     TLSError,
 > {
-    let gx_len = dh_priv_len(&kem_alg(&algs0));
+    let gx_len = kem_priv_len(&kem_alg(&algs0));
     if ent.len() < 32 + gx_len {
         Err(INSUFFICIENT_ENTROPY)
     } else {
         let tx = transcript_empty(hash_alg(&algs0));
-        let cr = Random::from_seq(&ent.slice_range(0..32));
+        let cr = ent.slice_range(0..32);
         let (x, gx) = kem_keygen(&kem_alg(&algs0), ent.slice_range(32..32 + gx_len))?;
         let (ch, trunc_len) = client_hello(&algs0, &cr, &gx, sn, &tkt)?;
         let (nch, cipher0, tx_ch) = compute_psk_binder_zero_rtt(algs0, ch, trunc_len, &psk, tx)?;
@@ -277,7 +271,7 @@ fn put_server_hello(
     let Algorithms(ha, ae, _sa, ks, _psk_mode, _zero_rtt) = algs0;
     let (sr, gy) = parse_server_hello(&algs0, sh)?;
     let tx = transcript_add1(tx, sh);
-    let gxy = kem_decap(&ks, &gy, x)?;
+    let gxy = kem_decap(&ks, &gy, &x)?;
     let th = get_transcript_hash(&tx)?;
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &psk, &th)?;
     Ok((
@@ -303,8 +297,8 @@ fn put_server_signature(
         println!("Server signature scheme: {:?}", spki.0);
         let pk = cert_public_key(&cert, &spki)?;
         let sig = parse_certificate_verify(&algs, scv)?;
-        let sigval = PREFIX_SERVER_SIGNATURE.concat(&th_sc);
-        verify(&sig_alg(&algs), &pk, &bytes(&sigval), &sig)?;
+        let sigval = (Bytes::from_slice(&PREFIX_SERVER_SIGNATURE)).concat(&th_sc);
+        verify(&sig_alg(&algs), &pk, &sigval, &sig)?;
         let tx = transcript_add1(tx, scv);
         Ok(ClientPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx))
     } else {
@@ -458,11 +452,11 @@ fn get_server_hello(
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
     let ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psk, tx) = st;
     let Algorithms(ha, ae, _sa, ks, _psk_mode, _zero_rtt) = algs;
-    if ent.len() < 32 + dh_priv_len(&ks) {
+    if ent.len() < 32 + kem_priv_len(&ks) {
         Err(INSUFFICIENT_ENTROPY)
     } else {
-        let sr = Random::from_seq(&ent.slice_range(0..32));
-        let (gxy, gy) = kem_encap(&ks, &gx, ent.slice_range(32..32 + dh_priv_len(&ks)))?;
+        let sr = ent.slice_range(0..32);
+        let (gxy, gy) = kem_encap(&ks, &gx, ent.slice_range(32..32 + kem_priv_len(&ks)))?;
         let sh = server_hello(&algs, &sr, &sid, &gy)?;
         let tx = transcript_add1(tx, &sh);
         let th = get_transcript_hash(&tx)?;
@@ -494,7 +488,7 @@ fn get_server_signature(
         let sc = server_certificate(&algs, &cert)?;
         let tx = transcript_add1(tx, &sc);
         let th = get_transcript_hash(&tx)?;
-        let sigval = PREFIX_SERVER_SIGNATURE.concat(&th);
+        let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&th);
         let sig = sign(&sig_alg(&algs), &sigk, &sigval, ent)?;
         let scv = certificate_verify(&algs, &sig)?;
         let tx = transcript_add1(tx, &scv);
@@ -581,7 +575,7 @@ pub fn server_init(
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
     //println!("put_client_hello");
     let (sh, cipher_hs, st) =
-        get_server_hello(st, ent.slice(0, 32 + dh_priv_len(&kem_alg(&algs))))?;
+        get_server_hello(st, ent.slice(0, 32 + kem_priv_len(&kem_alg(&algs))))?;
     //println!("get_server_hello");
     match psk_mode(&algs) {
         false => {

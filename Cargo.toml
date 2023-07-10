@@ -16,21 +16,13 @@ path = "src/lib.rs"
 backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
-hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
+libcrux = { git = "https://github.com/cryspen/libcrux", package = "libcrux", optional = true, features = ["rand"] }
 hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
-evercrypt_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "evercrypt_cryptolib" }
-
-# [patch."https://github.com/cryspen/utils"]
-# hacspec_cryptolib = { path = "../cryspen-util/hacspec_cryptolib" }
-# evercrypt_cryptolib = { path = "../cryspen-util/evercrypt_cryptolib" }
-
-# [patch."https://github.com/cryspen/hacl-packages"]
-# evercrypt = { path = "../hacl-packages/rust", package = "hacl-rust" }
+hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
 
 [features]
-default = ["hacspec"]
+default = ["libcrux"]
 hacspec = ["hacspec_cryptolib"]
-evercrypt = ["evercrypt_cryptolib"]
 
 [dev-dependencies]
 dhat = "0.3.0"
