@@ -1,10 +1,7 @@
 use std::{env, net::TcpStream, str::FromStr};
 
 use anyhow::Context;
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
+use bertie::{tls13utils::*};
 use record::AppError;
 use simple_https_client::{ciphersuites, tls13client};
 use tracing::{error, trace};

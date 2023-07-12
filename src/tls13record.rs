@@ -49,7 +49,7 @@ pub fn duplex_cipher_state1(
 }
 
 pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIV, n: u64) -> AeadIV {
-    let counter = n.to_be_bytes().classify();
+    let counter : Bytes = n.to_be_bytes().into();
     let mut iv_ctr = AeadIV::zeroes(iv.len());
     for i in 0..iv.len() - 8 {
         iv_ctr[i] = iv[i];
@@ -72,11 +72,11 @@ pub fn encrypt_record_payload(
     let iv_ctr = derive_iv_ctr(ae, iv, n);
     let inner_plaintext = payload
         .concat(&bytes1(content_type(ct)))
-        .concat(&zeros(pad));
+        .concat(&Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
     if clen <= 65536 {
         let clenb = (clen as u16).to_be_bytes();
-        let ad = [23, 3, 3, clenb[0], clenb[1]].classify();
+        let ad = [23, 3, 3, clenb[0], clenb[1]].into();
         let cip = aead_encrypt(ae, k, &iv_ctr, &inner_plaintext, &ad)?;
         let rec = ad.concat(&cip);
         Ok(rec)
@@ -103,7 +103,7 @@ pub fn decrypt_record_payload(
     let clen = ciphertext.len() - 5;
     if clen <= 65536 && clen > 16 {
         let clenb = (clen as u16).to_be_bytes();
-        let ad = [23, 3, 3, clenb[0], clenb[1]].classify();
+        let ad = [23, 3, 3, clenb[0], clenb[1]].into();
         check_eq(&ad, &ciphertext.slice_range(0..5))?;
         let cip = ciphertext.slice_range(5..ciphertext.len());
         let plain = aead_decrypt(ae, k, &iv_ctr, &cip, &ad)?;

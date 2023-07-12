@@ -7,14 +7,10 @@
 #![allow(non_upper_case_globals)]
 
 use std::io::{Read, Write};
-
+use std::fmt::{Debug};
 use anyhow::Result;
-use bertie::{tls13api::*, tls13utils::*};
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
-use hacspec_lib::*;
+use bertie::{tls13api::*, tls13utils::*, tls13crypto::*};
+
 use rand::*;
 use record::{AppError, RecordStream};
 use tracing::info;
@@ -24,7 +20,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -33,7 +29,7 @@ const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorith
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -42,7 +38,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -51,7 +47,7 @@ const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -60,7 +56,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -69,7 +65,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -78,7 +74,7 @@ const SHA256_Aes128Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -87,7 +83,7 @@ const SHA256_Aes128Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -96,7 +92,7 @@ const SHA384_Aes256Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -105,7 +101,7 @@ const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -114,7 +110,7 @@ const SHA384_Aes256Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -123,7 +119,7 @@ const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -166,11 +162,11 @@ where
 
     // Initialize TLS 1.3 client.
     let (client_hello, cstate) = {
-        let sni = ByteSeq::from_public_slice(host.as_bytes());
+        let sni = Bytes::from(host.as_bytes());
         let ent = {
             let mut entropy = [0u8; 64];
             thread_rng().fill(&mut entropy);
-            Entropy::from_public_slice(&entropy)
+            Entropy::from(&entropy)
         };
 
         client_connect(algorithms, &sni, None, None, ent)?
@@ -181,7 +177,7 @@ where
     let server_hello = stream.read_record()?;
 
     // TODO: Who should do this check?
-    if eq1(server_hello[0], U8(21)) {
+    if eq1(server_hello[0], 21.into()) {
         // Alert
         eprintln!(
             "Server does not support proposed algorithms. {:?}",
@@ -227,7 +223,7 @@ where
         cstate = new_cstate;
     }
 
-    let change_cipher_spec = ByteSeq::from_hex("140303000101");
+    let change_cipher_spec = Bytes::from_hex("140303000101");
     stream.write_record(change_cipher_spec)?;
 
     // Safety: Safe to unwrap().
@@ -239,7 +235,7 @@ where
     /* Send HTTP GET  */
 
     let (ap, cstate) = {
-        let http_get = ByteSeq::from_public_slice(request.as_bytes());
+        let http_get = Bytes::from(request.as_bytes());
 
         client_write(app_data(http_get), cstate)?
     };
@@ -299,7 +295,7 @@ where
     Ok((stream, cstate, response_prefix))
 }
 
-pub(crate) fn verify_ccs_message(rec: ByteSeq) -> Result<(), AppError> {
+pub(crate) fn verify_ccs_message(rec: Bytes) -> Result<(), AppError> {
     let rec = rec.declassify();
 
     if rec.len() == 6

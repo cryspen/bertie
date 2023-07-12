@@ -6,43 +6,43 @@ use crate::*;
 
 /// Well Known Constants
 
-pub const LABEL_IV: [U8; 2] = secret_bytes![105,118]; 
-pub const LABEL_KEY: [U8; 3] = secret_bytes![107, 101, 121];
-pub const LABEL_TLS13: [U8; 6] = secret_bytes![116, 108, 115, 049, 051, 032];
-pub const LABEL_DERIVED: [U8; 7] = secret_bytes![100, 101, 114, 105, 118, 101, 100];
-pub const LABEL_FINISHED: [U8; 8] = secret_bytes![102, 105, 110, 105, 115, 104, 101, 100];
-pub const LABEL_RES_BINDER: [U8; 10] = secret_bytes![
+pub const LABEL_IV: [u8; 2] = [105,118]; 
+pub const LABEL_KEY: [u8; 3] = [107, 101, 121];
+pub const LABEL_TLS13: [u8; 6] = [116, 108, 115, 049, 051, 032];
+pub const LABEL_DERIVED: [u8; 7] = [100, 101, 114, 105, 118, 101, 100];
+pub const LABEL_FINISHED: [u8; 8] = [102, 105, 110, 105, 115, 104, 101, 100];
+pub const LABEL_RES_BINDER: [u8; 10] = [
     114, 101, 115, 032, 098, 105, 110, 100, 101, 114
 ];
-pub const LABEL_EXT_BINDER: [U8; 10] = secret_bytes![
+pub const LABEL_EXT_BINDER: [u8; 10] = [
     101, 120, 116, 032, 098, 105, 110, 100, 101, 114
 ];
-pub const LABEL_EXP_MASTER: [U8; 10] = secret_bytes![
+pub const LABEL_EXP_MASTER: [u8; 10] = [
     101, 120, 112, 032, 109, 097, 115, 116, 101, 114
 ];
-pub const LABEL_RES_MASTER: [U8; 10] = secret_bytes![
+pub const LABEL_RES_MASTER: [u8; 10] = [
     114, 101, 115, 032, 109, 097, 115, 116, 101, 114
 ];
-pub const LABEL_C_E_TRAFFIC: [U8; 11] = secret_bytes![
+pub const LABEL_C_E_TRAFFIC: [u8; 11] = [
     099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099
 ];
-pub const LABEL_E_EXP_MASTER: [U8; 12] = secret_bytes![
+pub const LABEL_E_EXP_MASTER: [u8; 12] = [
     101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114
 ];
-pub const LABEL_C_HS_TRAFFIC: [U8; 12] = secret_bytes![
+pub const LABEL_C_HS_TRAFFIC: [u8; 12] = [
     099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
 ];
-pub const LABEL_S_HS_TRAFFIC: [U8; 12] = secret_bytes![
+pub const LABEL_S_HS_TRAFFIC: [u8; 12] = [
     115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
 ];
-pub const LABEL_C_AP_TRAFFIC: [U8; 12] = secret_bytes![
+pub const LABEL_C_AP_TRAFFIC: [u8; 12] = [
     099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
 ];
-pub const LABEL_S_AP_TRAFFIC: [U8; 12] = secret_bytes![
+pub const LABEL_S_AP_TRAFFIC: [u8; 12] = [
     115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
 ];
 
-pub const PREFIX_SERVER_SIGNATURE: [U8; 98] = secret_bytes![
+pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
@@ -53,7 +53,7 @@ pub const PREFIX_SERVER_SIGNATURE: [U8; 98] = secret_bytes![
 ];
 
 /*
-const SHA256_EMPTY: [U8; 3]2 = [U8; 3]2(secret_bytes!([
+const SHA256_EMPTY: [u8; 3]2 = [u8; 3]2(([
     0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
     0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
 ]));
@@ -185,7 +185,7 @@ pub fn check_server_key_share(algs: &Algorithms, b: &Bytes) -> Result<Bytes, TLS
 }
 
 pub fn pre_shared_key(algs: &Algorithms, tkt: &Bytes) -> Result<(Bytes, usize), TLSError> {
-    let identities = lbytes2(&lbytes2(tkt)?.concat(&U32_to_be_bytes(U32(0xffffffff))))?;
+    let identities = lbytes2(&lbytes2(tkt)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
     let binders = lbytes2(&lbytes1(&zero_key(&hash_alg(algs)))?)?;
     let ext = bytes2(0, 41).concat(&lbytes2(&identities.concat(&binders))?);
     Ok((ext, binders.len()))
@@ -246,8 +246,8 @@ fn missing_key_share() -> Result<(usize, EXTS), TLSError> {
 }
 
 fn check_extension(algs: &Algorithms, b: &Bytes) -> Result<(usize, EXTS), TLSError> {
-    let l0 = (b.0[0] as U8).declassify() as usize;
-    let l1 = (b.0[1] as U8).declassify() as usize;
+    let l0 = b[0].declassify() as usize;
+    let l1 = b[1].declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let out = EXTS(None, None, None, None);
     // XXX: not hacspec compatible
@@ -295,8 +295,8 @@ pub fn check_server_extension(
     algs: &Algorithms,
     b: &Bytes,
 ) -> Result<(usize, Option<Bytes>), TLSError> {
-    let l0 = (b.0[0] as U8).declassify() as usize;
-    let l1 = (b.0[1] as U8).declassify() as usize;
+    let l0 = b[0].declassify() as usize;
+    let l1 = b[1].declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let mut out = None;
     match (l0, l1) {
@@ -630,7 +630,7 @@ pub fn find_handshake_message(ty: HandshakeType, payload: &HandshakeData, start:
         match check_lbytes3(&p.slice_range(start + 1..p.len())) {
             Err(_) => false,
             Ok(len) => {
-                if eq1(p[start], U8(hs_type(ty))) {
+                if eq1(p[start], U8::from(hs_type(ty))) {
                     true
                 } else {
                     find_handshake_message(ty, payload, start + 4 + len)
@@ -758,7 +758,7 @@ pub fn parse_client_hello(
         (true, EXTS(None, Some(gx), Some(tkt), Some(binder))) => Ok((
             crand,
             sid,
-            empty(),
+            Bytes::new(),
             gx,
             Some(tkt),
             Some(binder),
@@ -768,7 +768,7 @@ pub fn parse_client_hello(
             Ok((crand, sid, sn, gx, None, None, 0))
         }
         (false, EXTS(None, Some(gx), None, None)) => {
-            Ok((crand, sid, empty(), gx, None, None, 0))
+            Ok((crand, sid, Bytes::new(), gx, None, None, 0))
         }
         _ => Err(parse_failed()),
     }
@@ -843,7 +843,7 @@ pub fn parse_server_hello(
 
 pub fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let ty = bytes1(hs_type(HandshakeType::EncryptedExtensions));
-    Ok(HandshakeData(ty.concat(&lbytes3(&lbytes2(&empty())?)?)))
+    Ok(HandshakeData(ty.concat(&lbytes3(&lbytes2(&Bytes::new())?)?)))
 }
 
 pub fn parse_encrypted_extensions(_algs: &Algorithms, ee: &HandshakeData) -> Result<(), TLSError> {
@@ -854,9 +854,9 @@ pub fn parse_encrypted_extensions(_algs: &Algorithms, ee: &HandshakeData) -> Res
 }
 
 pub fn server_certificate(_algs: &Algorithms, cert: &Bytes) -> Result<HandshakeData, TLSError> {
-    let creq = lbytes1(&empty())?;
+    let creq = lbytes1(&Bytes::new())?;
     let crt = lbytes3(cert)?;
-    let ext = lbytes2(&empty())?;
+    let ext = lbytes2(&Bytes::new())?;
     let crts = lbytes3(&crt.concat(&ext))?;
     handshake_message(HandshakeType::Certificate, &creq.concat(&crts))
 }
@@ -963,11 +963,11 @@ pub fn parse_finished(_algs: &Algorithms, fin: &HandshakeData) -> Result<Bytes, 
 }
 
 pub fn session_ticket(_algs: &Algorithms, tkt: &Bytes) -> Result<HandshakeData, TLSError> {
-    let lifetime = U32_to_be_bytes(U32(172800));
-    let age = U32_to_be_bytes(U32(9999));
+    let lifetime = U32::from(172800).to_be_bytes();
+    let age = U32::from(9999).to_be_bytes();
     let nonce = lbytes1(&bytes1(1))?;
     let stkt = lbytes2(tkt)?;
-    let grease_ext = bytes2(0x5a, 0x5a).concat(&lbytes2(&empty())?);
+    let grease_ext = bytes2(0x5a, 0x5a).concat(&lbytes2(&Bytes::new())?);
     let ext = lbytes2(&grease_ext)?;
     handshake_message(
         HandshakeType::NewSessionTicket,
@@ -984,8 +984,8 @@ pub fn parse_session_ticket(
     tkt: &HandshakeData,
 ) -> Result<(U32, Bytes), TLSError> {
     let HandshakeData(tkt) = get_handshake_message_ty(HandshakeType::NewSessionTicket, tkt)?;
-    let lifetime = U32_from_be_bytes(&tkt.slice_range(0..4))?;
-    let age = U32_from_be_bytes(&tkt.slice_range(4..8))?;
+    let lifetime = U32::from_be_bytes(&tkt.slice_range(0..4))?;
+    let age = U32::from_be_bytes(&tkt.slice_range(4..8))?;
     let nonce_len = check_lbytes1(&tkt.slice_range(8..tkt.len()))?;
     let stkt_len = check_lbytes2(&tkt.slice_range(9 + nonce_len..tkt.len()))?;
     let stkt = tkt.slice_range(11 + nonce_len..11 + nonce_len + stkt_len);
@@ -1083,7 +1083,7 @@ For simplicity, we store the full transcript, but an internal Digest state would
 pub struct Transcript(HashAlgorithm, HandshakeData);
 
 pub fn transcript_empty(ha: HashAlgorithm) -> Transcript {
-    Transcript(ha, HandshakeData(empty()))
+    Transcript(ha, HandshakeData(Bytes::new()))
 }
 
 pub fn transcript_add1(tx: Transcript, msg: &HandshakeData) -> Transcript {

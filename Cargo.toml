@@ -21,8 +21,9 @@ hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true,
 hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
 
 [features]
-default = ["libcrux"]
+default = ["libcrux", "secret_integers"]
 hacspec = ["hacspec_cryptolib"]
+secret_integers = []
 
 [dev-dependencies]
 dhat = "0.3.0"

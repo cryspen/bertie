@@ -7,7 +7,7 @@ use crate::*;
 /* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
 
 pub fn hash_empty(ha: &HashAlgorithm) -> Result<Digest, TLSError> {
-    hash(ha, &empty())
+    hash(ha, &Bytes::new())
 }
 
 pub fn hkdf_expand_label(
@@ -20,7 +20,7 @@ pub fn hkdf_expand_label(
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let lenb = U16_to_be_bytes(U16(len as u16));
+        let lenb = U16::from(len as u16).to_be_bytes();
         let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
         let info = lenb
             .concat(&lbytes1(&tls13_label)?)
@@ -53,8 +53,8 @@ pub fn derive_aead_key_iv(
     ae: &AeadAlgorithm,
     k: &Key,
 ) -> Result<AeadKeyIV, TLSError> {
-    let sender_write_key = hkdf_expand_label(ha, k, &bytes(&LABEL_KEY), &empty(), ae_key_len(ae))?;
-    let sender_write_iv = hkdf_expand_label(ha, k, &bytes(&LABEL_IV), &empty(), ae_iv_len(ae))?;
+    let sender_write_key = hkdf_expand_label(ha, k, &bytes(&LABEL_KEY), &Bytes::new(), ae_key_len(ae))?;
+    let sender_write_iv = hkdf_expand_label(ha, k, &bytes(&LABEL_IV), &Bytes::new(), ae_iv_len(ae))?;
     Ok((
         sender_write_key,
         sender_write_iv,
@@ -77,7 +77,7 @@ pub fn derive_0rtt_keys(
 }
 
 pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    hkdf_expand_label(ha, k, &bytes(&LABEL_FINISHED), &empty(), hmac_tag_len(ha))
+    hkdf_expand_label(ha, k, &bytes(&LABEL_FINISHED), &Bytes::new(), hmac_tag_len(ha))
 }
 
 pub fn derive_hk_ms(

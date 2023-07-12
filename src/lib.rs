@@ -21,6 +21,7 @@ pub use tls13cert::*;
 pub mod tls13api;
 pub use tls13api::*;
 pub use tls13formats::*;
+pub use std::convert::TryInto;
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {

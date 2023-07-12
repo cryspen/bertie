@@ -3,12 +3,8 @@
 // Import hacspec and all needed definitions.
 use std::io::prelude::*;
 
-use bertie::{tls13api::*, tls13utils::*};
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
-use hacspec_lib::*;
+use bertie::{tls13api::*, tls13utils::*, tls13crypto::*};
+
 use rand::*;
 pub use record::AppError;
 use record::RecordStream;
@@ -18,7 +14,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -28,7 +24,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::Secp256r1,
+    KemScheme::Secp256r1,
     false,
     false,
 );
@@ -37,7 +33,7 @@ const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorith
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -47,7 +43,7 @@ const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -107,12 +103,12 @@ where
     let ch_rec = stream.read_record()?;
 
     let db = {
-        let sni = ByteSeq::from_public_slice(host.as_bytes());
+        let sni = Bytes::from(host.as_bytes());
 
         ServerDB(
             sni,
-            Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
-            SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
+            Bytes::from(&ECDSA_P256_SHA256_CERT),
+            SignatureKey::from(&ECDSA_P256_SHA256_Key),
             None,
         )
     };
@@ -121,7 +117,7 @@ where
         let mut entropy = [0u8; 64];
         thread_rng().fill(&mut entropy);
 
-        Entropy::from_public_slice(&entropy)
+        Entropy::from(&entropy)
     };
 
     match server_accept(default_algs, db, &ch_rec, ent_s) {
@@ -130,11 +126,11 @@ where
             match x {
                 136 => {
                     stream
-                        .write_record(ByteSeq::from_public_slice(&[21, 03, 03, 00, 02, 2, 47]))?;
+                        .write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 47]))?;
                 }
                 137 => {
                     stream
-                        .write_record(ByteSeq::from_public_slice(&[21, 03, 03, 00, 02, 2, 70]))?;
+                        .write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 70]))?;
                 }
                 139 => {
                     // alerts here are optional
@@ -147,13 +143,13 @@ where
         Ok((sh, sf, sstate)) => {
             println!("Negotiation Complete");
             stream.write_record(sh)?;
-            let ccs_rec = ByteSeq::from_hex("140303000101");
+            let ccs_rec = Bytes::from_hex("140303000101");
             stream.write_record(ccs_rec)?;
             stream.write_record(sf)?;
             //println!("Server0.5 Complete");
 
             let ccs = stream.read_record()?;
-            check_ccs_message(ccs.declassify().native_slice())?;
+            check_ccs_message(&ccs.declassify())?;
             //println!("Got CCS message");
             let cf_rec = stream.read_record()?;
             //println!("Got fin record");
@@ -164,7 +160,7 @@ where
             let (_, sstate) = server_read(&app_rec, sstate)?;
             println!("Got HTTP Request");
 
-            let http_get_resp = ByteSeq::from_public_slice(response.as_bytes());
+            let http_get_resp = Bytes::from(response.as_bytes());
             let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
             stream.write_record(ap)?;
             println!("Sent HTTP Response: Hello from localhost");
