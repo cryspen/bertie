@@ -148,7 +148,7 @@ pub enum SignatureScheme {
     ED25519
 }
 
-pub fn to_libcrux_sig_alg(a:SignatureScheme) -> Result<signature::Algorithm,TLSError> {
+pub fn to_libcrux_sig_alg(a:&SignatureScheme) -> Result<signature::Algorithm,TLSError> {
     match a {
         SignatureScheme::RsaPssRsaSha256 => tlserr(UNSUPPORTED_ALGORITHM),
         SignatureScheme::ED25519 => Ok(signature::Algorithm::Ed25519),
@@ -157,12 +157,30 @@ pub fn to_libcrux_sig_alg(a:SignatureScheme) -> Result<signature::Algorithm,TLSE
 }
 
 pub fn sign(alg:&SignatureScheme,sk:&Bytes,input:&Bytes,ent:Bytes) -> Result<Bytes,TLSError> {
-    
-    tlserr(UNSUPPORTED_ALGORITHM) //TODO
+    let sig = signature::sign(to_libcrux_sig_alg(alg)?,&input.declassify(),&sk.declassify(),&mut rand::thread_rng()).map_err(|_| CRYPTO_ERROR)?;
+    match sig {
+        signature::Signature::Ed25519(sig) => Ok(sig.as_bytes().into()),
+        signature::Signature::EcDsaP256(sig) => {let (r,s) = sig.as_bytes(); Ok(Bytes::from(r).concat(&Bytes::from(s)))}
+    }
 }
 
 pub fn verify(alg:&SignatureScheme,pk:&PublicVerificationKey,input:&Bytes,sig:&Bytes) -> Result<(),TLSError> {
-    tlserr(UNSUPPORTED_ALGORITHM) //TODO
+    match (alg,pk) {
+        (SignatureScheme::ED25519,PublicVerificationKey::EcDsa(pk)) => {
+            signature::verify(&input.declassify(),
+                              &signature::Signature::Ed25519(signature::Ed25519Signature::from_bytes(sig.declassify_array()?)),
+                              &pk.declassify()).map_err(|_| CRYPTO_ERROR)
+        },
+        (SignatureScheme::EcdsaSecp256r1Sha256,PublicVerificationKey::EcDsa(pk)) => {
+            signature::verify(&input.declassify(),
+                              &signature::Signature::EcDsaP256(
+                                signature::EcDsaP256Signature::from_bytes(
+                                    sig.declassify_array()?,
+                                    signature::Algorithm::EcDsaP256(signature::DigestAlgorithm::Sha256))),
+                              &pk.declassify()).map_err(|_| CRYPTO_ERROR)
+        },
+        _ => {tlserr(UNSUPPORTED_ALGORITHM)}
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -196,7 +214,8 @@ pub fn kem_keygen(alg:&KemScheme,ent:Bytes) -> Result<(KemSk,KemPk),TLSError> {
 }
 
 pub fn kem_encap(alg:&KemScheme,pk:&Bytes, ent:Bytes) -> Result<(Bytes,Bytes),TLSError> {
-    tlserr(UNSUPPORTED_ALGORITHM) //TODO
+    let (gxy,gy) = kem::encapsulate(to_libcrux_kem_alg(alg)?,&pk.declassify(),&mut rand::thread_rng()).map_err(|_| CRYPTO_ERROR)?;
+    Ok((gxy.into(),gy.into()))
 }
 
 pub fn kem_decap(alg:&KemScheme,ct:&Bytes, sk:&Bytes) -> Result<Bytes,TLSError> {
