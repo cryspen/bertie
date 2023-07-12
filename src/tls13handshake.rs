@@ -294,7 +294,7 @@ fn put_server_signature(
         let tx = transcript_add1(tx, sc);
         let th_sc = get_transcript_hash(&tx)?;
         let spki = verification_key_from_cert(&cert)?;
-        println!("Server signature scheme: {:?}", spki.0);
+        // println!("Server signature scheme: {:?}", spki.0);
         let pk = cert_public_key(&cert, &spki)?;
         let sig = parse_certificate_verify(&algs, scv)?;
         let sigval = (Bytes::from_slice(&PREFIX_SERVER_SIGNATURE)).concat(&th_sc);

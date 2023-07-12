@@ -1,4 +1,6 @@
 
+//use core::num::dec2flt::parse;
+
 use crate::*;
 
 // Local error codes
@@ -26,6 +28,13 @@ pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub fn error_string(c: u8) -> String {
     format!("{}", c)
 }
+
+pub fn tlserr<T>(err:TLSError) -> Result<T,TLSError> {
+    let bt = backtrace::Backtrace::new();
+    println!("{:?}", bt);
+    Err(err)
+}
+
 /*
 pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     if s1 == s2 {Ok(())}
@@ -195,10 +204,10 @@ impl Bytes {
         strs.join("")
     }
     pub fn slice_range(&self,r:core::ops::Range::<usize>) -> Bytes {
-        self[r.start..r.end].into()
+        self.0[r.start..r.end].into()
     }
     pub fn slice(&self,start:usize,len:usize) -> Bytes {
-        self[start..start+len].into()
+        self.0[start..start+len].into()
     }
     pub fn concat(&self,x:&Bytes) -> Bytes {
         let mut res = Vec::new();
@@ -271,13 +280,13 @@ pub fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {
-        let mut b = Err(parse_failed());
+        let mut b = false; 
         for i in 0..(b2.len() / b1.len()) {
             if eq(&b1, &b2.slice_range(i * b1.len()..(i + 1) * b1.len())) {
-                b = Ok(());
+                b = true;
             }
         }
-        return b
+        return if b {Ok(())} else {Err(parse_failed())}
     }
 }
 

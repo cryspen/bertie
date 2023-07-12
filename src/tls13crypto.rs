@@ -64,7 +64,7 @@ pub fn hmac_tag(alg:&HashAlgorithm,mk:&MacKey,input:&Bytes) -> Result<HMAC,TLSEr
 
 pub fn hmac_verify(alg:&HashAlgorithm,mk:&MacKey,input:&Bytes, tag:&Bytes) -> Result<(),TLSError> {
    if eq(&hmac_tag(alg,mk,input)?,tag) {Ok(())}
-   else {Err(CRYPTO_ERROR)}
+   else {tlserr(CRYPTO_ERROR)}
 }
 
 pub fn zero_key(alg:&HashAlgorithm) -> Bytes {
@@ -148,12 +148,21 @@ pub enum SignatureScheme {
     ED25519
 }
 
+pub fn to_libcrux_sig_alg(a:SignatureScheme) -> Result<signature::Algorithm,TLSError> {
+    match a {
+        SignatureScheme::RsaPssRsaSha256 => tlserr(UNSUPPORTED_ALGORITHM),
+        SignatureScheme::ED25519 => Ok(signature::Algorithm::Ed25519),
+        SignatureScheme::EcdsaSecp256r1Sha256 => Ok(signature::Algorithm::EcDsaP256(signature::DigestAlgorithm::Sha256)),
+    }
+}
+
 pub fn sign(alg:&SignatureScheme,sk:&Bytes,input:&Bytes,ent:Bytes) -> Result<Bytes,TLSError> {
-    Err(UNSUPPORTED_ALGORITHM) //TODO
+    
+    tlserr(UNSUPPORTED_ALGORITHM) //TODO
 }
 
 pub fn verify(alg:&SignatureScheme,pk:&PublicVerificationKey,input:&Bytes,sig:&Bytes) -> Result<(),TLSError> {
-    Err(UNSUPPORTED_ALGORITHM) //TODO
+    tlserr(UNSUPPORTED_ALGORITHM) //TODO
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -177,7 +186,7 @@ pub fn to_libcrux_kem_alg(alg:&KemScheme) -> Result<kem::Algorithm,TLSError> {
     match alg {
         KemScheme::X25519 => Ok(kem::Algorithm::X25519),
         KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
-        _ => Err(UNSUPPORTED_ALGORITHM)
+        _ => tlserr(UNSUPPORTED_ALGORITHM)
     }
 }
 pub fn kem_keygen(alg:&KemScheme,ent:Bytes) -> Result<(KemSk,KemPk),TLSError> {
@@ -187,7 +196,7 @@ pub fn kem_keygen(alg:&KemScheme,ent:Bytes) -> Result<(KemSk,KemPk),TLSError> {
 }
 
 pub fn kem_encap(alg:&KemScheme,pk:&Bytes, ent:Bytes) -> Result<(Bytes,Bytes),TLSError> {
-    Err(UNSUPPORTED_ALGORITHM) //TODO
+    tlserr(UNSUPPORTED_ALGORITHM) //TODO
 }
 
 pub fn kem_decap(alg:&KemScheme,ct:&Bytes, sk:&Bytes) -> Result<Bytes,TLSError> {
