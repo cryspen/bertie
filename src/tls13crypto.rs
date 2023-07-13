@@ -85,7 +85,10 @@ pub fn hkdf_extract(alg:&HashAlgorithm,salt:&Bytes,ikm:&Bytes) -> Result<Bytes,T
 }
 
 pub fn hkdf_expand(alg:&HashAlgorithm,prk:&Bytes,info:&Bytes,len:usize) -> Result<Bytes,TLSError> {
-    Ok(hkdf::expand(to_libcrux_hkdf_alg(alg)?, &prk.declassify(), &info.declassify(), len).map_err(|e| CRYPTO_ERROR)?.into())
+    match hkdf::expand(to_libcrux_hkdf_alg(alg)?, &prk.declassify(), &info.declassify(), len) {
+        Ok(x) => Ok(x.into()),
+        Err(_) => tlserr(CRYPTO_ERROR)
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -112,9 +115,9 @@ pub fn ae_key_len(alg:&AeadAlgorithm) -> usize {
 
 pub fn ae_key_wrap(alg:&AeadAlgorithm, k:&AeadKey) -> Result<aead::Key,TLSError> {
     match alg {
-        AeadAlgorithm::Chacha20Poly1305 => {Ok(aead::Key::Chacha20Poly1305(aead::Chacha20Key(k.declassify().try_into().map_err(|_|CRYPTO_ERROR)?)))},
-        AeadAlgorithm::Aes128Gcm => {Ok(aead::Key::Aes128(aead::Aes128Key(k.declassify().try_into().map_err(|_|CRYPTO_ERROR)?)))},
-        AeadAlgorithm::Aes256Gcm => {Ok(aead::Key::Aes256(aead::Aes256Key(k.declassify().try_into().map_err(|_|CRYPTO_ERROR)?)))},
+            AeadAlgorithm::Chacha20Poly1305 => {Ok(aead::Key::Chacha20Poly1305(aead::Chacha20Key(k.declassify_array()?)))},
+            AeadAlgorithm::Aes128Gcm => {Ok(aead::Key::Aes128(aead::Aes128Key(k.declassify_array()?)))},
+            AeadAlgorithm::Aes256Gcm => {Ok(aead::Key::Aes256(aead::Aes256Key(k.declassify_array()?)))},
     }
 }
 
@@ -127,18 +130,33 @@ pub fn ae_iv_len(alg:&AeadAlgorithm) -> usize {
 }
 
 pub fn aead_encrypt(alg:&AeadAlgorithm,k:&AeadKey,iv:&AeadIV,plain:&Bytes,aad:&Bytes) -> Result<Bytes,TLSError> {
-    let (tag,cip) = aead::encrypt_detached(&ae_key_wrap(alg,k)?, plain.declassify(), aead::Iv(iv.declassify().try_into().map_err(|_|CRYPTO_ERROR)?), aad.declassify()).map_err(|_| CRYPTO_ERROR)?;
-    let cipby:Bytes = cip.into();
-    let tagby:Bytes = tag.as_ref().into();
-    Ok(cipby.concat(&tagby))
+    println!("enc key {}\n nonce: {}", k.to_hex(), iv.to_hex());
+    let res = aead::encrypt_detached(&ae_key_wrap(alg,k)?, 
+                        plain.declassify(),
+                        aead::Iv(iv.declassify_array()?), 
+                        aad.declassify());
+    match res {
+        Ok((tag,cip)) => {
+            let cipby:Bytes = cip.into();
+            let tagby:Bytes = tag.as_ref().into();
+            Ok(cipby.concat(&tagby))
+        },
+        Err(_) => tlserr(CRYPTO_ERROR)
+    }
 }
 
 pub fn aead_decrypt(alg:&AeadAlgorithm,k:&AeadKey,iv:&AeadIV,cip:&Bytes,aad:&Bytes) -> Result<Bytes,TLSError> {
+    println!("dec key {}\n nonce: {}", k.to_hex(), iv.to_hex());
     let tag = cip.slice(cip.len()-16,16);
     let cip = cip.slice(0,cip.len() - 16);
-    let tag : [u8;16] = tag.declassify().try_into().map_err(|_| CRYPTO_ERROR)?;
-    let plain = aead::decrypt_detached(&ae_key_wrap(alg,k)?, cip.declassify(), aead::Iv(iv.declassify().try_into().map_err(|_|CRYPTO_ERROR)?), aad.declassify(), &aead::Tag::from(tag)).map_err(|_| CRYPTO_ERROR)?;
-    Ok(plain.into())
+    let tag : [u8;16] = tag.declassify_array()?;
+    let plain = aead::decrypt_detached(&ae_key_wrap(alg,k)?, cip.declassify(), 
+                        aead::Iv(iv.declassify_array()?), aad.declassify(), 
+                        &aead::Tag::from(tag));
+    match plain {
+        Ok(plain) => Ok(plain.into()),
+        Err(_) => tlserr(CRYPTO_ERROR)
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -157,27 +175,39 @@ pub fn to_libcrux_sig_alg(a:&SignatureScheme) -> Result<signature::Algorithm,TLS
 }
 
 pub fn sign(alg:&SignatureScheme,sk:&Bytes,input:&Bytes,ent:Bytes) -> Result<Bytes,TLSError> {
-    let sig = signature::sign(to_libcrux_sig_alg(alg)?,&input.declassify(),&sk.declassify(),&mut rand::thread_rng()).map_err(|_| CRYPTO_ERROR)?;
+    let sig = signature::sign(to_libcrux_sig_alg(alg)?,
+                              &input.declassify(),&sk.declassify(),&mut rand::thread_rng());
     match sig {
-        signature::Signature::Ed25519(sig) => Ok(sig.as_bytes().into()),
-        signature::Signature::EcDsaP256(sig) => {let (r,s) = sig.as_bytes(); Ok(Bytes::from(r).concat(&Bytes::from(s)))}
+        Ok(signature::Signature::Ed25519(sig)) => Ok(sig.as_bytes().into()),
+        Ok(signature::Signature::EcDsaP256(sig)) => {let (r,s) = sig.as_bytes(); Ok(Bytes::from(r).concat(&Bytes::from(s)))},
+        Err(_) => tlserr(CRYPTO_ERROR)
     }
 }
 
 pub fn verify(alg:&SignatureScheme,pk:&PublicVerificationKey,input:&Bytes,sig:&Bytes) -> Result<(),TLSError> {
     match (alg,pk) {
         (SignatureScheme::ED25519,PublicVerificationKey::EcDsa(pk)) => {
+            let res = 
             signature::verify(&input.declassify(),
                               &signature::Signature::Ed25519(signature::Ed25519Signature::from_bytes(sig.declassify_array()?)),
-                              &pk.declassify()).map_err(|_| CRYPTO_ERROR)
+                              &pk.declassify());
+            match res {
+                Ok(res) => Ok(res),
+                Err(_) => tlserr(CRYPTO_ERROR)
+            }
         },
         (SignatureScheme::EcdsaSecp256r1Sha256,PublicVerificationKey::EcDsa(pk)) => {
+            let res =
             signature::verify(&input.declassify(),
                               &signature::Signature::EcDsaP256(
                                 signature::EcDsaP256Signature::from_bytes(
                                     sig.declassify_array()?,
                                     signature::Algorithm::EcDsaP256(signature::DigestAlgorithm::Sha256))),
-                              &pk.declassify()).map_err(|_| CRYPTO_ERROR)
+                              &pk.declassify());
+            match res {
+                Ok(res) => Ok(res),
+                Err(_) => tlserr(CRYPTO_ERROR)
+            }
         },
         _ => {tlserr(UNSUPPORTED_ALGORITHM)}
     }
@@ -208,18 +238,29 @@ pub fn to_libcrux_kem_alg(alg:&KemScheme) -> Result<kem::Algorithm,TLSError> {
     }
 }
 pub fn kem_keygen(alg:&KemScheme,ent:Bytes) -> Result<(KemSk,KemPk),TLSError> {
-    let sk = ent.clone();
-    let pk = kem::secret_to_public(to_libcrux_kem_alg(alg)?,&sk.declassify()).map_err(|_| CRYPTO_ERROR)?.into();
-    Ok((sk,pk))
+    //let sk = ent.clone();
+    //let pk = kem::secret_to_public(to_libcrux_kem_alg(alg)?,&sk.declassify());
+    let res = kem::key_gen(to_libcrux_kem_alg(alg)?, &mut rand::thread_rng());
+    match res {
+        Ok((sk,pk)) => Ok((sk.into(),pk.into())),
+        Err(_) => tlserr(CRYPTO_ERROR)
+    }
 }
 
 pub fn kem_encap(alg:&KemScheme,pk:&Bytes, ent:Bytes) -> Result<(Bytes,Bytes),TLSError> {
-    let (gxy,gy) = kem::encapsulate(to_libcrux_kem_alg(alg)?,&pk.declassify(),&mut rand::thread_rng()).map_err(|_| CRYPTO_ERROR)?;
-    Ok((gxy.into(),gy.into()))
+    let res = kem::encapsulate(to_libcrux_kem_alg(alg)?,&pk.declassify(),&mut rand::thread_rng());
+    match res {
+        Ok((gxy,gy)) => Ok((gxy.into(),gy.into())),
+        Err(_) => tlserr(CRYPTO_ERROR)
+    }
 }
 
 pub fn kem_decap(alg:&KemScheme,ct:&Bytes, sk:&Bytes) -> Result<Bytes,TLSError> {
-    Ok(kem::decapsulate(to_libcrux_kem_alg(alg)?,&ct.declassify(),&sk.declassify()).map_err(|_| CRYPTO_ERROR)?.into())
+    let res = kem::decapsulate(to_libcrux_kem_alg(alg)?,&ct.declassify(),&sk.declassify());
+    match res {
+        Ok(x) => Ok(x.into()),
+        Err(_) => tlserr(CRYPTO_ERROR)
+    }
 }
 
 // Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)

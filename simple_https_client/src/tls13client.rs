@@ -49,7 +49,8 @@ fn main() -> anyhow::Result<()> {
             Err(e) => {
                 // We ignore all errors here for now and keep trying.
                 eprintln!("tls13connet failed with {}", e);
-                continue;
+                break; // TODO FIX
+                //continue;
             }
         };
         break;
