@@ -7,8 +7,6 @@ use hacspec_lib::*;
 
 use crate::*;
 
-pub type Bytes = ByteSeq;
-
 pub fn empty() -> ByteSeq {
     ByteSeq::new(0)
 }
