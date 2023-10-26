@@ -16,13 +16,13 @@ path = "src/lib.rs"
 backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
-libcrux = { git = "https://github.com/cryspen/libcrux", package = "libcrux", optional = true, features = ["rand"] }
-hacspec_cryptolib = { git = "https://github.com/cryspen/utils", optional = true, package = "hacspec_cryptolib" }
+libcrux = { git = "https://github.com/cryspen/libcrux", package = "libcrux", features = [
+    "rand",
+] }
 hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
 
 [features]
-default = ["libcrux", "secret_integers"]
-hacspec = ["hacspec_cryptolib"]
+default = ["secret_integers"]
 secret_integers = []
 
 [dev-dependencies]
@@ -51,3 +51,6 @@ default-members = [
     "bogo_shim",
     "integration_tests",
 ]
+
+# [patch.'https://github.com/cryspen/libcrux']
+# libcrux = { path = "../libcrux" }

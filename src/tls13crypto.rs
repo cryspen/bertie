@@ -1,8 +1,8 @@
 use crate::*;
-#[cfg(not(feature = "libcrux"))]
-use hacspec_cryptolib::*;
-#[cfg(feature = "libcrux")]
-use libcrux::*;
+use libcrux::{
+    kem::{Ct, PrivateKey, PublicKey},
+    *,
+};
 
 pub type Random = Bytes; //was [U8;32]
 pub type Entropy = Bytes;
@@ -241,6 +241,7 @@ pub fn sign(
             let (r, s) = sig.as_bytes();
             Ok(Bytes::from(r).concat(&Bytes::from(s)))
         }
+        Ok(signature::Signature::RsaPss(sig)) => Ok(sig.as_bytes().into()),
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }
@@ -312,27 +313,27 @@ pub fn kem_keygen(alg: &KemScheme, ent: Bytes) -> Result<(KemSk, KemPk), TLSErro
     //let pk = kem::secret_to_public(to_libcrux_kem_alg(alg)?,&sk.declassify());
     let res = kem::key_gen(to_libcrux_kem_alg(alg)?, &mut rand::thread_rng());
     match res {
-        Ok((sk, pk)) => Ok((sk.into(), pk.into())),
+        Ok((sk, pk)) => Ok((Bytes::from(sk.encode()), Bytes::from(pk.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }
 
 pub fn kem_encap(alg: &KemScheme, pk: &Bytes, ent: Bytes) -> Result<(Bytes, Bytes), TLSError> {
-    let res = kem::encapsulate(
-        to_libcrux_kem_alg(alg)?,
-        &pk.declassify(),
-        &mut rand::thread_rng(),
-    );
+    let pk = PublicKey::decode(to_libcrux_kem_alg(alg)?, &pk.declassify()).unwrap();
+    let res = kem::encapsulate(&pk, &mut rand::thread_rng());
     match res {
-        Ok((gxy, gy)) => Ok((gxy.into(), gy.into())),
+        Ok((gxy, gy)) => Ok((Bytes::from(gxy.encode()), Bytes::from(gy.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }
 
 pub fn kem_decap(alg: &KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
-    let res = kem::decapsulate(to_libcrux_kem_alg(alg)?, &ct.declassify(), &sk.declassify());
+    let alg = to_libcrux_kem_alg(alg)?;
+    let sk = PrivateKey::decode(alg, &sk.declassify()).unwrap();
+    let ct = Ct::decode(alg, &ct.declassify()).unwrap();
+    let res = kem::decapsulate(&ct, &sk);
     match res {
-        Ok(x) => Ok(x.into()),
+        Ok(x) => Ok(x.encode().into()),
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }

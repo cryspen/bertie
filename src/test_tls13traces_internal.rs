@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod internal_tests {
 
-    //use hacspec_lib::*;
-
-    #[cfg(not(feature = "libcrux"))]
-    use hacspec_cryptolib::*;
-    #[cfg(feature = "libcrux")]
     use libcrux::*;
 
     use crate::tls13formats::*;
