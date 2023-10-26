@@ -3,7 +3,7 @@
 // Import hacspec and all needed definitions.
 use std::io::prelude::*;
 
-use bertie::{tls13api::*, tls13utils::*, tls13crypto::*};
+use bertie::{tls13api::*, tls13crypto::*, tls13utils::*};
 
 use rand::*;
 pub use record::AppError;
@@ -125,12 +125,10 @@ where
             println!("ServerInit Error {}", x);
             match x {
                 136 => {
-                    stream
-                        .write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 47]))?;
+                    stream.write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 47]))?;
                 }
                 137 => {
-                    stream
-                        .write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 70]))?;
+                    stream.write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 70]))?;
                 }
                 139 => {
                     // alerts here are optional

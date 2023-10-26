@@ -6,9 +6,8 @@
 
 use std::io::{Cursor, Read, Write};
 
-use bertie::*; 
+use bertie::*;
 use simple_https_client::tls13client;
-
 
 struct Stream<'a> {
     cursor: Cursor<&'a [u8]>,

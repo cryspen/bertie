@@ -1,4 +1,3 @@
-
 use crate::tls13formats::*;
 use crate::tls13record::*;
 use crate::tls13utils::*;
@@ -53,12 +52,11 @@ pub fn derive_aead_key_iv(
     ae: &AeadAlgorithm,
     k: &Key,
 ) -> Result<AeadKeyIV, TLSError> {
-    let sender_write_key = hkdf_expand_label(ha, k, &bytes(&LABEL_KEY), &Bytes::new(), ae_key_len(ae))?;
-    let sender_write_iv = hkdf_expand_label(ha, k, &bytes(&LABEL_IV), &Bytes::new(), ae_iv_len(ae))?;
-    Ok((
-        sender_write_key,
-        sender_write_iv,
-    ))
+    let sender_write_key =
+        hkdf_expand_label(ha, k, &bytes(&LABEL_KEY), &Bytes::new(), ae_key_len(ae))?;
+    let sender_write_iv =
+        hkdf_expand_label(ha, k, &bytes(&LABEL_IV), &Bytes::new(), ae_iv_len(ae))?;
+    Ok((sender_write_key, sender_write_iv))
 }
 
 pub fn derive_0rtt_keys(
@@ -77,7 +75,13 @@ pub fn derive_0rtt_keys(
 }
 
 pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    hkdf_expand_label(ha, k, &bytes(&LABEL_FINISHED), &Bytes::new(), hmac_tag_len(ha))
+    hkdf_expand_label(
+        ha,
+        k,
+        &bytes(&LABEL_FINISHED),
+        &Bytes::new(),
+        hmac_tag_len(ha),
+    )
 }
 
 pub fn derive_hk_ms(

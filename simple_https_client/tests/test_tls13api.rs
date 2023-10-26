@@ -153,18 +153,15 @@ fn test_full_round_trip() {
                                         println!("Server Complete");
 
                                         // Send data from client to server.
-                                        let data = Bytes::from(
-                                            b"Hello server, here is the client",
-                                        );
+                                        let data = Bytes::from(b"Hello server, here is the client");
                                         let (ap, cstate) =
                                             client_write(app_data(data.clone()), cstate).unwrap();
                                         let (apo, sstate) = server_read(&ap, sstate).unwrap();
                                         assert!(eq(&data, &app_data_bytes(apo.unwrap())));
 
                                         // Send data from server to client.
-                                        let data = Bytes::from(
-                                            b"Hello client, here is the server.",
-                                        );
+                                        let data =
+                                            Bytes::from(b"Hello client, here is the server.");
                                         let (ap, _sstate) =
                                             server_write(app_data(data.clone()), sstate).unwrap();
                                         let (apo, _cstate) = client_read(&ap, cstate).unwrap();

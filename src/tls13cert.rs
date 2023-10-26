@@ -42,7 +42,7 @@ type PkResult = Result<PublicVerificationKey, Asn1Error>;
 pub type VerificationKeyResult = Result<VerificationKey, Asn1Error>;
 pub type RsaVerificationKeyResult = Result<RsaVerificationKey, Asn1Error>;
 
-pub fn asn1err<T>(err:Asn1Error) -> Result<T,Asn1Error> {
+pub fn asn1err<T>(err: Asn1Error) -> Result<T, Asn1Error> {
     let bt = backtrace::Backtrace::new();
     println!("{:?}", bt);
     Err(err)
@@ -56,12 +56,8 @@ fn long_length(b: &Bytes, offset: usize, len: usize) -> UsizeResult {
         asn1err(ASN1_SEQUENCE_TOO_LONG)
     } else {
         let mut u32word: Bytes = Bytes::zeroes(4);
-        u32word[0..len].copy_from_slice(&b[offset..offset+len]);
-        UsizeResult::Ok(
-            U32::from_be_bytes(&u32word)?.declassify()
-                as usize
-                >> ((4 - len) * 8),
-        )
+        u32word[0..len].copy_from_slice(&b[offset..offset + len]);
+        UsizeResult::Ok(U32::from_be_bytes(&u32word)?.declassify() as usize >> ((4 - len) * 8))
     }
 }
 
@@ -219,8 +215,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> SpkiResult {
             // In this case we also need to read the curve OID.
             let ec_oid = ecdsa_secp256r1_sha256_oid();
             for i in 0..ec_oid.len() {
-                let oid_byte_equal =
-                    cert[oid_offset + i].declassify() == ec_oid[i].declassify();
+                let oid_byte_equal = cert[oid_offset + i].declassify() == ec_oid[i].declassify();
                 ecdsa_p256 = ecdsa_p256 && oid_byte_equal;
             }
             check_success(ecdsa_p256)?;
@@ -348,10 +343,13 @@ mod unit_test {
         let spki = verification_key_from_cert(&cert);
         match spki {
             Ok(spki) => {
-                        let pk = cert_public_key(cert, &spki).expect("Error reading public key from cert");
-                        println!("Got pk {:?}", pk);
-            },
-            Err(e) => {println!("verif key extraction error {}",e); None.unwrap()}
+                let pk = cert_public_key(cert, &spki).expect("Error reading public key from cert");
+                println!("Got pk {:?}", pk);
+            }
+            Err(e) => {
+                println!("verif key extraction error {}", e);
+                None.unwrap()
+            }
         }
     }
 

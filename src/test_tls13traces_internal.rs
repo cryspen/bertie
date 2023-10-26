@@ -3,14 +3,14 @@ mod internal_tests {
 
     //use hacspec_lib::*;
 
-    #[cfg(feature = "libcrux")]
-    use libcrux::*;
     #[cfg(not(feature = "libcrux"))]
     use hacspec_cryptolib::*;
+    #[cfg(feature = "libcrux")]
+    use libcrux::*;
 
-    use crate::*;
     use crate::tls13formats::*;
     use crate::tls13utils::*;
+    use crate::*;
     //use crate::tls13record::*;
     use crate::tls13handshake::*;
 
@@ -565,36 +565,36 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     }
 
     /* #[test]
-    fn test_ecdh() {
-        let x = Bytes::from_hex(client_x25519_priv);
-        let gx = Bytes::from_hex(client_x25519_pub);
-        let y = Bytes::from_hex(server_x25519_priv);
-        let gy = Bytes::from_hex(server_x25519_pub);
-        let gxy = Bytes::from_hex(shared_secret);
+       fn test_ecdh() {
+           let x = Bytes::from_hex(client_x25519_priv);
+           let gx = Bytes::from_hex(client_x25519_pub);
+           let y = Bytes::from_hex(server_x25519_priv);
+           let gy = Bytes::from_hex(server_x25519_pub);
+           let gxy = Bytes::from_hex(shared_secret);
 
-        let my_gx = kem_keygen(&KemSchemep::X25519, &x);
-        let my_gy = kem_keygen(&KemScheme::X25519, &x);
-        let (my_ss1, = ecdh(&KemScheme::X25519, &x, &gy);
-        let my_ss2 = ecdh(&KemScheme::X25519, &y, &gx);
+           let my_gx = kem_keygen(&KemSchemep::X25519, &x);
+           let my_gy = kem_keygen(&KemScheme::X25519, &x);
+           let (my_ss1, = ecdh(&KemScheme::X25519, &x, &gy);
+           let my_ss2 = ecdh(&KemScheme::X25519, &y, &gx);
 
-        let mut b = true;
-        match (my_gx, my_gy, my_ss1, my_ss2) {
-            (Ok(gx_), Ok(gy_), Ok(ss1), Ok(ss2)) => {
-                println!("expected gx {}", gx.to_hex());
-                println!("computed gx {}", gx_.to_hex());
-                println!("expected gy {}", gy.to_hex());
-                println!("computed gy {}", gy_.to_hex());
-                println!("expected ss {}", gxy.to_hex());
-                println!("computed xy {}", ss1.to_hex());
-                println!("computed yx {}", ss2.to_hex());
-            }
-            _ => {
-                b = false;
-            }
-        }
-        assert!(b);
-    }
- */
+           let mut b = true;
+           match (my_gx, my_gy, my_ss1, my_ss2) {
+               (Ok(gx_), Ok(gy_), Ok(ss1), Ok(ss2)) => {
+                   println!("expected gx {}", gx.to_hex());
+                   println!("computed gx {}", gx_.to_hex());
+                   println!("expected gy {}", gy.to_hex());
+                   println!("computed gy {}", gy_.to_hex());
+                   println!("expected ss {}", gxy.to_hex());
+                   println!("computed xy {}", ss1.to_hex());
+                   println!("computed yx {}", ss2.to_hex());
+               }
+               _ => {
+                   b = false;
+               }
+           }
+           assert!(b);
+       }
+    */
     const cfk_str: &str = "b80ad01015fb2f0bd65ff7d4da5d6bf83f84821d1f87fdc7d3c75b5a7b42d9c4";
     const sfk_str: &str = "008d3b66f816ea559f96b537e885c31fc068bf492c652f01f288a1d8cdc19fc8";
 

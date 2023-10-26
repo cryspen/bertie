@@ -1,47 +1,30 @@
 /// A module that for the formatting code needed by TLS 1.3
 /// Import hacspec and all needed definitions.
 #[allow(clippy::manual_range_contains)]
-
 use crate::*;
-
 
 /// Well Known Constants
 
-pub const LABEL_IV: [u8; 2] = [105,118]; 
+pub const LABEL_IV: [u8; 2] = [105, 118];
 pub const LABEL_KEY: [u8; 3] = [107, 101, 121];
 pub const LABEL_TLS13: [u8; 6] = [116, 108, 115, 049, 051, 032];
 pub const LABEL_DERIVED: [u8; 7] = [100, 101, 114, 105, 118, 101, 100];
 pub const LABEL_FINISHED: [u8; 8] = [102, 105, 110, 105, 115, 104, 101, 100];
-pub const LABEL_RES_BINDER: [u8; 10] = [
-    114, 101, 115, 032, 098, 105, 110, 100, 101, 114
-];
-pub const LABEL_EXT_BINDER: [u8; 10] = [
-    101, 120, 116, 032, 098, 105, 110, 100, 101, 114
-];
-pub const LABEL_EXP_MASTER: [u8; 10] = [
-    101, 120, 112, 032, 109, 097, 115, 116, 101, 114
-];
-pub const LABEL_RES_MASTER: [u8; 10] = [
-    114, 101, 115, 032, 109, 097, 115, 116, 101, 114
-];
-pub const LABEL_C_E_TRAFFIC: [u8; 11] = [
-    099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099
-];
-pub const LABEL_E_EXP_MASTER: [u8; 12] = [
-    101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114
-];
-pub const LABEL_C_HS_TRAFFIC: [u8; 12] = [
-    099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
-];
-pub const LABEL_S_HS_TRAFFIC: [u8; 12] = [
-    115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099
-];
-pub const LABEL_C_AP_TRAFFIC: [u8; 12] = [
-    099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
-];
-pub const LABEL_S_AP_TRAFFIC: [u8; 12] = [
-    115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099
-];
+pub const LABEL_RES_BINDER: [u8; 10] = [114, 101, 115, 032, 098, 105, 110, 100, 101, 114];
+pub const LABEL_EXT_BINDER: [u8; 10] = [101, 120, 116, 032, 098, 105, 110, 100, 101, 114];
+pub const LABEL_EXP_MASTER: [u8; 10] = [101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
+pub const LABEL_RES_MASTER: [u8; 10] = [114, 101, 115, 032, 109, 097, 115, 116, 101, 114];
+pub const LABEL_C_E_TRAFFIC: [u8; 11] = [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099];
+pub const LABEL_E_EXP_MASTER: [u8; 12] =
+    [101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
+pub const LABEL_C_HS_TRAFFIC: [u8; 12] =
+    [099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099];
+pub const LABEL_S_HS_TRAFFIC: [u8; 12] =
+    [115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099];
+pub const LABEL_C_AP_TRAFFIC: [u8; 12] =
+    [099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099];
+pub const LABEL_S_AP_TRAFFIC: [u8; 12] =
+    [115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099];
 
 pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
@@ -50,7 +33,7 @@ pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
     0x54, 0x4c, 0x53, 0x20, 0x31, 0x2e, 0x33, 0x2c, 0x20, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x20,
     0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x56, 0x65, 0x72, 0x69, 0x66,
-    0x79, 0x00
+    0x79, 0x00,
 ];
 
 /*
@@ -747,15 +730,9 @@ pub fn parse_client_hello(
     let trunc_len = ch.len() - hash_len(&hash_alg(algs)) - 3;
     match (psk_mode(algs), exts) {
         (_, EXTS(_, None, _, _)) => tlserr(MISSING_KEY_SHARE),
-        (true, EXTS(Some(sn), Some(gx), Some(tkt), Some(binder))) => Ok((
-            crand,
-            sid,
-            sn,
-            gx,
-            Some(tkt),
-            Some(binder),
-            trunc_len,
-        )),
+        (true, EXTS(Some(sn), Some(gx), Some(tkt), Some(binder))) => {
+            Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len))
+        }
         (true, EXTS(None, Some(gx), Some(tkt), Some(binder))) => Ok((
             crand,
             sid,
@@ -765,9 +742,7 @@ pub fn parse_client_hello(
             Some(binder),
             trunc_len,
         )),
-        (false, EXTS(Some(sn), Some(gx), None, None)) => {
-            Ok((crand, sid, sn, gx, None, None, 0))
-        }
+        (false, EXTS(Some(sn), Some(gx), None, None)) => Ok((crand, sid, sn, gx, None, None, 0)),
         (false, EXTS(None, Some(gx), None, None)) => {
             Ok((crand, sid, Bytes::new(), gx, None, None, 0))
         }
@@ -804,7 +779,7 @@ pub fn server_hello(
 }
 
 fn unsupported_cipher_alert() -> Result<(), TLSError> {
-   tlserr(UNSUPPORTED_ALGORITHM)
+    tlserr(UNSUPPORTED_ALGORITHM)
 }
 
 pub fn parse_server_hello(
@@ -844,7 +819,9 @@ pub fn parse_server_hello(
 
 pub fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let ty = bytes1(hs_type(HandshakeType::EncryptedExtensions));
-    Ok(HandshakeData(ty.concat(&lbytes3(&lbytes2(&Bytes::new())?)?)))
+    Ok(HandshakeData(
+        ty.concat(&lbytes3(&lbytes2(&Bytes::new())?)?),
+    ))
 }
 
 pub fn parse_encrypted_extensions(_algs: &Algorithms, ee: &HandshakeData) -> Result<(), TLSError> {

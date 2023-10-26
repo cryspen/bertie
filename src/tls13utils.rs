@@ -1,4 +1,3 @@
-
 //use core::num::dec2flt::parse;
 
 use crate::*;
@@ -29,7 +28,7 @@ pub fn error_string(c: u8) -> String {
     format!("{}", c)
 }
 
-pub fn tlserr<T>(err:TLSError) -> Result<T,TLSError> {
+pub fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     let bt = backtrace::Backtrace::new();
     println!("{:?}", bt);
     Err(err)
@@ -46,177 +45,246 @@ pub trait Declassify {
     fn declassify(&self) -> Self::T;
 }
 
-
 #[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct U8(u8);
 #[cfg(feature = "secret_integers")]
 impl core::ops::BitXor for U8 {
     type Output = U8;
-    fn bitxor(self, rhs: Self) -> Self::Output {U8(self.0^rhs.0)}
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        U8(self.0 ^ rhs.0)
+    }
 }
 #[cfg(feature = "secret_integers")]
 impl From<u8> for U8 {
-    fn from(x:u8) -> U8 {U8(x)}
+    fn from(x: u8) -> U8 {
+        U8(x)
+    }
 }
 #[cfg(feature = "secret_integers")]
 impl Declassify for U8 {
     type T = u8;
-    fn declassify(&self) -> u8 {self.0}
+    fn declassify(&self) -> u8 {
+        self.0
+    }
 }
 
 #[cfg(not(feature = "secret_integers"))]
 type U8 = u8;
 #[cfg(not(feature = "secret_integers"))]
-pub fn U8(x:u8) -> U8 {x}
+pub fn U8(x: u8) -> U8 {
+    x
+}
 #[cfg(not(feature = "secret_integers"))]
 impl Declassify for U8 {
     type t = u8;
-    fn declassify(&self) -> u8 {*self}
+    fn declassify(&self) -> u8 {
+        *self
+    }
 }
 
 impl From<&u8> for U8 {
-    fn from(x:&u8) -> U8 {U8(*x)}
+    fn from(x: &u8) -> U8 {
+        U8(*x)
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct U16(u16);
 
 impl From<u16> for U16 {
-    fn from(x:u16) -> U16 {U16(x)}
+    fn from(x: u16) -> U16 {
+        U16(x)
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct U32(u32);
 
 impl From<u32> for U32 {
-    fn from(x:u32) -> U32 {U32(x)}
+    fn from(x: u32) -> U32 {
+        U32(x)
+    }
 }
 
 impl core::ops::Add for U32 {
     type Output = U32;
-    fn add(self,y:U32) -> U32 {U32(self.0+y.0)}
+    fn add(self, y: U32) -> U32 {
+        U32(self.0 + y.0)
+    }
 }
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Bytes(Vec<U8>);
 
 impl From<Vec<u8>> for Bytes {
-    fn from(x:Vec<u8>) -> Bytes {Bytes(x.iter().map(|x|x.into()).collect())}
+    fn from(x: Vec<u8>) -> Bytes {
+        Bytes(x.iter().map(|x| x.into()).collect())
+    }
 }
 
 impl Declassify for Bytes {
     type T = Vec<u8>;
-    fn declassify(&self) -> Vec<u8> {self.0.iter().map(|x|x.declassify()).collect()}
+    fn declassify(&self) -> Vec<u8> {
+        self.0.iter().map(|x| x.declassify()).collect()
+    }
 }
 
 impl Bytes {
-    pub fn declassify_array<const C:usize>(&self) -> Result<[u8;C],TLSError> {
-        self.declassify().try_into().map_err(|_|INCORRECT_ARRAY_LENGTH)
+    pub fn declassify_array<const C: usize>(&self) -> Result<[u8; C], TLSError> {
+        self.declassify()
+            .try_into()
+            .map_err(|_| INCORRECT_ARRAY_LENGTH)
     }
 }
 
 impl From<&[u8]> for Bytes {
-    fn from(x:&[u8]) -> Bytes {x.to_vec().into()}
+    fn from(x: &[u8]) -> Bytes {
+        x.to_vec().into()
+    }
 }
 
 impl From<&[U8]> for Bytes {
-    fn from(x:&[U8]) -> Bytes {Bytes(x.to_vec())}
+    fn from(x: &[U8]) -> Bytes {
+        Bytes(x.to_vec())
+    }
 }
 
-impl<const C:usize> From<[u8;C]> for Bytes {
-    fn from(x:[u8;C]) -> Bytes {x.to_vec().into()}
+impl<const C: usize> From<[u8; C]> for Bytes {
+    fn from(x: [u8; C]) -> Bytes {
+        x.to_vec().into()
+    }
 }
 
-impl<const C:usize> From<&[u8;C]> for Bytes {
-    fn from(x:&[u8;C]) -> Bytes {x.to_vec().into()}
+impl<const C: usize> From<&[u8; C]> for Bytes {
+    fn from(x: &[u8; C]) -> Bytes {
+        x.to_vec().into()
+    }
 }
 
 impl U32 {
-    pub fn from_be_bytes(x:&Bytes) -> Result<U32,TLSError> {
+    pub fn from_be_bytes(x: &Bytes) -> Result<U32, TLSError> {
         Ok(U32(u32::from_be_bytes(x.declassify_array()?)))
     }
     pub fn to_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
-    pub fn declassify(&self) -> u32 {self.0}
+    pub fn declassify(&self) -> u32 {
+        self.0
+    }
 }
 
 impl U16 {
-    pub fn from_be_bytes(x:&Bytes) -> Result<U16,TLSError> {
+    pub fn from_be_bytes(x: &Bytes) -> Result<U16, TLSError> {
         Ok(U16(u16::from_be_bytes(x.declassify_array()?)))
     }
     pub fn to_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
-    pub fn declassify(&self) -> u16 {self.0}
+    pub fn declassify(&self) -> u16 {
+        self.0
+    }
 }
 
-
-pub fn bytes(x:&[u8]) -> Bytes {x.into()}
-pub fn bytes1(x:u8) -> Bytes {[x].into()}
-pub fn bytes2(x:u8,y:u8) -> Bytes {[x,y].into()}
+pub fn bytes(x: &[u8]) -> Bytes {
+    x.into()
+}
+pub fn bytes1(x: u8) -> Bytes {
+    [x].into()
+}
+pub fn bytes2(x: u8, y: u8) -> Bytes {
+    [x, y].into()
+}
 
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
-    fn index(&self, x:usize) -> &U8 {&self.0[x]}
+    fn index(&self, x: usize) -> &U8 {
+        &self.0[x]
+    }
 }
 
 impl core::ops::IndexMut<usize> for Bytes {
-    fn index_mut(&mut self, i:usize) -> &mut U8 {&mut self.0[i]}
+    fn index_mut(&mut self, i: usize) -> &mut U8 {
+        &mut self.0[i]
+    }
 }
 
 impl core::ops::Index<core::ops::Range<usize>> for Bytes {
     type Output = [U8];
-    fn index(&self, x:core::ops::Range<usize>) -> &[U8] {&self.0[x]}
+    fn index(&self, x: core::ops::Range<usize>) -> &[U8] {
+        &self.0[x]
+    }
 }
 
 impl core::ops::IndexMut<core::ops::Range<usize>> for Bytes {
-    fn index_mut(&mut self, x:core::ops::Range<usize>) -> &mut [U8] {&mut self.0[x]}
+    fn index_mut(&mut self, x: core::ops::Range<usize>) -> &mut [U8] {
+        &mut self.0[x]
+    }
 }
 
-
 impl Bytes {
-    pub fn new() -> Bytes {Bytes(Vec::new())}
-    pub fn zeroes(len:usize) -> Bytes {Bytes(vec![U8(0);len])}
-    pub fn with_capacity(len:usize) -> Bytes {Bytes(Vec::with_capacity(len))}
-    pub fn len(&self) -> usize {self.0.len()}
-    pub fn push(&mut self,x:U8) {self.0.push(x)}
-    pub fn extend_from_slice(&mut self,x:&Bytes) {self.0.extend_from_slice(&x.0)}
+    pub fn new() -> Bytes {
+        Bytes(Vec::new())
+    }
+    pub fn zeroes(len: usize) -> Bytes {
+        Bytes(vec![U8(0); len])
+    }
+    pub fn with_capacity(len: usize) -> Bytes {
+        Bytes(Vec::with_capacity(len))
+    }
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+    pub fn push(&mut self, x: U8) {
+        self.0.push(x)
+    }
+    pub fn extend_from_slice(&mut self, x: &Bytes) {
+        self.0.extend_from_slice(&x.0)
+    }
 
-    pub fn from_slice(s:&[u8]) -> Bytes {s.into()}
+    pub fn from_slice(s: &[u8]) -> Bytes {
+        s.into()
+    }
     pub fn from_hex(s: &str) -> Bytes {
         let s: String = s.split_whitespace().collect();
         if s.len() % 2 == 0 {
-            Bytes((0..s.len())
-                .step_by(2)
-                .map(|i| s.get(i..i + 2)
-                        .and_then(|sub| (u8::from_str_radix(sub, 16).ok()).map(U8)))
-                .collect::<Option<Vec<U8>>>()
-                .expect("Not a hex string1"))
+            Bytes(
+                (0..s.len())
+                    .step_by(2)
+                    .map(|i| {
+                        s.get(i..i + 2)
+                            .and_then(|sub| (u8::from_str_radix(sub, 16).ok()).map(U8))
+                    })
+                    .collect::<Option<Vec<U8>>>()
+                    .expect("Not a hex string1"),
+            )
         } else {
             None.expect("Not a hex string2")
         }
     }
 
     pub fn to_hex(&self) -> String {
-        let strs: Vec<String> = self.0.iter().map(|b| format!("{:02x}", b.declassify())).collect();
+        let strs: Vec<String> = self
+            .0
+            .iter()
+            .map(|b| format!("{:02x}", b.declassify()))
+            .collect();
         strs.join("")
     }
-    pub fn slice_range(&self,r:core::ops::Range::<usize>) -> Bytes {
+    pub fn slice_range(&self, r: core::ops::Range<usize>) -> Bytes {
         self.0[r.start..r.end].into()
     }
-    pub fn slice(&self,start:usize,len:usize) -> Bytes {
-        self.0[start..start+len].into()
+    pub fn slice(&self, start: usize, len: usize) -> Bytes {
+        self.0[start..start + len].into()
     }
-    pub fn concat(&self,x:&Bytes) -> Bytes {
+    pub fn concat(&self, x: &Bytes) -> Bytes {
         let mut res = Vec::new();
         res.extend_from_slice(&self.0);
         res.extend_from_slice(&x.0);
         Bytes(res)
     }
 
-    pub fn update_slice(&self,st:usize,src:&Bytes,beg:usize,len:usize) -> Bytes {
+    pub fn update_slice(&self, st: usize, src: &Bytes, beg: usize, len: usize) -> Bytes {
         let mut res = self.clone();
         for i in 0..len {
             res[st + i] = src[beg + i];
@@ -224,15 +292,12 @@ impl Bytes {
         res
     }
 
-   /* pub fn to_array<const sz:usize>(&self) -> Result<[U8; sz],TLSError> {
+    /* pub fn to_array<const sz:usize>(&self) -> Result<[U8; sz],TLSError> {
         if self.len() == sz {
             Ok(self.0.clone().try_into().unwrap())
         } else {Err(PARSE_FAILED)}
     }*/
 }
-
-
-
 
 pub fn check(b: bool) -> Result<(), TLSError> {
     if b {
@@ -258,21 +323,23 @@ pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     if b1.len() != b2.len() {
         false
     } else {
-        let mut b:bool = true; 
+        let mut b: bool = true;
         for i in 0..b1.len() {
             if !eq1(b1[i], b2[i]) {
-                b=false;
+                b = false;
             };
         }
-        return b
+        return b;
     }
 }
 
-
 pub fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
-    let b = eq(&b1,&b2);
-    if b {Ok(())}
-    else {Err(parse_failed())}
+    let b = eq(&b1, &b2);
+    if b {
+        Ok(())
+    } else {
+        Err(parse_failed())
+    }
 }
 
 // TODO: This function should short-circuit once hax supports returns within loops
@@ -280,13 +347,13 @@ pub fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {
-        let mut b = false; 
+        let mut b = false;
         for i in 0..(b2.len() / b1.len()) {
             if eq(&b1, &b2.slice_range(i * b1.len()..(i + 1) * b1.len())) {
                 b = true;
             }
         }
-        return if b {Ok(())} else {Err(parse_failed())}
+        return if b { Ok(()) } else { Err(parse_failed()) };
     }
 }
 
@@ -399,7 +466,6 @@ pub fn check_lbytes3_full(b: &Bytes) -> Result<(), TLSError> {
     }
 }
 
-
 // Handshake Data
 pub struct HandshakeData(pub Bytes);
 
@@ -460,8 +526,9 @@ pub fn lookup_db(
     }
 }
 
-
-
-pub fn random_bytes(len: usize) -> Bytes{
-    (0..len).map(|_| rand::random::<u8>()).collect::<Vec<u8>>().into()
+pub fn random_bytes(len: usize) -> Bytes {
+    (0..len)
+        .map(|_| rand::random::<u8>())
+        .collect::<Vec<u8>>()
+        .into()
 }

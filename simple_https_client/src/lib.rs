@@ -6,10 +6,10 @@
 
 #![allow(non_upper_case_globals)]
 
-use std::io::{Read, Write};
-use std::fmt::{Debug};
 use anyhow::Result;
-use bertie::{tls13api::*, tls13utils::*, tls13crypto::*};
+use bertie::{tls13api::*, tls13crypto::*, tls13utils::*};
+use std::fmt::Debug;
+use std::io::{Read, Write};
 
 use rand::*;
 use record::{AppError, RecordStream};
@@ -129,7 +129,7 @@ pub fn ciphersuites() -> Vec<Algorithms> {
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
-        SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256, 
+        SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
         SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
         SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
         SHA256_Aes128Gcm_RsaPssRsaSha256_P256,

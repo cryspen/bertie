@@ -1,8 +1,8 @@
 // TLS 1.3 Record Layer Computations
 
+use crate::tls13crypto::*;
 use crate::tls13formats::*;
 use crate::tls13utils::*;
-use crate::tls13crypto::*;
 
 /* CipherStates Exported by the TLS 1.3 Handshake */
 pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, Key);
@@ -49,7 +49,7 @@ pub fn duplex_cipher_state1(
 }
 
 pub fn derive_iv_ctr(_ae: &AeadAlgorithm, iv: &AeadIV, n: u64) -> AeadIV {
-    let counter : Bytes = n.to_be_bytes().into();
+    let counter: Bytes = n.to_be_bytes().into();
     let mut iv_ctr = AeadIV::zeroes(iv.len());
     for i in 0..iv.len() - 8 {
         iv_ctr[i] = iv[i];
