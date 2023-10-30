@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod internal_tests {
 
-    use libcrux::*;
-
     use crate::tls13formats::*;
     use crate::tls13utils::*;
     use crate::*;
