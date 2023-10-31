@@ -1292,11 +1292,11 @@ let put_server_signature
           | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
             Core.Ops.Control_flow.ControlFlow_Continue v_val
         in
-        let* pk:Bertie.Tls13cert.t_PublicVerificationKey =
+        let* pk:Bertie.Tls13crypto.t_PublicVerificationKey =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13cert.cert_public_key cert spki
                 <:
-                Core.Result.t_Result Bertie.Tls13cert.t_PublicVerificationKey u8)
+                Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
             let* hoist324:Rust_primitives.Hax.t_Never =
@@ -1794,7 +1794,7 @@ let client_finish (payload: Bertie.Tls13utils.t_HandshakeData) (st: t_ClientPost
 let put_client_hello
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13utils.t_HandshakeData)
-      (db: Bertie.Tls13utils.t_ServerDB)
+      (db: Bertie.Server.t_ServerDB)
     : Core.Result.t_Result
       (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let*
@@ -1875,7 +1875,7 @@ let put_client_hello
       let* cert, sigk, psko:(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
         Core.Option.t_Option Bertie.Tls13utils.t_Bytes) =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.lookup_db algs db sni tkto
+          Core.Ops.Try_trait.f_branch (Bertie.Server.lookup_db algs db sni tkto
               <:
               Core.Result.t_Result
                 (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
@@ -2496,7 +2496,7 @@ let put_client_finished (cfin: Bertie.Tls13utils.t_HandshakeData) (st: t_ServerP
 let server_init
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13utils.t_HandshakeData)
-      (db: Bertie.Tls13utils.t_ServerDB)
+      (db: Bertie.Server.t_ServerDB)
       (ent: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result
       (Bertie.Tls13utils.t_HandshakeData & Bertie.Tls13utils.t_HandshakeData &

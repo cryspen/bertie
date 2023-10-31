@@ -817,7 +817,7 @@ let find_key_share (g ch: Bertie.Tls13utils.t_Bytes)
         (Bertie.Tls13utils.impl__Bytes__len ch <: usize) <. sz 4 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
           <:
           Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       else
@@ -1276,11 +1276,11 @@ let check_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (ch: Bertie.
         (if
             (((Bertie.Tls13utils.impl__Bytes__len ch <: usize) -! sz 6 <: usize) -! len_id <: usize) <>.
             sz 32
-          then Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+          then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
           else Core.Result.Result_Ok ())
       else
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)))
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)))
 
 let server_pre_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
@@ -1337,7 +1337,7 @@ let merge_opts
     Core.Result.Result_Ok (Core.Option.Option_Some o)
   | Core.Option.Option_None , Core.Option.Option_None  ->
     Core.Result.Result_Ok Core.Option.Option_None
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 let merge_exts (e1 e2: t_EXTS) : Core.Result.t_Result t_EXTS u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let EXTS sn1 ks1 tkt1 bd1:t_EXTS = e1 in
@@ -1875,7 +1875,7 @@ let get_hs_type (t: u8) : Core.Result.t_Result t_HandshakeType u8 =
   | 20uy -> Core.Result.Result_Ok HandshakeType_Finished
   | 24uy -> Core.Result.Result_Ok HandshakeType_KeyUpdate
   | 254uy -> Core.Result.Result_Ok HandshakeType_MessageHash
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 type t_AlertLevel =
   | AlertLevel_Warning : t_AlertLevel
@@ -1890,7 +1890,7 @@ let get_alert_level (t: u8) : Core.Result.t_Result t_AlertLevel u8 =
   match t with
   | 1uy -> Core.Result.Result_Ok AlertLevel_Warning
   | 2uy -> Core.Result.Result_Ok AlertLevel_Fatal
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 type t_AlertDescription =
   | AlertDescription_CloseNotify : t_AlertDescription
@@ -1980,7 +1980,7 @@ let get_alert_description (t: u8) : Core.Result.t_Result t_AlertDescription u8 =
   | 115uy -> Core.Result.Result_Ok AlertDescription_UnknownPskIdentity
   | 116uy -> Core.Result.Result_Ok AlertDescription_CertificateRequired
   | 120uy -> Core.Result.Result_Ok AlertDescription_NoApplicationProtocol
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 let handshake_message (ty: t_HandshakeType) (v_by: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_HandshakeData u8 =
@@ -2021,7 +2021,7 @@ let get_first_handshake_message (p: Bertie.Tls13utils.t_HandshakeData)
       if (Bertie.Tls13utils.impl__Bytes__len p <: usize) <. sz 4
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8))
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8))
       else
         let* len:usize =
           match
@@ -2084,7 +2084,7 @@ let get_handshake_message (p: Bertie.Tls13utils.t_HandshakeData)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (if (Bertie.Tls13utils.handshake_data_len p <: usize) <>. sz 0
-        then Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
         else Core.Result.Result_Ok m1))
 
 let get_handshake_message_ty (ty: t_HandshakeType) (p: Bertie.Tls13utils.t_HandshakeData)
@@ -2178,7 +2178,7 @@ let get_handshake_messages2 (p: Bertie.Tls13utils.t_HandshakeData)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (if (Bertie.Tls13utils.handshake_data_len p <: usize) <>. sz 0
-        then Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
         else Core.Result.Result_Ok (m1, m2)))
 
 let get_handshake_messages4 (p: Bertie.Tls13utils.t_HandshakeData)
@@ -2269,7 +2269,7 @@ let get_handshake_messages4 (p: Bertie.Tls13utils.t_HandshakeData)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (if (Bertie.Tls13utils.handshake_data_len p <: usize) <>. sz 0
-        then Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
         else Core.Result.Result_Ok (m1, m2, m3, m4)))
 
 let find_handshake_message
@@ -2592,10 +2592,10 @@ let set_client_hello_binder
       Core.Result.Result_Ok
       (Bertie.Tls13utils.HandshakeData
         (Bertie.Tls13utils.impl__Bytes__update_slice ch trunc_len m (sz 0) hlen))
-    else Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+    else Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
   | Core.Option.Option_None , Core.Option.Option_None  ->
     Core.Result.Result_Ok (Bertie.Tls13utils.HandshakeData ch)
-  | _, _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | _, _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 let invalid_compression_list: Core.Result.t_Result Prims.unit u8 =
   Core.Result.Result_Err Bertie.Tls13utils.v_INVALID_COMPRESSION_LIST
@@ -2885,7 +2885,7 @@ let parse_client_hello
             Core.Option.Option_None,
             Core.Option.Option_None,
             sz 0)
-        | _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)))
+        | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)))
 
 let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_HandshakeData u8 =
@@ -3532,7 +3532,7 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
         (Bertie.Tls13utils.impl__Bytes__len sv <: usize) <>. sz 64 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
           <:
           Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       else
@@ -3636,7 +3636,7 @@ let parse_ecdsa_signature (sig: Bertie.Tls13utils.t_Bytes)
         (Bertie.Tls13utils.impl__Bytes__len sig <: usize) <. sz 4 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
           <:
           Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       else
@@ -3820,7 +3820,7 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
         (Bertie.Tls13utils.impl__Bytes__len cv <: usize) <>. sz 64 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
           <:
           Core.Result.t_Result Bertie.Tls13utils.t_HandshakeData u8)
       else
@@ -4290,12 +4290,12 @@ let content_type (t: t_ContentType) : u8 =
 
 let get_content_type (t: u8) : Core.Result.t_Result t_ContentType u8 =
   match t with
-  | 0uy -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | 0uy -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
   | 20uy -> Core.Result.Result_Ok ContentType_ChangeCipherSpec
   | 21uy -> Core.Result.Result_Ok ContentType_Alert
   | 22uy -> Core.Result.Result_Ok ContentType_Handshake
   | 23uy -> Core.Result.Result_Ok ContentType_ApplicationData
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 let handshake_record (p: Bertie.Tls13utils.t_HandshakeData)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
@@ -4344,7 +4344,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
         (Bertie.Tls13utils.impl__Bytes__len p <: usize) <. sz 5 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
           <:
           Core.Result.t_Result (Bertie.Tls13utils.t_HandshakeData & usize) u8)
       else
@@ -4456,7 +4456,7 @@ let get_handshake_record (p: Bertie.Tls13utils.t_Bytes)
       Core.Ops.Control_flow.ControlFlow_Continue
       (if len =. (Bertie.Tls13utils.impl__Bytes__len p <: usize)
         then Core.Result.Result_Ok hd
-        else Bertie.Tls13utils.tlserr (Bertie.parse_failed <: u8)))
+        else Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)))
 
 type t_Transcript =
   | Transcript : Bertie.Tls13crypto.t_HashAlgorithm -> Bertie.Tls13utils.t_HandshakeData

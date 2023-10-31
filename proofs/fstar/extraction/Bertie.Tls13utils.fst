@@ -451,12 +451,12 @@ let impl__Bytes__update_slice (self: t_Bytes) (st: usize) (src: t_Bytes) (beg le
   res
 
 let check (b: bool) : Core.Result.t_Result Prims.unit u8 =
-  if b then Core.Result.Result_Ok () else Core.Result.Result_Err Bertie.parse_failed
+  if b then Core.Result.Result_Ok () else Core.Result.Result_Err parse_failed
 
 let eq1 (b1 b2: t_U8) : bool = (f_declassify b1 <: u8) =. (f_declassify b2 <: u8)
 
 let check_eq1 (b1 b2: t_U8) : Core.Result.t_Result Prims.unit u8 =
-  if eq1 b1 b2 then Core.Result.Result_Ok () else Core.Result.Result_Err Bertie.parse_failed
+  if eq1 b1 b2 then Core.Result.Result_Ok () else Core.Result.Result_Err parse_failed
 
 let eq (b1 b2: t_Bytes) : bool =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
@@ -484,14 +484,12 @@ let eq (b1 b2: t_Bytes) : bool =
 
 let check_eq (b1 b2: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
   let b:bool = eq b1 b2 in
-  if b then Core.Result.Result_Ok () else Core.Result.Result_Err Bertie.parse_failed
+  if b then Core.Result.Result_Ok () else Core.Result.Result_Err parse_failed
 
 let check_mem (b1 b2: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
         ((impl__Bytes__len b2 <: usize) %! (impl__Bytes__len b1 <: usize) <: usize) <>. sz 0 <: bool
-      then
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result_Err (Bertie.parse_failed <: u8))
+      then Core.Ops.Control_flow.ControlFlow_Continue (Core.Result.Result_Err (parse_failed <: u8))
       else
         let b:bool = false in
         let b:bool =
@@ -526,7 +524,7 @@ let check_mem (b1 b2: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
         let* hoist403:Rust_primitives.Hax.t_Never =
           Core.Ops.Control_flow.ControlFlow.v_Break (if b
               then Core.Result.Result_Ok ()
-              else Core.Result.Result_Err (Bertie.parse_failed <: u8))
+              else Core.Result.Result_Err (parse_failed <: u8))
         in
         Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist403))
 
@@ -567,34 +565,34 @@ let lbytes3 (b: t_Bytes) : Core.Result.t_Result t_Bytes u8 =
 
 let check_lbytes1 (b: t_Bytes) : Core.Result.t_Result usize u8 =
   if (impl__Bytes__len b <: usize) <. sz 1
-  then Core.Result.Result_Err Bertie.parse_failed
+  then Core.Result.Result_Err parse_failed
   else
     let l:usize = cast (f_declassify (b.[ sz 0 ] <: t_U8)) <: usize in
     if ((impl__Bytes__len b <: usize) -! sz 1 <: usize) <. l
-    then Core.Result.Result_Err Bertie.parse_failed
+    then Core.Result.Result_Err parse_failed
     else Core.Result.Result_Ok l
 
 let check_lbytes2 (b: t_Bytes) : Core.Result.t_Result usize u8 =
   if (impl__Bytes__len b <: usize) <. sz 2
-  then Core.Result.Result_Err Bertie.parse_failed
+  then Core.Result.Result_Err parse_failed
   else
     let l0:usize = cast (f_declassify (b.[ sz 0 ] <: t_U8)) <: usize in
     let l1:usize = cast (f_declassify (b.[ sz 1 ] <: t_U8)) <: usize in
     let l:usize = (l0 *! sz 256 <: usize) +! l1 in
     if ((impl__Bytes__len b <: usize) -! sz 2 <: usize) <. l
-    then Core.Result.Result_Err Bertie.parse_failed
+    then Core.Result.Result_Err parse_failed
     else Core.Result.Result_Ok l
 
 let check_lbytes3 (b: t_Bytes) : Core.Result.t_Result usize u8 =
   if (impl__Bytes__len b <: usize) <. sz 3
-  then Core.Result.Result_Err Bertie.parse_failed
+  then Core.Result.Result_Err parse_failed
   else
     let l0:usize = cast (f_declassify (b.[ sz 0 ] <: t_U8)) <: usize in
     let l1:usize = cast (f_declassify (b.[ sz 1 ] <: t_U8)) <: usize in
     let l2:usize = cast (f_declassify (b.[ sz 2 ] <: t_U8)) <: usize in
     let l:usize = ((l0 *! sz 65536 <: usize) +! (l1 *! sz 256 <: usize) <: usize) +! l2 in
     if ((impl__Bytes__len b <: usize) -! sz 3 <: usize) <. l
-    then Core.Result.Result_Err Bertie.parse_failed
+    then Core.Result.Result_Err parse_failed
     else Core.Result.Result_Ok l
 
 let check_lbytes1_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
@@ -613,7 +611,7 @@ let check_lbytes1_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
       Core.Ops.Control_flow.ControlFlow_Continue
       (let hoist406:usize = hoist405 +! sz 1 in
         let hoist407:bool = hoist406 <>. (impl__Bytes__len b <: usize) in
-        if hoist407 then Core.Result.Result_Err Bertie.parse_failed else Core.Result.Result_Ok ()))
+        if hoist407 then Core.Result.Result_Err parse_failed else Core.Result.Result_Ok ()))
 
 let check_lbytes2_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist409:usize =
@@ -631,7 +629,7 @@ let check_lbytes2_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
       Core.Ops.Control_flow.ControlFlow_Continue
       (let hoist410:usize = hoist409 +! sz 2 in
         let hoist411:bool = hoist410 <>. (impl__Bytes__len b <: usize) in
-        if hoist411 then Core.Result.Result_Err Bertie.parse_failed else Core.Result.Result_Ok ()))
+        if hoist411 then Core.Result.Result_Err parse_failed else Core.Result.Result_Ok ()))
 
 let check_lbytes3_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist413:usize =
@@ -649,7 +647,7 @@ let check_lbytes3_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
       Core.Ops.Control_flow.ControlFlow_Continue
       (let hoist414:usize = hoist413 +! sz 3 in
         let hoist415:bool = hoist414 <>. (impl__Bytes__len b <: usize) in
-        if hoist415 then Core.Result.Result_Err Bertie.parse_failed else Core.Result.Result_Ok ()))
+        if hoist415 then Core.Result.Result_Err parse_failed else Core.Result.Result_Ok ()))
 
 type t_HandshakeData = | HandshakeData : t_Bytes -> t_HandshakeData
 
@@ -675,52 +673,6 @@ type t_AppData = | AppData : t_Bytes -> t_AppData
 let app_data (b: t_Bytes) : t_AppData = AppData b
 
 let app_data_bytes (a: t_AppData) : t_Bytes = a._0
-
-type t_ServerDB =
-  | ServerDB : t_Bytes -> t_Bytes -> t_Bytes -> Core.Option.t_Option (t_Bytes & t_Bytes)
-    -> t_ServerDB
-
-let lookup_db
-      (algs: Bertie.Tls13crypto.t_Algorithms)
-      (db: t_ServerDB)
-      (sni: t_Bytes)
-      (tkt: Core.Option.t_Option t_Bytes)
-    : Core.Result.t_Result (t_Bytes & t_Bytes & Core.Option.t_Option t_Bytes) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let ServerDB server_name cert sk psk_opt:t_ServerDB
-      =
-        db
-      in
-      if eq sni (impl__Bytes__new <: t_Bytes) || eq sni server_name
-      then
-        match Bertie.Tls13crypto.psk_mode algs, tkt, psk_opt with
-        | true, Core.Option.Option_Some ctkt, Core.Option.Option_Some (stkt, psk) ->
-          let* _:Prims.unit =
-            match
-              Core.Ops.Try_trait.f_branch (check_eq ctkt stkt <: Core.Result.t_Result Prims.unit u8)
-            with
-            | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist416:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
-                    <:
-                    Core.Result.t_Result (t_Bytes & t_Bytes & Core.Option.t_Option t_Bytes) u8)
-              in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist416)
-            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-              Core.Ops.Control_flow.ControlFlow_Continue v_val
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue
-          (Core.Result.Result_Ok
-            (Core.Clone.f_clone cert,
-              Core.Clone.f_clone sk,
-              Core.Option.Option_Some (Core.Clone.f_clone psk)))
-        | false, _, _ ->
-          Core.Ops.Control_flow.ControlFlow_Continue
-          (Core.Result.Result_Ok
-            (Core.Clone.f_clone cert, Core.Clone.f_clone sk, Core.Option.Option_None))
-        | _ ->
-          Core.Ops.Control_flow.ControlFlow_Continue (Core.Result.Result_Err v_PSK_MODE_MISMATCH)
-      else Core.Ops.Control_flow.ControlFlow_Continue (Core.Result.Result_Err Bertie.parse_failed))
 
 let random_bytes (len: usize) : t_Bytes =
   Core.Convert.f_into (Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map ({

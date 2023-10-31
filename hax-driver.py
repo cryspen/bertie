@@ -43,6 +43,12 @@ typecheck_parser.add_argument(
     dest="lax",
     help="Lax typecheck the code only",
 )
+typecheck_parser.add_argument(
+    "--clean",
+    action="store_true",
+    dest="clean",
+    help="Clean before calling make",
+)
 
 options = parser.parse_args()
 
@@ -55,7 +61,7 @@ if options.sub == "extract":
         cargo_hax_into
         + [
             "-i",
-            "-**::non_hax::**",
+            "-**::non_hax::** -**::parse_failed",
             "fstar",
         ],
         cwd=".",
@@ -66,6 +72,9 @@ elif options.sub == "typecheck":
     custom_env = {}
     if options.lax:
         custom_env.update({"OTHERFLAGS": "--lax"})
+    if options.clean:
+        # shell(["rm", "-f", "proofs/fstar/extraction/.depend"])
+        shell(["make", "-C", "proofs/fstar/extraction/", "clean"])
     shell(["make", "-C", "proofs/fstar/extraction/"], custom_env)
     exit(0)
 else:

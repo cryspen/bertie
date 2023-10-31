@@ -1,3 +1,4 @@
+use crate::ServerDB;
 // Import hacspec and all needed definitions.
 use crate::tls13crypto::*;
 use crate::tls13formats::*;
