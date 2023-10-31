@@ -234,10 +234,7 @@ fn check_extension(algs: &Algorithms, b: &Bytes) -> Result<(usize, EXTS), TLSErr
     let l1 = b[1].declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let out = EXTS(None, None, None, None);
-    // XXX: not hacspec compatible
-    //      - match
-    //      - ? in argument
-    match (l0, l1) {
+    match (l0 as u8, l1 as u8) {
         (0, 0) => Ok((
             4 + len,
             EXTS(
@@ -283,7 +280,7 @@ pub fn check_server_extension(
     let l1 = b[1].declassify() as usize;
     let len = check_lbytes2(&b.slice_range(2..b.len()))?;
     let mut out = None;
-    match (l0, l1) {
+    match (l0 as u8, l1 as u8) {
         (0, 0x2b) => check_server_supported_version(algs, &b.slice_range(4..4 + len))?,
         (0, 0x33) => {
             let gx = check_server_key_share(algs, &b.slice_range(4..4 + len))?;

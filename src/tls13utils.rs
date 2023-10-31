@@ -203,9 +203,19 @@ impl core::ops::Index<usize> for Bytes {
     }
 }
 
-impl core::ops::IndexMut<usize> for Bytes {
-    fn index_mut(&mut self, i: usize) -> &mut U8 {
-        &mut self.0[i]
+mod non_hax {
+    use super::{Bytes, U8};
+
+    impl core::ops::IndexMut<usize> for Bytes {
+        fn index_mut(&mut self, i: usize) -> &mut U8 {
+            &mut self.0[i]
+        }
+    }
+
+    impl core::ops::IndexMut<core::ops::Range<usize>> for Bytes {
+        fn index_mut(&mut self, x: core::ops::Range<usize>) -> &mut [U8] {
+            &mut self.0[x]
+        }
     }
 }
 
@@ -213,12 +223,6 @@ impl core::ops::Index<core::ops::Range<usize>> for Bytes {
     type Output = [U8];
     fn index(&self, x: core::ops::Range<usize>) -> &[U8] {
         &self.0[x]
-    }
-}
-
-impl core::ops::IndexMut<core::ops::Range<usize>> for Bytes {
-    fn index_mut(&mut self, x: core::ops::Range<usize>) -> &mut [U8] {
-        &mut self.0[x]
     }
 }
 

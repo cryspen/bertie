@@ -19,7 +19,6 @@ hex = "0.4.3"
 libcrux = { git = "https://github.com/cryspen/libcrux", package = "libcrux", features = [
     "rand",
 ] }
-hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
 
 [features]
 default = ["secret_integers"]
