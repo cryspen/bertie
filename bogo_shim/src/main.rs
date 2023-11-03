@@ -7,7 +7,7 @@
 //     https://github.com/rustls/rustls/blob/main/rustls/examples/internal/bogo_shim.rs
 //
 
-use std::{env, net::TcpStream, process};
+use std::{env, net::TcpStream, process, io::Write};
 
 use simple_https_client::tls13client;
 use simple_https_server::{tls13server, AppError};
@@ -18,6 +18,8 @@ static BOGO_NACK: i32 = 89;
 #[derive(Debug, Default)]
 struct Options {
     port: u16,
+    shim_id: u16,
+    ipv6: bool,
     role: Role,
     key_file: String,
     cert_file: String,
@@ -153,6 +155,13 @@ fn main() {
             "-port" => {
                 options.port = args.remove(0).parse::<u16>().unwrap();
             }
+            "-shim-id" => {
+                options.shim_id = args.remove(0).parse::<u16>().unwrap();
+            }
+            "-ipv6" => {
+                options.ipv6 = true;
+                skip_currently(&arg);
+            }
             "-fallback-scsv" => {
                 options.expect_fallback_scsv = true;
                 skip_currently(&arg);
@@ -187,23 +196,19 @@ fn main() {
 
     println!("{:#?}", options);
 
+    let addrs = [
+        std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, options.port)),
+        std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, options.port)),
+    ];
+    let mut stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
+
+    stream.write(&(options.shim_id as u64).to_le_bytes()).unwrap();
     match options.role {
         Role::Client => {
-            let addrs = [
-                std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, options.port)),
-                std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, options.port)),
-            ];
-            let stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
 
             let _ = tls13client(&options.hostname, stream, None, "hello");
         }
         Role::Server => {
-            let addrs = [
-                std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, options.port)),
-                std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, options.port)),
-            ];
-            let stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
-
             if let Err(e) = tls13server(stream, &options.hostname) {
                 match e {
                     AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
