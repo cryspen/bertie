@@ -27,14 +27,6 @@ pub const ASN1_INVALID_CERTIFICATE: Asn1Error = 23u8;
 pub const ASN1_UNSUPPORTED_ALGORITHM: Asn1Error = 24u8;
 pub const ASN1_ERROR: Asn1Error = 25u8;
 
-pub type VerificationKey = Bytes;
-pub type RsaVerificationKey = (Bytes, Bytes); // N, e
-#[derive(Debug)]
-pub enum PublicVerificationKey {
-    EcDsa(VerificationKey),  // Uncompressed point 0x04...
-    Rsa(RsaVerificationKey), // N, e
-}
-
 type UsizeResult = Result<usize, Asn1Error>;
 type DoubleUsizeResult = Result<(usize, usize), Asn1Error>;
 type SpkiResult = Result<Spki, Asn1Error>;

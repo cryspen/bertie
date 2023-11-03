@@ -243,7 +243,7 @@ fn compute_psk_binder_zero_rtt(
     tx: Transcript,
 ) -> Result<(HandshakeData, Option<ClientCipherState0>, Transcript), TLSError> {
     let Algorithms(ha, ae, _sa, _ks, psk_mode, zero_rtt) = algs0;
-    match (psk_mode, psk, trunc_len) {
+    match (psk_mode, psk, trunc_len as u8) {
         (true, Some(k), _) => {
             let th_trunc = get_transcript_hash_truncated_client_hello(&tx, &ch, trunc_len)?;
             let mk = derive_binder_key(&ha, k)?;

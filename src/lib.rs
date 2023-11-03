@@ -22,10 +22,5 @@ pub mod tls13api;
 pub use std::convert::TryInto;
 pub use tls13api::*;
 pub use tls13formats::*;
-
-// FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
-pub(crate) fn parse_failed() -> TLSError {
-    let bt = backtrace::Backtrace::new();
-    println!("{:?}", bt);
-    PARSE_FAILED
-}
+pub mod server;
+pub use server::*;

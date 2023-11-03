@@ -3,7 +3,7 @@ name = "bertie"
 version = "0.1.0-pre.1"
 authors = ["Karthikeyan Bhargavan <karthik@cryspen.com>"]
 license = "Apache-2.0"
-edition = "2018"
+edition = "2021"
 documentation = "https://docs.rs/bertie"
 description = "Minimal TLS 1.3 implementation"
 readme = "README.md"
@@ -19,7 +19,6 @@ hex = "0.4.3"
 libcrux = { git = "https://github.com/cryspen/libcrux", package = "libcrux", features = [
     "rand",
 ] }
-hacspec-lib = { git = "https://github.com/hacspec/hacspec", package = "hacspec-lib" }
 
 [features]
 default = ["secret_integers"]

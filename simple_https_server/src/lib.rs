@@ -3,7 +3,7 @@
 // Import hacspec and all needed definitions.
 use std::io::prelude::*;
 
-use bertie::{tls13api::*, tls13crypto::*, tls13utils::*};
+use bertie::{tls13api::*, tls13crypto::*, tls13utils::*, ServerDB};
 
 use rand::*;
 pub use record::AppError;

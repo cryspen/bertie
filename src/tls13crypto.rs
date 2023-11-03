@@ -1,8 +1,9 @@
-use crate::*;
 use libcrux::{
     kem::{Ct, PrivateKey, PublicKey},
     *,
 };
+
+use crate::{eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, UNSUPPORTED_ALGORITHM};
 
 pub type Random = Bytes; //was [U8;32]
 pub type Entropy = Bytes;
@@ -17,6 +18,14 @@ pub type Digest = Bytes;
 pub type AeadKey = Bytes;
 pub type AeadIV = Bytes;
 pub type AeadKeyIV = (Bytes, Bytes);
+
+pub type VerificationKey = Bytes;
+pub type RsaVerificationKey = (Bytes, Bytes); // N, e
+#[derive(Debug)]
+pub enum PublicVerificationKey {
+    EcDsa(VerificationKey),  // Uncompressed point 0x04...
+    Rsa(RsaVerificationKey), // N, e
+}
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum HashAlgorithm {

@@ -1,6 +1,9 @@
-//use core::num::dec2flt::parse;
-
-use crate::*;
+// FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
+pub(crate) fn parse_failed() -> TLSError {
+    let bt = backtrace::Backtrace::new();
+    println!("{:?}", bt);
+    PARSE_FAILED
+}
 
 // Local error codes
 pub type TLSError = u8;
@@ -203,9 +206,19 @@ impl core::ops::Index<usize> for Bytes {
     }
 }
 
-impl core::ops::IndexMut<usize> for Bytes {
-    fn index_mut(&mut self, i: usize) -> &mut U8 {
-        &mut self.0[i]
+mod non_hax {
+    use super::{Bytes, U8};
+
+    impl core::ops::IndexMut<usize> for Bytes {
+        fn index_mut(&mut self, i: usize) -> &mut U8 {
+            &mut self.0[i]
+        }
+    }
+
+    impl core::ops::IndexMut<core::ops::Range<usize>> for Bytes {
+        fn index_mut(&mut self, x: core::ops::Range<usize>) -> &mut [U8] {
+            &mut self.0[x]
+        }
     }
 }
 
@@ -213,12 +226,6 @@ impl core::ops::Index<core::ops::Range<usize>> for Bytes {
     type Output = [U8];
     fn index(&self, x: core::ops::Range<usize>) -> &[U8] {
         &self.0[x]
-    }
-}
-
-impl core::ops::IndexMut<core::ops::Range<usize>> for Bytes {
-    fn index_mut(&mut self, x: core::ops::Range<usize>) -> &mut [U8] {
-        &mut self.0[x]
     }
 }
 
@@ -496,34 +503,6 @@ pub fn app_data(b: Bytes) -> AppData {
 }
 pub fn app_data_bytes(a: AppData) -> Bytes {
     a.0
-}
-
-pub struct ServerDB(
-    pub Bytes,
-    pub Bytes,
-    pub SignatureKey,
-    pub Option<(Bytes, PSK)>,
-);
-
-pub fn lookup_db(
-    algs: Algorithms,
-    db: &ServerDB,
-    sni: &Bytes,
-    tkt: &Option<Bytes>,
-) -> Result<(Bytes, SignatureKey, Option<PSK>), TLSError> {
-    let ServerDB(server_name, cert, sk, psk_opt) = db;
-    if eq(&sni, &Bytes::new()) || eq(&sni, &server_name) {
-        match (psk_mode(&algs), tkt, psk_opt) {
-            (true, Some(ctkt), Some((stkt, psk))) => {
-                check_eq(ctkt, stkt)?;
-                Ok((cert.clone(), sk.clone(), Some(psk.clone())))
-            }
-            (false, _, _) => Ok((cert.clone(), sk.clone(), None)),
-            _ => Err(PSK_MODE_MISMATCH),
-        }
-    } else {
-        Err(parse_failed())
-    }
 }
 
 pub fn random_bytes(len: usize) -> Bytes {
