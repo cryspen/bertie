@@ -1,13 +1,9 @@
 // Import hacspec and all needed definitions.
+use crate::tls13crypto::*;
 use crate::tls13formats::*;
 use crate::tls13handshake::*;
 use crate::tls13record::*;
 use crate::tls13utils::*;
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
-use hacspec_lib::*;
 
 pub enum Client {
     Client0(ClientPostClientHello, Option<ClientCipherState0>),
@@ -38,7 +34,7 @@ pub fn client_connect(
 ) -> Result<(Bytes, Client), TLSError> {
     let (ch, cipher0, cstate) = client_init(algs, sn, tkt, psk, ent)?;
     let mut ch_rec = handshake_record(&ch)?;
-    ch_rec[2] = U8(0x01);
+    ch_rec[2] = U8::from(0x01);
     Ok((ch_rec, Client::Client0(cstate, cipher0)))
 }
 
@@ -49,7 +45,7 @@ pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Cl
         Client::Client0(cstate, cipher0) => {
             let sf = get_handshake_record(d)?;
             let (cipher1, cstate) = client_set_params(&sf, cstate)?;
-            let buf = handshake_data(empty());
+            let buf = handshake_data(Bytes::new());
             Ok((None, Client::ClientH(cstate, cipher0, cipher1, buf)))
         }
         Client::ClientH(cstate, cipher0, cipher_hs, buf) => {
@@ -115,7 +111,7 @@ pub fn server_accept(
     ent: Entropy,
 ) -> Result<(Bytes, Bytes, Server), TLSError> {
     let mut ch_rec = ch_rec.clone();
-    ch_rec[2] = U8(0x03);
+    ch_rec[2] = U8::from(0x03);
     let ch = get_handshake_record(&ch_rec)?;
     //println!("pre-init succeeded");
     let (sh, sf, cipher0, cipher_hs, cipher1, sstate) = server_init(algs, &ch, db, ent)?;

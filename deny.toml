@@ -30,7 +30,7 @@ unknown-git = "deny"
 allow-git = [
     "https://github.com/cryspen/utils",
     "https://github.com/hacspec/hacspec",
-    "https://github.com/cryspen/hacl-packages",
+    "https://github.com/cryspen/libcrux",
 ]
 
 # TODO: Agree on some license ...

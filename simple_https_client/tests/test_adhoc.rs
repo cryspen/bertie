@@ -6,13 +6,8 @@
 
 use std::io::{Cursor, Read, Write};
 
-use bertie::Algorithms;
+use bertie::*;
 use simple_https_client::tls13client;
-
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
 
 struct Stream<'a> {
     cursor: Cursor<&'a [u8]>,
@@ -64,7 +59,7 @@ fn test_adhoc() {
                 HashAlgorithm::SHA256,
                 AeadAlgorithm::Chacha20Poly1305,
                 SignatureScheme::EcdsaSecp256r1Sha256,
-                NamedGroup::Secp256r1,
+                KemScheme::Secp256r1,
                 false,
                 false,
             ),

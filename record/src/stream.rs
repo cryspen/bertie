@@ -1,7 +1,6 @@
 use std::io::{Read, Write};
 
-use bertie::{INSUFFICIENT_DATA, PAYLOAD_TOO_LONG};
-use hacspec_lib::ByteSeq;
+use bertie::tls13utils::*;
 use tracing::{debug, error, trace};
 
 use crate::{
@@ -35,7 +34,7 @@ where
     Stream: Read + Write,
 {
     #[tracing::instrument(skip(self))]
-    pub fn read_record(&mut self) -> Result<ByteSeq, AppError> {
+    pub fn read_record(&mut self) -> Result<Bytes, AppError> {
         // Buffer to read chunks into.
         let mut tmp = [0u8; 4096];
 
@@ -68,7 +67,7 @@ where
                     let record = {
                         let record = &self.buffer[..5 + length];
                         info_record(record);
-                        ByteSeq::from_public_slice(record)
+                        Bytes::from(record)
                     };
 
                     self.buffer = self.buffer.split_off(5 + length);
@@ -114,8 +113,8 @@ where
     }
 
     #[tracing::instrument(skip(self, record))]
-    pub fn write_record(&mut self, record: ByteSeq) -> Result<(), AppError> {
-        let data = record.into_native();
+    pub fn write_record(&mut self, record: Bytes) -> Result<(), AppError> {
+        let data = record.declassify();
         self.stream.write_all(&data)?;
 
         debug!(amt = data.len(), "Wrote data.");

@@ -1,14 +1,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
 
-use hacspec_dev::prelude::*;
-use hacspec_lib::prelude::*;
-
 use bertie::*;
-#[cfg(feature = "evercrypt")]
-use evercrypt_cryptolib::*;
-#[cfg(not(feature = "evercrypt"))]
-use hacspec_cryptolib::*;
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 
@@ -76,7 +69,7 @@ const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -85,7 +78,7 @@ const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
@@ -93,26 +86,26 @@ const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
-    NamedGroup::X25519,
+    KemScheme::X25519,
     false,
     false,
 );
 
 #[test]
 fn test_full_round_trip() {
-    let cr = Random::from_public_slice(&random_byte_vec(Random::length()));
+    let cr = random_bytes(32);
     let x = load_hex(client_x25519_priv);
-    let ent_c = Entropy::from_seq(&cr.concat(&x));
+    let ent_c = cr.concat(&x);
     let sn = load_hex("6c 6f 63 61 6c 68 6f 73 74");
     let sn_ = load_hex("6c 6f 63 61 6c 68 6f 73 74");
-    let sr = Random::from_public_slice(&random_byte_vec(Random::length()));
+    let sr = random_bytes(32);
     let y = load_hex(server_x25519_priv);
-    let ent_s = Entropy::from_seq(&sr.concat(&y));
+    let ent_s = sr.concat(&y);
 
     let db = ServerDB(
         sn_,
-        Bytes::from_public_slice(&ECDSA_P256_SHA256_CERT),
-        SignatureKey::from_public_slice(&ECDSA_P256_SHA256_Key),
+        Bytes::from(&ECDSA_P256_SHA256_CERT),
+        bertie::tls13crypto::SignatureKey::from(&ECDSA_P256_SHA256_Key),
         None,
     );
 
@@ -160,22 +153,19 @@ fn test_full_round_trip() {
                                         println!("Server Complete");
 
                                         // Send data from client to server.
-                                        let data = Bytes::from_public_slice(
-                                            b"Hello server, here is the client",
-                                        );
+                                        let data = Bytes::from(b"Hello server, here is the client");
                                         let (ap, cstate) =
                                             client_write(app_data(data.clone()), cstate).unwrap();
                                         let (apo, sstate) = server_read(&ap, sstate).unwrap();
-                                        assert_bytes_eq!(data, app_data_bytes(apo.unwrap()));
+                                        assert!(eq(&data, &app_data_bytes(apo.unwrap())));
 
                                         // Send data from server to client.
-                                        let data = Bytes::from_public_slice(
-                                            b"Hello client, here is the server.",
-                                        );
+                                        let data =
+                                            Bytes::from(b"Hello client, here is the server.");
                                         let (ap, _sstate) =
                                             server_write(app_data(data.clone()), sstate).unwrap();
                                         let (apo, _cstate) = client_read(&ap, cstate).unwrap();
-                                        assert_bytes_eq!(data, app_data_bytes(apo.unwrap()));
+                                        assert!(eq(&data, &app_data_bytes(apo.unwrap())));
                                     }
                                 }
                             }
