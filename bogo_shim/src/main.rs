@@ -160,7 +160,6 @@ fn main() {
             }
             "-ipv6" => {
                 options.ipv6 = true;
-                skip_currently(&arg);
             }
             "-fallback-scsv" => {
                 options.expect_fallback_scsv = true;
@@ -202,7 +201,9 @@ fn main() {
     ];
     let mut stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
 
+    // println!("Bertie shim writing shim-id: {:?}", &(options.shim_id as u64));
     stream.write(&(options.shim_id as u64).to_le_bytes()).unwrap();
+
     match options.role {
         Role::Client => {
 
