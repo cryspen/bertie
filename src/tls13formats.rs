@@ -1,6 +1,5 @@
-/// A module that for the formatting code needed by TLS 1.3
-/// Import hacspec and all needed definitions.
-#[allow(clippy::manual_range_contains)]
+//! A module that for the formatting code needed by TLS 1.3
+#![allow(clippy::manual_range_contains)]
 use crate::*;
 
 /// Well Known Constants
@@ -134,21 +133,19 @@ pub fn check_psk_key_exchange_modes(_algs: &Algorithms, ch: &Bytes) -> Result<()
 }
 
 pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
-    let ks = supported_group(algs)?.concat(&lbytes2(&gx)?);
+    let ks = supported_group(algs)?.concat(&lbytes2(gx)?);
     Ok(bytes2(0, 0x33).concat(&lbytes2(&lbytes2(&ks)?)?))
 }
 
 pub fn find_key_share(g: &Bytes, ch: &Bytes) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         tlserr(parse_failed())
+    } else if eq(g, &ch.slice_range(0..2)) {
+        let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
+        Ok(ch.slice_range(4..4 + len))
     } else {
-        if eq(g, &ch.slice_range(0..2)) {
-            let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
-            Ok(ch.slice_range(4..4 + len))
-        } else {
-            let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
-            find_key_share(g, &ch.slice_range(4 + len..ch.len()))
-        }
+        let len = check_lbytes2(&ch.slice_range(2..ch.len()))?;
+        find_key_share(g, &ch.slice_range(4 + len..ch.len()))
     }
 }
 
@@ -652,7 +649,7 @@ pub fn client_hello(
 
     let ch = handshake_message(
         HandshakeType::ClientHello,
-        &ver.concat(&cr)
+        &ver.concat(cr)
             .concat(&sid)
             .concat(&cip)
             .concat(&comp)
@@ -687,6 +684,7 @@ fn invalid_compression_list() -> Result<(), TLSError> {
     Result::<(), TLSError>::Err(INVALID_COMPRESSION_LIST)
 }
 
+#[allow(clippy::type_complexity)]
 pub fn parse_client_hello(
     algs: &Algorithms,
     ch: &HandshakeData,
@@ -766,7 +764,7 @@ pub fn server_hello(
     }
     let sh = handshake_message(
         HandshakeType::ServerHello,
-        &ver.concat(&sr)
+        &ver.concat(sr)
             .concat(&sid)
             .concat(&cip)
             .concat(&comp)

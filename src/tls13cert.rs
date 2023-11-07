@@ -240,15 +240,13 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> SpkiResult {
             SignatureScheme::EcdsaSecp256r1Sha256,
             CertificateKey(offset, bit_string_len - 1),
         ))
+    } else if rsa_pk_oid {
+        SpkiResult::Ok((
+            SignatureScheme::RsaPssRsaSha256,
+            CertificateKey(offset, bit_string_len - 1),
+        ))
     } else {
-        if rsa_pk_oid {
-            SpkiResult::Ok((
-                SignatureScheme::RsaPssRsaSha256,
-                CertificateKey(offset, bit_string_len - 1),
-            ))
-        } else {
-            asn1err(ASN1_INVALID_CERTIFICATE)
-        }
+        asn1err(ASN1_INVALID_CERTIFICATE)
     }
 }
 

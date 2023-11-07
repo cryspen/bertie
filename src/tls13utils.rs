@@ -117,7 +117,7 @@ impl core::ops::Add for U32 {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Default)]
 pub struct Bytes(Vec<U8>);
 
 impl From<Vec<u8>> for Bytes {
@@ -242,6 +242,9 @@ impl Bytes {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
     pub fn push(&mut self, x: U8) {
         self.0.push(x)
     }
@@ -266,7 +269,7 @@ impl Bytes {
                     .expect("Not a hex string1"),
             )
         } else {
-            None.expect("Not a hex string2")
+            unreachable!("Not a hex string2")
         }
     }
 
@@ -336,12 +339,12 @@ pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
                 b = false;
             };
         }
-        return b;
+        b
     }
 }
 
 pub fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
-    let b = eq(&b1, &b2);
+    let b = eq(b1, b2);
     if b {
         Ok(())
     } else {
@@ -356,11 +359,15 @@ pub fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     } else {
         let mut b = false;
         for i in 0..(b2.len() / b1.len()) {
-            if eq(&b1, &b2.slice_range(i * b1.len()..(i + 1) * b1.len())) {
+            if eq(b1, &b2.slice_range(i * b1.len()..(i + 1) * b1.len())) {
                 b = true;
             }
         }
-        return if b { Ok(()) } else { Err(parse_failed()) };
+        if b {
+            Ok(())
+        } else {
+            Err(parse_failed())
+        }
     }
 }
 
@@ -371,7 +378,7 @@ pub fn lbytes1(b: &Bytes) -> Result<Bytes, TLSError> {
     } else {
         let mut lenb = Bytes::new();
         lenb.push((len as u8).into());
-        lenb.extend_from_slice(&b);
+        lenb.extend_from_slice(b);
         Ok(lenb)
     }
 }
@@ -385,7 +392,7 @@ pub fn lbytes2(b: &Bytes) -> Result<Bytes, TLSError> {
         let mut lenb = Bytes::new();
         lenb.push(len[0]);
         lenb.push(len[1]);
-        lenb.extend_from_slice(&b);
+        lenb.extend_from_slice(b);
         Ok(lenb)
     }
 }
@@ -400,13 +407,13 @@ pub fn lbytes3(b: &Bytes) -> Result<Bytes, TLSError> {
         lenb.push(len[1]);
         lenb.push(len[2]);
         lenb.push(len[3]);
-        lenb.extend_from_slice(&b);
+        lenb.extend_from_slice(b);
         Ok(lenb)
     }
 }
 
 pub fn check_lbytes1(b: &Bytes) -> Result<usize, TLSError> {
-    if b.len() < 1 {
+    if b.is_empty() {
         Err(parse_failed())
     } else {
         let l = b[0].declassify() as usize;
@@ -425,7 +432,7 @@ pub fn check_lbytes2(b: &Bytes) -> Result<usize, TLSError> {
         let l0 = b[0].declassify() as usize;
         let l1 = b[1].declassify() as usize;
         let l = l0 * 256 + l1;
-        if b.len() - 2 < l as usize {
+        if b.len() - 2 < l {
             Err(parse_failed())
         } else {
             Ok(l)

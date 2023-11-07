@@ -205,7 +205,7 @@ where
 
     let mut cf_rec = None;
     let mut cstate = cstate;
-    while cf_rec == None {
+    while cf_rec.is_none() {
         let rec = stream.read_record()?;
 
         let (new_cf_rec, new_cstate) = match client_read_handshake(&rec, cstate) {
@@ -246,7 +246,7 @@ where
 
     let mut ad = None;
     let mut cstate = cstate;
-    while ad == None {
+    while ad.is_none() {
         let rec = stream.read_record()?;
 
         let (new_ad, new_cstate) = client_read(&rec, cstate)?;
@@ -275,7 +275,7 @@ where
 {
     let mut ad = None;
     let mut cstate = cstate;
-    while ad == None {
+    while ad.is_none() {
         let rec = stream.read_record()?;
 
         let (new_ad, new_cstate) = client_read(&rec, cstate)?;

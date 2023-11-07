@@ -10,6 +10,7 @@ use tracing::{error, trace};
 ///
 /// The client connects to host:port via TCP, executes a TLS 1.3 handshake,
 /// sends an encrypted HTTP GET, and prints the servers HTTP response.
+#[allow(clippy::never_loop)]
 fn main() -> anyhow::Result<()> {
     // Setup tracing.
     tracing_subscriber::fmt::init();
@@ -57,7 +58,7 @@ fn main() -> anyhow::Result<()> {
     }
     if response_prefix.is_empty() {
         error!("Unable to connect with the configured ciphersuites.");
-        return Err(AppError::TLS(UNSUPPORTED_ALGORITHM.into()).into());
+        return Err(AppError::TLS(UNSUPPORTED_ALGORITHM).into());
     }
 
     println!("[!] Received HTTP response (prefix):");

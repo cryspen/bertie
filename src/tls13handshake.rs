@@ -24,7 +24,7 @@ pub fn hkdf_expand_label(
         let info = lenb
             .concat(&lbytes1(&tls13_label)?)
             .concat(&lbytes1(context)?);
-        hkdf_expand(ha, k, &info, len as usize)
+        hkdf_expand(ha, k, &info, len)
     }
 }
 
@@ -560,6 +560,7 @@ fn put_client_finished(
 // server_init -> (decrypt_zerortt)* | (encrypt_handshake | decrypt_handshake)* ->
 // server_finish -> (encrypt_data | decrypt_data)*
 
+#[allow(clippy::type_complexity)]
 pub fn server_init(
     algs: Algorithms,
     ch: &HandshakeData,
