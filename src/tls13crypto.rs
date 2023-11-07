@@ -104,8 +104,8 @@ pub fn to_libcrux_hkdf_alg(alg: &HashAlgorithm) -> Result<hkdf::Algorithm, TLSEr
 pub fn hkdf_extract(alg: &HashAlgorithm, salt: &Bytes, ikm: &Bytes) -> Result<Bytes, TLSError> {
     Ok(hkdf::extract(
         to_libcrux_hkdf_alg(alg)?,
-        &salt.declassify(),
-        &ikm.declassify(),
+        salt.declassify(),
+        ikm.declassify(),
     )
     .into())
 }
@@ -118,8 +118,8 @@ pub fn hkdf_expand(
 ) -> Result<Bytes, TLSError> {
     match hkdf::expand(
         to_libcrux_hkdf_alg(alg)?,
-        &prk.declassify(),
-        &info.declassify(),
+        prk.declassify(),
+        info.declassify(),
         len,
     ) {
         Ok(x) => Ok(x.into()),

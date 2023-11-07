@@ -28,16 +28,11 @@ struct Options {
     expect_extended_master_secret: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 enum Role {
+    #[default]
     Client,
     Server,
-}
-
-impl Default for Role {
-    fn default() -> Self {
-        Role::Client
-    }
 }
 
 /// When a BoGo test contains one of these parameters, it will be skipped.
@@ -202,7 +197,7 @@ fn main() {
     let mut stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
 
     stream
-        .write(&(options.shim_id as u64).to_le_bytes())
+        .write_all(&(options.shim_id as u64).to_le_bytes())
         .unwrap();
 
     match options.role {
