@@ -201,7 +201,6 @@ fn main() {
     ];
     let mut stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
 
-    // println!("Bertie shim writing shim-id: {:?}", &(options.shim_id as u64));
     stream.write(&(options.shim_id as u64).to_le_bytes()).unwrap();
 
     match options.role {
