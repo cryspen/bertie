@@ -7,7 +7,7 @@
 //     https://github.com/rustls/rustls/blob/main/rustls/examples/internal/bogo_shim.rs
 //
 
-use std::{env, net::TcpStream, process, io::Write};
+use std::{env, io::Write, net::TcpStream, process};
 
 use simple_https_client::tls13client;
 use simple_https_server::{tls13server, AppError};
@@ -201,11 +201,12 @@ fn main() {
     ];
     let mut stream = TcpStream::connect(&addrs[..]).expect("Can't connect to BoGo.");
 
-    stream.write(&(options.shim_id as u64).to_le_bytes()).unwrap();
+    stream
+        .write(&(options.shim_id as u64).to_le_bytes())
+        .unwrap();
 
     match options.role {
         Role::Client => {
-
             let _ = tls13client(&options.hostname, stream, None, "hello");
         }
         Role::Server => {
