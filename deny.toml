@@ -28,8 +28,7 @@ name = "criterion"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-git = [
-    "https://github.com/cryspen/utils",
-    "https://github.com/hacspec/hacspec",
+    "https://github.com/hacspec/hax",
     "https://github.com/cryspen/libcrux",
 ]
 
