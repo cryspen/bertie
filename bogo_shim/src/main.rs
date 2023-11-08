@@ -95,6 +95,9 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-verify-prefs",
     "-write-settings",
     "-select-alpn",
+    "-expect-advertised-alpn",
+    "-select-empty-alpn",
+    "-reject-alpn",
     "-server-preference",
     "-ignore-rsa-key-usage",
     "-wpa-202304"
