@@ -94,6 +94,10 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-verify-peer",
     "-verify-prefs",
     "-write-settings",
+    "-select-alpn",
+    "-server-preference",
+    "-ignore-rsa-key-usage",
+    "-wpa-202304"
 ];
 
 /// The BoGo shim receives command-line parameters from the BoGo test runner.
