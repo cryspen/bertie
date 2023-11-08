@@ -3,7 +3,6 @@
 import os
 import argparse
 import subprocess
-import sys
 
 
 def shell(command, expect=0, cwd=None, env={}):
@@ -53,7 +52,7 @@ typecheck_parser.add_argument(
 options = parser.parse_args()
 
 cargo_hax_into = ["cargo", "hax", "-C", "-p", "bertie", ";", "into"]
-hax_env = {"RUSTFLAGS": "--cfg hax"}
+hax_env = {}
 
 if options.sub == "extract":
     # The extract sub command.
@@ -73,7 +72,6 @@ elif options.sub == "typecheck":
     if options.lax:
         custom_env.update({"OTHERFLAGS": "--lax"})
     if options.clean:
-        # shell(["rm", "-f", "proofs/fstar/extraction/.depend"])
         shell(["make", "-C", "proofs/fstar/extraction/", "clean"])
     shell(["make", "-C", "proofs/fstar/extraction/"], custom_env)
     exit(0)
