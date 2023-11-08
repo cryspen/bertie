@@ -217,7 +217,6 @@
     "RSAKeyUsage-Client-WantSignature-GotEncipherment-Enforced-TLS13": "",
 
     "### NEWLY ADDED AND UNREVIEWED 2023/11/06": "###",
-    "ServerHelloBogusCipher-TLS13": "bad error (wanted 'Server does not support proposed algorithms.' / ''): local error 'tls: no common signature algorithms'",
 
     "BadECDSA-1-1-TLS13": "Should fail with 'Invalid server signature.' but fails earlier at decrypt_handshake->decrypt_record_payload->aead_decrypt.",
     "BadECDSA-1-2-TLS13": "see above",

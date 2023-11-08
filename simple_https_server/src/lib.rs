@@ -124,13 +124,13 @@ where
         Err(x) => {
             println!("ServerInit Error {}", x);
             match x {
-                136 => {
+                INVALID_COMPRESSION_LIST => {
                     stream.write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 47]))?;
                 }
-                137 => {
+                PROTOCOL_VERSION_ALERT => {
                     stream.write_record(Bytes::from(&[21, 03, 03, 00, 02, 2, 70]))?;
                 }
-                139 => {
+                MISSING_KEY_SHARE => {
                     // alerts here are optional
                     eprintln!("Hello message was missing a key share.");
                 }

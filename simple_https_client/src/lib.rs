@@ -190,10 +190,10 @@ where
         Ok((_, cstate)) => cstate,
         Err(e) => {
             match e {
-                6 => eprintln!("Server does not support proposed algorithms."),
-                137 => eprintln!("Wrong TLS protocol version TLS({:?})", e),
-                138 => eprintln!("Server sent application data instead of a handshake message."),
-                139 => eprintln!("Hello message was missing a key share."),
+                UNSUPPORTED_ALGORITHM => eprintln!("Server does not support proposed algorithms."),
+                PROTOCOL_VERSION_ALERT => eprintln!("Wrong TLS protocol version TLS({:?})", e),
+                APPLICATION_DATA_INSTEAD_OF_HANDSHAKE => eprintln!("Server sent application data instead of a handshake message."),
+                MISSING_KEY_SHARE => eprintln!("Hello message was missing a key share."),
                 _ => eprintln!("Bertie client error {}", e),
             }
             return Err(e.into());
@@ -213,7 +213,7 @@ where
             Err(e) => {
                 match e {
                     7 => eprintln!("Invalid server signature"), // signature verification failed
-                    140 => eprintln!("Invalid server signature"), // parsing of the certificate failed
+                    INVALID_SIGNATURE => eprintln!("Invalid server signature"), // parsing of the certificate failed
                     _ => eprintln!("Bertie client error {}", e),
                 }
                 return Err(e.into());
