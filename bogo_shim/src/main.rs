@@ -100,7 +100,8 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-reject-alpn",
     "-server-preference",
     "-ignore-rsa-key-usage",
-    "-wpa-202304"
+    "-wpa-202304",
+    "-max-cert-list"
 ];
 
 /// The BoGo shim receives command-line parameters from the BoGo test runner.
