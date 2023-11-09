@@ -160,11 +160,10 @@
     "LargePlaintext-TLS13-Padded-8192-8192": "unexpected failure: local error 'tls: no common signature algorithms', child error 'none'",
     "LargePlaintext-TLS13-Padded-8193-8192": "bad error (wanted ':DATA_LENGTH_TOO_LONG:' / 'remote error: record overflow'): local error 'tls: no common signature algorithms'",
     "LargeCiphertext": "bad error (wanted ':ENCRYPTED_LENGTH_TOO_LONG:' / ''): local error 'tls: no common signature algorithms'",
-    "TLS13-InvalidCompressionMethod": "",
-    "TLS-TLS13-AES_256_GCM_SHA384-BadRecord": "",
-    "TLS-TLS13-CHACHA20_POLY1305_SHA256-LargeRecord": "",
-    "TLS-TLS13-AES_256_GCM_SHA384-LargeRecord": "",
-    "TLS-TLS13-CHACHA20_POLY1305_SHA256-BadRecord": "",
+    "TLS-TLS13-AES_256_GCM_SHA384-BadRecord": "likely the same as below",
+    "TLS-TLS13-AES_256_GCM_SHA384-LargeRecord": "unexpected failure: -> Wrong hardcoded cipher suite. If that is fixed -> aead:decrypt....",
+    "TLS-TLS13-CHACHA20_POLY1305_SHA256-BadRecord": "aead:decrypt....",
+    "TLS-TLS13-CHACHA20_POLY1305_SHA256-LargeRecord": "aead:decrypt....",
     "CertificateCipherMismatch-ECDSA": "",
     "TLS-TLS13-AES_128_GCM_SHA256-BadRecord": "",
     "CertificateCipherMismatch-Ed25519": "",
@@ -547,6 +546,7 @@
     ":UNSUPPORTED_PROTOCOL:": "Wrong TLS protocol version TLS(137)",
     ":MISSING_KEY_SHARE:": "Hello message was missing a key share.",
     ":BAD_SIGNATURE:": "Invalid server signature",
-    ":HANDSHAKE_FAILURE_ON_CLIENT_HELLO:": "Server does not support proposed algorithms."
+    ":HANDSHAKE_FAILURE_ON_CLIENT_HELLO:": "Server does not support proposed algorithms.",
+    ":DECODE_ERROR:": "Decode error."
   }
 }

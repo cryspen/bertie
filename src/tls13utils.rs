@@ -26,6 +26,7 @@ pub const APPLICATION_DATA_INSTEAD_OF_HANDSHAKE: TLSError = 138u8;
 pub const MISSING_KEY_SHARE: TLSError = 139u8;
 pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
+pub const DECODE_ERROR: TLSError = 142u8;
 
 pub fn error_string(c: u8) -> String {
     format!("{}", c)
