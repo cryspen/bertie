@@ -100,8 +100,7 @@ pub fn to_libcrux_hkdf_alg(alg: &HashAlgorithm) -> Result<hkdf::Algorithm, TLSEr
     }
 }
 
-// TODO: as always, check the order of the arguments: salt, ikm or ikm, salt?
-pub fn hkdf_extract(alg: &HashAlgorithm, salt: &Bytes, ikm: &Bytes) -> Result<Bytes, TLSError> {
+pub fn hkdf_extract(alg: &HashAlgorithm, ikm: &Bytes, salt: &Bytes) -> Result<Bytes, TLSError> {
     Ok(hkdf::extract(
         to_libcrux_hkdf_alg(alg)?,
         salt.declassify(),
