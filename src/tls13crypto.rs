@@ -3,7 +3,9 @@ use libcrux::{
     *,
 };
 
-use crate::{eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, UNSUPPORTED_ALGORITHM, INVALID_SIGNATURE};
+use crate::{
+    eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
+};
 
 pub type Random = Bytes; //was [U8;32]
 pub type Entropy = Bytes;

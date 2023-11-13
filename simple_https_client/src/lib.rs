@@ -192,7 +192,9 @@ where
             match e {
                 UNSUPPORTED_ALGORITHM => eprintln!("Server does not support proposed algorithms."),
                 PROTOCOL_VERSION_ALERT => eprintln!("Wrong TLS protocol version TLS({:?})", e),
-                APPLICATION_DATA_INSTEAD_OF_HANDSHAKE => eprintln!("Server sent application data instead of a handshake message."),
+                APPLICATION_DATA_INSTEAD_OF_HANDSHAKE => {
+                    eprintln!("Server sent application data instead of a handshake message.")
+                }
                 MISSING_KEY_SHARE => eprintln!("Hello message was missing a key share."),
                 DECODE_ERROR => eprintln!("Decode error."), // parsing of the server hello failed
                 _ => eprintln!("Bertie client error {}", e),

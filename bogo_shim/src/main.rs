@@ -102,7 +102,7 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-ignore-rsa-key-usage",
     "-wpa-202304",
     "-max-cert-list",
-    "-enable-signed-cert-timestamps"
+    "-enable-signed-cert-timestamps",
 ];
 
 /// The BoGo shim receives command-line parameters from the BoGo test runner.
