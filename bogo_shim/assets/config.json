@@ -104,6 +104,7 @@
     "NoClientCertificate-TLS13": "",
     "NPN-Forbidden-TLS13": "Unknown extensions are ignored.",
     "CECPQ2NotEnabledByDefaultInClients": "Unsupported",
+    "VersionNegotiation-Client-TLS13-TLS13-TLS": "We do not negotiate versions.",
 
     "### Not yet supported features (Client)": "###",
     "TLS13-DuplicateTicketEarlyDataSupport": "Early data is not supported in Bertie yet",
@@ -160,11 +161,7 @@
     "StrayHelloRequest-TLS13": "bad error (wanted ':UNEXPECTED_MESSAGE:' / '') Bertie gives PARSE_ERROR",
 
     "### Uncategorized (Client)": "###",
-    "VersionNegotiation-Client-TLS13-TLS12-TLS": "",
-    "VersionNegotiation-Client-TLS13-TLS13-TLS": "",
-    "MinimumVersion-Client-TLS13-TLS12-TLS": "",
-    "MinimumVersion-Client-TLS12-TLS13-TLS": "",
-    "MinimumVersion-Client-TLS13-TLS13-TLS": "",
+    "MinimumVersion-Client-TLS13-TLS13-TLS": "Should pass. ",
     "DuplicateExtensionClient-TLS-TLS13": "",
     "ServerNameExtensionClient-TLS-TLS13": "",
     "UnsolicitedServerNameAck-TLS-TLS13": "",
