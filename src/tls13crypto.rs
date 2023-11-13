@@ -3,7 +3,7 @@ use libcrux::{
     *,
 };
 
-use crate::{eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, UNSUPPORTED_ALGORITHM};
+use crate::{eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, UNSUPPORTED_ALGORITHM, INVALID_SIGNATURE};
 
 pub type Random = Bytes; //was [U8;32]
 pub type Entropy = Bytes;
@@ -271,7 +271,7 @@ pub fn verify(
             );
             match res {
                 Ok(res) => Ok(res),
-                Err(_) => tlserr(CRYPTO_ERROR),
+                Err(_) => tlserr(INVALID_SIGNATURE),
             }
         }
         (SignatureScheme::EcdsaSecp256r1Sha256, PublicVerificationKey::EcDsa(pk)) => {
@@ -285,7 +285,7 @@ pub fn verify(
             );
             match res {
                 Ok(res) => Ok(res),
-                Err(_) => tlserr(CRYPTO_ERROR),
+                Err(_) => tlserr(INVALID_SIGNATURE),
             }
         }
         _ => tlserr(UNSUPPORTED_ALGORITHM),

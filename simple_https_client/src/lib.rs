@@ -213,7 +213,6 @@ where
             Ok((new_cf_rec, new_cstate)) => (new_cf_rec, new_cstate),
             Err(e) => {
                 match e {
-                    7 => eprintln!("Invalid server signature"), // signature verification failed
                     INVALID_SIGNATURE => eprintln!("Invalid server signature"), // parsing of the certificate failed
                     _ => eprintln!("Bertie client error {}", e),
                 }
