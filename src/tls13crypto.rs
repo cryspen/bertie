@@ -4,7 +4,9 @@ use libcrux::{
     *,
 };
 
-use crate::{eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, UNSUPPORTED_ALGORITHM};
+use crate::{
+    eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
+};
 
 pub type Random = Bytes; //was [U8;32]
 pub type Entropy = Bytes;
@@ -101,8 +103,7 @@ pub fn to_libcrux_hkdf_alg(alg: &HashAlgorithm) -> Result<hkdf::Algorithm, TLSEr
     }
 }
 
-// TODO: as always, check the order of the arguments: salt, ikm or ikm, salt?
-pub fn hkdf_extract(alg: &HashAlgorithm, salt: &Bytes, ikm: &Bytes) -> Result<Bytes, TLSError> {
+pub fn hkdf_extract(alg: &HashAlgorithm, ikm: &Bytes, salt: &Bytes) -> Result<Bytes, TLSError> {
     Ok(hkdf::extract(
         to_libcrux_hkdf_alg(alg)?,
         salt.declassify(),
@@ -273,7 +274,7 @@ pub fn verify(
             );
             match res {
                 Ok(res) => Ok(res),
-                Err(_) => tlserr(CRYPTO_ERROR),
+                Err(_) => tlserr(INVALID_SIGNATURE),
             }
         }
         (SignatureScheme::EcdsaSecp256r1Sha256, PublicVerificationKey::EcDsa(pk)) => {
@@ -287,7 +288,7 @@ pub fn verify(
             );
             match res {
                 Ok(res) => Ok(res),
-                Err(_) => tlserr(CRYPTO_ERROR),
+                Err(_) => tlserr(INVALID_SIGNATURE),
             }
         }
         (SignatureScheme::RsaPssRsaSha256, PublicVerificationKey::Rsa((n, e))) => {

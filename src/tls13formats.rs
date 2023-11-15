@@ -777,6 +777,10 @@ fn unsupported_cipher_alert() -> Result<(), TLSError> {
     tlserr(UNSUPPORTED_ALGORITHM)
 }
 
+fn invalid_compression_method_alert() -> Result<(), TLSError> {
+    tlserr(DECODE_ERROR)
+}
+
 pub fn parse_server_hello(
     algs: &Algorithms,
     sh: &HandshakeData,
@@ -800,7 +804,10 @@ pub fn parse_server_hello(
         Err(_) => unsupported_cipher_alert()?,
     };
     next = next + 2;
-    check_eq(&comp, &sh.slice_range(next..next + 1))?;
+    match check_eq(&comp, &sh.slice_range(next..next + 1)) {
+        Ok(_) => (),
+        Err(_) => invalid_compression_method_alert()?,
+    };
     next = next + 1;
     check_lbytes2_full(&sh.slice_range(next..sh.len()))?;
     next = next + 2;

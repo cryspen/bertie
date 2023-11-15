@@ -1,3 +1,5 @@
+use core::ops::Range;
+
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
     let bt = backtrace::Backtrace::new();
@@ -26,6 +28,7 @@ pub const APPLICATION_DATA_INSTEAD_OF_HANDSHAKE: TLSError = 138u8;
 pub const MISSING_KEY_SHARE: TLSError = 139u8;
 pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
+pub const DECODE_ERROR: TLSError = 142u8;
 
 pub fn error_string(c: u8) -> String {
     format!("{}", c)
@@ -222,9 +225,9 @@ mod non_hax {
     }
 }
 
-impl core::ops::Index<core::ops::Range<usize>> for Bytes {
+impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
-    fn index(&self, x: core::ops::Range<usize>) -> &[U8] {
+    fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
 }
@@ -281,8 +284,8 @@ impl Bytes {
             .collect();
         strs.join("")
     }
-    pub fn slice_range(&self, r: core::ops::Range<usize>) -> Bytes {
-        self.0[r.start..r.end].into()
+    pub fn slice_range(&self, r: Range<usize>) -> Bytes {
+        self.0[r].into()
     }
     pub fn slice(&self, start: usize, len: usize) -> Bytes {
         self.0[start..start + len].into()

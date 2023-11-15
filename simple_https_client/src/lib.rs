@@ -126,18 +126,18 @@ const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
 
 pub fn ciphersuites() -> Vec<Algorithms> {
     vec![
-        SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
+        // SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
-        SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
-        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
-        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
-        SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
-        SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
-        SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
-        SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
-        SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
-        SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
+        // SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
+        // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
+        // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
+        // SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
+        // SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
+        // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
+        // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
+        // SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
+        // SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
     ]
 }
 
@@ -190,10 +190,13 @@ where
         Ok((_, cstate)) => cstate,
         Err(e) => {
             match e {
-                6 => eprintln!("Server does not support proposed algorithms."),
-                137 => eprintln!("Wrong TLS protocol version TLS({:?})", e),
-                138 => eprintln!("Server sent application data instead of a handshake message."),
-                139 => eprintln!("Hello message was missing a key share."),
+                UNSUPPORTED_ALGORITHM => eprintln!("Server does not support proposed algorithms."),
+                PROTOCOL_VERSION_ALERT => eprintln!("Wrong TLS protocol version TLS({:?})", e),
+                APPLICATION_DATA_INSTEAD_OF_HANDSHAKE => {
+                    eprintln!("Server sent application data instead of a handshake message.")
+                }
+                MISSING_KEY_SHARE => eprintln!("Hello message was missing a key share."),
+                DECODE_ERROR => eprintln!("Decode error."), // parsing of the server hello failed
                 _ => eprintln!("Bertie client error {}", e),
             }
             return Err(e.into());
@@ -212,8 +215,7 @@ where
             Ok((new_cf_rec, new_cstate)) => (new_cf_rec, new_cstate),
             Err(e) => {
                 match e {
-                    7 => eprintln!("Invalid server signature"), // signature verification failed
-                    140 => eprintln!("Invalid server signature"), // parsing of the certificate failed
+                    INVALID_SIGNATURE => eprintln!("Invalid server signature"), // parsing of the certificate failed
                     _ => eprintln!("Bertie client error {}", e),
                 }
                 return Err(e.into());
