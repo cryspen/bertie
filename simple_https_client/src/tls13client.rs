@@ -48,9 +48,8 @@ fn main() -> anyhow::Result<()> {
             Ok((_, _, response_prefix)) => response_prefix,
             Err(e) => {
                 // We ignore all errors here for now and keep trying.
-                eprintln!("tls13connet failed with {}", e);
-                break; // TODO FIX
-                       //continue;
+                eprintln!("tls13connect failed with {}", e);
+                continue;
             }
         };
         break;

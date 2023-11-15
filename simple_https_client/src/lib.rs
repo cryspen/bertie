@@ -127,17 +127,17 @@ const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
 pub fn ciphersuites() -> Vec<Algorithms> {
     vec![
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
-        //SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
-        //SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
-        //SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
-        // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
-        // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
-        // SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
-        // SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
-        // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
-        // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
-        // SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
-        // SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
+        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
+        SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
+        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
+        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
+        SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
+        SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
+        SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
+        SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
+        SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
+        SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
     ]
 }
 
