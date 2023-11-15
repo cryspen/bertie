@@ -298,14 +298,15 @@ pub fn verify(
                 tlserr(UNSUPPORTED_ALGORITHM)
             } else {
                 let key_size = match n.len() {
-                    256 => RsaPssKeySize::N2048,
-                    384 => RsaPssKeySize::N3072,
-                    512 => RsaPssKeySize::N4096,
-                    768 => RsaPssKeySize::N6144,
-                    1024 => RsaPssKeySize::N8192,
+                    // The format includes an extra 0-byte in front to disambiguate from negative numbers
+                    257 => RsaPssKeySize::N2048,
+                    385 => RsaPssKeySize::N3072,
+                    513 => RsaPssKeySize::N4096,
+                    769 => RsaPssKeySize::N6144,
+                    1025 => RsaPssKeySize::N8192,
                     _ => return tlserr(UNSUPPORTED_ALGORITHM),
                 };
-                let pk = RsaPssPublicKey::new(key_size, &n.declassify()).unwrap();
+                let pk = RsaPssPublicKey::new(key_size, &n.declassify()[1..]).unwrap();
                 let res = pk.verify(
                     signature::DigestAlgorithm::Sha256,
                     &sig.declassify().into(),
