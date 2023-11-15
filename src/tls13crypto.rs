@@ -1,5 +1,6 @@
 use libcrux::{
     kem::{Ct, PrivateKey, PublicKey},
+    signature::rsa_pss::{RsaPssKeySize, RsaPssPublicKey},
     *,
 };
 
@@ -288,6 +289,34 @@ pub fn verify(
             match res {
                 Ok(res) => Ok(res),
                 Err(_) => tlserr(INVALID_SIGNATURE),
+            }
+        }
+        (SignatureScheme::RsaPssRsaSha256, PublicVerificationKey::Rsa((n, e))) => {
+            let e = e.declassify();
+            if !(e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1) {
+                // libcrux only supports `e = 3`
+                tlserr(UNSUPPORTED_ALGORITHM)
+            } else {
+                let key_size = match n.len() {
+                    // The format includes an extra 0-byte in front to disambiguate from negative numbers
+                    257 => RsaPssKeySize::N2048,
+                    385 => RsaPssKeySize::N3072,
+                    513 => RsaPssKeySize::N4096,
+                    769 => RsaPssKeySize::N6144,
+                    1025 => RsaPssKeySize::N8192,
+                    _ => return tlserr(UNSUPPORTED_ALGORITHM),
+                };
+                let pk = RsaPssPublicKey::new(key_size, &n.declassify()[1..]).unwrap();
+                let res = pk.verify(
+                    signature::DigestAlgorithm::Sha256,
+                    &sig.declassify().into(),
+                    &input.declassify(),
+                    32, // salt must be same length as digest ouput length
+                );
+                match res {
+                    Ok(res) => Ok(res),
+                    Err(_) => tlserr(CRYPTO_ERROR),
+                }
             }
         }
         _ => tlserr(UNSUPPORTED_ALGORITHM),

@@ -34,9 +34,8 @@ fn main() -> anyhow::Result<()> {
 
     // FIXME: #51 This is going to go away as soon as Bertie supports multiple
     //        ciphersuites.
-    let mut ciphersuites = ciphersuites();
     let mut response_prefix = Vec::new();
-    for algorithms in ciphersuites.drain(..) {
+    for algorithms in ciphersuites() {
         // Initiate HTTPS connection to host:port.
         let stream = TcpStream::connect((host.clone(), port))?;
         stream.set_nodelay(true).expect("set_nodelay call failed");
@@ -49,9 +48,8 @@ fn main() -> anyhow::Result<()> {
             Ok((_, _, response_prefix)) => response_prefix,
             Err(e) => {
                 // We ignore all errors here for now and keep trying.
-                eprintln!("tls13connet failed with {}", e);
-                break; // TODO FIX
-                       //continue;
+                eprintln!("tls13connect failed with {}", e);
+                continue;
             }
         };
         break;
