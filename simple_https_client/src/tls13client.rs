@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
     //        ciphersuites.
     let mut ciphersuites = ciphersuites();
     let mut response_prefix = Vec::new();
-    for algorithms in ciphersuites.drain(..) {
+    for algorithms in ciphersuites {
         // Initiate HTTPS connection to host:port.
         let stream = TcpStream::connect((host.clone(), port))?;
         stream.set_nodelay(true).expect("set_nodelay call failed");
