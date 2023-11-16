@@ -292,21 +292,12 @@ pub fn verify(
             }
         }
         (SignatureScheme::RsaPssRsaSha256, PublicVerificationKey::Rsa((n, e))) => {
-            let e = e.declassify();
-            if !(e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1) {
-                // libcrux only supports `e = 3`
+            if !valid_rsa_exponent(e.declassify()) {
                 tlserr(UNSUPPORTED_ALGORITHM)
             } else {
-                let key_size = match n.len() {
-                    // The format includes an extra 0-byte in front to disambiguate from negative numbers
-                    257 => RsaPssKeySize::N2048,
-                    385 => RsaPssKeySize::N3072,
-                    513 => RsaPssKeySize::N4096,
-                    769 => RsaPssKeySize::N6144,
-                    1025 => RsaPssKeySize::N8192,
-                    _ => return tlserr(UNSUPPORTED_ALGORITHM),
-                };
-                let pk = RsaPssPublicKey::new(key_size, &n.declassify()[1..]).unwrap();
+                let key_size = supported_rsa_key_size(n)?;
+                let pk = RsaPssPublicKey::new(key_size, &n.declassify()[1..])
+                    .map_err(|_| CRYPTO_ERROR)?;
                 let res = pk.verify(
                     signature::DigestAlgorithm::Sha256,
                     &sig.declassify().into(),
@@ -321,6 +312,27 @@ pub fn verify(
         }
         _ => tlserr(UNSUPPORTED_ALGORITHM),
     }
+}
+
+/// Determine if given modulus conforms to one of the key sizes supported by
+/// `libcrux`.
+fn supported_rsa_key_size(n: &Bytes) -> Result<RsaPssKeySize, u8> {
+    let key_size = match n.len() {
+        // The format includes an extra 0-byte in front to disambiguate from negative numbers
+        257 => RsaPssKeySize::N2048,
+        385 => RsaPssKeySize::N3072,
+        513 => RsaPssKeySize::N4096,
+        769 => RsaPssKeySize::N6144,
+        1025 => RsaPssKeySize::N8192,
+        _ => return tlserr(UNSUPPORTED_ALGORITHM),
+    };
+    Ok(key_size)
+}
+
+/// Determine if given public exponent is supported by `libcrux`, i.e. whether
+///  `e == 3`.
+fn valid_rsa_exponent(e: Vec<u8>) -> bool {
+    e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
