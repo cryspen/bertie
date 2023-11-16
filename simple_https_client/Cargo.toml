@@ -19,3 +19,4 @@ record = { path = "../record" }
 thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
+xflags = "0.3.1"
