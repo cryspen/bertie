@@ -18,3 +18,5 @@ rand = "0.8.0"
 record = { path = "../record" }
 tracing = "0.1"
 tracing-subscriber = "0.3"
+xflags = "0.3.1"
+simple_https_client = { version = "0.1.0", path = "../simple_https_client" }
