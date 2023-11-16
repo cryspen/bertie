@@ -493,7 +493,7 @@ fn get_server_signature(
         let tx = transcript_add1(tx, &sc);
         let th = get_transcript_hash(&tx)?;
         let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&th);
-        let sig = sign(&sig_alg(&algs), &sigk, &sigval, ent)?;
+        let sig = sign(&sig_alg(&algs), &sigk, &cert, &sigval, ent)?;
         let scv = certificate_verify(&algs, &sig)?;
         let tx = transcript_add1(tx, &scv);
         Ok((
