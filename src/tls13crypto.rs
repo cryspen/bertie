@@ -262,12 +262,13 @@ pub fn sign(
             }
             let (pk_modulus, pk_exponent) = tls13cert::rsa_public_key(cert, cert_slice)?;
 
-            if !valid_rsa_exponent(pk_modulus.declassify()) {
+            if !valid_rsa_exponent(pk_exponent.declassify()) {
                 return tlserr(UNSUPPORTED_ALGORITHM);
             }
+
             let key_size = supported_rsa_key_size(&pk_modulus)?;
 
-            let pk = RsaPssPublicKey::new(key_size, &pk_modulus.declassify())
+            let pk = RsaPssPublicKey::new(key_size, &pk_modulus.declassify()[1..])
                 .map_err(|_| CRYPTO_ERROR)?;
 
             let sk = signature::rsa_pss::RsaPssPrivateKey::new(&pk, &sk.declassify())
