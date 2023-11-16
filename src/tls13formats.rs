@@ -906,13 +906,19 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
     }
 }
 pub fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
-    if cv.len() != 64 {
-        tlserr(parse_failed())
-    } else {
-        let sv = ecdsa_signature(cv)?;
-        let sig = signature_algorithm(algs)?.concat(&lbytes2(&sv)?);
-        Ok(handshake_message(HandshakeType::CertificateVerify, &sig)?)
-    }
+    let sv = match algs.2 {
+        SignatureScheme::RsaPssRsaSha256 => cv.clone(),
+        SignatureScheme::EcdsaSecp256r1Sha256 | SignatureScheme::ED25519 => {
+            if cv.len() != 64 {
+                return tlserr(parse_failed());
+            } else {
+                ecdsa_signature(cv)?
+            }
+        }
+    };
+
+    let sig = signature_algorithm(algs)?.concat(&lbytes2(&sv)?);
+    return Ok(handshake_message(HandshakeType::CertificateVerify, &sig)?);
 }
 
 pub fn parse_certificate_verify(algs: &Algorithms, cv: &HandshakeData) -> Result<Bytes, TLSError> {
