@@ -365,7 +365,7 @@ fn supported_rsa_key_size(n: &Bytes) -> Result<RsaPssKeySize, u8> {
 }
 
 /// Determine if given public exponent is supported by `libcrux`, i.e. whether
-///  `e == 3`.
+///  `e == 0x010001`.
 fn valid_rsa_exponent(e: Vec<u8>) -> bool {
     e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1
 }
