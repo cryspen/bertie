@@ -34,10 +34,6 @@ mod flags {
             ///
             /// The default value is SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519.
             optional --algorithms algorithms: String
-            /// Path to a certificate that should be served
-            optional --cert certfile: PathBuf
-            /// Path to a private key corresponding to the given certificate
-            optional --key keyfile: PathBuf
         }
     }
 }
