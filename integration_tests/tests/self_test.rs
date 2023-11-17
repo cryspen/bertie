@@ -21,7 +21,7 @@ fn self_test() {
             listener.accept().unwrap()
         };
 
-        tls13server(stream, "127.0.0.1").unwrap();
+        tls13server(stream, "127.0.0.1", None).unwrap();
 
         println!("Server finished.");
     });
