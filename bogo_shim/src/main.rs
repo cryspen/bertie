@@ -214,7 +214,7 @@ fn main() {
             let _ = tls13client(&options.hostname, stream, None, "hello");
         }
         Role::Server => {
-            if let Err(e) = tls13server(stream, &options.hostname) {
+            if let Err(e) = tls13server(stream, &options.hostname, None) {
                 match e {
                     AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
                     _ => eprintln!("Bertie server error {:?}", e),
