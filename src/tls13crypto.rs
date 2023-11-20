@@ -240,7 +240,7 @@ pub fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algorithm, T
 pub fn sign(
     alg: &SignatureScheme,
     sk: &Bytes,
-    cert: &Bytes,
+    cert: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
     input: &Bytes,
     ent: Bytes,
 ) -> Result<Bytes, TLSError> {
