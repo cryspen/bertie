@@ -1,10 +1,38 @@
-use std::{env, net::TcpStream, str::FromStr};
+use std::net::TcpStream;
 
-use anyhow::Context;
 use bertie::tls13utils::*;
 use record::AppError;
-use simple_https_client::{ciphersuites, tls13client};
+use simple_https_client::{ciphersuite_from_str, tls13client};
 use tracing::{error, trace};
+
+use clap::Parser;
+
+#[derive(Parser)]
+struct Cli {
+    /// The host to attempt a connection with, defaults to "www.google.com"
+    host: Option<String>,
+    /// Port to attempt to connect on, defaults to port 443
+    port: Option<u16>,
+    /// Algorithms to attempt to propose to server.
+
+    /// Can be one of the following strings:
+    ///   * SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
+    ///   * SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
+    ///   * SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256
+    ///   * SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
+    ///   * SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256
+    ///   * SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519
+    ///   * SHA256_Aes128Gcm_RsaPssRsaSha256_P256
+    ///   * SHA256_Aes128Gcm_RsaPssRsaSha256_X25519
+    ///   * SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256
+    ///   * SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519
+    ///   * SHA384_Aes256Gcm_RsaPssRsaSha256_P256
+    ///   * SHA384_Aes256Gcm_RsaPssRsaSha256_X25519
+    ///
+    /// The default value is SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519.
+    #[clap(verbatim_doc_comment)]
+    algorithms: Option<String>,
+}
 
 /// This is a demo of a simple HTTPS client.
 ///
@@ -15,45 +43,26 @@ fn main() -> anyhow::Result<()> {
     // Setup tracing.
     tracing_subscriber::fmt::init();
 
-    // Obtain host and port from arguments.
-    let (host, port) = {
-        let mut args = env::args();
+    let cli = Cli::parse();
 
-        let _ = args.next().context("Unexpected parameter environment.")?;
+    let host = cli.host.unwrap_or("www.google.com".to_string());
+    let port = cli.port.unwrap_or(443);
 
-        let host = args.next().unwrap_or_else(|| "www.google.com".to_string());
-        let port = args.next().unwrap_or_else(|| "443".to_string());
-
-        (
-            host,
-            u16::from_str(&port).context("Failed to parse port number.")?,
-        )
-    };
+    let algorithms = cli.algorithms.map(|s| ciphersuite_from_str(&s).unwrap());
 
     let request = format!("GET / HTTP/1.1\r\nHost: {}\r\n\r\n", host);
 
-    // FIXME: #51 This is going to go away as soon as Bertie supports multiple
-    //        ciphersuites.
-    let mut response_prefix = Vec::new();
-    for algorithms in ciphersuites() {
-        // Initiate HTTPS connection to host:port.
-        let stream = TcpStream::connect((host.clone(), port))?;
-        stream.set_nodelay(true).expect("set_nodelay call failed");
-        trace!(
-            host = format!("{}:{}", host, port),
-            "Opened TCP connection to host."
-        );
+    // Initiate HTTPS connection to host:port.
+    let stream = TcpStream::connect((host.clone(), port))?;
+    stream.set_nodelay(true).expect("set_nodelay call failed");
+    trace!(
+        host = format!("{}:{}", host, port),
+        algorithms = format!("{:?}", algorithms),
+        "Opened TCP connection to host."
+    );
 
-        response_prefix = match tls13client(&host, stream, algorithms, &request) {
-            Ok((_, _, response_prefix)) => response_prefix,
-            Err(e) => {
-                // We ignore all errors here for now and keep trying.
-                eprintln!("tls13connect failed with {}", e);
-                continue;
-            }
-        };
-        break;
-    }
+    let response_prefix = tls13client(&host, stream, algorithms, &request).map(|r| r.2)?;
+
     if response_prefix.is_empty() {
         error!("Unable to connect with the configured ciphersuites.");
         return Err(AppError::TLS(UNSUPPORTED_ALGORITHM).into());
