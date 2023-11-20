@@ -279,7 +279,7 @@ pub fn sign(
                 &salt,
                 &input.declassify(),
             )
-            .map(|sig| signature::Signature::RsaPss(sig))
+            .map(signature::Signature::RsaPss)
         }
     };
     match sig {

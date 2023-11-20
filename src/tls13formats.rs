@@ -918,7 +918,7 @@ pub fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData
     };
 
     let sig = signature_algorithm(algs)?.concat(&lbytes2(&sv)?);
-    return Ok(handshake_message(HandshakeType::CertificateVerify, &sig)?);
+    handshake_message(HandshakeType::CertificateVerify, &sig)
 }
 
 pub fn parse_certificate_verify(algs: &Algorithms, cv: &HandshakeData) -> Result<Bytes, TLSError> {
