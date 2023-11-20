@@ -204,12 +204,7 @@ where
     let db = {
         let sni = Bytes::from(host.as_bytes());
 
-        ServerDB(
-            sni,
-            Bytes::from(cert.as_ref()),
-            SignatureKey::from(key.as_ref()),
-            None,
-        )
+        ServerDB(sni, Bytes::from(cert), SignatureKey::from(key), None)
     };
 
     let ent_s = {

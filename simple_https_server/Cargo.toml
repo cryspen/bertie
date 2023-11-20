@@ -12,11 +12,8 @@ path = "src/tls13server.rs"
 [dependencies]
 anyhow = "1"
 bertie = { path = "../" }
-libcrux = { git = "https://github.com/cryspen/libcrux", features = ["rand"] }
-hex = "0.4.3"
 rand = "0.8.0"
 record = { path = "../record" }
-tracing = "0.1"
 tracing-subscriber = "0.3"
 simple_https_client = { version = "0.1.0", path = "../simple_https_client" }
 clap = { version = "4.4.8", features = ["derive"] }
