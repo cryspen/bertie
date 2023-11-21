@@ -242,7 +242,7 @@ pub fn sign(
     sk: &Bytes,
     cert: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
     input: &Bytes,
-    ent: Bytes,
+    ent: Bytes,  // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
 ) -> Result<Bytes, TLSError> {
     let sig = match alg {
         SignatureScheme::EcdsaSecp256r1Sha256 | SignatureScheme::ED25519 => signature::sign(
