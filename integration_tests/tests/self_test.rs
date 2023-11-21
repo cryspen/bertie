@@ -4,7 +4,6 @@ use simple_https_client::tls13client;
 use simple_https_server::tls13server;
 
 #[test]
-#[should_panic]
 fn test_sha256_chacha20_poly1305_rsa_pss_rsa_sha256_x25519() {
     self_test_algorithm(simple_https_client::SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519);
 }
@@ -17,7 +16,6 @@ fn test_sha256_chacha20_poly1305_ecdsa_secp256r1_sha256_p256() {
     self_test_algorithm(simple_https_client::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256);
 }
 #[test]
-#[should_panic]
 fn test_sha256_chacha20_poly1305_rsa_pss_rsa_sha256_p256() {
     self_test_algorithm(simple_https_client::SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256);
 }
@@ -34,14 +32,12 @@ fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_x25519() {
     }
 }
 #[test]
-#[should_panic]
 fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_p256() {
     if libcrux_platform::aes_ni_support() {
         self_test_algorithm(simple_https_client::SHA256_Aes128Gcm_RsaPssRsaSha256_P256);
     }
 }
 #[test]
-#[should_panic]
 fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_x25519() {
     if libcrux_platform::aes_ni_support() {
         self_test_algorithm(simple_https_client::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519);
@@ -60,14 +56,12 @@ fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_x25519() {
     }
 }
 #[test]
-#[should_panic]
 fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_p256() {
     if libcrux_platform::aes_ni_support() {
         self_test_algorithm(simple_https_client::SHA384_Aes256Gcm_RsaPssRsaSha256_P256);
     }
 }
 #[test]
-#[should_panic]
 fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_x25519() {
     if libcrux_platform::aes_ni_support() {
         self_test_algorithm(simple_https_client::SHA384_Aes256Gcm_RsaPssRsaSha256_X25519);

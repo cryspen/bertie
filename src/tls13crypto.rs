@@ -5,7 +5,8 @@ use libcrux::{
 };
 
 use crate::{
-    eq, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
+    eq, tls13cert, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE,
+    UNSUPPORTED_ALGORITHM,
 };
 
 pub type Random = Bytes; //was [U8;32]
@@ -226,7 +227,9 @@ pub enum SignatureScheme {
 
 pub fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algorithm, TLSError> {
     match a {
-        SignatureScheme::RsaPssRsaSha256 => tlserr(UNSUPPORTED_ALGORITHM),
+        SignatureScheme::RsaPssRsaSha256 => Ok(signature::Algorithm::RsaPss(
+            signature::DigestAlgorithm::Sha256,
+        )),
         SignatureScheme::ED25519 => Ok(signature::Algorithm::Ed25519),
         SignatureScheme::EcdsaSecp256r1Sha256 => Ok(signature::Algorithm::EcDsaP256(
             signature::DigestAlgorithm::Sha256,
@@ -237,15 +240,48 @@ pub fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algorithm, T
 pub fn sign(
     alg: &SignatureScheme,
     sk: &Bytes,
+    cert: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
     input: &Bytes,
-    ent: Bytes,
+    ent: Bytes, // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
 ) -> Result<Bytes, TLSError> {
-    let sig = signature::sign(
-        to_libcrux_sig_alg(alg)?,
-        &input.declassify(),
-        &sk.declassify(),
-        &mut rand::thread_rng(),
-    );
+    let sig = match alg {
+        SignatureScheme::EcdsaSecp256r1Sha256 | SignatureScheme::ED25519 => signature::sign(
+            to_libcrux_sig_alg(alg)?,
+            &input.declassify(),
+            &sk.declassify(),
+            &mut rand::thread_rng(),
+        ),
+        SignatureScheme::RsaPssRsaSha256 => {
+            // salt must be same length as digest ouput length
+            let mut salt = [0u8; 32];
+            use rand::RngCore;
+            rand::thread_rng().fill_bytes(&mut salt);
+            let (cert_scheme, cert_slice) = tls13cert::verification_key_from_cert(cert)?;
+            if !matches!(cert_scheme, SignatureScheme::RsaPssRsaSha256) {
+                return tlserr(CRYPTO_ERROR); // XXX: Right error type?
+            }
+            let (pk_modulus, pk_exponent) = tls13cert::rsa_public_key(cert, cert_slice)?;
+
+            if !valid_rsa_exponent(pk_exponent.declassify()) {
+                return tlserr(UNSUPPORTED_ALGORITHM);
+            }
+
+            let key_size = supported_rsa_key_size(&pk_modulus)?;
+
+            let pk = RsaPssPublicKey::new(key_size, &pk_modulus.declassify()[1..])
+                .map_err(|_| CRYPTO_ERROR)?;
+
+            let sk = signature::rsa_pss::RsaPssPrivateKey::new(&pk, &sk.declassify())
+                .map_err(|_| CRYPTO_ERROR)?;
+
+            sk.sign(
+                signature::DigestAlgorithm::Sha256,
+                &salt,
+                &input.declassify(),
+            )
+            .map(signature::Signature::RsaPss)
+        }
+    };
     match sig {
         Ok(signature::Signature::Ed25519(sig)) => Ok(sig.as_bytes().into()),
         Ok(signature::Signature::EcDsaP256(sig)) => {
@@ -292,21 +328,12 @@ pub fn verify(
             }
         }
         (SignatureScheme::RsaPssRsaSha256, PublicVerificationKey::Rsa((n, e))) => {
-            let e = e.declassify();
-            if !(e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1) {
-                // libcrux only supports `e = 3`
+            if !valid_rsa_exponent(e.declassify()) {
                 tlserr(UNSUPPORTED_ALGORITHM)
             } else {
-                let key_size = match n.len() {
-                    // The format includes an extra 0-byte in front to disambiguate from negative numbers
-                    257 => RsaPssKeySize::N2048,
-                    385 => RsaPssKeySize::N3072,
-                    513 => RsaPssKeySize::N4096,
-                    769 => RsaPssKeySize::N6144,
-                    1025 => RsaPssKeySize::N8192,
-                    _ => return tlserr(UNSUPPORTED_ALGORITHM),
-                };
-                let pk = RsaPssPublicKey::new(key_size, &n.declassify()[1..]).unwrap();
+                let key_size = supported_rsa_key_size(n)?;
+                let pk = RsaPssPublicKey::new(key_size, &n.declassify()[1..])
+                    .map_err(|_| CRYPTO_ERROR)?;
                 let res = pk.verify(
                     signature::DigestAlgorithm::Sha256,
                     &sig.declassify().into(),
@@ -321,6 +348,27 @@ pub fn verify(
         }
         _ => tlserr(UNSUPPORTED_ALGORITHM),
     }
+}
+
+/// Determine if given modulus conforms to one of the key sizes supported by
+/// `libcrux`.
+fn supported_rsa_key_size(n: &Bytes) -> Result<RsaPssKeySize, u8> {
+    let key_size = match n.len() {
+        // The format includes an extra 0-byte in front to disambiguate from negative numbers
+        257 => RsaPssKeySize::N2048,
+        385 => RsaPssKeySize::N3072,
+        513 => RsaPssKeySize::N4096,
+        769 => RsaPssKeySize::N6144,
+        1025 => RsaPssKeySize::N8192,
+        _ => return tlserr(UNSUPPORTED_ALGORITHM),
+    };
+    Ok(key_size)
+}
+
+/// Determine if given public exponent is supported by `libcrux`, i.e. whether
+///  `e == 0x010001`.
+fn valid_rsa_exponent(e: Vec<u8>) -> bool {
+    e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
