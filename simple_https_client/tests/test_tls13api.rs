@@ -102,7 +102,7 @@ fn test_full_round_trip() {
     let y = load_hex(server_x25519_priv);
     let ent_s = sr.concat(&y);
 
-    let db = ServerDB(
+    let db = ServerDB::new(
         sn_,
         Bytes::from(&ECDSA_P256_SHA256_CERT),
         bertie::tls13crypto::SignatureKey::from(&ECDSA_P256_SHA256_Key),

@@ -601,14 +601,13 @@ pub fn get_handshake_messages4(
 }
 
 pub fn find_handshake_message(ty: HandshakeType, payload: &HandshakeData, start: usize) -> bool {
-    let HandshakeData(p) = payload;
-    if p.len() < start + 4 {
+    if payload.0.len() < start + 4 {
         false
     } else {
-        match check_lbytes3(&p.slice_range(start + 1..p.len())) {
+        match check_lbytes3(&payload.0.slice_range(start + 1..payload.0.len())) {
             Err(_) => false,
             Ok(len) => {
-                if eq1(p[start], U8::from(hs_type(ty))) {
+                if eq1(payload.0[start], U8::from(hs_type(ty))) {
                     true
                 } else {
                     find_handshake_message(ty, payload, start + 4 + len)

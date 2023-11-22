@@ -1,23 +1,37 @@
-use crate::ServerDB;
-// Import hacspec and all needed definitions.
-use crate::tls13crypto::*;
-use crate::tls13formats::*;
-use crate::tls13handshake::*;
-use crate::tls13record::*;
-use crate::tls13utils::*;
+//! # Public TLS 1.3 API
+//!
+//! This is the entry point for consumers of Bertie.
+//! It defines the public API that users of Bertie use to establish TLS connections.
+//!
+//! **NOTE:** This is a low level TLS API that needs careful handling.
+//!           We will add a more usable API on top in future. But the verifiable
+//!           core of the protocol starts here.
 
+use crate::{
+    tls13crypto::*, tls13formats::*, tls13handshake::*, tls13record::*, tls13utils::*, ServerDB,
+};
+
+/// The Client handshake state.
 pub enum Client {
+    /// The initial client handshake state.
     Client0(ClientPostClientHello, Option<ClientCipherState0>),
+
+    /// The client handshake state after receiving the server hello message.
     ClientH(
         ClientPostServerHello,
         Option<ClientCipherState0>,
         DuplexCipherStateH,
         HandshakeData,
     ),
+
+    /// The client handshake state after finishing the handshake.
     Client1(ClientPostClientFinished, DuplexCipherState1),
 }
 
-pub fn in_psk_mode(c: &Client) -> bool {
+/// Check if the client is using a PSK mode or not.
+///
+/// Returns `true` if the client is in PSK mode and `false` otherwise.
+pub(crate) fn in_psk_mode(c: &Client) -> bool {
     match c {
         Client::Client0(cstate, _) => psk_mode(&algs_post_client_hello(cstate)),
         Client::ClientH(cstate, _, _, _) => psk_mode(&algs_post_server_hello(cstate)),
@@ -25,15 +39,22 @@ pub fn in_psk_mode(c: &Client) -> bool {
     }
 }
 
-// Connect
+/// Start a TLS handshake as client.
+/// Note that Bertie clients only support a single ciphersuite at a time and
+/// do not perform ciphersuite negotiation.
+///
+/// This function takes the
+/// * `ciphersuite` to use for this client
+/// * `server_name` for the server to connect to
+/// *
 pub fn client_connect(
-    algs: Algorithms,
-    sn: &Bytes,
+    ciphersuite: Algorithms,
+    server_name: &Bytes,
     tkt: Option<Bytes>,
     psk: Option<Key>,
     ent: Entropy,
 ) -> Result<(Bytes, Client), TLSError> {
-    let (ch, cipher0, cstate) = client_init(algs, sn, tkt, psk, ent)?;
+    let (ch, cipher0, cstate) = client_init(ciphersuite, server_name, tkt, psk, ent)?;
     let mut ch_rec = handshake_record(&ch)?;
     ch_rec[2] = U8::from(0x01);
     Ok((ch_rec, Client::Client0(cstate, cipher0)))
@@ -95,6 +116,7 @@ pub fn client_write(d: AppData, st: Client) -> Result<(Bytes, Client), TLSError>
     }
 }
 
+/// Server handshake state
 pub enum Server {
     ServerH(
         ServerPostServerFinished,

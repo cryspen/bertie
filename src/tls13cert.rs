@@ -1,4 +1,7 @@
-//! Zero-copy ASN.1 parser to read public keys from X.509 certificates.
+//! # X.509 Certificates
+//!
+//! This module implements a minimal zero-copy ASN.1 parser to read public keys
+//! from X.509 certificates.
 //!
 //! This parser is very limited and only for this specific use case.
 //! It may or may not be extended to support more of the ASN.1 syntax.
@@ -30,7 +33,6 @@ pub const ASN1_ERROR: Asn1Error = 25u8;
 type UsizeResult = Result<usize, Asn1Error>;
 type DoubleUsizeResult = Result<(usize, usize), Asn1Error>;
 type SpkiResult = Result<Spki, Asn1Error>;
-type PkResult = Result<PublicVerificationKey, Asn1Error>;
 pub type VerificationKeyResult = Result<VerificationKey, Asn1Error>;
 pub type RsaVerificationKeyResult = Result<RsaVerificationKey, Asn1Error>;
 
@@ -309,16 +311,23 @@ pub fn rsa_public_key(cert: &Bytes, indices: CertificateKey) -> RsaVerificationK
     RsaVerificationKeyResult::Ok((n, e))
 }
 
-pub fn cert_public_key(cert: &Bytes, spki: &Spki) -> PkResult {
+/// Get the public key from from a certificate.
+///
+/// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
+/// if successful, or an [`Asn1Error`] otherwise.
+pub(crate) fn cert_public_key(
+    certificate: &Bytes,
+    spki: &Spki,
+) -> Result<PublicVerificationKey, Asn1Error> {
     match spki.0 {
         SignatureScheme::ED25519 => asn1err(ASN1_UNSUPPORTED_ALGORITHM),
         SignatureScheme::EcdsaSecp256r1Sha256 => {
-            let pk = ecdsa_public_key(cert, spki.1)?;
-            PkResult::Ok(PublicVerificationKey::EcDsa(pk))
+            let pk = ecdsa_public_key(certificate, spki.1)?;
+            Ok(PublicVerificationKey::EcDsa(pk))
         }
         SignatureScheme::RsaPssRsaSha256 => {
-            let pk = rsa_public_key(cert, spki.1)?;
-            PkResult::Ok(PublicVerificationKey::Rsa(pk))
+            let pk = rsa_public_key(certificate, spki.1)?;
+            Ok(PublicVerificationKey::Rsa(pk))
         }
     }
 }

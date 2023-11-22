@@ -174,22 +174,12 @@ pub fn algs_post_client_finished(st: &ClientPostClientFinished) -> Algorithms {
     st.2
 }
 
-pub struct ServerPostClientHello(
-    Random,
-    Algorithms,
-    Bytes,
-    Bytes,
-    Bytes,
-    SignatureKey,
-    Option<PSK>,
-    Transcript,
-);
+pub struct ServerPostClientHello(Random, Algorithms, Bytes, Bytes, ServerInfo, Transcript);
 pub struct ServerPostServerHello(
     Random,
     Random,
     Algorithms,
-    Bytes,
-    SignatureKey,
+    ServerInfo,
     Key,
     MacKey,
     MacKey,
@@ -417,11 +407,11 @@ fn put_client_hello(
     let th_trunc = get_transcript_hash_truncated_client_hello(&tx, ch, trunc_len)?;
     let tx = transcript_add1(tx, ch);
     let th = get_transcript_hash(&tx)?;
-    let (cert, sigk, psko) = lookup_db(algs, &db, &sni, &tkto)?;
-    let cipher0 = process_psk_binder_zero_rtt(algs, th, th_trunc, &psko, bindero)?;
+    let server = lookup_db(algs, &db, &sni, &tkto)?;
+    let cipher0 = process_psk_binder_zero_rtt(algs, th, th_trunc, &server.psk_opt, bindero)?;
     Ok((
         cipher0,
-        ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psko, tx),
+        ServerPostClientHello(cr, algs, sid, gx, server, tx),
     ))
 }
 
@@ -454,7 +444,7 @@ fn get_server_hello(
     st: ServerPostClientHello,
     ent: Entropy,
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
-    let ServerPostClientHello(cr, algs, sid, gx, cert, sigk, psk, tx) = st;
+    let ServerPostClientHello(cr, algs, sid, gx, server, tx) = st;
     let Algorithms(ha, ae, _sa, ks, _psk_mode, _zero_rtt) = algs;
     if ent.len() < 32 + kem_priv_len(&ks) {
         Err(INSUFFICIENT_ENTROPY)
@@ -464,11 +454,11 @@ fn get_server_hello(
         let sh = server_hello(&algs, &sr, &sid, &gy)?;
         let tx = transcript_add1(tx, &sh);
         let th = get_transcript_hash(&tx)?;
-        let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &psk, &th)?;
+        let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &server.psk_opt, &th)?;
         Ok((
             sh,
             duplex_cipher_state_hs(ae, shk, 0, chk, 0),
-            ServerPostServerHello(cr, sr, algs, cert, sigk, ms, cfk, sfk, tx),
+            ServerPostServerHello(cr, sr, algs, server, ms, cfk, sfk, tx),
         ))
     }
 }
@@ -485,15 +475,15 @@ fn get_server_signature(
     ),
     TLSError,
 > {
-    let ServerPostServerHello(cr, sr, algs, cert, sigk, ms, cfk, sfk, tx) = st;
+    let ServerPostServerHello(cr, sr, algs, server, ms, cfk, sfk, tx) = st;
     let ee = encrypted_extensions(&algs)?;
     let tx = transcript_add1(tx, &ee);
     if !psk_mode(&algs) {
-        let sc = server_certificate(&algs, &cert)?;
+        let sc = server_certificate(&algs, &server.cert)?;
         let tx = transcript_add1(tx, &sc);
         let th = get_transcript_hash(&tx)?;
         let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&th);
-        let sig = sign(&sig_alg(&algs), &sigk, &cert, &sigval, ent)?;
+        let sig = sign(&sig_alg(&algs), &server.sk, &server.cert, &sigval, ent)?;
         let scv = certificate_verify(&algs, &sig)?;
         let tx = transcript_add1(tx, &scv);
         Ok((
@@ -510,7 +500,7 @@ fn get_server_signature(
 fn get_skip_server_signature(
     st: ServerPostServerHello,
 ) -> Result<(HandshakeData, ServerPostCertificateVerify), TLSError> {
-    let ServerPostServerHello(cr, sr, algs, _cert, _sigk, ms, cfk, sfk, tx) = st;
+    let ServerPostServerHello(cr, sr, algs, server, ms, cfk, sfk, tx) = st;
     if psk_mode(&algs) {
         let ee = encrypted_extensions(&algs)?;
         let tx = transcript_add1(tx, &ee);
