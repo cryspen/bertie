@@ -53,7 +53,7 @@ typecheck_parser.add_argument(
 options = parser.parse_args()
 
 cargo_hax_into = ["cargo", "hax", "-C", "-p", "bertie", ";", "into"]
-hax_env = {"RUSTFLAGS": "--cfg hax"}
+hax_env = {}
 
 if options.sub == "extract":
     # The extract sub command.
