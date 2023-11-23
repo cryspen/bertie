@@ -270,9 +270,9 @@ where
 
     /* Send HTTP GET  */
 
-    let (ap, state) = {
+    let (ap, client_state) = {
         let http_get = Bytes::from(request.as_bytes());
-        client_write(AppData::new(http_get), client_state)?
+        client_state.write(AppData::new(http_get))?
     };
 
     stream.write_record(ap)?;
@@ -280,7 +280,7 @@ where
     /* Process HTTP response */
 
     let mut application_data = None;
-    let mut client_state = state;
+    let mut client_state = client_state;
     while application_data.is_none() {
         let message_bytes = stream.read_record()?;
 

@@ -12,7 +12,7 @@ use crate::{
     tls13utils::*,
 };
 
-/// The Client handshake state.
+/// The TLS Client state.
 pub enum Client {
     /// The initial client handshake state.
     Client0(ClientPostClientHello, Option<ClientCipherState0>),
@@ -32,7 +32,7 @@ pub enum Client {
 /// Check if the client is using a PSK mode or not.
 ///
 /// Returns `true` if the client is in PSK mode and `false` otherwise.
-pub(crate) fn in_psk_mode(c: &Client) -> bool {
+pub fn in_psk_mode(c: &Client) -> bool {
     match c {
         Client::Client0(cstate, _) => algs_post_client_hello(cstate).psk_mode(),
         Client::ClientH(cstate, _, _, _) => algs_post_server_hello(cstate).psk_mode(),
@@ -70,7 +70,7 @@ impl Client {
         Ok((client_hello, Self::Client0(cstate, cipher0)))
     }
 
-    // The following function reads handshake records and decrypts them using the TLS 1.3 record protocol
+    // This function reads handshake records and decrypts them using the TLS 1.3 record protocol
     // A slightly modified version would work for QUIC
     /// Read the next handshake Message.
     ///
@@ -119,7 +119,7 @@ impl Client {
     ///
     /// The function returns a [`Result`].
     /// When successful, the function returns a tuple with the first element the
-    /// application data as bytes option, and the [`Client`] state as the second element.
+    /// application data as bytes option, and the new [`Client`] state as the second element.
     /// If there's no application data, the first element is [`None`].
     /// If an error occurs, it returns a [`TLSError`].
     pub fn read(self, message_bytes: &Bytes) -> Result<(Option<AppData>, Self), TLSError> {
@@ -140,80 +140,129 @@ impl Client {
             _ => Err(INCORRECT_STATE),
         }
     }
-}
 
-// Writes AppData
-pub fn client_write(d: AppData, st: Client) -> Result<(Bytes, Client), TLSError> {
-    match st {
-        Client::Client1(cstate, cipher1) => {
-            let (by, cipher1) = encrypt_data(d, 0, cipher1)?;
-            Ok((by, Client::Client1(cstate, cipher1)))
+    /// Send application data to the server.
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a tuple with the first element the
+    /// encrypted `application_data` as bytes, and the new [`Client`] state as the second element.
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn write(self, application_data: AppData) -> Result<(Bytes, Client), TLSError> {
+        match self {
+            Client::Client1(cstate, cipher1) => {
+                let (by, cipher1) = encrypt_data(application_data, 0, cipher1)?;
+                Ok((by, Client::Client1(cstate, cipher1)))
+            }
+            _ => Err(INCORRECT_STATE),
         }
-        _ => Err(INCORRECT_STATE),
     }
 }
 
-/// Server handshake state
+/// The TLS server state.
 pub enum Server {
+    /// The initial server state. The server accepts a new connection in this state.
     ServerH(
         ServerPostServerFinished,
         Option<ServerCipherState0>,
         DuplexCipherStateH,
         DuplexCipherState1,
     ),
+
+    /// The final server state. The server communicates via the encrypted TLS
+    /// channel in this state.
     Server1(ServerPostClientFinished, DuplexCipherState1),
 }
-
-pub fn server_accept(
-    algs: Algorithms,
-    db: ServerDB,
-    ch_rec: &Bytes,
-    ent: Entropy,
-) -> Result<(Bytes, Bytes, Server), TLSError> {
-    let mut ch_rec = ch_rec.clone();
-    ch_rec[2] = U8::from(0x03);
-    let ch = get_handshake_record(&ch_rec)?;
-    //println!("pre-init succeeded");
-    let (sh, sf, cipher0, cipher_hs, cipher1, sstate) = server_init(algs, &ch, db, ent)?;
-    //println!("init succeeded");
-    let sh_rec = handshake_record(&sh)?;
-    let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
-    Ok((
-        sh_rec,
-        sf_rec,
-        Server::ServerH(sstate, cipher0, cipher_hs, cipher1),
-    ))
-}
-
-pub fn server_read_handshake(cfin_rec: &Bytes, st: Server) -> Result<Server, TLSError> {
-    match st {
-        Server::ServerH(sstate, _cipher0, cipher_hs, cipher1) => {
-            //println!("to decrypt");
-            let (cf, _cipher_hs) = decrypt_handshake(cfin_rec, cipher_hs)?;
-            //println!("decrypted");
-            let sstate = server_finish(&cf, sstate)?;
-            Ok(Server::Server1(sstate, cipher1))
-        }
-        _ => Err(INCORRECT_STATE),
+impl Server {
+    /// Start a new TLS handshake as server.
+    /// Note that Bertie servers only support a single ciphersuite at a time and
+    /// do not perform ciphersuite negotiation.
+    ///
+    /// This function takes the
+    /// * `ciphersuite` to use for this server
+    /// * `db` for the server database containing certificates and keys
+    /// * `client_hello` for the initial client hello message
+    /// * `entropy` for the randomness required in the handshake
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a three-tuple with the first element the
+    /// server hello record as bytes, the second the server finished record as bytes,
+    /// and the new [`Server`] state as the third element.
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn accept(
+        ciphersuite: Algorithms,
+        db: ServerDB,
+        client_hello: &Bytes,
+        entropy: Entropy,
+    ) -> Result<(Bytes, Bytes, Self), TLSError> {
+        let mut ch_rec = client_hello.clone();
+        ch_rec[2] = U8::from(0x03);
+        let ch = get_handshake_record(&ch_rec)?;
+        let (sh, sf, cipher0, cipher_hs, cipher1, sstate) =
+            server_init(ciphersuite, &ch, db, entropy)?;
+        let sh_rec = handshake_record(&sh)?;
+        let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
+        Ok((
+            sh_rec,
+            sf_rec,
+            Server::ServerH(sstate, cipher0, cipher_hs, cipher1),
+        ))
     }
-}
 
-pub fn server_write(d: AppData, st: Server) -> Result<(Bytes, Server), TLSError> {
-    match st {
-        Server::Server1(sstate, cipher1) => {
-            let (by, cipher1) = encrypt_data(d, 0, cipher1)?;
-            Ok((by, Server::Server1(sstate, cipher1)))
+    /// Read the next handshake Message.
+    ///
+    /// This function takes the current state and `handshake_bytes` and returns
+    /// the next state or a [`TLSError`].
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns the next [`Server`] state.
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn read_handshake(self, handshake_bytes: &Bytes) -> Result<Self, TLSError> {
+        match self {
+            Server::ServerH(sstate, _cipher0, cipher_hs, cipher1) => {
+                let (cf, _cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
+                let sstate = server_finish(&cf, sstate)?;
+                Ok(Server::Server1(sstate, cipher1))
+            }
+            _ => Err(INCORRECT_STATE),
         }
-        _ => Err(INCORRECT_STATE),
     }
-}
 
-pub fn server_read(d: &Bytes, st: Server) -> Result<(Option<AppData>, Server), TLSError> {
-    match st {
-        Server::Server1(sstate, cipher1) => {
-            let (ad, cipher1) = decrypt_data(d, cipher1)?;
-            Ok((Some(ad), Server::Server1(sstate, cipher1)))
+    /// Send application data to the client.
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a tuple with the first element the
+    /// encrypted `application_data` as bytes, and the new [`Server`] state as the second element.
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn write(self, application_data: AppData) -> Result<(Bytes, Self), TLSError> {
+        match self {
+            Server::Server1(sstate, cipher1) => {
+                let (by, cipher1) = encrypt_data(application_data, 0, cipher1)?;
+                Ok((by, Server::Server1(sstate, cipher1)))
+            }
+            _ => Err(INCORRECT_STATE),
         }
-        _ => Err(INCORRECT_STATE),
+    }
+
+    /// Read application data.
+    ///
+    /// This function can be used when the TLS handshake is complete, to read
+    /// application data from the client.
+    ///
+    /// It takes the current state and `application_data` and returns
+    /// the next state or a [`TLSError`].
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a tuple with the first element the
+    /// application data as bytes option, and the new [`Server`] state as the second element.
+    /// If there's no application data, the first element is [`None`].
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn read(self, application_data: &Bytes) -> Result<(Option<AppData>, Self), TLSError> {
+        match self {
+            Server::Server1(sstate, cipher1) => {
+                let (ad, cipher1) = decrypt_data(application_data, cipher1)?;
+                Ok((Some(ad), Server::Server1(sstate, cipher1)))
+            }
+            _ => Err(INCORRECT_STATE),
+        }
     }
 }

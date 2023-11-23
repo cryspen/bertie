@@ -5,12 +5,11 @@
 
 use bertie::{
     server::ServerDB,
-    tls13api::{client_write, server_accept, server_read, server_read_handshake, server_write},
     tls13crypto::{
         AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureKey, SignatureScheme,
     },
     tls13utils::{eq, random_bytes, AppData, Bytes},
-    Client,
+    Client, Server,
 };
 
 fn load_hex(s: &str) -> Bytes {
@@ -123,16 +122,16 @@ fn test_full_round_trip() {
             println!("Client0 Error {}", x);
             b = false;
         }
-        Ok((ch, client_state)) => {
+        Ok((ch, client)) => {
             println!("Client0 Complete");
-            match server_accept(TLS_CHACHA20_POLY1305_SHA256_X25519, db, &ch, ent_s) {
+            match Server::accept(TLS_CHACHA20_POLY1305_SHA256_X25519, db, &ch, ent_s) {
                 Err(x) => {
                     println!("ServerInit Error {}", x);
                     b = false;
                 }
-                Ok((sh, sf, sstate)) => {
+                Ok((sh, sf, server)) => {
                     println!("Server0 Complete");
-                    match client_state.read_handshake(&sh) {
+                    match client.read_handshake(&sh) {
                         Err(x) => {
                             println!("ServerHello Error {}", x);
                             b = false;
@@ -150,31 +149,29 @@ fn test_full_round_trip() {
                                 println!("ClientFinish State Error");
                                 b = false;
                             }
-                            Ok((Some(cf), cstate)) => {
+                            Ok((Some(cf), client)) => {
                                 println!("Client Complete");
-                                match server_read_handshake(&cf, sstate) {
+                                match server.read_handshake(&cf) {
                                     Err(x) => {
                                         println!("Server1 Error {}", x);
                                         b = false;
                                     }
-                                    Ok(sstate) => {
+                                    Ok(server) => {
                                         println!("Server Complete");
 
                                         // Send data from client to server.
                                         let data = Bytes::from(b"Hello server, here is the client");
-                                        let (ap, cstate) =
-                                            client_write(AppData::new(data.clone()), cstate)
-                                                .unwrap();
-                                        let (apo, sstate) = server_read(&ap, sstate).unwrap();
+                                        let (ap, client) =
+                                            client.write(AppData::new(data.clone())).unwrap();
+                                        let (apo, server) = server.read(&ap).unwrap();
                                         assert!(eq(&data, apo.unwrap().as_raw()));
 
                                         // Send data from server to client.
                                         let data =
                                             Bytes::from(b"Hello client, here is the server.");
-                                        let (ap, _sstate) =
-                                            server_write(AppData::new(data.clone()), sstate)
-                                                .unwrap();
-                                        let (application_data, _cstate) = cstate.read(&ap).unwrap();
+                                        let (ap, _server) =
+                                            server.write(AppData::new(data.clone())).unwrap();
+                                        let (application_data, _cstate) = client.read(&ap).unwrap();
                                         assert!(eq(&data, application_data.unwrap().as_raw()));
                                     }
                                 }

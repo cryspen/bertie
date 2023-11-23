@@ -214,7 +214,7 @@ where
         Entropy::from(&entropy)
     };
 
-    match server_accept(algorithms, db, &ch_rec, ent_s) {
+    match Server::accept(algorithms, db, &ch_rec, ent_s) {
         Err(x) => {
             println!("ServerInit Error {}", x);
             match x {
@@ -232,7 +232,7 @@ where
             }
             Err(x.into())
         }
-        Ok((sh, sf, sstate)) => {
+        Ok((sh, sf, server)) => {
             println!("Negotiation Complete");
             stream.write_record(sh)?;
             let ccs_rec = Bytes::from_hex("140303000101");
@@ -245,15 +245,15 @@ where
             //println!("Got CCS message");
             let cf_rec = stream.read_record()?;
             //println!("Got fin record");
-            let sstate = server_read_handshake(&cf_rec, sstate)?;
+            let server = server.read_handshake(&cf_rec)?;
             println!("Handshake Complete");
 
             let app_rec = stream.read_record()?;
-            let (_, sstate) = server_read(&app_rec, sstate)?;
+            let (_, server) = server.read(&app_rec)?;
             println!("Got HTTP Request");
 
             let http_get_resp = Bytes::from(response.as_bytes());
-            let (ap, _sstate) = server_write(AppData::new(http_get_resp), sstate)?;
+            let (ap, _sstate) = server.write(AppData::new(http_get_resp))?;
             stream.write_record(ap)?;
             println!("Sent HTTP Response: Hello from localhost");
 
