@@ -912,12 +912,15 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
 pub fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
     let sv = match algs.2 {
         SignatureScheme::RsaPssRsaSha256 => cv.clone(),
-        SignatureScheme::EcdsaSecp256r1Sha256 | SignatureScheme::ED25519 => {
+        SignatureScheme::EcdsaSecp256r1Sha256 => {
             if cv.len() != 64 {
                 return tlserr(parse_failed());
             } else {
                 ecdsa_signature(cv)?
             }
+        }
+        SignatureScheme::ED25519 => {
+            unimplemented!()
         }
     };
 

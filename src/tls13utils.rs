@@ -46,11 +46,6 @@ pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     else {Err(parse_failed())}
 }*/
 
-pub trait Declassify {
-    type T;
-    fn declassify(&self) -> Self::T;
-}
-
 #[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct U8(u8);
@@ -68,9 +63,8 @@ impl From<u8> for U8 {
     }
 }
 #[cfg(feature = "secret_integers")]
-impl Declassify for U8 {
-    type T = u8;
-    fn declassify(&self) -> u8 {
+impl U8 {
+    pub fn declassify(&self) -> u8 {
         self.0
     }
 }
@@ -129,9 +123,8 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
-impl Declassify for Bytes {
-    type T = Vec<u8>;
-    fn declassify(&self) -> Vec<u8> {
+impl Bytes {
+    pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
     }
 }

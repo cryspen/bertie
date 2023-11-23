@@ -5,8 +5,7 @@ use libcrux::{
 };
 
 use crate::{
-    eq, tls13cert, tlserr, Bytes, Declassify, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE,
-    UNSUPPORTED_ALGORITHM,
+    eq, tls13cert, tlserr, Bytes, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
 };
 
 pub type Random = Bytes; //was [U8;32]
@@ -245,7 +244,13 @@ pub fn sign(
     ent: Bytes, // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
 ) -> Result<Bytes, TLSError> {
     let sig = match alg {
-        SignatureScheme::EcdsaSecp256r1Sha256 | SignatureScheme::ED25519 => signature::sign(
+        SignatureScheme::EcdsaSecp256r1Sha256 => signature::sign(
+            to_libcrux_sig_alg(alg)?,
+            &input.declassify(),
+            &sk.declassify(),
+            &mut rand::thread_rng(),
+        ),
+        SignatureScheme::ED25519 => signature::sign(
             to_libcrux_sig_alg(alg)?,
             &input.declassify(),
             &sk.declassify(),
@@ -353,7 +358,7 @@ pub fn verify(
 /// Determine if given modulus conforms to one of the key sizes supported by
 /// `libcrux`.
 fn supported_rsa_key_size(n: &Bytes) -> Result<RsaPssKeySize, u8> {
-    let key_size = match n.len() {
+    let key_size = match n.len() as u16 {
         // The format includes an extra 0-byte in front to disambiguate from negative numbers
         257 => RsaPssKeySize::N2048,
         385 => RsaPssKeySize::N3072,
