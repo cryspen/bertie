@@ -199,7 +199,7 @@ where
     };
     let mut stream = RecordStream::new(stream);
 
-    let ch_rec = stream.read_record()?;
+    let client_hello = stream.read_record()?;
 
     let db = {
         let sni = Bytes::from(host.as_bytes());
@@ -207,14 +207,7 @@ where
         ServerDB::new(sni, Bytes::from(cert), SignatureKey::from(key), None)
     };
 
-    let ent_s = {
-        let mut entropy = [0u8; 64];
-        thread_rng().fill(&mut entropy);
-
-        Entropy::from(&entropy)
-    };
-
-    match Server::accept(algorithms, db, &ch_rec, ent_s) {
+    match Server::accept(algorithms, db, &client_hello, &mut thread_rng()) {
         Err(x) => {
             println!("ServerInit Error {}", x);
             match x {

@@ -11,7 +11,7 @@ path = "src/tls13client.rs"
 
 [dependencies]
 anyhow = "1"
-bertie = { path = "../" }
+bertie = { path = "../", features = ["test_utils"] }
 hex = "0.4.3"
 rand = "0.8.0"
 record = { path = "../record" }

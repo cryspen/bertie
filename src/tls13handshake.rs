@@ -6,8 +6,8 @@ use crate::{
     tls13crypto::{
         ae_iv_len, ae_key_len, hash, hash_len, hkdf_expand, hkdf_extract, hmac_tag, hmac_tag_len,
         hmac_verify, kem_decap, kem_encap, kem_keygen, kem_priv_len, sign, sign_rsa, verify,
-        zero_key, AeadAlgorithm, AeadKeyIV, Algorithms, Digest, Entropy, HashAlgorithm, KemSk, Key,
-        MacKey, Random, SignatureScheme, PSK,
+        zero_key, AeadAlgorithm, AeadKeyIV, Algorithms, Digest, HashAlgorithm, KemSk, Key, MacKey,
+        Random, SignatureScheme, PSK,
     },
     tls13formats::*,
     tls13record::*,
@@ -450,30 +450,28 @@ fn process_psk_binder_zero_rtt(
 
 fn get_server_hello(
     st: ServerPostClientHello,
-    ent: Entropy,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
     let ServerPostClientHello(cr, algs, sid, gx, server, tx) = st;
     let Algorithms(ha, ae, _sa, ks, _psk_mode, _zero_rtt) = algs;
-    if ent.len() < 32 + kem_priv_len(&ks) {
-        Err(INSUFFICIENT_ENTROPY)
-    } else {
-        let sr = ent.slice_range(0..32);
-        let (gxy, gy) = kem_encap(&ks, &gx, ent.slice_range(32..32 + kem_priv_len(&ks)))?;
-        let sh = server_hello(&algs, &sr, &sid, &gy)?;
-        let tx = transcript_add1(tx, &sh);
-        let th = get_transcript_hash(&tx)?;
-        let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &server.psk_opt, &th)?;
-        Ok((
-            sh,
-            duplex_cipher_state_hs(ae, shk, 0, chk, 0),
-            ServerPostServerHello(cr, sr, algs, server, ms, cfk, sfk, tx),
-        ))
-    }
+
+    let mut sr = [0u8; 32];
+    rng.fill_bytes(&mut sr);
+    let (gxy, gy) = kem_encap(&ks, &gx, rng)?;
+    let sh = server_hello(&algs, &sr.into(), &sid, &gy)?;
+    let tx = transcript_add1(tx, &sh);
+    let th = get_transcript_hash(&tx)?;
+    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &server.psk_opt, &th)?;
+    Ok((
+        sh,
+        duplex_cipher_state_hs(ae, shk, 0, chk, 0),
+        ServerPostServerHello(cr, sr.into(), algs, server, ms, cfk, sfk, tx),
+    ))
 }
 
 fn get_server_signature(
     st: ServerPostServerHello,
-    ent: Entropy,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
         HandshakeData,
@@ -493,7 +491,7 @@ fn get_server_signature(
         let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&th);
         let sig = match algs.sig_alg() {
             SignatureScheme::EcdsaSecp256r1Sha256 => {
-                sign(&algs.sig_alg(), &server.sk, &server.cert, &sigval, ent)?
+                sign(&algs.sig_alg(), &server.sk, &sigval, rng)?
             }
             SignatureScheme::RsaPssRsaSha256 => {
                 // To avoid cyclic dependencies between the modules we pull out
@@ -506,7 +504,7 @@ fn get_server_signature(
                     &pk_exponent,
                     cert_scheme,
                     &sigval,
-                    ent,
+                    rng,
                 )?
             }
             SignatureScheme::ED25519 => unimplemented!(),
@@ -582,7 +580,7 @@ pub fn server_init(
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    ent: Entropy,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
         HandshakeData,
@@ -595,13 +593,10 @@ pub fn server_init(
     TLSError,
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
-    //println!("put_client_hello");
-    let (sh, cipher_hs, st) =
-        get_server_hello(st, ent.slice(0, 32 + kem_priv_len(&algs.kem_alg())))?;
-    //println!("get_server_hello");
+    let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
     match algs.psk_mode() {
         false => {
-            let (ee, sc, scv, st) = get_server_signature(st, ent.slice(0, 32))?; //FIX: use 32 extra bytes
+            let (ee, sc, scv, st) = get_server_signature(st, rng)?;
             let (sfin, cipher1, st) = get_server_finished(st)?;
             let flight = handshake_concat(ee, &handshake_concat(sc, &handshake_concat(scv, &sfin)));
             Ok((sh, flight, cipher0, cipher_hs, cipher1, st))

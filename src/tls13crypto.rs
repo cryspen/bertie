@@ -10,7 +10,6 @@ use crate::tls13utils::{
 };
 
 pub(crate) type Random = Bytes; //was [U8;32]
-pub type Entropy = Bytes;
 pub type SignatureKey = Bytes;
 pub(crate) type PSK = Bytes;
 pub(crate) type Key = Bytes;
@@ -243,15 +242,15 @@ pub(crate) fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algor
 
 pub(crate) fn sign_rsa(
     sk: &Bytes,
-    pk_modulus: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
+    pk_modulus: &Bytes,
     pk_exponent: &Bytes,
     cert_scheme: SignatureScheme,
     input: &Bytes,
-    ent: Bytes, // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<Bytes, TLSError> {
     // salt must be same length as digest output length
     let mut salt = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut salt);
+    rng.fill_bytes(&mut salt);
 
     if !matches!(cert_scheme, SignatureScheme::RsaPssRsaSha256) {
         return tlserr(CRYPTO_ERROR); // XXX: Right error type?
@@ -281,22 +280,21 @@ pub(crate) fn sign_rsa(
 pub(crate) fn sign(
     alg: &SignatureScheme,
     sk: &Bytes,
-    cert: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
     input: &Bytes,
-    ent: Bytes, // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<Bytes, TLSError> {
     let sig = match alg {
         SignatureScheme::EcdsaSecp256r1Sha256 => signature::sign(
             to_libcrux_sig_alg(alg)?,
             &input.declassify(),
             &sk.declassify(),
-            &mut rand::thread_rng(),
+            rng,
         ),
         SignatureScheme::ED25519 => signature::sign(
             to_libcrux_sig_alg(alg)?,
             &input.declassify(),
             &sk.declassify(),
-            &mut rand::thread_rng(),
+            rng,
         ),
         SignatureScheme::RsaPssRsaSha256 => {
             panic!("wrong function, use sign_rsa")
@@ -429,10 +427,10 @@ pub(crate) fn kem_keygen(
 pub(crate) fn kem_encap(
     alg: &KemScheme,
     pk: &Bytes,
-    ent: Bytes,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(Bytes, Bytes), TLSError> {
     let pk = PublicKey::decode(to_libcrux_kem_alg(alg)?, &pk.declassify()).unwrap();
-    let res = kem::encapsulate(&pk, &mut rand::thread_rng());
+    let res = kem::encapsulate(&pk, rng);
     match res {
         Ok((gxy, gy)) => Ok((Bytes::from(gxy.encode()), Bytes::from(gy.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),

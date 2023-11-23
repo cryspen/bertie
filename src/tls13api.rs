@@ -194,13 +194,12 @@ impl Server {
         ciphersuite: Algorithms,
         db: ServerDB,
         client_hello: &Bytes,
-        entropy: Entropy,
+        rng: &mut (impl CryptoRng + RngCore),
     ) -> Result<(Bytes, Bytes, Self), TLSError> {
         let mut ch_rec = client_hello.clone();
         ch_rec[2] = U8::from(0x03);
         let ch = get_handshake_record(&ch_rec)?;
-        let (sh, sf, cipher0, cipher_hs, cipher1, sstate) =
-            server_init(ciphersuite, &ch, db, entropy)?;
+        let (sh, sf, cipher0, cipher_hs, cipher1, sstate) = server_init(ciphersuite, &ch, db, rng)?;
         let sh_rec = handshake_record(&sh)?;
         let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
         Ok((
