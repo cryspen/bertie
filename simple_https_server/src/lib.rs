@@ -253,7 +253,7 @@ where
             println!("Got HTTP Request");
 
             let http_get_resp = Bytes::from(response.as_bytes());
-            let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
+            let (ap, _sstate) = server_write(AppData::new(http_get_resp), sstate)?;
             stream.write_record(ap)?;
             println!("Sent HTTP Response: Hello from localhost");
 

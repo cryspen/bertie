@@ -508,11 +508,21 @@ pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeD
 #[derive(PartialEq)]
 pub struct AppData(Bytes);
 
-pub fn app_data(b: Bytes) -> AppData {
-    AppData(b)
-}
-pub fn app_data_bytes(a: AppData) -> Bytes {
-    a.0
+impl AppData {
+    /// Create new application data from raw bytes.
+    pub fn new(b: Bytes) -> Self {
+        Self(b)
+    }
+
+    /// Convert this application data into raw bytes
+    pub fn into_raw(self) -> Bytes {
+        self.0
+    }
+
+    /// Get a reference to the raw bytes.
+    pub fn as_raw(&self) -> &Bytes {
+        &self.0
+    }
 }
 
 pub fn random_bytes(len: usize) -> Bytes {

@@ -165,8 +165,12 @@ pub fn check_server_key_share(algs: &Algorithms, b: &Bytes) -> Result<Bytes, TLS
     Ok(b.slice_range(4..b.len()))
 }
 
-pub fn pre_shared_key(algs: &Algorithms, tkt: &Bytes) -> Result<(Bytes, usize), TLSError> {
-    let identities = lbytes2(&lbytes2(tkt)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
+pub fn pre_shared_key(
+    algs: &Algorithms,
+    session_ticket: &Bytes,
+) -> Result<(Bytes, usize), TLSError> {
+    let identities =
+        lbytes2(&lbytes2(session_ticket)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
     let binders = lbytes2(&lbytes1(&zero_key(&hash_alg(algs)))?)?;
     let ext = bytes2(0, 41).concat(&lbytes2(&identities.concat(&binders))?);
     Ok((ext, binders.len()))
@@ -617,12 +621,13 @@ pub fn find_handshake_message(ty: HandshakeType, payload: &HandshakeData, start:
     }
 }
 
-pub fn client_hello(
+/// Build a ClientHello message.
+pub(crate) fn client_hello(
     algs: &Algorithms,
     cr: &Random,
     gx: &KemPk,
     sn: &Bytes,
-    tkt: &Option<Bytes>,
+    session_ticket: &Option<Bytes>,
 ) -> Result<(HandshakeData, usize), TLSError> {
     let ver = bytes2(3, 3);
     let sid = lbytes1(&Bytes::zeroes(32))?;
@@ -635,10 +640,10 @@ pub fn client_hello(
     let ks = key_shares(algs, gx)?;
     let mut exts = sn.concat(&sv).concat(&sg).concat(&sa).concat(&ks);
     let mut trunc_len = 0;
-    match (psk_mode(algs), tkt) {
-        (true, Some(tkt)) => {
+    match (psk_mode(algs), session_ticket) {
+        (true, Some(session_ticket)) => {
             let pskm = psk_key_exchange_modes(algs)?;
-            let (psk, len) = pre_shared_key(algs, tkt)?;
+            let (psk, len) = pre_shared_key(algs, session_ticket)?;
             exts = exts.concat(&pskm).concat(&psk);
             trunc_len = len;
         }

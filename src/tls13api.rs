@@ -39,69 +39,105 @@ pub(crate) fn in_psk_mode(c: &Client) -> bool {
     }
 }
 
-/// Start a TLS handshake as client.
-/// Note that Bertie clients only support a single ciphersuite at a time and
-/// do not perform ciphersuite negotiation.
-///
-/// This function takes the
-/// * `ciphersuite` to use for this client
-/// * `server_name` for the server to connect to
-/// *
-pub fn client_connect(
-    ciphersuite: Algorithms,
-    server_name: &Bytes,
-    tkt: Option<Bytes>,
-    psk: Option<Key>,
-    ent: Entropy,
-) -> Result<(Bytes, Client), TLSError> {
-    let (ch, cipher0, cstate) = client_init(ciphersuite, server_name, tkt, psk, ent)?;
-    let mut ch_rec = handshake_record(&ch)?;
-    ch_rec[2] = U8::from(0x01);
-    Ok((ch_rec, Client::Client0(cstate, cipher0)))
-}
-
-// The following function reads handshake records and decrypts them using the TLS 1.3 record protocol
-// A slightly modified version would work for QUIC
-pub fn client_read_handshake(d: &Bytes, st: Client) -> Result<(Option<Bytes>, Client), TLSError> {
-    match st {
-        Client::Client0(cstate, cipher0) => {
-            let sf = get_handshake_record(d)?;
-            let (cipher1, cstate) = client_set_params(&sf, cstate)?;
-            let buf = handshake_data(Bytes::new());
-            Ok((None, Client::ClientH(cstate, cipher0, cipher1, buf)))
-        }
-        Client::ClientH(cstate, cipher0, cipher_hs, buf) => {
-            let (hd, cipher_hs) = decrypt_handshake(d, cipher_hs)?;
-            let buf = handshake_concat(buf, &hd);
-            if find_handshake_message(HandshakeType::Finished, &buf, 0) {
-                let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
-                let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
-                Ok((Some(cf_rec), Client::Client1(cstate, cipher1)))
-            } else {
-                Ok((None, Client::ClientH(cstate, cipher0, cipher_hs, buf)))
-            }
-        }
-        _ => Err(INCORRECT_STATE),
+impl Client {
+    /// Start a TLS handshake as client.
+    /// Note that Bertie clients only support a single ciphersuite at a time and
+    /// do not perform ciphersuite negotiation.
+    ///
+    /// This function takes the
+    /// * `ciphersuite` to use for this client
+    /// * `server_name` for the server to connect to
+    /// * `session_ticket` for an optional session ticket
+    /// * `psk` for an optional pre-shared-key
+    /// * `entropy` for the randomness required in the handshake
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a tuple with the first element the
+    /// client hello record as bytes, and the [`Client`] state as the second element.
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn connect(
+        ciphersuite: Algorithms,
+        server_name: &Bytes,
+        session_ticket: Option<Bytes>,
+        psk: Option<Key>,
+        entropy: Entropy,
+    ) -> Result<(Bytes, Self), TLSError> {
+        let (ch, cipher0, cstate) =
+            client_init(ciphersuite, server_name, session_ticket, psk, entropy)?;
+        let mut client_hello = handshake_record(&ch)?;
+        client_hello[2] = U8::from(0x01);
+        Ok((client_hello, Self::Client0(cstate, cipher0)))
     }
-}
 
-// Reads AppData and Tickets
-pub fn client_read(d: &Bytes, st: Client) -> Result<(Option<AppData>, Client), TLSError> {
-    match st {
-        Client::Client1(cstate, cipher1) => {
-            let (ty, hd, cipher1) = decrypt_data_or_hs(d, cipher1)?;
-            match ty {
-                ContentType::ApplicationData => {
-                    Ok((Some(app_data(hd)), Client::Client1(cstate, cipher1)))
-                }
-                ContentType::Handshake => {
-                    println!("Received Session Ticket");
-                    Ok((None, Client::Client1(cstate, cipher1)))
-                }
-                _ => Err(PARSE_FAILED),
+    // The following function reads handshake records and decrypts them using the TLS 1.3 record protocol
+    // A slightly modified version would work for QUIC
+    /// Read the next handshake Message.
+    ///
+    /// This function takes the current state and `handshake_bytes` and returns
+    /// the next state or a [`TLSError`].
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a tuple with the first element the
+    /// next client handshake message as bytes option, and the next [`Client`] state as
+    /// the second element.
+    /// If there's no handshake message, the first element is [`None`].
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn read_handshake(
+        self,
+        handshake_bytes: &Bytes,
+    ) -> Result<(Option<Bytes>, Self), TLSError> {
+        match self {
+            Self::Client0(state, cipher_state) => {
+                let sf = get_handshake_record(handshake_bytes)?;
+                let (cipher1, cstate) = client_set_params(&sf, state)?;
+                let buf = handshake_data(Bytes::new());
+                Ok((None, Self::ClientH(cstate, cipher_state, cipher1, buf)))
             }
+            Self::ClientH(cstate, cipher0, cipher_hs, buf) => {
+                let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
+                let buf = handshake_concat(buf, &hd);
+                if find_handshake_message(HandshakeType::Finished, &buf, 0) {
+                    let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
+                    let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
+                    Ok((Some(cf_rec), Self::Client1(cstate, cipher1)))
+                } else {
+                    Ok((None, Self::ClientH(cstate, cipher0, cipher_hs, buf)))
+                }
+            }
+            _ => Err(INCORRECT_STATE),
         }
-        _ => Err(INCORRECT_STATE),
+    }
+
+    /// Read application data and session tickets.
+    ///
+    /// This function can be used when the TLS handshake is complete, to read
+    /// application data and session tickets from the server.
+    ///
+    /// It takes the current state and `message_bytes` and returns
+    /// the next state or a [`TLSError`].
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, the function returns a tuple with the first element the
+    /// application data as bytes option, and the [`Client`] state as the second element.
+    /// If there's no application data, the first element is [`None`].
+    /// If an error occurs, it returns a [`TLSError`].
+    pub fn read(self, message_bytes: &Bytes) -> Result<(Option<AppData>, Self), TLSError> {
+        match self {
+            Self::Client1(state, cipher1) => {
+                let (ty, hd, cipher1) = decrypt_data_or_hs(message_bytes, cipher1)?;
+                match ty {
+                    ContentType::ApplicationData => {
+                        Ok((Some(AppData::new(hd)), Client::Client1(state, cipher1)))
+                    }
+                    ContentType::Handshake => {
+                        println!("Received Session Ticket");
+                        Ok((None, Client::Client1(state, cipher1)))
+                    }
+                    _ => Err(PARSE_FAILED),
+                }
+            }
+            _ => Err(INCORRECT_STATE),
+        }
     }
 }
 
