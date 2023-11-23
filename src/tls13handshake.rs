@@ -7,7 +7,7 @@ use crate::{
         ae_iv_len, ae_key_len, hash, hash_len, hkdf_expand, hkdf_extract, hmac_tag, hmac_tag_len,
         hmac_verify, kem_decap, kem_encap, kem_keygen, kem_priv_len, sign, sign_rsa, verify,
         zero_key, AeadAlgorithm, AeadKeyIV, Algorithms, Digest, HashAlgorithm, KemSk, Key, MacKey,
-        Random, SignatureScheme, PSK,
+        Random, SignatureScheme, Psk,
     },
     tls13formats::*,
     tls13record::*,
@@ -99,7 +99,7 @@ pub fn derive_hk_ms(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
     gxy: &Key,
-    psko: &Option<PSK>,
+    psko: &Option<Psk>,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
     let psk = if let Some(k) = psko {
@@ -169,7 +169,7 @@ PostServerFinished -> PostClientFinished
 There are no optional steps, all states must be traversed, even if the traversals are NOOPS.
 See "put_psk_skip_server_signature" below */
 
-pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<PSK>, Transcript);
+pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<Psk>, Transcript);
 pub struct ClientPostServerHello(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
@@ -209,7 +209,7 @@ fn build_client_hello(
     algs0: Algorithms,
     sn: &Bytes,
     tkt: Option<Bytes>,
-    psk: Option<PSK>,
+    psk: Option<Psk>,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
@@ -237,7 +237,7 @@ fn compute_psk_binder_zero_rtt(
     algs0: Algorithms,
     ch: HandshakeData,
     trunc_len: usize,
-    psk: &Option<PSK>,
+    psk: &Option<Psk>,
     tx: Transcript,
 ) -> Result<(HandshakeData, Option<ClientCipherState0>, Transcript), TLSError> {
     let Algorithms(ha, ae, _sa, _ks, psk_mode, zero_rtt) = algs0;
@@ -360,7 +360,7 @@ pub fn client_init(
     algs: Algorithms,
     sn: &Bytes,
     tkt: Option<Bytes>,
-    psk: Option<PSK>,
+    psk: Option<Psk>,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
@@ -427,7 +427,7 @@ fn process_psk_binder_zero_rtt(
     algs: Algorithms,
     th_trunc: Digest,
     th: Digest,
-    psko: &Option<PSK>,
+    psko: &Option<Psk>,
     bindero: Option<Bytes>,
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     let Algorithms(ha, ae, _sa, _ks, psk_mode, zero_rtt) = algs;

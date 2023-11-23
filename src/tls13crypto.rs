@@ -11,12 +11,12 @@ use crate::tls13utils::{
 
 pub(crate) type Random = Bytes; //was [U8;32]
 pub type SignatureKey = Bytes;
-pub(crate) type PSK = Bytes;
+pub(crate) type Psk = Bytes;
 pub(crate) type Key = Bytes;
 pub(crate) type MacKey = Bytes;
 pub(crate) type KemPk = Bytes;
 pub(crate) type KemSk = Bytes;
-pub(crate) type HMAC = Bytes;
+pub(crate) type Hmac = Bytes;
 pub(crate) type Digest = Bytes;
 pub(crate) type AeadKey = Bytes;
 pub(crate) type AeadIV = Bytes;
@@ -68,7 +68,7 @@ pub(crate) fn hmac_tag_len(alg: &HashAlgorithm) -> usize {
     hash_len(alg)
 }
 
-pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<HMAC, TLSError> {
+pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac::hmac(
         to_libcrux_hmac_alg(alg)?,
         &mk.declassify(),
@@ -260,7 +260,7 @@ pub(crate) fn sign_rsa(
         return tlserr(UNSUPPORTED_ALGORITHM);
     }
 
-    let key_size = supported_rsa_key_size(&pk_modulus)?;
+    let key_size = supported_rsa_key_size(pk_modulus)?;
 
     let pk =
         RsaPssPublicKey::new(key_size, &pk_modulus.declassify()[1..]).map_err(|_| CRYPTO_ERROR)?;
