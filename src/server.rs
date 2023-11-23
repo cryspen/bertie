@@ -7,8 +7,8 @@
 //! * optional PSKs
 
 use crate::{
-    check_eq, eq, parse_failed, psk_mode, Algorithms, Bytes, SignatureKey, TLSError, PSK,
-    PSK_MODE_MISMATCH,
+    tls13crypto::{Algorithms, SignatureKey, PSK},
+    tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
 /// The Server Database
@@ -55,7 +55,7 @@ pub(crate) fn lookup_db(
     tkt: &Option<Bytes>,
 ) -> Result<ServerInfo, TLSError> {
     if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
-        match (psk_mode(&ciphersuite), tkt, &db.psk_opt) {
+        match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
             (true, Some(ctkt), Some((stkt, psk))) => {
                 check_eq(ctkt, &stkt)?;
                 let server = ServerInfo {

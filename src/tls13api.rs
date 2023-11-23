@@ -8,7 +8,8 @@
 //!           core of the protocol starts here.
 
 use crate::{
-    tls13crypto::*, tls13formats::*, tls13handshake::*, tls13record::*, tls13utils::*, ServerDB,
+    server::ServerDB, tls13crypto::*, tls13formats::*, tls13handshake::*, tls13record::*,
+    tls13utils::*,
 };
 
 /// The Client handshake state.
@@ -33,9 +34,9 @@ pub enum Client {
 /// Returns `true` if the client is in PSK mode and `false` otherwise.
 pub(crate) fn in_psk_mode(c: &Client) -> bool {
     match c {
-        Client::Client0(cstate, _) => psk_mode(&algs_post_client_hello(cstate)),
-        Client::ClientH(cstate, _, _, _) => psk_mode(&algs_post_server_hello(cstate)),
-        Client::Client1(cstate, _) => psk_mode(&algs_post_client_finished(cstate)),
+        Client::Client0(cstate, _) => algs_post_client_hello(cstate).psk_mode(),
+        Client::ClientH(cstate, _, _, _) => algs_post_server_hello(cstate).psk_mode(),
+        Client::Client1(cstate, _) => algs_post_client_finished(cstate).psk_mode(),
     }
 }
 

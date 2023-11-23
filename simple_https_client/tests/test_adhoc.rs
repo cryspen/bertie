@@ -6,7 +6,7 @@
 
 use std::io::{Cursor, Read, Write};
 
-use bertie::*;
+use bertie::tls13crypto::{AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureScheme};
 use simple_https_client::tls13client;
 
 struct Stream<'a> {
@@ -55,7 +55,7 @@ fn test_adhoc() {
         let _ = tls13client(
             "127.0.0.1",
             stream,
-            Algorithms(
+            Algorithms::new(
                 HashAlgorithm::SHA256,
                 AeadAlgorithm::Chacha20Poly1305,
                 SignatureScheme::EcdsaSecp256r1Sha256,

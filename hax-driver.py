@@ -44,6 +44,12 @@ typecheck_parser.add_argument(
     help="Lax typecheck the code only",
 )
 typecheck_parser.add_argument(
+    "--admit",
+    action="store_true",
+    dest="admit",
+    help="Set admit_smt_queries to true for typechecking",
+)
+typecheck_parser.add_argument(
     "--clean",
     action="store_true",
     dest="clean",
@@ -72,10 +78,11 @@ elif options.sub == "typecheck":
     custom_env = {}
     if options.lax:
         custom_env.update({"OTHERFLAGS": "--lax"})
+    if options.admit:
+        custom_env.update({"OTHERFLAGS": "--admit_smt_queries true"})
     if options.clean:
-        # shell(["rm", "-f", "proofs/fstar/extraction/.depend"])
         shell(["make", "-C", "proofs/fstar/extraction/", "clean"])
-    shell(["make", "-C", "proofs/fstar/extraction/"], custom_env)
+    shell(["make", "-C", "proofs/fstar/extraction/"], env=custom_env)
     exit(0)
 else:
     parser.print_help()

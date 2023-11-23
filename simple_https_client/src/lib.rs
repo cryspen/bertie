@@ -16,7 +16,7 @@ use record::{AppError, RecordStream};
 use tracing::info;
 
 #[allow(dead_code)]
-pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -25,7 +25,7 @@ pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -34,7 +34,7 @@ pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algo
     false,
 );
 
-pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
+pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
@@ -43,7 +43,7 @@ pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithm
     false,
 );
 
-pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -52,7 +52,7 @@ pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: Algorithms = Algori
     false,
 );
 
-pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms(
+pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
@@ -61,7 +61,7 @@ pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -70,7 +70,7 @@ pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA256_Aes128Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms(
+pub const SHA256_Aes128Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
@@ -79,7 +79,7 @@ pub const SHA256_Aes128Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA256_Aes128Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
+pub const SHA256_Aes128Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
@@ -88,7 +88,7 @@ pub const SHA256_Aes128Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA384_Aes256Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
+pub const SHA384_Aes256Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::RsaPssRsaSha256,
@@ -97,7 +97,7 @@ pub const SHA384_Aes256Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -106,7 +106,7 @@ pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA384_Aes256Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms(
+pub const SHA384_Aes256Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::RsaPssRsaSha256,
@@ -115,7 +115,7 @@ pub const SHA384_Aes256Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms(
     false,
 );
 
-pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA384,
     AeadAlgorithm::Aes256Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,

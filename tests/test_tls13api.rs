@@ -1,9 +1,17 @@
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
 
-use bertie::*;
-
 // These are the sample TLS 1.3 traces taken from RFC 8448
+
+use bertie::{
+    server::ServerDB,
+    tls13api::{client_write, server_accept, server_read, server_read_handshake, server_write},
+    tls13crypto::{
+        AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureKey, SignatureScheme,
+    },
+    tls13utils::{eq, random_bytes, AppData, Bytes},
+    Client,
+};
 
 fn load_hex(s: &str) -> Bytes {
     let s_no_ws: String = s.split_whitespace().collect();
@@ -65,7 +73,7 @@ const ECDSA_P256_SHA256_Key: [u8; 32] = [
     0xDB, 0x7A, 0x36, 0x20, 0x08, 0xE9, 0x52, 0xEE, 0xDB, 0xCE, 0xAC, 0x3B, 0x26, 0xF9, 0x20, 0xBD,
 ];
 
-const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
+const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
@@ -74,7 +82,7 @@ const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
     false,
 );
 
-const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
+const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -82,7 +90,7 @@ const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
     false,
     false,
 );
-const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms(
+const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -105,7 +113,7 @@ fn test_full_round_trip() {
     let db = ServerDB::new(
         sn_,
         Bytes::from(&ECDSA_P256_SHA256_CERT),
-        bertie::tls13crypto::SignatureKey::from(&ECDSA_P256_SHA256_Key),
+        SignatureKey::from(&ECDSA_P256_SHA256_Key),
         None,
     );
 

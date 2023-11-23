@@ -204,12 +204,12 @@ let ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKe
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist55:Rust_primitives.Hax.t_Never =
+          let* hoist64:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist55)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist64)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit
@@ -265,19 +265,19 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) : Core.Result
               <:
               t_Slice Bertie.Tls13utils.t_U8)
         in
-        let* hoist68:Bertie.Tls13utils.t_U32 =
+        let* hoist77:Bertie.Tls13utils.t_U32 =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__U32__from_be_bytes u32word
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_U32 u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist67:Rust_primitives.Hax.t_Never =
+            let* hoist76:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result usize u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist67)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist76)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
               Bertie.Tls13utils.t_U32
@@ -288,10 +288,10 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) : Core.Result
               Bertie.Tls13utils.t_U32
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist69:u32 = Bertie.Tls13utils.impl__U32__declassify hoist68 in
-          let hoist70:usize = cast (hoist69 <: u32) <: usize in
-          let hoist71:usize = hoist70 >>! ((sz 4 -! len <: usize) *! sz 8 <: usize) in
-          Core.Result.Result.v_Ok hoist71)
+        (let hoist78:u32 = Bertie.Tls13utils.impl__U32__declassify hoist77 in
+          let hoist79:usize = cast (hoist78 <: u32) <: usize in
+          let hoist80:usize = hoist79 >>! ((sz 4 -! len <: usize) *! sz 8 <: usize) in
+          Core.Result.Result.v_Ok hoist80)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
           (Core.Result.t_Result usize u8))
@@ -311,12 +311,12 @@ let length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_Result
             Core.Ops.Try_trait.f_branch (short_length b offset <: Core.Result.t_Result usize u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist72:Rust_primitives.Hax.t_Never =
+            let* hoist81:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (usize & usize) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist72)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist81)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & usize) u8) usize
           | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -337,12 +337,12 @@ let length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_Result
             Core.Ops.Try_trait.f_branch (long_length b offset len <: Core.Result.t_Result usize u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist73:Rust_primitives.Hax.t_Never =
+            let* hoist82:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (usize & usize) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist73)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist82)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & usize) u8) usize
           | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -362,12 +362,12 @@ let read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_
           Core.Ops.Try_trait.f_branch (check_tag b offset 2uy <: Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist74:Rust_primitives.Hax.t_Never =
+          let* hoist83:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist74)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist83)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -381,12 +381,12 @@ let read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_
           Core.Ops.Try_trait.f_branch (length b offset <: Core.Result.t_Result (usize & usize) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist75:Rust_primitives.Hax.t_Never =
+          let* hoist84:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist75)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist84)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) (usize & usize)
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -409,12 +409,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist76:Rust_primitives.Hax.t_Never =
+          let* hoist85:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist76)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist85)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -433,12 +433,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist77:Rust_primitives.Hax.t_Never =
+          let* hoist86:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist77)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist86)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -457,12 +457,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist78:Rust_primitives.Hax.t_Never =
+          let* hoist87:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist78)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist87)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -481,12 +481,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist79:Rust_primitives.Hax.t_Never =
+          let* hoist88:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist79)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist88)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -505,12 +505,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist80:Rust_primitives.Hax.t_Never =
+          let* hoist89:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist80)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist89)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -529,12 +529,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
               Core.Result.t_Result (usize & usize) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist81:Rust_primitives.Hax.t_Never =
+          let* hoist90:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist81)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist90)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -591,7 +591,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                     Core.Result.t_Result Prims.unit u8)
               with
               | Core.Ops.Control_flow.ControlFlow_Break residual ->
-                let* hoist82:Rust_primitives.Hax.t_Never =
+                let* hoist91:Rust_primitives.Hax.t_Never =
                   Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                       <:
@@ -599,7 +599,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                         u8)
                 in
                 Core.Ops.Control_flow.ControlFlow_Continue
-                (Rust_primitives.Hax.never_to_any hoist82)
+                (Rust_primitives.Hax.never_to_any hoist91)
                 <:
                 Core.Ops.Control_flow.t_ControlFlow
                   (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
@@ -619,7 +619,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                     Core.Result.t_Result (usize & usize) u8)
               with
               | Core.Ops.Control_flow.ControlFlow_Break residual ->
-                let* hoist83:Rust_primitives.Hax.t_Never =
+                let* hoist92:Rust_primitives.Hax.t_Never =
                   Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                       <:
@@ -627,7 +627,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                         u8)
                 in
                 Core.Ops.Control_flow.ControlFlow_Continue
-                (Rust_primitives.Hax.never_to_any hoist83)
+                (Rust_primitives.Hax.never_to_any hoist92)
                 <:
                 Core.Ops.Control_flow.t_ControlFlow
                   (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
@@ -676,7 +676,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                     Core.Result.t_Result Prims.unit u8)
               with
               | Core.Ops.Control_flow.ControlFlow_Break residual ->
-                let* hoist84:Rust_primitives.Hax.t_Never =
+                let* hoist93:Rust_primitives.Hax.t_Never =
                   Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                       <:
@@ -684,7 +684,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                         u8)
                 in
                 Core.Ops.Control_flow.ControlFlow_Continue
-                (Rust_primitives.Hax.never_to_any hoist84)
+                (Rust_primitives.Hax.never_to_any hoist93)
                 <:
                 Core.Ops.Control_flow.t_ControlFlow
                   (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
@@ -754,12 +754,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist85:Rust_primitives.Hax.t_Never =
+          let* hoist94:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist85)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist94)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -779,12 +779,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist86:Rust_primitives.Hax.t_Never =
+          let* hoist95:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist86)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist95)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -803,12 +803,12 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist87:Rust_primitives.Hax.t_Never =
+          let* hoist96:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist87)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist96)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -868,12 +868,12 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist88:Rust_primitives.Hax.t_Never =
+          let* hoist97:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist88)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist97)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -892,12 +892,12 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist89:Rust_primitives.Hax.t_Never =
+          let* hoist98:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist89)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist98)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -916,12 +916,12 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist90:Rust_primitives.Hax.t_Never =
+          let* hoist99:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist90)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist99)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -940,12 +940,12 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist91:Rust_primitives.Hax.t_Never =
+          let* hoist100:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist91)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist100)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -966,12 +966,12 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist92:Rust_primitives.Hax.t_Never =
+          let* hoist101:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist92)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist101)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -990,12 +990,12 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist93:Rust_primitives.Hax.t_Never =
+          let* hoist102:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist93)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist102)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -1037,12 +1037,12 @@ let cert_public_key
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist94:Rust_primitives.Hax.t_Never =
+            let* hoist103:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist94)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist103)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8)
@@ -1073,12 +1073,12 @@ let cert_public_key
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist95:Rust_primitives.Hax.t_Never =
+            let* hoist104:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist95)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist104)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8)
@@ -1109,12 +1109,12 @@ let skip_sequence (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist96:Rust_primitives.Hax.t_Never =
+          let* hoist105:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist96)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist105)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -1128,12 +1128,12 @@ let skip_sequence (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t
           Core.Ops.Try_trait.f_branch (length b offset <: Core.Result.t_Result (usize & usize) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist97:Rust_primitives.Hax.t_Never =
+          let* hoist106:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist97)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist106)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) (usize & usize)
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -1156,124 +1156,6 @@ let verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes)
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist98:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist98)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-      in
-      let* hoist100:usize =
-        match
-          Core.Ops.Try_trait.f_branch (read_sequence_header cert offset
-              <:
-              Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist99:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist99)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-      in
-      let offset:usize = hoist100 in
-      let* hoist102:usize =
-        match
-          Core.Ops.Try_trait.f_branch (read_version_number cert offset
-              <:
-              Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist101:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist101)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-      in
-      let offset:usize = hoist102 in
-      let* hoist104:usize =
-        match
-          Core.Ops.Try_trait.f_branch (read_integer cert offset <: Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist103:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist103)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-      in
-      let offset:usize = hoist104 in
-      let* hoist106:usize =
-        match
-          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist105:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist105)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-            usize
-      in
-      let offset:usize = hoist106 in
-      let* hoist108:usize =
-        match
-          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist107:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
@@ -1291,18 +1173,19 @@ let verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes)
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
             usize
       in
-      let offset:usize = hoist108 in
-      let* hoist110:usize =
+      let* hoist109:usize =
         match
-          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
+          Core.Ops.Try_trait.f_branch (read_sequence_header cert offset
+              <:
+              Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist109:Rust_primitives.Hax.t_Never =
+          let* hoist108:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist109)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist108)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -1314,18 +1197,135 @@ let verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes)
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
             usize
       in
-      let offset:usize = hoist110 in
-      let* hoist112:usize =
+      let offset:usize = hoist109 in
+      let* hoist111:usize =
         match
-          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
+          Core.Ops.Try_trait.f_branch (read_version_number cert offset
+              <:
+              Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist111:Rust_primitives.Hax.t_Never =
+          let* hoist110:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist111)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist110)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+      in
+      let offset:usize = hoist111 in
+      let* hoist113:usize =
+        match
+          Core.Ops.Try_trait.f_branch (read_integer cert offset <: Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist112:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist112)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+      in
+      let offset:usize = hoist113 in
+      let* hoist115:usize =
+        match
+          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist114:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist114)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+      in
+      let offset:usize = hoist115 in
+      let* hoist117:usize =
+        match
+          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist116:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist116)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+      in
+      let offset:usize = hoist117 in
+      let* hoist119:usize =
+        match
+          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist118:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist118)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+            usize
+      in
+      let offset:usize = hoist119 in
+      let* hoist121:usize =
+        match
+          Core.Ops.Try_trait.f_branch (skip_sequence cert offset <: Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist120:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist120)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -1338,7 +1338,7 @@ let verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes)
             usize
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let offset:usize = hoist112 in
+      (let offset:usize = hoist121 in
         read_spki cert offset)
       <:
       Core.Ops.Control_flow.t_ControlFlow

@@ -1,11 +1,15 @@
 #[cfg(test)]
 mod internal_tests {
 
-    use crate::tls13formats::*;
-    use crate::tls13utils::*;
-    use crate::*;
-    //use crate::tls13record::*;
     use crate::tls13handshake::*;
+    use crate::tls13utils::*;
+    use crate::{
+        tls13crypto::{
+            hash, hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random,
+            SignatureScheme,
+        },
+        tls13formats::*,
+    };
 
     // These are the sample TLS 1.3 traces taken from RFC 8448
 
@@ -308,7 +312,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_client_hello_roundtrip() {
-        let cr: Random = Random::new();
+        let cr = Random::new();
         let gx = Bytes::from_hex(client_x25519_pub);
         let sn = Bytes::zeroes(23);
         let ch = crate::tls13formats::client_hello(
@@ -499,13 +503,13 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             _ => {}
         }
-        let ch: Bytes = Bytes::from_hex(client_hello);
-        let sh: Bytes = Bytes::from_hex(server_hello);
-        let ee: Bytes = Bytes::from_hex(encrypted_extensions);
-        let sc: Bytes = Bytes::from_hex(server_certificate);
-        let cv: Bytes = Bytes::from_hex(server_certificate_verify);
-        let sf: Bytes = Bytes::from_hex(server_finished);
-        let gxy: Key = Bytes::from_hex(shared_secret);
+        let ch = Bytes::from_hex(client_hello);
+        let sh = Bytes::from_hex(server_hello);
+        let ee = Bytes::from_hex(encrypted_extensions);
+        let sc = Bytes::from_hex(server_certificate);
+        let cv = Bytes::from_hex(server_certificate_verify);
+        let sf = Bytes::from_hex(server_finished);
+        let gxy = Bytes::from_hex(shared_secret);
         let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = TLS_AES_128_GCM_SHA256_X25519_RSA;
         let tx = ch.concat(&sh);
         let tx_hash = hash(&ha, &tx);
