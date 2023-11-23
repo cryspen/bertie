@@ -11,6 +11,7 @@ use bertie::{
     tls13utils::{eq, random_bytes, AppData, Bytes},
     Client, Server,
 };
+use rand::{CryptoRng, RngCore};
 
 fn load_hex(s: &str) -> Bytes {
     let s_no_ws: String = s.split_whitespace().collect();
@@ -98,11 +99,38 @@ const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms::new(
     false,
 );
 
+struct TestRng {
+    bytes: Vec<u8>,
+}
+
+impl RngCore for TestRng {
+    fn next_u32(&mut self) -> u32 {
+        todo!()
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        todo!()
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        dest.copy_from_slice(self.bytes.drain(0..dest.len()).as_ref());
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
+        dest.copy_from_slice(self.bytes.drain(0..dest.len()).as_ref());
+        Ok(())
+    }
+}
+
+impl CryptoRng for TestRng {}
+
 #[test]
 fn test_full_round_trip() {
     let cr = random_bytes(32);
-    let x = load_hex(client_x25519_priv);
-    let ent_c = cr.concat(&x);
+    let x = cr.concat(&load_hex(client_x25519_priv));
+    let mut client_rng = TestRng {
+        bytes: x.declassify(),
+    };
     let sn = load_hex("6c 6f 63 61 6c 68 6f 73 74");
     let sn_ = load_hex("6c 6f 63 61 6c 68 6f 73 74");
     let sr = random_bytes(32);
@@ -117,7 +145,13 @@ fn test_full_round_trip() {
     );
 
     let mut b = true;
-    match Client::connect(TLS_CHACHA20_POLY1305_SHA256_X25519, &sn, None, None, ent_c) {
+    match Client::connect(
+        TLS_CHACHA20_POLY1305_SHA256_X25519,
+        &sn,
+        None,
+        None,
+        &mut client_rng,
+    ) {
         Err(x) => {
             println!("Client0 Error {}", x);
             b = false;

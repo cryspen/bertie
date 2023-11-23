@@ -1,3 +1,5 @@
+use rand::{CryptoRng, RngCore};
+
 use crate::{
     server::{lookup_db, ServerDB, ServerInfo},
     tls13cert::{cert_public_key, rsa_public_key, verification_key_from_cert},
@@ -203,12 +205,12 @@ pub struct ServerPostClientFinished(Random, Random, Algorithms, Key, Transcript)
 
 /* TLS 1.3 Client Side Handshake Functions */
 
-fn get_client_hello(
+fn build_client_hello(
     algs0: Algorithms,
     sn: &Bytes,
     tkt: Option<Bytes>,
     psk: Option<PSK>,
-    ent: Entropy,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
         HandshakeData,
@@ -218,20 +220,17 @@ fn get_client_hello(
     TLSError,
 > {
     let gx_len = kem_priv_len(&algs0.kem_alg());
-    if ent.len() < 32 + gx_len {
-        Err(INSUFFICIENT_ENTROPY)
-    } else {
-        let tx = transcript_empty(algs0.hash_alg());
-        let cr = ent.slice_range(0..32);
-        let (x, gx) = kem_keygen(&algs0.kem_alg(), ent.slice_range(32..32 + gx_len))?;
-        let (ch, trunc_len) = client_hello(&algs0, &cr, &gx, sn, &tkt)?;
-        let (nch, cipher0, tx_ch) = compute_psk_binder_zero_rtt(algs0, ch, trunc_len, &psk, tx)?;
-        Ok((
-            nch,
-            cipher0,
-            ClientPostClientHello(cr, algs0, x, psk, tx_ch),
-        ))
-    }
+    let tx = transcript_empty(algs0.hash_alg());
+    let mut cr = [0u8; 32];
+    rng.fill_bytes(&mut cr);
+    let (x, gx) = kem_keygen(&algs0.kem_alg(), rng)?;
+    let (ch, trunc_len) = client_hello(&algs0, &cr.into(), &gx, sn, &tkt)?;
+    let (nch, cipher0, tx_ch) = compute_psk_binder_zero_rtt(algs0, ch, trunc_len, &psk, tx)?;
+    Ok((
+        nch,
+        cipher0,
+        ClientPostClientHello(cr.into(), algs0, x, psk, tx_ch),
+    ))
 }
 
 fn compute_psk_binder_zero_rtt(
@@ -362,7 +361,7 @@ pub fn client_init(
     sn: &Bytes,
     tkt: Option<Bytes>,
     psk: Option<PSK>,
-    ent: Entropy,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
         HandshakeData,
@@ -371,7 +370,7 @@ pub fn client_init(
     ),
     TLSError,
 > {
-    get_client_hello(algs, sn, tkt, psk, ent)
+    build_client_hello(algs, sn, tkt, psk, rng)
 }
 
 pub fn client_set_params(

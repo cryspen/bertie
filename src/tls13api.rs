@@ -7,6 +7,8 @@
 //!           We will add a more usable API on top in future. But the verifiable
 //!           core of the protocol starts here.
 
+use rand::{CryptoRng, RngCore};
+
 use crate::{
     server::ServerDB, tls13crypto::*, tls13formats::*, tls13handshake::*, tls13record::*,
     tls13utils::*,
@@ -61,10 +63,10 @@ impl Client {
         server_name: &Bytes,
         session_ticket: Option<Bytes>,
         psk: Option<Key>,
-        entropy: Entropy,
+        rng: &mut (impl CryptoRng + RngCore),
     ) -> Result<(Bytes, Self), TLSError> {
         let (ch, cipher0, cstate) =
-            client_init(ciphersuite, server_name, session_ticket, psk, entropy)?;
+            client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
         let mut client_hello = handshake_record(&ch)?;
         client_hello[2] = U8::from(0x01);
         Ok((client_hello, Self::Client0(cstate, cipher0)))

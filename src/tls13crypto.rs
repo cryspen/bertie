@@ -3,28 +3,30 @@ use libcrux::{
     signature::rsa_pss::{RsaPssKeySize, RsaPssPublicKey},
     *,
 };
+use rand::{CryptoRng, RngCore};
 
 use crate::tls13utils::{
     eq, tlserr, Bytes, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
 };
 
-pub type Random = Bytes; //was [U8;32]
+pub(crate) type Random = Bytes; //was [U8;32]
 pub type Entropy = Bytes;
 pub type SignatureKey = Bytes;
-pub type PSK = Bytes;
-pub type Key = Bytes;
-pub type MacKey = Bytes;
-pub type KemPk = Bytes;
-pub type KemSk = Bytes;
-pub type HMAC = Bytes;
-pub type Digest = Bytes;
-pub type AeadKey = Bytes;
-pub type AeadIV = Bytes;
-pub type AeadKeyIV = (Bytes, Bytes);
-pub type VerificationKey = Bytes;
-pub type RsaVerificationKey = (Bytes, Bytes); // N, e
+pub(crate) type PSK = Bytes;
+pub(crate) type Key = Bytes;
+pub(crate) type MacKey = Bytes;
+pub(crate) type KemPk = Bytes;
+pub(crate) type KemSk = Bytes;
+pub(crate) type HMAC = Bytes;
+pub(crate) type Digest = Bytes;
+pub(crate) type AeadKey = Bytes;
+pub(crate) type AeadIV = Bytes;
+pub(crate) type AeadKeyIV = (Bytes, Bytes);
+pub(crate) type VerificationKey = Bytes;
+pub(crate) type RsaVerificationKey = (Bytes, Bytes); // N, e
+
 #[derive(Debug)]
-pub enum PublicVerificationKey {
+pub(crate) enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
 }
@@ -249,7 +251,6 @@ pub(crate) fn sign_rsa(
 ) -> Result<Bytes, TLSError> {
     // salt must be same length as digest output length
     let mut salt = [0u8; 32];
-    use rand::RngCore;
     rand::thread_rng().fill_bytes(&mut salt);
 
     if !matches!(cert_scheme, SignatureScheme::RsaPssRsaSha256) {
@@ -414,10 +415,11 @@ pub(crate) fn to_libcrux_kem_alg(alg: &KemScheme) -> Result<kem::Algorithm, TLSE
         _ => tlserr(UNSUPPORTED_ALGORITHM),
     }
 }
-pub(crate) fn kem_keygen(alg: &KemScheme, ent: Bytes) -> Result<(KemSk, KemPk), TLSError> {
-    //let sk = ent.clone();
-    //let pk = kem::secret_to_public(to_libcrux_kem_alg(alg)?,&sk.declassify());
-    let res = kem::key_gen(to_libcrux_kem_alg(alg)?, &mut rand::thread_rng());
+pub(crate) fn kem_keygen(
+    alg: &KemScheme,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<(KemSk, KemPk), TLSError> {
+    let res = kem::key_gen(to_libcrux_kem_alg(alg)?, rng);
     match res {
         Ok((sk, pk)) => Ok((Bytes::from(sk.encode()), Bytes::from(pk.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),

@@ -197,13 +197,7 @@ where
     // Initialize TLS 1.3 client.
     let (client_hello, client_state) = {
         let sni = Bytes::from(host.as_bytes());
-        let ent = {
-            let mut entropy = [0u8; 64];
-            thread_rng().fill(&mut entropy);
-            Entropy::from(&entropy)
-        };
-
-        Client::connect(algorithms, &sni, None, None, ent)?
+        Client::connect(algorithms, &sni, None, None, &mut thread_rng())?
     };
 
     stream.write_record(client_hello)?;

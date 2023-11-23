@@ -127,6 +127,16 @@ impl Bytes {
     pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
     }
+
+    /// Convert the bytes into raw bytes
+    pub fn into_raw(self) -> Vec<U8> {
+        self.0
+    }
+
+    /// Get a reference to the raw bytes.
+    pub fn as_raw(&self) -> &[U8] {
+        &self.0
+    }
 }
 
 impl Bytes {

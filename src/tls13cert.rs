@@ -33,13 +33,7 @@ pub(crate) const ASN1_INVALID_CERTIFICATE: Asn1Error = 23u8;
 pub(crate) const ASN1_UNSUPPORTED_ALGORITHM: Asn1Error = 24u8;
 pub(crate) const ASN1_ERROR: Asn1Error = 25u8;
 
-type UsizeResult = Result<usize, Asn1Error>;
-type DoubleUsizeResult = Result<(usize, usize), Asn1Error>;
-type SpkiResult = Result<Spki, Asn1Error>;
-pub(crate) type VerificationKeyResult = Result<VerificationKey, Asn1Error>;
-pub(crate) type RsaVerificationKeyResult = Result<RsaVerificationKey, Asn1Error>;
-
-pub(crate) fn asn1err<T>(err: Asn1Error) -> Result<T, Asn1Error> {
+pub(crate) fn asn1_error<T>(err: Asn1Error) -> Result<T, Asn1Error> {
     let bt = backtrace::Backtrace::new();
     println!("{:?}", bt);
     Err(err)
@@ -48,13 +42,13 @@ pub(crate) fn asn1err<T>(err: Asn1Error) -> Result<T, Asn1Error> {
 // Long form length
 // * Must be used when the length is 128 or greater
 // * XXX: We do not accept lengths greater than 32-bit.
-fn long_length(b: &Bytes, offset: usize, len: usize) -> UsizeResult {
+fn long_length(b: &Bytes, offset: usize, len: usize) -> Result<usize, Asn1Error> {
     if len > 4 {
-        asn1err(ASN1_SEQUENCE_TOO_LONG)
+        asn1_error(ASN1_SEQUENCE_TOO_LONG)
     } else {
         let mut u32word: Bytes = Bytes::zeroes(4);
         u32word[0..len].copy_from_slice(&b[offset..offset + len]);
-        UsizeResult::Ok(U32::from_be_bytes(&u32word)?.declassify() as usize >> ((4 - len) * 8))
+        Ok(U32::from_be_bytes(&u32word)?.declassify() as usize >> ((4 - len) * 8))
     }
 }
 
@@ -71,11 +65,11 @@ fn length_length(b: &Bytes, offset: usize) -> usize {
 // Short form length
 // * Must be used when the length is between 0 and 127
 // * The byte must start with a 0 bit, the following 7 bits are the length.
-fn short_length(b: &Bytes, offset: usize) -> UsizeResult {
+fn short_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
     if b[offset].declassify() & 0x80u8 == 0u8 {
-        UsizeResult::Ok((b[offset].declassify() & 0x7fu8) as usize)
+        Ok((b[offset].declassify() & 0x7fu8) as usize)
     } else {
-        asn1err(ASN1_ERROR)
+        asn1_error(ASN1_ERROR)
     }
 }
 
@@ -84,37 +78,37 @@ fn short_length(b: &Bytes, offset: usize) -> UsizeResult {
 /// sequence.
 ///
 /// Returns: (offset, length)
-fn length(b: &Bytes, mut offset: usize) -> DoubleUsizeResult {
+fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
     if b[offset].declassify() & 0x80 == 0u8 {
         let len = short_length(b, offset)?;
-        DoubleUsizeResult::Ok((offset + 1, len))
+        Ok((offset + 1, len))
     } else {
         let len = length_length(b, offset);
         offset = offset + 1;
         let end = long_length(b, offset, len)?;
-        DoubleUsizeResult::Ok((offset + len, end))
+        Ok((offset + len, end))
     }
 }
 
 /// Read a byte sequence from the provided bytes.
 ///
 /// Returns the new offset into the bytes.
-fn read_sequence_header(b: &Bytes, mut offset: usize) -> UsizeResult {
+fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x30u8)?;
     offset = offset + 1;
 
     let length_length = length_length(b, offset);
     offset = offset + length_length + 1; // 1 byte is always used for length
 
-    UsizeResult::Ok(offset)
+    Ok(offset)
 }
 
 fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
     if b[offset].declassify() == value {
-        Result::<(), Asn1Error>::Ok(())
+        Ok(())
     } else {
         // println!("Got tag {:x}, expected {:x}", b[offset], value);
-        asn1err(ASN1_INVALID_TAG)
+        asn1_error(ASN1_INVALID_TAG)
     }
 }
 
@@ -122,13 +116,13 @@ fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
 /// XXX: Share code with [read_sequence_header].
 ///
 /// Returns the new offset into the bytes.
-fn skip_sequence(b: &Bytes, mut offset: usize) -> UsizeResult {
+fn skip_sequence(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x30u8)?;
     offset = offset + 1;
 
     let (offset, length) = length(b, offset)?;
 
-    UsizeResult::Ok(offset + length)
+    Ok(offset + length)
 }
 
 /// Read the version number.
@@ -136,27 +130,27 @@ fn skip_sequence(b: &Bytes, mut offset: usize) -> UsizeResult {
 /// offset moving.
 ///
 /// Note that this might be missing. So we don't fail in here.
-fn read_version_number(b: &Bytes, mut offset: usize) -> UsizeResult {
+fn read_version_number(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     match check_tag(b, offset, 0xA0u8) {
         Ok(_) => {
             offset = offset + 1;
 
             let length = short_length(b, offset)?;
-            UsizeResult::Ok(offset + 1 + length)
+            Ok(offset + 1 + length)
         }
-        Err(_) => UsizeResult::Ok(offset),
+        Err(_) => Ok(offset),
     }
 }
 
 /// Read an integer.
 /// We don't really care, just check that it's some valid structure and keep the
 /// offset moving.
-fn read_integer(b: &Bytes, mut offset: usize) -> UsizeResult {
+fn read_integer(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x02u8)?;
     offset = offset + 1;
 
     let (offset, length) = length(b, offset)?;
-    UsizeResult::Ok(offset + length)
+    Ok(offset + length)
 }
 
 pub(crate) type Spki = (SignatureScheme, CertificateKey);
@@ -173,13 +167,16 @@ pub(crate) fn rsa_pkcs1_encryption_oid() -> Bytes {
 
 fn check_success(val: bool) -> Result<(), Asn1Error> {
     if val {
-        Result::<(), Asn1Error>::Ok(())
+        Ok(())
     } else {
-        asn1err(ASN1_ERROR)
+        asn1_error(ASN1_ERROR)
     }
 }
 
-fn read_spki(cert: &Bytes, mut offset: usize) -> SpkiResult {
+/// Read the spki from the `cert`.
+///
+/// Returns an error or the [`Spki`].
+fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
     check_tag(cert, offset, 0x30u8)?;
     offset = offset + 1;
 
@@ -241,17 +238,17 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> SpkiResult {
     }
 
     if ec_pk_oid && ecdsa_p256 {
-        SpkiResult::Ok((
+        Ok((
             SignatureScheme::EcdsaSecp256r1Sha256,
             CertificateKey(offset, bit_string_len - 1),
         ))
     } else if rsa_pk_oid {
-        SpkiResult::Ok((
+        Ok((
             SignatureScheme::RsaPssRsaSha256,
             CertificateKey(offset, bit_string_len - 1),
         ))
     } else {
-        asn1err(ASN1_INVALID_CERTIFICATE)
+        asn1_error(ASN1_INVALID_CERTIFICATE)
     }
 }
 
@@ -259,7 +256,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> SpkiResult {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-pub(crate) fn verification_key_from_cert(cert: &Bytes) -> SpkiResult {
+pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
     // Take the first sequence inside the outer because we're interested in the
     // certificate
@@ -280,16 +277,22 @@ pub(crate) fn verification_key_from_cert(cert: &Bytes) -> SpkiResult {
 }
 
 /// Read the EC PK from the cert as uncompressed point.
-pub(crate) fn ecdsa_public_key(cert: &Bytes, indices: CertificateKey) -> VerificationKeyResult {
+pub(crate) fn ecdsa_public_key(
+    cert: &Bytes,
+    indices: CertificateKey,
+) -> Result<VerificationKey, Asn1Error> {
     let CertificateKey(offset, len) = indices;
 
     check_tag(cert, offset, 0x04u8)?; // We only support uncompressed
 
     // Return the uncompressed point
-    VerificationKeyResult::Ok(cert.slice(offset + 1, len - 1)) // Drop the 0x04 here.
+    Ok(cert.slice(offset + 1, len - 1)) // Drop the 0x04 here.
 }
 
-pub(crate) fn rsa_public_key(cert: &Bytes, indices: CertificateKey) -> RsaVerificationKeyResult {
+pub(crate) fn rsa_public_key(
+    cert: &Bytes,
+    indices: CertificateKey,
+) -> Result<RsaVerificationKey, Asn1Error> {
     let CertificateKey(mut offset, _len) = indices;
 
     // An RSA PK is a sequence of modulus N and public exponent e,
@@ -311,7 +314,7 @@ pub(crate) fn rsa_public_key(cert: &Bytes, indices: CertificateKey) -> RsaVerifi
     let (offset, int_len) = length(cert, offset)?;
     let e = cert.slice(offset, int_len);
 
-    RsaVerificationKeyResult::Ok((n, e))
+    Ok((n, e))
 }
 
 /// Get the public key from from a certificate.
@@ -323,7 +326,7 @@ pub(crate) fn cert_public_key(
     spki: &Spki,
 ) -> Result<PublicVerificationKey, Asn1Error> {
     match spki.0 {
-        SignatureScheme::ED25519 => asn1err(ASN1_UNSUPPORTED_ALGORITHM),
+        SignatureScheme::ED25519 => asn1_error(ASN1_UNSUPPORTED_ALGORITHM),
         SignatureScheme::EcdsaSecp256r1Sha256 => {
             let pk = ecdsa_public_key(certificate, spki.1)?;
             Ok(PublicVerificationKey::EcDsa(pk))

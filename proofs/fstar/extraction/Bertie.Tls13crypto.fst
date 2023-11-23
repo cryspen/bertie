@@ -235,8 +235,15 @@ let t_SignatureKey = Bertie.Tls13utils.t_Bytes
 unfold
 let t_VerificationKey = Bertie.Tls13utils.t_Bytes
 
-let kem_keygen (alg: t_KemScheme) (ent: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+let kem_keygen
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
+      (alg: t_KemScheme)
+      (rng: impl_916461611_)
+    : (impl_916461611_ &
+      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist2:Libcrux.Kem.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (to_libcrux_kem_alg alg
@@ -245,50 +252,66 @@ let kem_keygen (alg: t_KemScheme) (ent: Bertie.Tls13utils.t_Bytes)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist1:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
                 <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                (impl_916461611_ &
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist1)
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             Libcrux.Kem.t_Algorithm
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             Libcrux.Kem.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let _, out:(Rand.Rngs.Thread.t_ThreadRng &
+      (let tmp0, out:(impl_916461611_ &
           Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
             Libcrux.Kem.t_Error) =
-          Libcrux.Kem.key_gen hoist2 (Rand.Rngs.Thread.thread_rng <: Rand.Rngs.Thread.t_ThreadRng)
+          Libcrux.Kem.key_gen hoist2 rng
         in
+        let rng:impl_916461611_ = tmp0 in
         let res:Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
           Libcrux.Kem.t_Error =
           out
         in
-        match res with
-        | Core.Result.Result_Ok (sk, pk) ->
-          Core.Result.Result_Ok
-          (Core.Convert.f_from (Libcrux.Kem.impl__PrivateKey__encode sk
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
-            Core.Convert.f_from (Libcrux.Kem.impl__PublicKey__encode pk
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+        let hax_temp_output:Core.Result.t_Result
+          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+          match res with
+          | Core.Result.Result_Ok (sk, pk) ->
+            Core.Result.Result_Ok
+            (Core.Convert.f_from (Libcrux.Kem.impl__PrivateKey__encode sk
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
+              Core.Convert.f_from (Libcrux.Kem.impl__PublicKey__encode pk
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+              <:
+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
             <:
-            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
-          <:
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-        | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
+            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
       <:
       Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
 
 let hash (alg: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
