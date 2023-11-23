@@ -198,7 +198,7 @@ unfold
 let t_Digest = Bertie.Tls13utils.t_Bytes
 
 unfold
-let t_HMAC = Bertie.Tls13utils.t_Bytes
+let t_Hmac = Bertie.Tls13utils.t_Bytes
 
 unfold
 let t_KemPk = Bertie.Tls13utils.t_Bytes
@@ -213,7 +213,7 @@ unfold
 let t_MacKey = Bertie.Tls13utils.t_Bytes
 
 unfold
-let t_PSK = Bertie.Tls13utils.t_Bytes
+let t_Psk = Bertie.Tls13utils.t_Bytes
 
 type t_PublicVerificationKey =
   | PublicVerificationKey_EcDsa : Bertie.Tls13utils.t_Bytes -> t_PublicVerificationKey
