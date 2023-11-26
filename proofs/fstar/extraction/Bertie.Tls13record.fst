@@ -29,7 +29,9 @@ let derive_iv_ctr
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.update_at iv_ctr i (iv.[ i ] <: Bertie.Tls13utils.t_U8)
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize iv_ctr
+            i
+            (iv.[ i ] <: Bertie.Tls13utils.t_U8)
           <:
           Bertie.Tls13utils.t_Bytes)
   in
@@ -46,7 +48,7 @@ let derive_iv_ctr
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.update_at iv_ctr
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize iv_ctr
             ((i +! (Bertie.Tls13utils.impl__Bytes__len iv <: usize) <: usize) -! sz 8 <: usize)
             ((iv.[ (i +! (Bertie.Tls13utils.impl__Bytes__len iv <: usize) <: usize) -! sz 8 <: usize
                 ]

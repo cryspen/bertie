@@ -376,7 +376,7 @@ let impl__Client__connect
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (let client_hello:Bertie.Tls13utils.t_Bytes =
-          Rust_primitives.Hax.update_at client_hello
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize client_hello
             (sz 2)
             (Core.Convert.f_from 1uy <: Bertie.Tls13utils.t_U8)
         in
@@ -686,7 +686,7 @@ let impl__Server__accept
         Core.Clone.f_clone client_hello
       in
       let ch_rec:Bertie.Tls13utils.t_Bytes =
-        Rust_primitives.Hax.update_at ch_rec
+        Rust_primitives.Hax.Monomorphized_update_at.update_at_usize ch_rec
           (sz 2)
           (Core.Convert.f_from 3uy <: Bertie.Tls13utils.t_U8)
       in

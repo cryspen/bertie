@@ -501,7 +501,9 @@ let impl__Bytes__update_slice (self: t_Bytes) (st: usize) (src: t_Bytes) (beg le
       (fun res i ->
           let res:t_Bytes = res in
           let i:usize = i in
-          Rust_primitives.Hax.update_at res (st +! i <: usize) (src.[ beg +! i <: usize ] <: t_U8)
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize res
+            (st +! i <: usize)
+            (src.[ beg +! i <: usize ] <: t_U8)
           <:
           t_Bytes)
   in

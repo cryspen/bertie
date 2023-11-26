@@ -226,7 +226,7 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) : Core.Result
           Bertie.Tls13utils.impl__Bytes__zeroes (sz 4)
         in
         let u32word:Bertie.Tls13utils.t_Bytes =
-          Rust_primitives.Hax.update_at u32word
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_range u32word
             ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = len }
               <:
               Core.Ops.Range.t_Range usize)
