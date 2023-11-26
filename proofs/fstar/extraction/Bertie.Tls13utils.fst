@@ -44,6 +44,8 @@ let v_UNSUPPORTED_ALGORITHM: u8 = 1uy
 
 let v_ZERO_RTT_DISABLED: u8 = 129uy
 
+let parse_failed: u8 = v_PARSE_FAILED
+
 let check (b: bool) : Core.Result.t_Result Prims.unit u8 =
   if b
   then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
