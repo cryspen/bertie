@@ -7,7 +7,7 @@ use crate::{
         ae_iv_len, ae_key_len, hash, hash_len, hkdf_expand, hkdf_extract, hmac_tag, hmac_tag_len,
         hmac_verify, kem_decap, kem_encap, kem_keygen, kem_priv_len, sign, sign_rsa, verify,
         zero_key, AeadAlgorithm, AeadKeyIV, Algorithms, Digest, HashAlgorithm, KemSk, Key, MacKey,
-        Random, SignatureScheme, Psk,
+        Psk, Random, SignatureScheme,
     },
     tls13formats::*,
     tls13record::*,

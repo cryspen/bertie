@@ -7,7 +7,7 @@
 //! * optional PSKs
 
 use crate::{
-    tls13crypto::{Algorithms, SignatureKey, Psk},
+    tls13crypto::{Algorithms, Psk, SignatureKey},
     tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
