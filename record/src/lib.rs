@@ -2,7 +2,7 @@
 //! and `simple_https_server` such as the `RecordStream`, common error types,
 //! debug functions, and helpers.
 
-use bertie::TLSError;
+use bertie::tls13utils::TLSError;
 pub use debug::{info_record, Hex};
 pub use stream::RecordStream;
 use thiserror::Error;

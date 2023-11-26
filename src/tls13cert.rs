@@ -1,4 +1,7 @@
-//! Zero-copy ASN.1 parser to read public keys from X.509 certificates.
+//! # X.509 Certificates
+//!
+//! This module implements a minimal zero-copy ASN.1 parser to read public keys
+//! from X.509 certificates.
 //!
 //! This parser is very limited and only for this specific use case.
 //! It may or may not be extended to support more of the ASN.1 syntax.
@@ -14,27 +17,29 @@
 //! }
 //! ```
 
-use crate::*;
+use crate::{
+    tls13crypto::{PublicVerificationKey, RsaVerificationKey, SignatureScheme, VerificationKey},
+    tls13utils::{Bytes, U32},
+};
 
 /// Certificate key start and length within the certificate DER.
 #[derive(Clone, Copy)]
-pub struct CertificateKey(usize, usize);
+pub(crate) struct CertificateKey(usize, usize);
 
-pub type Asn1Error = u8;
-pub const ASN1_SEQUENCE_TOO_LONG: Asn1Error = 21u8;
-pub const ASN1_INVALID_TAG: Asn1Error = 22u8;
-pub const ASN1_INVALID_CERTIFICATE: Asn1Error = 23u8;
-pub const ASN1_UNSUPPORTED_ALGORITHM: Asn1Error = 24u8;
-pub const ASN1_ERROR: Asn1Error = 25u8;
+pub(crate) type Asn1Error = u8;
+pub(crate) const ASN1_SEQUENCE_TOO_LONG: Asn1Error = 21u8;
+pub(crate) const ASN1_INVALID_TAG: Asn1Error = 22u8;
+pub(crate) const ASN1_INVALID_CERTIFICATE: Asn1Error = 23u8;
+pub(crate) const ASN1_UNSUPPORTED_ALGORITHM: Asn1Error = 24u8;
+pub(crate) const ASN1_ERROR: Asn1Error = 25u8;
 
 type UsizeResult = Result<usize, Asn1Error>;
 type DoubleUsizeResult = Result<(usize, usize), Asn1Error>;
 type SpkiResult = Result<Spki, Asn1Error>;
-type PkResult = Result<PublicVerificationKey, Asn1Error>;
-pub type VerificationKeyResult = Result<VerificationKey, Asn1Error>;
-pub type RsaVerificationKeyResult = Result<RsaVerificationKey, Asn1Error>;
+pub(crate) type VerificationKeyResult = Result<VerificationKey, Asn1Error>;
+pub(crate) type RsaVerificationKeyResult = Result<RsaVerificationKey, Asn1Error>;
 
-pub fn asn1err<T>(err: Asn1Error) -> Result<T, Asn1Error> {
+pub(crate) fn asn1err<T>(err: Asn1Error) -> Result<T, Asn1Error> {
     let bt = backtrace::Backtrace::new();
     println!("{:?}", bt);
     Err(err)
@@ -154,15 +159,15 @@ fn read_integer(b: &Bytes, mut offset: usize) -> UsizeResult {
     UsizeResult::Ok(offset + length)
 }
 
-pub type Spki = (SignatureScheme, CertificateKey);
+pub(crate) type Spki = (SignatureScheme, CertificateKey);
 
-pub fn x962_ec_public_key_oid() -> Bytes {
+pub(crate) fn x962_ec_public_key_oid() -> Bytes {
     [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01].into()
 }
-pub fn ecdsa_secp256r1_sha256_oid() -> Bytes {
+pub(crate) fn ecdsa_secp256r1_sha256_oid() -> Bytes {
     [0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07].into()
 }
-pub fn rsa_pkcs1_encryption_oid() -> Bytes {
+pub(crate) fn rsa_pkcs1_encryption_oid() -> Bytes {
     [0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01].into()
 }
 
@@ -254,7 +259,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> SpkiResult {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-pub fn verification_key_from_cert(cert: &Bytes) -> SpkiResult {
+pub(crate) fn verification_key_from_cert(cert: &Bytes) -> SpkiResult {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
     // Take the first sequence inside the outer because we're interested in the
     // certificate
@@ -275,7 +280,7 @@ pub fn verification_key_from_cert(cert: &Bytes) -> SpkiResult {
 }
 
 /// Read the EC PK from the cert as uncompressed point.
-pub fn ecdsa_public_key(cert: &Bytes, indices: CertificateKey) -> VerificationKeyResult {
+pub(crate) fn ecdsa_public_key(cert: &Bytes, indices: CertificateKey) -> VerificationKeyResult {
     let CertificateKey(offset, len) = indices;
 
     check_tag(cert, offset, 0x04u8)?; // We only support uncompressed
@@ -284,7 +289,7 @@ pub fn ecdsa_public_key(cert: &Bytes, indices: CertificateKey) -> VerificationKe
     VerificationKeyResult::Ok(cert.slice(offset + 1, len - 1)) // Drop the 0x04 here.
 }
 
-pub fn rsa_public_key(cert: &Bytes, indices: CertificateKey) -> RsaVerificationKeyResult {
+pub(crate) fn rsa_public_key(cert: &Bytes, indices: CertificateKey) -> RsaVerificationKeyResult {
     let CertificateKey(mut offset, _len) = indices;
 
     // An RSA PK is a sequence of modulus N and public exponent e,
@@ -309,16 +314,23 @@ pub fn rsa_public_key(cert: &Bytes, indices: CertificateKey) -> RsaVerificationK
     RsaVerificationKeyResult::Ok((n, e))
 }
 
-pub fn cert_public_key(cert: &Bytes, spki: &Spki) -> PkResult {
+/// Get the public key from from a certificate.
+///
+/// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
+/// if successful, or an [`Asn1Error`] otherwise.
+pub(crate) fn cert_public_key(
+    certificate: &Bytes,
+    spki: &Spki,
+) -> Result<PublicVerificationKey, Asn1Error> {
     match spki.0 {
         SignatureScheme::ED25519 => asn1err(ASN1_UNSUPPORTED_ALGORITHM),
         SignatureScheme::EcdsaSecp256r1Sha256 => {
-            let pk = ecdsa_public_key(cert, spki.1)?;
-            PkResult::Ok(PublicVerificationKey::EcDsa(pk))
+            let pk = ecdsa_public_key(certificate, spki.1)?;
+            Ok(PublicVerificationKey::EcDsa(pk))
         }
         SignatureScheme::RsaPssRsaSha256 => {
-            let pk = rsa_public_key(cert, spki.1)?;
-            PkResult::Ok(PublicVerificationKey::Rsa(pk))
+            let pk = rsa_public_key(certificate, spki.1)?;
+            Ok(PublicVerificationKey::Rsa(pk))
         }
     }
 }

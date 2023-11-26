@@ -1,9 +1,17 @@
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
 
-use bertie::*;
-
 // These are the sample TLS 1.3 traces taken from RFC 8448
+
+use bertie::{
+    server::ServerDB,
+    tls13api::{client_write, server_accept, server_read, server_read_handshake, server_write},
+    tls13crypto::{
+        AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureKey, SignatureScheme,
+    },
+    tls13utils::{eq, random_bytes, AppData, Bytes},
+    Client,
+};
 
 fn load_hex(s: &str) -> Bytes {
     let s_no_ws: String = s.split_whitespace().collect();
@@ -65,7 +73,7 @@ const ECDSA_P256_SHA256_Key: [u8; 32] = [
     0xDB, 0x7A, 0x36, 0x20, 0x08, 0xE9, 0x52, 0xEE, 0xDB, 0xCE, 0xAC, 0x3B, 0x26, 0xF9, 0x20, 0xBD,
 ];
 
-const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
+const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::RsaPssRsaSha256,
@@ -74,7 +82,7 @@ const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
     false,
 );
 
-const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
+const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -82,7 +90,7 @@ const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
     false,
     false,
 );
-const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms(
+const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -102,20 +110,20 @@ fn test_full_round_trip() {
     let y = load_hex(server_x25519_priv);
     let ent_s = sr.concat(&y);
 
-    let db = ServerDB(
+    let db = ServerDB::new(
         sn_,
         Bytes::from(&ECDSA_P256_SHA256_CERT),
-        bertie::tls13crypto::SignatureKey::from(&ECDSA_P256_SHA256_Key),
+        SignatureKey::from(&ECDSA_P256_SHA256_Key),
         None,
     );
 
     let mut b = true;
-    match client_connect(TLS_CHACHA20_POLY1305_SHA256_X25519, &sn, None, None, ent_c) {
+    match Client::connect(TLS_CHACHA20_POLY1305_SHA256_X25519, &sn, None, None, ent_c) {
         Err(x) => {
             println!("Client0 Error {}", x);
             b = false;
         }
-        Ok((ch, cstate)) => {
+        Ok((ch, client_state)) => {
             println!("Client0 Complete");
             match server_accept(TLS_CHACHA20_POLY1305_SHA256_X25519, db, &ch, ent_s) {
                 Err(x) => {
@@ -124,7 +132,7 @@ fn test_full_round_trip() {
                 }
                 Ok((sh, sf, sstate)) => {
                     println!("Server0 Complete");
-                    match client_read_handshake(&sh, cstate) {
+                    match client_state.read_handshake(&sh) {
                         Err(x) => {
                             println!("ServerHello Error {}", x);
                             b = false;
@@ -133,7 +141,7 @@ fn test_full_round_trip() {
                             println!("ServerHello State Error");
                             b = false;
                         }
-                        Ok((None, cstate)) => match client_read_handshake(&sf, cstate) {
+                        Ok((None, client_state)) => match client_state.read_handshake(&sf) {
                             Err(x) => {
                                 println!("ClientFinish Error {}", x);
                                 b = false;
@@ -155,17 +163,19 @@ fn test_full_round_trip() {
                                         // Send data from client to server.
                                         let data = Bytes::from(b"Hello server, here is the client");
                                         let (ap, cstate) =
-                                            client_write(app_data(data.clone()), cstate).unwrap();
+                                            client_write(AppData::new(data.clone()), cstate)
+                                                .unwrap();
                                         let (apo, sstate) = server_read(&ap, sstate).unwrap();
-                                        assert!(eq(&data, &app_data_bytes(apo.unwrap())));
+                                        assert!(eq(&data, apo.unwrap().as_raw()));
 
                                         // Send data from server to client.
                                         let data =
                                             Bytes::from(b"Hello client, here is the server.");
                                         let (ap, _sstate) =
-                                            server_write(app_data(data.clone()), sstate).unwrap();
-                                        let (apo, _cstate) = client_read(&ap, cstate).unwrap();
-                                        assert!(eq(&data, &app_data_bytes(apo.unwrap())));
+                                            server_write(AppData::new(data.clone()), sstate)
+                                                .unwrap();
+                                        let (application_data, _cstate) = cstate.read(&ap).unwrap();
+                                        assert!(eq(&data, application_data.unwrap().as_raw()));
                                     }
                                 }
                             }

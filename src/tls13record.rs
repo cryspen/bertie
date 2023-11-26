@@ -124,8 +124,14 @@ pub fn encrypt_zerortt(
     st: ClientCipherState0,
 ) -> Result<(Bytes, ClientCipherState0), TLSError> {
     let ClientCipherState0(ae, kiv, n, exp) = st;
-    let payload = app_data_bytes(payload);
-    let rec = encrypt_record_payload(&ae, &kiv, n, ContentType::ApplicationData, &payload, pad)?;
+    let rec = encrypt_record_payload(
+        &ae,
+        &kiv,
+        n,
+        ContentType::ApplicationData,
+        payload.as_raw(),
+        pad,
+    )?;
     Ok((rec, ClientCipherState0(ae, kiv, n + 1, exp)))
 }
 
@@ -136,7 +142,10 @@ pub fn decrypt_zerortt(
     let ServerCipherState0(ae, kiv, n, exp) = st;
     let (ct, payload) = decrypt_record_payload(&ae, &kiv, n, ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
-    Ok((app_data(payload), ServerCipherState0(ae, kiv, n + 1, exp)))
+    Ok((
+        AppData::new(payload),
+        ServerCipherState0(ae, kiv, n + 1, exp),
+    ))
 }
 
 pub fn encrypt_handshake(
@@ -174,8 +183,14 @@ pub fn encrypt_data(
     st: DuplexCipherState1,
 ) -> Result<(Bytes, DuplexCipherState1), TLSError> {
     let DuplexCipherState1(ae, kiv, n, x, y, exp) = st;
-    let payload = app_data_bytes(payload);
-    let rec = encrypt_record_payload(&ae, &kiv, n, ContentType::ApplicationData, &payload, pad)?;
+    let rec = encrypt_record_payload(
+        &ae,
+        &kiv,
+        n,
+        ContentType::ApplicationData,
+        payload.as_raw(),
+        pad,
+    )?;
     Ok((rec, DuplexCipherState1(ae, kiv, n + 1, x, y, exp)))
 }
 
@@ -195,7 +210,7 @@ pub fn decrypt_data(
     let (ct, payload) = decrypt_record_payload(&ae, &kiv, n, ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
     Ok((
-        app_data(payload),
+        AppData::new(payload),
         DuplexCipherState1(ae, x, y, kiv, n + 1, exp),
     ))
 }

@@ -3,14 +3,14 @@
 // Import hacspec and all needed definitions.
 use std::io::prelude::*;
 
-use bertie::{tls13api::*, tls13crypto::*, tls13utils::*, ServerDB};
+use bertie::{server::ServerDB, tls13api::*, tls13crypto::*, tls13utils::*};
 
 use rand::*;
 pub use record::AppError;
 use record::RecordStream;
 
 #[allow(dead_code)]
-const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -20,7 +20,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
 );
 
 #[allow(dead_code)]
-const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
+const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Aes128Gcm,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -29,7 +29,7 @@ const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms(
     false,
 );
 
-const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms(
+const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::EcdsaSecp256r1Sha256,
@@ -39,7 +39,7 @@ const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorith
 );
 
 #[allow(dead_code)]
-const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms(
+const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
     HashAlgorithm::SHA256,
     AeadAlgorithm::Chacha20Poly1305,
     SignatureScheme::RsaPssRsaSha256,
@@ -179,7 +179,7 @@ where
     Stream: Read + Write,
 {
     let (algorithms, cert, key): (Algorithms, &[u8], &[u8]) = if let Some(algorithms) = algorithms {
-        match algorithms.2 {
+        match algorithms.sig_alg() {
             SignatureScheme::RsaPssRsaSha256 => (
                 algorithms,
                 &RSA_PSS_RSAE_SHA256_CERT,
@@ -204,7 +204,7 @@ where
     let db = {
         let sni = Bytes::from(host.as_bytes());
 
-        ServerDB(sni, Bytes::from(cert), SignatureKey::from(key), None)
+        ServerDB::new(sni, Bytes::from(cert), SignatureKey::from(key), None)
     };
 
     let ent_s = {
@@ -253,7 +253,7 @@ where
             println!("Got HTTP Request");
 
             let http_get_resp = Bytes::from(response.as_bytes());
-            let (ap, _sstate) = server_write(app_data(http_get_resp), sstate)?;
+            let (ap, _sstate) = server_write(AppData::new(http_get_resp), sstate)?;
             stream.write_record(ap)?;
             println!("Sent HTTP Response: Hello from localhost");
 

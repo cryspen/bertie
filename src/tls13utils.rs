@@ -46,11 +46,6 @@ pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     else {Err(parse_failed())}
 }*/
 
-pub trait Declassify {
-    type T;
-    fn declassify(&self) -> Self::T;
-}
-
 #[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct U8(u8);
@@ -68,9 +63,8 @@ impl From<u8> for U8 {
     }
 }
 #[cfg(feature = "secret_integers")]
-impl Declassify for U8 {
-    type T = u8;
-    fn declassify(&self) -> u8 {
+impl U8 {
+    pub fn declassify(&self) -> u8 {
         self.0
     }
 }
@@ -129,9 +123,8 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
-impl Declassify for Bytes {
-    type T = Vec<u8>;
-    fn declassify(&self) -> Vec<u8> {
+impl Bytes {
+    pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
     }
 }
@@ -508,11 +501,21 @@ pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeD
 #[derive(PartialEq)]
 pub struct AppData(Bytes);
 
-pub fn app_data(b: Bytes) -> AppData {
-    AppData(b)
-}
-pub fn app_data_bytes(a: AppData) -> Bytes {
-    a.0
+impl AppData {
+    /// Create new application data from raw bytes.
+    pub fn new(b: Bytes) -> Self {
+        Self(b)
+    }
+
+    /// Convert this application data into raw bytes
+    pub fn into_raw(self) -> Bytes {
+        self.0
+    }
+
+    /// Get a reference to the raw bytes.
+    pub fn as_raw(&self) -> &Bytes {
+        &self.0
+    }
 }
 
 pub fn random_bytes(len: usize) -> Bytes {

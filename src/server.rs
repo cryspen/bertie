@@ -1,26 +1,78 @@
-use crate::{check_eq, eq, parse_failed, Bytes, SignatureKey, TLSError, PSK, PSK_MODE_MISMATCH};
+//! # TLS 1.3 Server
+//!
+//! This module implements a simple TLS 1.3 server database to handle the server
+//! * name
+//! * certificate
+//! * private signature key
+//! * optional PSKs
 
-pub struct ServerDB(
-    pub Bytes,
-    pub Bytes,
-    pub SignatureKey,
-    pub Option<(Bytes, PSK)>,
-);
+use crate::{
+    tls13crypto::{Algorithms, SignatureKey, PSK},
+    tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
+};
 
-pub fn lookup_db(
-    algs: crate::Algorithms,
+/// The Server Database
+pub struct ServerDB {
+    pub(crate) server_name: Bytes,
+    pub(crate) cert: Bytes,
+    pub(crate) sk: SignatureKey,
+    pub(crate) psk_opt: Option<(Bytes, PSK)>,
+}
+
+impl ServerDB {
+    /// Create a new server database.
+    ///
+    /// Note that this only holds one value at a time right now. #51
+    pub fn new(
+        server_name: Bytes,
+        cert: Bytes,
+        sk: SignatureKey,
+        psk_opt: Option<(Bytes, PSK)>,
+    ) -> Self {
+        Self {
+            server_name,
+            cert,
+            sk,
+            psk_opt,
+        }
+    }
+}
+
+/// Global server information.
+pub(crate) struct ServerInfo {
+    pub(crate) cert: Bytes,
+    pub(crate) sk: SignatureKey,
+    pub(crate) psk_opt: Option<PSK>,
+}
+
+/// Look up a server for the given `ciphersuite`.
+///
+/// The function returns a server with the first algorithm it finds.
+pub(crate) fn lookup_db(
+    ciphersuite: Algorithms,
     db: &ServerDB,
     sni: &Bytes,
     tkt: &Option<Bytes>,
-) -> Result<(Bytes, SignatureKey, Option<PSK>), TLSError> {
-    let ServerDB(server_name, cert, sk, psk_opt) = db;
-    if eq(sni, &Bytes::new()) || eq(sni, server_name) {
-        match (crate::psk_mode(&algs), tkt, psk_opt) {
+) -> Result<ServerInfo, TLSError> {
+    if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
+        match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
             (true, Some(ctkt), Some((stkt, psk))) => {
-                check_eq(ctkt, stkt)?;
-                Ok((cert.clone(), sk.clone(), Some(psk.clone())))
+                check_eq(ctkt, &stkt)?;
+                let server = ServerInfo {
+                    cert: db.cert.clone(),
+                    sk: db.sk.clone(),
+                    psk_opt: Some(psk.clone()),
+                };
+                Ok(server)
             }
-            (false, _, _) => Ok((cert.clone(), sk.clone(), None)),
+            (false, _, _) => {
+                let server = ServerInfo {
+                    cert: db.cert.clone(),
+                    sk: db.sk.clone(),
+                    psk_opt: None,
+                };
+                Ok(server)
+            }
             _ => Err(PSK_MODE_MISMATCH),
         }
     } else {

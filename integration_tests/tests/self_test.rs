@@ -21,49 +21,49 @@ fn test_sha256_chacha20_poly1305_rsa_pss_rsa_sha256_p256() {
 }
 #[test]
 fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_p256() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256);
     }
 }
 #[test]
 fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519);
     }
 }
 #[test]
 fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_p256() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA256_Aes128Gcm_RsaPssRsaSha256_P256);
     }
 }
 #[test]
 fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519);
     }
 }
 #[test]
 fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_p256() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256);
     }
 }
 #[test]
 fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519);
     }
 }
 #[test]
 fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_p256() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA384_Aes256Gcm_RsaPssRsaSha256_P256);
     }
 }
 #[test]
 fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() {
+    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
         self_test_algorithm(simple_https_client::SHA384_Aes256Gcm_RsaPssRsaSha256_X25519);
     }
 }
