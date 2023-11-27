@@ -3,28 +3,29 @@ use libcrux::{
     signature::rsa_pss::{RsaPssKeySize, RsaPssPublicKey},
     *,
 };
+use rand::{CryptoRng, RngCore};
 
 use crate::tls13utils::{
     eq, tlserr, Bytes, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
 };
 
-pub type Random = Bytes; //was [U8;32]
-pub type Entropy = Bytes;
+pub(crate) type Random = Bytes; //was [U8;32]
 pub type SignatureKey = Bytes;
-pub type PSK = Bytes;
-pub type Key = Bytes;
-pub type MacKey = Bytes;
-pub type KemPk = Bytes;
-pub type KemSk = Bytes;
-pub type HMAC = Bytes;
-pub type Digest = Bytes;
-pub type AeadKey = Bytes;
-pub type AeadIV = Bytes;
-pub type AeadKeyIV = (Bytes, Bytes);
-pub type VerificationKey = Bytes;
-pub type RsaVerificationKey = (Bytes, Bytes); // N, e
+pub(crate) type Psk = Bytes;
+pub(crate) type Key = Bytes;
+pub(crate) type MacKey = Bytes;
+pub(crate) type KemPk = Bytes;
+pub(crate) type KemSk = Bytes;
+pub(crate) type Hmac = Bytes;
+pub(crate) type Digest = Bytes;
+pub(crate) type AeadKey = Bytes;
+pub(crate) type AeadIV = Bytes;
+pub(crate) type AeadKeyIV = (Bytes, Bytes);
+pub(crate) type VerificationKey = Bytes;
+pub(crate) type RsaVerificationKey = (Bytes, Bytes); // N, e
+
 #[derive(Debug)]
-pub enum PublicVerificationKey {
+pub(crate) enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
 }
@@ -67,7 +68,7 @@ pub(crate) fn hmac_tag_len(alg: &HashAlgorithm) -> usize {
     hash_len(alg)
 }
 
-pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<HMAC, TLSError> {
+pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac::hmac(
         to_libcrux_hmac_alg(alg)?,
         &mk.declassify(),
@@ -241,16 +242,15 @@ pub(crate) fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algor
 
 pub(crate) fn sign_rsa(
     sk: &Bytes,
-    pk_modulus: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
+    pk_modulus: &Bytes,
     pk_exponent: &Bytes,
     cert_scheme: SignatureScheme,
     input: &Bytes,
-    ent: Bytes, // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<Bytes, TLSError> {
     // salt must be same length as digest output length
     let mut salt = [0u8; 32];
-    use rand::RngCore;
-    rand::thread_rng().fill_bytes(&mut salt);
+    rng.fill_bytes(&mut salt);
 
     if !matches!(cert_scheme, SignatureScheme::RsaPssRsaSha256) {
         return tlserr(CRYPTO_ERROR); // XXX: Right error type?
@@ -260,7 +260,7 @@ pub(crate) fn sign_rsa(
         return tlserr(UNSUPPORTED_ALGORITHM);
     }
 
-    let key_size = supported_rsa_key_size(&pk_modulus)?;
+    let key_size = supported_rsa_key_size(pk_modulus)?;
 
     let pk =
         RsaPssPublicKey::new(key_size, &pk_modulus.declassify()[1..]).map_err(|_| CRYPTO_ERROR)?;
@@ -280,22 +280,21 @@ pub(crate) fn sign_rsa(
 pub(crate) fn sign(
     alg: &SignatureScheme,
     sk: &Bytes,
-    cert: &Bytes, // TODO: `cert` added to allow reconstructing full signing key for RSA-PSS. Rework this. (cf. issue #72)
     input: &Bytes,
-    ent: Bytes, // TODO: Rework handling of randomness, `libcrux` may want an `impl CryptoRng + RngCore` instead of raw bytes. (cf. issue #73)
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<Bytes, TLSError> {
     let sig = match alg {
         SignatureScheme::EcdsaSecp256r1Sha256 => signature::sign(
             to_libcrux_sig_alg(alg)?,
             &input.declassify(),
             &sk.declassify(),
-            &mut rand::thread_rng(),
+            rng,
         ),
         SignatureScheme::ED25519 => signature::sign(
             to_libcrux_sig_alg(alg)?,
             &input.declassify(),
             &sk.declassify(),
-            &mut rand::thread_rng(),
+            rng,
         ),
         SignatureScheme::RsaPssRsaSha256 => {
             panic!("wrong function, use sign_rsa")
@@ -414,10 +413,11 @@ pub(crate) fn to_libcrux_kem_alg(alg: &KemScheme) -> Result<kem::Algorithm, TLSE
         _ => tlserr(UNSUPPORTED_ALGORITHM),
     }
 }
-pub(crate) fn kem_keygen(alg: &KemScheme, ent: Bytes) -> Result<(KemSk, KemPk), TLSError> {
-    //let sk = ent.clone();
-    //let pk = kem::secret_to_public(to_libcrux_kem_alg(alg)?,&sk.declassify());
-    let res = kem::key_gen(to_libcrux_kem_alg(alg)?, &mut rand::thread_rng());
+pub(crate) fn kem_keygen(
+    alg: &KemScheme,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<(KemSk, KemPk), TLSError> {
+    let res = kem::key_gen(to_libcrux_kem_alg(alg)?, rng);
     match res {
         Ok((sk, pk)) => Ok((Bytes::from(sk.encode()), Bytes::from(pk.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),
@@ -427,10 +427,10 @@ pub(crate) fn kem_keygen(alg: &KemScheme, ent: Bytes) -> Result<(KemSk, KemPk), 
 pub(crate) fn kem_encap(
     alg: &KemScheme,
     pk: &Bytes,
-    ent: Bytes,
+    rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(Bytes, Bytes), TLSError> {
     let pk = PublicKey::decode(to_libcrux_kem_alg(alg)?, &pk.declassify()).unwrap();
-    let res = kem::encapsulate(&pk, &mut rand::thread_rng());
+    let res = kem::encapsulate(&pk, rng);
     match res {
         Ok((gxy, gy)) => Ok((Bytes::from(gxy.encode()), Bytes::from(gy.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),

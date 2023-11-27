@@ -7,7 +7,7 @@
 //! * optional PSKs
 
 use crate::{
-    tls13crypto::{Algorithms, SignatureKey, PSK},
+    tls13crypto::{Algorithms, Psk, SignatureKey},
     tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
@@ -16,7 +16,7 @@ pub struct ServerDB {
     pub(crate) server_name: Bytes,
     pub(crate) cert: Bytes,
     pub(crate) sk: SignatureKey,
-    pub(crate) psk_opt: Option<(Bytes, PSK)>,
+    pub(crate) psk_opt: Option<(Bytes, Psk)>,
 }
 
 impl ServerDB {
@@ -27,7 +27,7 @@ impl ServerDB {
         server_name: Bytes,
         cert: Bytes,
         sk: SignatureKey,
-        psk_opt: Option<(Bytes, PSK)>,
+        psk_opt: Option<(Bytes, Psk)>,
     ) -> Self {
         Self {
             server_name,
@@ -42,7 +42,7 @@ impl ServerDB {
 pub(crate) struct ServerInfo {
     pub(crate) cert: Bytes,
     pub(crate) sk: SignatureKey,
-    pub(crate) psk_opt: Option<PSK>,
+    pub(crate) psk_opt: Option<Psk>,
 }
 
 /// Look up a server for the given `ciphersuite`.
@@ -57,7 +57,7 @@ pub(crate) fn lookup_db(
     if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
         match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
             (true, Some(ctkt), Some((stkt, psk))) => {
-                check_eq(ctkt, &stkt)?;
+                check_eq(ctkt, stkt)?;
                 let server = ServerInfo {
                     cert: db.cert.clone(),
                     sk: db.sk.clone(),

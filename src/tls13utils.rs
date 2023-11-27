@@ -127,6 +127,16 @@ impl Bytes {
     pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
     }
+
+    /// Convert the bytes into raw bytes
+    pub fn into_raw(self) -> Vec<U8> {
+        self.0
+    }
+
+    /// Get a reference to the raw bytes.
+    pub fn as_raw(&self) -> &[U8] {
+        &self.0
+    }
 }
 
 impl Bytes {
@@ -367,43 +377,46 @@ pub fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     }
 }
 
-pub fn lbytes1(b: &Bytes) -> Result<Bytes, TLSError> {
-    let len = b.len();
+/// TLS encode the `bytes` with [`u8`] length.
+pub fn lbytes1(bytes: &Bytes) -> Result<Bytes, TLSError> {
+    let len = bytes.len();
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let mut lenb = Bytes::new();
         lenb.push((len as u8).into());
-        lenb.extend_from_slice(b);
+        lenb.extend_from_slice(bytes);
         Ok(lenb)
     }
 }
 
-pub fn lbytes2(b: &Bytes) -> Result<Bytes, TLSError> {
-    let len = b.len();
+/// TLS encode the `bytes` with [`u16`] length.
+pub fn lbytes2(bytes: &Bytes) -> Result<Bytes, TLSError> {
+    let len = bytes.len();
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len: Bytes = (U16(len as u16)).to_be_bytes();
+        let len = (U16(len as u16)).to_be_bytes();
         let mut lenb = Bytes::new();
         lenb.push(len[0]);
         lenb.push(len[1]);
-        lenb.extend_from_slice(b);
+        lenb.extend_from_slice(bytes);
         Ok(lenb)
     }
 }
 
-pub fn lbytes3(b: &Bytes) -> Result<Bytes, TLSError> {
-    let len = b.len();
+/// TLS encode the `bytes` with [`u24`] length.
+pub fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
+    let len = bytes.len();
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len: Bytes = U32(len as u32).to_be_bytes();
+        let len = U32(len as u32).to_be_bytes();
         let mut lenb = Bytes::new();
         lenb.push(len[1]);
         lenb.push(len[2]);
         lenb.push(len[3]);
-        lenb.extend_from_slice(b);
+        lenb.extend_from_slice(bytes);
         Ok(lenb)
     }
 }

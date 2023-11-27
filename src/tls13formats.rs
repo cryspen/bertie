@@ -3,14 +3,14 @@
 
 use crate::{
     tls13crypto::{
-        hash, hash_len, zero_key, AeadAlgorithm, Algorithms, Digest, HashAlgorithm, KemPk,
-        KemScheme, Random, SignatureScheme, HMAC,
+        hash, hash_len, zero_key, AeadAlgorithm, Algorithms, Digest, HashAlgorithm, Hmac, KemPk,
+        KemScheme, Random, SignatureScheme,
     },
     tls13utils::{
         bytes1, bytes2, check_eq, check_lbytes1, check_lbytes1_full, check_lbytes2,
         check_lbytes2_full, check_lbytes3, check_lbytes3_full, check_mem, eq, eq1,
-        handshake_concat, handshake_data, handshake_data_bytes, handshake_data_len, lbytes1,
-        lbytes2, lbytes3, parse_failed, tlserr, Bytes, HandshakeData, TLSError,
+        handshake_concat, handshake_data, handshake_data_len, lbytes1, lbytes2, lbytes3,
+        parse_failed, tlserr, Bytes, HandshakeData, TLSError,
         APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
         INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
         UNSUPPORTED_ALGORITHM,
@@ -57,8 +57,10 @@ const SHA256_EMPTY: [u8; 3]2 = [u8; 3]2(([
 ]));
 */
 
-fn ciphersuite(algs: &Algorithms) -> Result<Bytes, TLSError> {
-    match (algs.hash_alg(), algs.aead_alg()) {
+/// Returns the TLS ciphersuite for the given algorithm when it is supported, or
+/// a [`TLSError`] otherwise.
+fn ciphersuite(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
+    match (ciphersuite.hash_alg(), ciphersuite.aead_alg()) {
         (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok(bytes2(0x13, 0x01)),
         (HashAlgorithm::SHA384, AeadAlgorithm::Aes256Gcm) => Ok(bytes2(0x13, 0x02)),
         (HashAlgorithm::SHA256, AeadAlgorithm::Chacha20Poly1305) => Ok(bytes2(0x13, 0x03)),
@@ -66,8 +68,10 @@ fn ciphersuite(algs: &Algorithms) -> Result<Bytes, TLSError> {
     }
 }
 
-fn supported_group(algs: &Algorithms) -> Result<Bytes, TLSError> {
-    match algs.kem_alg() {
+/// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
+/// otherwise.
+fn supported_group(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
+    match ciphersuite.kem_alg() {
         KemScheme::X25519 => Ok(bytes2(0x00, 0x1D)),
         KemScheme::Secp256r1 => Ok(bytes2(0x00, 0x17)),
         KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
@@ -76,8 +80,10 @@ fn supported_group(algs: &Algorithms) -> Result<Bytes, TLSError> {
     }
 }
 
-fn signature_algorithm(algs: &Algorithms) -> Result<Bytes, TLSError> {
-    match algs.sig_alg() {
+/// Returns the signature id for the given algorithm when it is supported, or a
+///  [`TLSError`] otherwise.
+fn signature_algorithm(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
+    match ciphersuite.sig_alg() {
         SignatureScheme::RsaPssRsaSha256 => Ok(bytes2(0x08, 0x04)),
         SignatureScheme::EcdsaSecp256r1Sha256 => Ok(bytes2(0x04, 0x03)),
         SignatureScheme::ED25519 => tlserr(UNSUPPORTED_ALGORITHM),
@@ -138,13 +144,13 @@ fn check_signature_algorithms(algs: &Algorithms, ch: &Bytes) -> Result<(), TLSEr
     check_mem(&signature_algorithm(algs)?, &ch.slice_range(2..ch.len()))
 }
 
-pub fn psk_key_exchange_modes(_algs: &Algorithms) -> Result<Bytes, TLSError> {
+pub fn psk_key_exchange_modes() -> Result<Bytes, TLSError> {
     Ok(bytes2(0, 0x2d).concat(&lbytes2(&lbytes1(&bytes1(1))?)?))
 }
 
-pub fn check_psk_key_exchange_modes(_algs: &Algorithms, ch: &Bytes) -> Result<(), TLSError> {
-    check_lbytes1_full(ch)?;
-    check_eq(&bytes1(1), &ch.slice_range(1..2))
+pub fn check_psk_key_exchange_modes(client_hello: &Bytes) -> Result<(), TLSError> {
+    check_lbytes1_full(client_hello)?;
+    check_eq(&bytes1(1), &client_hello.slice_range(1..2))
 }
 
 pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
@@ -215,13 +221,16 @@ pub fn check_server_psk_shared_key(_algs: &Algorithms, b: &Bytes) -> Result<(), 
     check_eq(&bytes2(0, 0), b)
 }
 
-pub struct EXTS(
-    pub Option<Bytes>, //SNI
-    pub Option<Bytes>, //KeyShare
-    pub Option<Bytes>, //Ticket
-    pub Option<Bytes>, //Binder
-);
+/// TLS Extensions
+pub struct Extensions {
+    pub sni: Option<Bytes>,
+    pub key_share: Option<Bytes>,
+    pub ticket: Option<Bytes>,
+    pub binder: Option<Bytes>,
+}
 
+/// Merge two options as xor and return `Some(value)`, `None`, or an error if
+/// both are `Some`.
 pub fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError> {
     match (o1, o2) {
         (None, Some(o)) => Ok(Some(o)),
@@ -230,58 +239,69 @@ pub fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError
         _ => tlserr(parse_failed()),
     }
 }
-pub fn merge_exts(e1: EXTS, e2: EXTS) -> Result<EXTS, TLSError> {
-    let EXTS(sn1, ks1, tkt1, bd1) = e1;
-    let EXTS(sn2, ks2, tkt2, bd2) = e2;
-    Ok(EXTS(
-        merge_opts(sn1, sn2)?,
-        merge_opts(ks1, ks2)?,
-        merge_opts(tkt1, tkt2)?,
-        merge_opts(bd1, bd2)?,
-    ))
+
+/// Merge the two extensions.
+/// This will fail if both have set the same extension.
+pub fn merge_extensions(e1: Extensions, e2: Extensions) -> Result<Extensions, TLSError> {
+    Ok(Extensions {
+        sni: merge_opts(e1.sni, e2.sni)?,
+        key_share: merge_opts(e1.key_share, e2.key_share)?,
+        ticket: merge_opts(e1.ticket, e2.ticket)?,
+        binder: merge_opts(e1.binder, e2.binder)?,
+    })
 }
 
-fn missing_key_share() -> Result<(usize, EXTS), TLSError> {
-    Result::<(usize, EXTS), TLSError>::Err(MISSING_KEY_SHARE)
-}
-
-fn check_extension(algs: &Algorithms, b: &Bytes) -> Result<(usize, EXTS), TLSError> {
-    let l0 = b[0].declassify() as usize;
-    let l1 = b[1].declassify() as usize;
-    let len = check_lbytes2(&b.slice_range(2..b.len()))?;
-    let out = EXTS(None, None, None, None);
+/// Check an extension for validity.
+fn check_extension(algs: &Algorithms, bytes: &Bytes) -> Result<(usize, Extensions), TLSError> {
+    let l0 = bytes[0].declassify() as usize;
+    let l1 = bytes[1].declassify() as usize;
+    let len = check_lbytes2(&bytes.slice_range(2..bytes.len()))?;
+    let out = Extensions {
+        sni: None,
+        key_share: None,
+        ticket: None,
+        binder: None,
+    };
     match (l0 as u8, l1 as u8) {
         (0, 0) => Ok((
             4 + len,
-            EXTS(
-                Some(check_server_name(&b.slice_range(4..4 + len))?),
-                None,
-                None,
-                None,
-            ),
+            Extensions {
+                sni: Some(check_server_name(&bytes.slice_range(4..4 + len))?),
+                key_share: None,
+                ticket: None,
+                binder: None,
+            },
         )),
         (0, 0x2d) => {
-            check_psk_key_exchange_modes(algs, &b.slice_range(4..4 + len))?;
+            check_psk_key_exchange_modes(&bytes.slice_range(4..4 + len))?;
             Ok((4 + len, out))
         }
         (0, 0x2b) => {
-            check_supported_versions(algs, &b.slice_range(4..4 + len))?;
+            check_supported_versions(algs, &bytes.slice_range(4..4 + len))?;
             Ok((4 + len, out))
         }
         (0, 0x0a) => {
-            check_supported_groups(algs, &b.slice_range(4..4 + len))?;
+            check_supported_groups(algs, &bytes.slice_range(4..4 + len))?;
             Ok((4 + len, out))
         }
         (0, 0x0d) => {
-            check_signature_algorithms(algs, &b.slice_range(4..4 + len))?;
+            check_signature_algorithms(algs, &bytes.slice_range(4..4 + len))?;
             Ok((4 + len, out))
         }
-        (0, 0x33) => match check_key_shares(algs, &b.slice_range(4..4 + len)) {
-            Ok(gx) => Ok((4 + len, EXTS(None, Some(gx), None, None))),
+        (0, 0x33) => match check_key_shares(algs, &bytes.slice_range(4..4 + len)) {
+            Ok(gx) => Ok((
+                4 + len,
+                Extensions {
+                    sni: None,
+                    key_share: Some(gx),
+                    ticket: None,
+                    binder: None,
+                },
+            )),
             Err(_) => tlserr(MISSING_KEY_SHARE),
         },
         (0, 41) => {
-            check_psk_shared_key(algs, &b.slice_range(4..4 + len))?;
+            check_psk_shared_key(algs, &bytes.slice_range(4..4 + len))?;
             Ok((4 + len, out))
         }
         _ => Ok((4 + len, out)),
@@ -308,14 +328,14 @@ pub fn check_server_extension(
     Ok((4 + len, out))
 }
 
-fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<EXTS, TLSError> {
+fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError> {
     let (len, out) = check_extension(algs, b)?;
     //println!("checked 1 extension");
     if len == b.len() {
         Ok(out)
     } else {
         let out_rest = check_extensions(algs, &b.slice_range(len..b.len()))?;
-        merge_exts(out, out_rest)
+        merge_extensions(out, out_rest)
     }
 }
 
@@ -564,13 +584,12 @@ pub fn handshake_message(ty: HandshakeType, by: &Bytes) -> Result<HandshakeData,
 pub fn get_first_handshake_message(
     p: &HandshakeData,
 ) -> Result<(HandshakeData, HandshakeData), TLSError> {
-    let p = handshake_data_bytes(p);
-    if p.len() < 4 {
+    if p.0.len() < 4 {
         tlserr(parse_failed())
     } else {
-        let len = check_lbytes3(&p.slice_range(1..p.len()))?;
-        let msg = p.slice_range(0..4 + len);
-        let rest = p.slice_range(4 + len..p.len());
+        let len = check_lbytes3(&p.0.slice_range(1..p.0.len()))?;
+        let msg = p.0.slice_range(0..4 + len);
+        let rest = p.0.slice_range(4 + len..p.0.len());
         Ok((HandshakeData(msg), HandshakeData(rest)))
     }
 }
@@ -657,7 +676,7 @@ pub(crate) fn client_hello(
     let mut trunc_len = 0;
     match (algs.psk_mode(), session_ticket) {
         (true, Some(session_ticket)) => {
-            let pskm = psk_key_exchange_modes(algs)?;
+            let pskm = psk_key_exchange_modes()?;
             let (psk, len) = pre_shared_key(algs, session_ticket)?;
             exts = exts.concat(&pskm).concat(&psk);
             trunc_len = len;
@@ -679,7 +698,7 @@ pub(crate) fn client_hello(
 
 pub fn set_client_hello_binder(
     algs: &Algorithms,
-    binder: &Option<HMAC>,
+    binder: &Option<Hmac>,
     ch: HandshakeData,
     trunc_len: Option<usize>,
 ) -> Result<HandshakeData, TLSError> {
@@ -743,11 +762,33 @@ pub fn parse_client_hello(
     //println!("check_extensions");
     let trunc_len = ch.len() - hash_len(&algs.hash_alg()) - 3;
     match (algs.psk_mode(), exts) {
-        (_, EXTS(_, None, _, _)) => tlserr(MISSING_KEY_SHARE),
-        (true, EXTS(Some(sn), Some(gx), Some(tkt), Some(binder))) => {
-            Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len))
-        }
-        (true, EXTS(None, Some(gx), Some(tkt), Some(binder))) => Ok((
+        (
+            _,
+            Extensions {
+                sni: _,
+                key_share: None,
+                ticket: _,
+                binder: _,
+            },
+        ) => tlserr(MISSING_KEY_SHARE),
+        (
+            true,
+            Extensions {
+                sni: Some(sn),
+                key_share: Some(gx),
+                ticket: Some(tkt),
+                binder: Some(binder),
+            },
+        ) => Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len)),
+        (
+            true,
+            Extensions {
+                sni: None,
+                key_share: Some(gx),
+                ticket: Some(tkt),
+                binder: Some(binder),
+            },
+        ) => Ok((
             crand,
             sid,
             Bytes::new(),
@@ -756,10 +797,24 @@ pub fn parse_client_hello(
             Some(binder),
             trunc_len,
         )),
-        (false, EXTS(Some(sn), Some(gx), None, None)) => Ok((crand, sid, sn, gx, None, None, 0)),
-        (false, EXTS(None, Some(gx), None, None)) => {
-            Ok((crand, sid, Bytes::new(), gx, None, None, 0))
-        }
+        (
+            false,
+            Extensions {
+                sni: Some(sn),
+                key_share: Some(gx),
+                ticket: None,
+                binder: None,
+            },
+        ) => Ok((crand, sid, sn, gx, None, None, 0)),
+        (
+            false,
+            Extensions {
+                sni: None,
+                key_share: Some(gx),
+                ticket: None,
+                binder: None,
+            },
+        ) => Ok((crand, sid, Bytes::new(), gx, None, None, 0)),
         _ => tlserr(parse_failed()),
     }
 }
@@ -832,9 +887,9 @@ pub fn parse_server_hello(
     next = next + 2;
     let gy = check_server_extensions(algs, &sh.slice_range(next..sh.len()))?;
     if let Some(gy) = gy {
-        Result::<(Random, KemPk), TLSError>::Ok((srand, gy))
+        Ok((srand, gy))
     } else {
-        Result::<(Random, KemPk), TLSError>::Err(MISSING_KEY_SHARE)
+        Err(MISSING_KEY_SHARE)
     }
 }
 
@@ -898,9 +953,9 @@ fn ecdsa_signature(sv: &Bytes) -> Result<Bytes, TLSError> {
 
 fn check_r_len(rlen: usize) -> Result<(), TLSError> {
     if rlen < 32 || rlen > 33 {
-        Result::<(), TLSError>::Err(INVALID_SIGNATURE)
+        Err(INVALID_SIGNATURE)
     } else {
-        Result::<(), TLSError>::Ok(())
+        Ok(())
     }
 }
 

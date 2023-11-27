@@ -16,13 +16,7 @@ let v_ASN1_SEQUENCE_TOO_LONG: u8 = 21uy
 
 let v_ASN1_UNSUPPORTED_ALGORITHM: u8 = 24uy
 
-unfold
-let t_DoubleUsizeResult = Core.Result.t_Result (usize & usize) u8
-
-unfold
-let t_UsizeResult = Core.Result.t_Result usize u8
-
-let asn1err
+let asn1_error
       (#v_T: Type)
       (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized v_T)
       (err: u8)
@@ -50,22 +44,12 @@ let asn1err
 let check_success (v_val: bool) : Core.Result.t_Result Prims.unit u8 =
   if v_val
   then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
-  else asn1err v_ASN1_ERROR
+  else asn1_error v_ASN1_ERROR
 
 type t_CertificateKey = | CertificateKey : usize -> usize -> t_CertificateKey
 
 unfold
 let t_Spki = (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey)
-
-unfold
-let t_SpkiResult = Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
-
-unfold
-let t_RsaVerificationKeyResult =
-  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-
-unfold
-let t_VerificationKeyResult = Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let ecdsa_secp256r1_sha256_oid: Bertie.Tls13utils.t_Bytes =
   Core.Convert.f_into (let list = [42uy; 134uy; 72uy; 206uy; 61uy; 3uy; 1uy; 7uy] in
@@ -87,7 +71,7 @@ let check_tag (b: Bertie.Tls13utils.t_Bytes) (offset: usize) (value: u8)
   if
     (Bertie.Tls13utils.impl__U8__declassify (b.[ offset ] <: Bertie.Tls13utils.t_U8) <: u8) =. value
   then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
-  else asn1err v_ASN1_INVALID_TAG
+  else asn1_error v_ASN1_INVALID_TAG
 
 let length_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : usize =
   if
@@ -129,7 +113,7 @@ let read_sequence_header (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
       (let offset:usize = offset +! sz 1 in
         let length_length:usize = length_length b offset in
         let offset:usize = (offset +! length_length <: usize) +! sz 1 in
-        Core.Result.Result.v_Ok offset)
+        Core.Result.Result_Ok offset <: Core.Result.t_Result usize u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
         (Core.Result.t_Result usize u8))
@@ -142,17 +126,16 @@ let short_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_
       u8) =.
     0uy
   then
-    Core.Result.Result.v_Ok (cast ((Bertie.Tls13utils.impl__U8__declassify (b.[ offset ]
-                  <:
-                  Bertie.Tls13utils.t_U8)
-              <:
-              u8) &.
-            127uy
-            <:
-            u8)
-        <:
-        usize)
-  else asn1err v_ASN1_ERROR
+    Core.Result.Result_Ok
+    (cast ((Bertie.Tls13utils.impl__U8__declassify (b.[ offset ] <: Bertie.Tls13utils.t_U8) <: u8) &.
+          127uy
+          <:
+          u8)
+      <:
+      usize)
+    <:
+    Core.Result.t_Result usize u8
+  else asn1_error v_ASN1_ERROR
 
 let read_version_number (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
     : Core.Result.t_Result usize u8 =
@@ -180,13 +163,15 @@ let read_version_number (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) usize
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result.v_Ok ((offset +! sz 1 <: usize) +! length <: usize))
+        (Core.Result.Result_Ok ((offset +! sz 1 <: usize) +! length)
+          <:
+          Core.Result.t_Result usize u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
           (Core.Result.t_Result usize u8)
       | Core.Result.Result_Err _ ->
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result.v_Ok offset <: Core.Result.t_Result usize u8)
+        (Core.Result.Result_Ok offset <: Core.Result.t_Result usize u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
           (Core.Result.t_Result usize u8))
@@ -220,11 +205,10 @@ let ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKe
             Prims.unit
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (Core.Result.Result.v_Ok (Bertie.Tls13utils.impl__Bytes__slice cert
-              (offset +! sz 1 <: usize)
-              (len -! sz 1 <: usize)
-            <:
-            Bertie.Tls13utils.t_Bytes))
+      (Core.Result.Result_Ok
+        (Bertie.Tls13utils.impl__Bytes__slice cert (offset +! sz 1 <: usize) (len -! sz 1 <: usize))
+        <:
+        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
@@ -233,7 +217,7 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) : Core.Result
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (if len >. sz 4 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
-        (asn1err v_ASN1_SEQUENCE_TOO_LONG <: Core.Result.t_Result usize u8)
+        (asn1_error v_ASN1_SEQUENCE_TOO_LONG <: Core.Result.t_Result usize u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
           (Core.Result.t_Result usize u8)
@@ -242,7 +226,7 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) : Core.Result
           Bertie.Tls13utils.impl__Bytes__zeroes (sz 4)
         in
         let u32word:Bertie.Tls13utils.t_Bytes =
-          Rust_primitives.Hax.update_at u32word
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_range u32word
             ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = len }
               <:
               Core.Ops.Range.t_Range usize)
@@ -291,7 +275,7 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) : Core.Result
         (let hoist78:u32 = Bertie.Tls13utils.impl__U32__declassify hoist77 in
           let hoist79:usize = cast (hoist78 <: u32) <: usize in
           let hoist80:usize = hoist79 >>! ((sz 4 -! len <: usize) *! sz 8 <: usize) in
-          Core.Result.Result.v_Ok hoist80)
+          Core.Result.Result_Ok hoist80 <: Core.Result.t_Result usize u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
           (Core.Result.t_Result usize u8))
@@ -325,7 +309,9 @@ let length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_Result
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & usize) u8) usize
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result.v_Ok ((offset +! sz 1 <: usize), len <: (usize & usize)))
+        (Core.Result.Result_Ok (offset +! sz 1, len <: (usize & usize))
+          <:
+          Core.Result.t_Result (usize & usize) u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & usize) u8)
           (Core.Result.t_Result (usize & usize) u8)
@@ -351,7 +337,9 @@ let length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_Result
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & usize) u8) usize
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result.v_Ok ((offset +! len <: usize), v_end <: (usize & usize)))
+        (Core.Result.Result_Ok (offset +! len, v_end <: (usize & usize))
+          <:
+          Core.Result.t_Result (usize & usize) u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & usize) u8)
           (Core.Result.t_Result (usize & usize) u8))
@@ -395,7 +383,7 @@ let read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t_
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) (usize & usize)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (Core.Result.Result.v_Ok (offset +! length <: usize))
+      (Core.Result.Result_Ok (offset +! length) <: Core.Result.t_Result usize u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
         (Core.Result.t_Result usize u8))
@@ -834,22 +822,28 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
         in
         if ec_pk_oid && ecdsa_p256
         then
-          Core.Result.Result.v_Ok ((Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256
-                <:
-                Bertie.Tls13crypto.t_SignatureScheme),
-              (CertificateKey offset (bit_string_len -! sz 1 <: usize) <: t_CertificateKey)
+          Core.Result.Result_Ok
+          ((Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256
               <:
-              (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey))
+              Bertie.Tls13crypto.t_SignatureScheme),
+            (CertificateKey offset (bit_string_len -! sz 1) <: t_CertificateKey)
+            <:
+            (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey))
+          <:
+          Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
         else
           if rsa_pk_oid
           then
-            Core.Result.Result.v_Ok ((Bertie.Tls13crypto.SignatureScheme_RsaPssRsaSha256
-                  <:
-                  Bertie.Tls13crypto.t_SignatureScheme),
-                (CertificateKey offset (bit_string_len -! sz 1 <: usize) <: t_CertificateKey)
+            Core.Result.Result_Ok
+            ((Bertie.Tls13crypto.SignatureScheme_RsaPssRsaSha256
                 <:
-                (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey))
-          else asn1err v_ASN1_INVALID_CERTIFICATE)
+                Bertie.Tls13crypto.t_SignatureScheme),
+              (CertificateKey offset (bit_string_len -! sz 1) <: t_CertificateKey)
+              <:
+              (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey))
+            <:
+            Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
+          else asn1_error v_ASN1_INVALID_CERTIFICATE)
       <:
       Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
@@ -1009,7 +1003,9 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (let e:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__slice cert offset int_len in
-        Core.Result.Result.v_Ok (n, e <: (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)))
+        Core.Result.Result_Ok (n, e <: (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+        <:
+        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -1022,7 +1018,7 @@ let cert_public_key
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (match spki._1 with
       | Bertie.Tls13crypto.SignatureScheme_ED25519  ->
         Core.Ops.Control_flow.ControlFlow_Continue
-        (asn1err v_ASN1_UNSUPPORTED_ALGORITHM
+        (asn1_error v_ASN1_UNSUPPORTED_ALGORITHM
           <:
           Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8)
         <:
@@ -1142,7 +1138,7 @@ let skip_sequence (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Result.t
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) (usize & usize)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (Core.Result.Result.v_Ok (offset +! length <: usize))
+      (Core.Result.Result_Ok (offset +! length) <: Core.Result.t_Result usize u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
         (Core.Result.t_Result usize u8))

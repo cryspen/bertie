@@ -198,10 +198,7 @@ unfold
 let t_Digest = Bertie.Tls13utils.t_Bytes
 
 unfold
-let t_Entropy = Bertie.Tls13utils.t_Bytes
-
-unfold
-let t_HMAC = Bertie.Tls13utils.t_Bytes
+let t_Hmac = Bertie.Tls13utils.t_Bytes
 
 unfold
 let t_KemPk = Bertie.Tls13utils.t_Bytes
@@ -216,7 +213,7 @@ unfold
 let t_MacKey = Bertie.Tls13utils.t_Bytes
 
 unfold
-let t_PSK = Bertie.Tls13utils.t_Bytes
+let t_Psk = Bertie.Tls13utils.t_Bytes
 
 type t_PublicVerificationKey =
   | PublicVerificationKey_EcDsa : Bertie.Tls13utils.t_Bytes -> t_PublicVerificationKey
@@ -235,8 +232,15 @@ let t_SignatureKey = Bertie.Tls13utils.t_Bytes
 unfold
 let t_VerificationKey = Bertie.Tls13utils.t_Bytes
 
-let kem_keygen (alg: t_KemScheme) (ent: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+let kem_keygen
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
+      (alg: t_KemScheme)
+      (rng: impl_916461611_)
+    : (impl_916461611_ &
+      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist2:Libcrux.Kem.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (to_libcrux_kem_alg alg
@@ -245,50 +249,66 @@ let kem_keygen (alg: t_KemScheme) (ent: Bertie.Tls13utils.t_Bytes)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist1:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
                 <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                (impl_916461611_ &
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist1)
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             Libcrux.Kem.t_Algorithm
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             Libcrux.Kem.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let _, out:(Rand.Rngs.Thread.t_ThreadRng &
+      (let tmp0, out:(impl_916461611_ &
           Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
             Libcrux.Kem.t_Error) =
-          Libcrux.Kem.key_gen hoist2 (Rand.Rngs.Thread.thread_rng <: Rand.Rngs.Thread.t_ThreadRng)
+          Libcrux.Kem.key_gen hoist2 rng
         in
+        let rng:impl_916461611_ = tmp0 in
         let res:Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
           Libcrux.Kem.t_Error =
           out
         in
-        match res with
-        | Core.Result.Result_Ok (sk, pk) ->
-          Core.Result.Result_Ok
-          (Core.Convert.f_from (Libcrux.Kem.impl__PrivateKey__encode sk
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
-            Core.Convert.f_from (Libcrux.Kem.impl__PublicKey__encode pk
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+        let hax_temp_output:Core.Result.t_Result
+          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+          match res with
+          | Core.Result.Result_Ok (sk, pk) ->
+            Core.Result.Result_Ok
+            (Core.Convert.f_from (Libcrux.Kem.impl__PrivateKey__encode sk
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
+              Core.Convert.f_from (Libcrux.Kem.impl__PublicKey__encode pk
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+              <:
+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
             <:
-            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
-          <:
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-        | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
+            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
       <:
       Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
 
 let hash (alg: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
@@ -521,8 +541,16 @@ let kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
-let kem_encap (alg: t_KemScheme) (pk ent: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+let kem_encap
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
+      (alg: t_KemScheme)
+      (pk: Bertie.Tls13utils.t_Bytes)
+      (rng: impl_916461611_)
+    : (impl_916461611_ &
+      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist20:Libcrux.Kem.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (to_libcrux_kem_alg alg
@@ -531,20 +559,26 @@ let kem_encap (alg: t_KemScheme) (pk ent: Bertie.Tls13utils.t_Bytes)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist19:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
                 <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                (impl_916461611_ &
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist19)
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             Libcrux.Kem.t_Algorithm
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             Libcrux.Kem.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
@@ -557,31 +591,41 @@ let kem_encap (alg: t_KemScheme) (pk ent: Bertie.Tls13utils.t_Bytes)
               t_Slice u8)
         in
         let pk:Libcrux.Kem.t_PublicKey = Core.Result.impl__unwrap hoist21 in
-        let _, out:(Rand.Rngs.Thread.t_ThreadRng &
+        let tmp0, out:(impl_916461611_ &
           Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error) =
-          Libcrux.Kem.encapsulate pk (Rand.Rngs.Thread.thread_rng <: Rand.Rngs.Thread.t_ThreadRng)
+          Libcrux.Kem.encapsulate pk rng
         in
+        let rng:impl_916461611_ = tmp0 in
         let res:Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error =
           out
         in
-        match res with
-        | Core.Result.Result_Ok (gxy, gy) ->
-          Core.Result.Result_Ok
-          (Core.Convert.f_from (Libcrux.Kem.impl__Ss__encode gxy
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
-            Core.Convert.f_from (Libcrux.Kem.impl__Ct__encode gy
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+        let hax_temp_output:Core.Result.t_Result
+          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+          match res with
+          | Core.Result.Result_Ok (gxy, gy) ->
+            Core.Result.Result_Ok
+            (Core.Convert.f_from (Libcrux.Kem.impl__Ss__encode gxy
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
+              Core.Convert.f_from (Libcrux.Kem.impl__Ct__encode gy
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+              <:
+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
             <:
-            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
-          <:
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-        | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
+            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
       <:
       Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
 
 let ae_key_wrap (alg: t_AeadAlgorithm) (k: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Libcrux.Aead.t_Key u8 =
@@ -685,10 +729,17 @@ let ae_key_wrap (alg: t_AeadAlgorithm) (k: Bertie.Tls13utils.t_Bytes)
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
           (Core.Result.t_Result Libcrux.Aead.t_Key u8))
 
-let sign (alg: t_SignatureScheme) (sk cert input ent: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* sig:Core.Result.t_Result
-        Libcrux.Signature.t_Signature Libcrux.Signature.t_Error =
+let sign
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
+      (alg: t_SignatureScheme)
+      (sk input: Bertie.Tls13utils.t_Bytes)
+      (rng: impl_916461611_)
+    : (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* rng, sig:(impl_916461611_ &
+        Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
         match alg with
         | SignatureScheme_EcdsaSecp256r1Sha256  ->
           let* hoist45:Libcrux.Signature.t_Algorithm =
@@ -699,23 +750,27 @@ let sign (alg: t_SignatureScheme) (sk cert input ent: Bertie.Tls13utils.t_Bytes)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
               let* hoist44:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
+                Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                    (Core.Ops.Try_trait.f_from_residual residual
+                      <:
+                      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                     <:
-                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                    (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
               in
               Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist44)
               <:
               Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Libcrux.Signature.t_Algorithm
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                Libcrux.Signature.t_Algorithm
             | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
               Core.Ops.Control_flow.ControlFlow_Continue v_val
               <:
               Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Libcrux.Signature.t_Algorithm
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                Libcrux.Signature.t_Algorithm
           in
           Core.Ops.Control_flow.ControlFlow_Continue
-          (let _, out:(Rand.Rngs.Thread.t_ThreadRng &
+          (let tmp0, out:(impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
               Libcrux.Signature.sign hoist45
                 (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify input
@@ -728,12 +783,18 @@ let sign (alg: t_SignatureScheme) (sk cert input ent: Bertie.Tls13utils.t_Bytes)
                       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
                   <:
                   t_Slice u8)
-                (Rand.Rngs.Thread.thread_rng <: Rand.Rngs.Thread.t_ThreadRng)
+                rng
             in
-            out)
+            let rng:impl_916461611_ = tmp0 in
+            rng, out
+            <:
+            (impl_916461611_ &
+              Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error))
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            (Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (impl_916461611_ &
+              Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
         | SignatureScheme_ED25519  ->
           let* hoist47:Libcrux.Signature.t_Algorithm =
             match
@@ -743,23 +804,27 @@ let sign (alg: t_SignatureScheme) (sk cert input ent: Bertie.Tls13utils.t_Bytes)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
               let* hoist46:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
+                Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                    (Core.Ops.Try_trait.f_from_residual residual
+                      <:
+                      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                     <:
-                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                    (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
               in
               Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist46)
               <:
               Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Libcrux.Signature.t_Algorithm
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                Libcrux.Signature.t_Algorithm
             | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
               Core.Ops.Control_flow.ControlFlow_Continue v_val
               <:
               Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Libcrux.Signature.t_Algorithm
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                Libcrux.Signature.t_Algorithm
           in
           Core.Ops.Control_flow.ControlFlow_Continue
-          (let _, out:(Rand.Rngs.Thread.t_ThreadRng &
+          (let tmp0, out:(impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
               Libcrux.Signature.sign hoist47
                 (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify input
@@ -772,15 +837,22 @@ let sign (alg: t_SignatureScheme) (sk cert input ent: Bertie.Tls13utils.t_Bytes)
                       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
                   <:
                   t_Slice u8)
-                (Rand.Rngs.Thread.thread_rng <: Rand.Rngs.Thread.t_ThreadRng)
+                rng
             in
-            out)
+            let rng:impl_916461611_ = tmp0 in
+            rng, out
+            <:
+            (impl_916461611_ &
+              Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error))
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            (Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (impl_916461611_ &
+              Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
         | SignatureScheme_RsaPssRsaSha256  ->
           Core.Ops.Control_flow.ControlFlow_Continue
-          (Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_const (Rust_primitives.unsize
+          (rng,
+            Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_const (Rust_primitives.unsize
                           (let list = ["wrong function, use sign_rsa"] in
                             FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
                             Rust_primitives.Hax.array_of_list list)
@@ -789,45 +861,57 @@ let sign (alg: t_SignatureScheme) (sk cert input ent: Bertie.Tls13utils.t_Bytes)
                     <:
                     Core.Fmt.t_Arguments)
                 <:
-                Rust_primitives.Hax.t_Never))
+                Rust_primitives.Hax.t_Never)
+            <:
+            (impl_916461611_ &
+              Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error))
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            (Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (impl_916461611_ &
+              Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (match sig with
-        | Core.Result.Result_Ok (Libcrux.Signature.Signature_Ed25519 sig) ->
-          Core.Result.Result_Ok
-          (Core.Convert.f_into (Libcrux.Signature.impl__Ed25519Signature__as_bytes sig
-                <:
-                t_Array u8 (sz 64)))
-          <:
-          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-        | Core.Result.Result_Ok (Libcrux.Signature.Signature_EcDsaP256 sig) ->
-          let r, s:(t_Array u8 (sz 32) & t_Array u8 (sz 32)) =
-            Libcrux.Signature.impl__EcDsaP256Signature__as_bytes sig
-          in
-          Core.Result.Result_Ok
-          (Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from r <: Bertie.Tls13utils.t_Bytes
-              )
-              (Core.Convert.f_from s <: Bertie.Tls13utils.t_Bytes))
-          <:
-          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-        | Core.Result.Result_Ok (Libcrux.Signature.Signature_RsaPss sig) ->
-          Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_const (Rust_primitives.unsize
-                        (let list = ["wrong function, use sign_rsa"] in
-                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                          Rust_primitives.Hax.array_of_list list)
-                      <:
-                      t_Slice string)
+      (let hax_temp_output:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+          match sig with
+          | Core.Result.Result_Ok (Libcrux.Signature.Signature_Ed25519 sig) ->
+            Core.Result.Result_Ok
+            (Core.Convert.f_into (Libcrux.Signature.impl__Ed25519Signature__as_bytes sig
                   <:
-                  Core.Fmt.t_Arguments)
-              <:
-              Rust_primitives.Hax.t_Never)
-        | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
+                  t_Array u8 (sz 64)))
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+          | Core.Result.Result_Ok (Libcrux.Signature.Signature_EcDsaP256 sig) ->
+            let r, s:(t_Array u8 (sz 32) & t_Array u8 (sz 32)) =
+              Libcrux.Signature.impl__EcDsaP256Signature__as_bytes sig
+            in
+            Core.Result.Result_Ok
+            (Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from r
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+                (Core.Convert.f_from s <: Bertie.Tls13utils.t_Bytes))
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+          | Core.Result.Result_Ok (Libcrux.Signature.Signature_RsaPss sig) ->
+            Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_const (Rust_primitives.unsize
+                          (let list = ["wrong function, use sign_rsa"] in
+                            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                            Rust_primitives.Hax.array_of_list list)
+                        <:
+                        t_Slice string)
+                    <:
+                    Core.Fmt.t_Arguments)
+                <:
+                Rust_primitives.Hax.t_Never)
+          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
       <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+      Core.Ops.Control_flow.t_ControlFlow
+        (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
 let supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8 =
@@ -902,16 +986,22 @@ let supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
         (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8))
 
 let sign_rsa
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
       (sk pk_modulus pk_exponent: Bertie.Tls13utils.t_Bytes)
       (cert_scheme: t_SignatureScheme)
-      (input ent: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+      (input: Bertie.Tls13utils.t_Bytes)
+      (rng: impl_916461611_)
+    : (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let salt:t_Array u8 (sz 32) =
         Rust_primitives.Hax.repeat 0uy (sz 32)
       in
-      let salt:(Rand.Rngs.Thread.t_ThreadRng & t_Array u8 (sz 32)) =
-        Rand_core.f_fill_bytes (Rand.Rngs.Thread.thread_rng <: Rand.Rngs.Thread.t_ThreadRng) salt
-      in
+      let tmp0, tmp1:(impl_916461611_ & t_Array u8 (sz 32)) = Rand_core.f_fill_bytes rng salt in
+      let rng:impl_916461611_ = tmp0 in
+      let salt:t_Array u8 (sz 32) = tmp1 in
+      let _:Prims.unit = () in
       let* _:Prims.unit =
         if
           ~.(match cert_scheme with
@@ -919,20 +1009,22 @@ let sign_rsa
             | _ -> false)
         then
           let* hoist49:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
-
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist49)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
         else
           Core.Ops.Control_flow.ControlFlow_Continue ()
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
       in
       let* _:Prims.unit =
         if
@@ -943,20 +1035,22 @@ let sign_rsa
             bool)
         then
           let* hoist50:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
-
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist50)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
         else
           Core.Ops.Control_flow.ControlFlow_Continue ()
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
       in
       let* key_size:Libcrux.Signature.Rsa_pss.t_RsaPssKeySize =
         match
@@ -966,18 +1060,23 @@ let sign_rsa
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist51:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist51)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssKeySize
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssKeySize
       in
       let* pk:Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey =
@@ -1002,18 +1101,23 @@ let sign_rsa
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist52:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist52)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey
       in
       let* sk:Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey =
@@ -1036,18 +1140,23 @@ let sign_rsa
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist53:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist53)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey
       in
       Core.Ops.Control_flow.ControlFlow_Continue
@@ -1062,22 +1171,29 @@ let sign_rsa
               <:
               t_Slice u8)
         in
-        Core.Result.impl__map_err (Core.Result.impl__map sig
-              (fun sig ->
-                  let sig:Libcrux.Signature.Rsa_pss.t_RsaPssSignature = sig in
-                  Core.Convert.f_into (Libcrux.Signature.Rsa_pss.impl__RsaPssSignature__as_bytes sig
-                      <:
-                      t_Slice u8)
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-            <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes Libcrux.Signature.t_Error)
-          (fun temp_0_ ->
-              let _:Libcrux.Signature.t_Error = temp_0_ in
-              Bertie.Tls13utils.v_CRYPTO_ERROR))
+        let hax_temp_output:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+          Core.Result.impl__map_err (Core.Result.impl__map sig
+                (fun sig ->
+                    let sig:Libcrux.Signature.Rsa_pss.t_RsaPssSignature = sig in
+                    Core.Convert.f_into (Libcrux.Signature.Rsa_pss.impl__RsaPssSignature__as_bytes sig
+
+                        <:
+                        t_Slice u8)
+                    <:
+                    Bertie.Tls13utils.t_Bytes)
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes Libcrux.Signature.t_Error)
+            (fun temp_0_ ->
+                let _:Libcrux.Signature.t_Error = temp_0_ in
+                Bertie.Tls13utils.v_CRYPTO_ERROR)
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
       <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+      Core.Ops.Control_flow.t_ControlFlow
+        (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
 let verify
       (alg: t_SignatureScheme)

@@ -16,13 +16,17 @@ path = "src/lib.rs"
 backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
-libcrux = { version = "0.0.2-pre.1", git = "https://github.com/cryspen/libcrux", features = ["rand"] }
+libcrux = { version = "0.0.2-pre.1", git = "https://github.com/cryspen/libcrux", features = [
+    "rand",
+] }
 
 [features]
 default = ["secret_integers"]
+test_utils = []
 secret_integers = []
 
 [dev-dependencies]
+bertie = { path = ".", features = ["test_utils"] }
 dhat = "0.3.0"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
