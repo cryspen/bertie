@@ -21,9 +21,10 @@ libcrux = { version = "0.0.2-pre.1", git = "https://github.com/cryspen/libcrux",
 ] }
 
 [features]
-default = ["secret_integers"]
+default = ["secret_integers", "api"]
 test_utils = []
 secret_integers = []
+api = []                             # The streaming Rust API that everyone should use but is not hacspec.
 
 [dev-dependencies]
 bertie = { path = ".", features = ["test_utils"] }

@@ -4,7 +4,7 @@
 
 use std::{net::TcpListener, time::Duration};
 
-use simple_https_server::tls13server;
+use bertie::{ciphersuites, stream::BertieStream, tls13crypto::Algorithms};
 
 use clap::Parser;
 
@@ -13,7 +13,9 @@ struct Cli {
     /// The hostname, defaults to "localhost"
     host: Option<String>,
     /// Port to listen on, defaults to port 443
+    #[arg(short, long)]
     port: Option<u16>,
+
     /// Algorithms to attempt to accept from a client.
     /// Can be one of the following strings:
     ///   * SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
@@ -31,6 +33,7 @@ struct Cli {
     ///
     /// The default value is SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519.
     #[clap(verbatim_doc_comment)]
+    #[arg(short, long)]
     algorithms: Option<String>,
 }
 
@@ -43,22 +46,30 @@ pub fn main() -> anyhow::Result<()> {
     let host = cli.host.unwrap_or("localhost".to_string());
     let port = cli.port.unwrap_or(443);
 
-    let algorithms = cli
+    let ciphersuite = cli
         .algorithms
-        .map(|s| simple_https_client::ciphersuite_from_str(&s).unwrap());
+        .map(|s| Algorithms::try_from(s.as_str()).unwrap())
+        .unwrap_or(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
 
     let listener = TcpListener::bind((host.as_str(), port)).unwrap();
 
     for stream in listener.incoming() {
-        let mut stream = stream.unwrap();
+        let stream = stream.unwrap();
 
         let d = Duration::new(15, 0);
         stream
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
         println!("New connection established!");
-        match tls13server(&mut stream, &host, algorithms) {
-            Ok(()) => {
+        match BertieStream::server(
+            &host,
+            port,
+            stream,
+            ciphersuite,
+            "./tests/assets/p256_cert.der",
+            "./tests/assets/p256_key.der",
+        ) {
+            Ok(_server) => {
                 println!("Connection to {} succeeded\n", host);
             }
             Err(error) => {

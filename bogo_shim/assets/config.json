@@ -273,6 +273,11 @@
     "FragmentedClientVersion": "unexpected failure: local error 'read tcp [::1]:50141->[::1]:50142: read: connection reset by peer', child error 'none'",
     "KeyUpdate-ToServer": "should pass; unexpected failure: local error 'EOF', child error 'none'",
     "GREASE-Server-TLS13": "should pass; unexpected failure: local error 'EOF', child error 'none'",
+    "GarbageInitialRecordVersion-TLS13":  "",
+    "SecondClientHelloMissingKeyShare-TLS13": "",
+    "MissingKeyShare-Server-TLS13": "",
+    "NoNullCompression-TLS13": "",
+    "ExtraCompressionMethods-TLS13": "",
 
     "Server-Sign-ECDSA_P256_SHA256-TLS13": "Should pass, but Bertie fails at check_ciphersuites with PARSE_FAILED",
     "Server-Sign-ECDSA_P384_SHA384-TLS13": "see above",

@@ -7,8 +7,7 @@ edition = "2021"
 
 [dependencies]
 base64 = "0.20.0"
-simple_https_client = { path = "../simple_https_client" }
-simple_https_server = { path = "../simple_https_server" }
+bertie = { path = "../" }
+rand = "0.8.5"
 tracing = "*"
 tracing-subscriber = "*"
-

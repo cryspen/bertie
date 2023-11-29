@@ -1,12 +1,15 @@
 use libcrux::{
     kem::{Ct, PrivateKey, PublicKey},
-    signature::rsa_pss::{RsaPssKeySize, RsaPssPublicKey},
+    signature::rsa_pss::{RsaPssKeySize, RsaPssPrivateKey, RsaPssPublicKey},
     *,
 };
 use rand::{CryptoRng, RngCore};
 
-use crate::tls13utils::{
-    eq, tlserr, Bytes, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
+use crate::{
+    ciphersuites,
+    tls13utils::{
+        eq, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
+    },
 };
 
 pub(crate) type Random = Bytes; //was [U8;32]
@@ -37,7 +40,8 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
-pub(crate) fn to_libcrux_hash_alg(alg: &HashAlgorithm) -> Result<digest::Algorithm, TLSError> {
+/// Get the libcrux hash algorithm
+fn hash_algorithm(alg: &HashAlgorithm) -> Result<digest::Algorithm, TLSError> {
     match alg {
         HashAlgorithm::SHA256 => Ok(digest::Algorithm::Sha256),
         HashAlgorithm::SHA384 => Ok(digest::Algorithm::Sha384),
@@ -45,10 +49,14 @@ pub(crate) fn to_libcrux_hash_alg(alg: &HashAlgorithm) -> Result<digest::Algorit
     }
 }
 
-pub(crate) fn hash(alg: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
-    Ok(digest::hash(to_libcrux_hash_alg(alg)?, &data.declassify()).into())
+/// Hash `data` with the given `algorithm`.
+///
+/// Returns the digest or an [`TLSError`].
+pub(crate) fn hash(algorithm: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
+    Ok(digest::hash(hash_algorithm(algorithm)?, &data.declassify()).into())
 }
 
+/// Get the size of the hash digest.
 pub(crate) fn hash_len(alg: &HashAlgorithm) -> usize {
     match alg {
         HashAlgorithm::SHA256 => digest::digest_size(digest::Algorithm::Sha256),
@@ -57,20 +65,25 @@ pub(crate) fn hash_len(alg: &HashAlgorithm) -> usize {
     }
 }
 
-pub(crate) fn to_libcrux_hmac_alg(alg: &HashAlgorithm) -> Result<hmac::Algorithm, TLSError> {
+/// Get the libcrux hmac algorithm.
+fn hmac_algorithm(alg: &HashAlgorithm) -> Result<hmac::Algorithm, TLSError> {
     match alg {
         HashAlgorithm::SHA256 => Ok(hmac::Algorithm::Sha256),
         HashAlgorithm::SHA384 => Ok(hmac::Algorithm::Sha384),
         HashAlgorithm::SHA512 => Ok(hmac::Algorithm::Sha512),
     }
 }
+/// Get the size of the hmac tag.
 pub(crate) fn hmac_tag_len(alg: &HashAlgorithm) -> usize {
     hash_len(alg)
 }
 
+/// Compute the HMAC tag.
+///
+/// Returns the tag [`Hmac`] or a [`TLSError`].
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac::hmac(
-        to_libcrux_hmac_alg(alg)?,
+        hmac_algorithm(alg)?,
         &mk.declassify(),
         &input.declassify(),
         None,
@@ -78,6 +91,9 @@ pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Resul
     .into())
 }
 
+/// Verify a given HMAC `tag`.
+///
+/// Returns `()` if successful or a [`TLSError`].
 pub(crate) fn hmac_verify(
     alg: &HashAlgorithm,
     mk: &MacKey,
@@ -91,11 +107,13 @@ pub(crate) fn hmac_verify(
     }
 }
 
+/// Get an empty key of the correct size.
 pub(crate) fn zero_key(alg: &HashAlgorithm) -> Bytes {
     Bytes::zeroes(hash_len(alg))
 }
 
-pub(crate) fn to_libcrux_hkdf_alg(alg: &HashAlgorithm) -> Result<hkdf::Algorithm, TLSError> {
+/// Get the libcrux HKDF algorithm.
+fn hkdf_algorithm(alg: &HashAlgorithm) -> Result<hkdf::Algorithm, TLSError> {
     match alg {
         HashAlgorithm::SHA256 => Ok(hkdf::Algorithm::Sha256),
         HashAlgorithm::SHA384 => Ok(hkdf::Algorithm::Sha384),
@@ -103,19 +121,20 @@ pub(crate) fn to_libcrux_hkdf_alg(alg: &HashAlgorithm) -> Result<hkdf::Algorithm
     }
 }
 
+/// HKDF Extract.
+///
+/// Returns the result as [`Bytes`] or a [`TLSError`].
 pub(crate) fn hkdf_extract(
     alg: &HashAlgorithm,
     ikm: &Bytes,
     salt: &Bytes,
 ) -> Result<Bytes, TLSError> {
-    Ok(hkdf::extract(
-        to_libcrux_hkdf_alg(alg)?,
-        salt.declassify(),
-        ikm.declassify(),
-    )
-    .into())
+    Ok(hkdf::extract(hkdf_algorithm(alg)?, salt.declassify(), ikm.declassify()).into())
 }
 
+/// HKDF Expand.
+///
+/// Returns the result as [`Bytes`] or a [`TLSError`].
 pub(crate) fn hkdf_expand(
     alg: &HashAlgorithm,
     prk: &Bytes,
@@ -123,7 +142,7 @@ pub(crate) fn hkdf_expand(
     len: usize,
 ) -> Result<Bytes, TLSError> {
     match hkdf::expand(
-        to_libcrux_hkdf_alg(alg)?,
+        hkdf_algorithm(alg)?,
         prk.declassify(),
         info.declassify(),
         len,
@@ -133,6 +152,7 @@ pub(crate) fn hkdf_expand(
     }
 }
 
+/// AEAD Algorithms for Bertie
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum AeadAlgorithm {
     Chacha20Poly1305,
@@ -173,6 +193,7 @@ pub(crate) fn ae_iv_len(alg: &AeadAlgorithm) -> usize {
     }
 }
 
+/// AEAD encrypt
 pub(crate) fn aead_encrypt(
     alg: &AeadAlgorithm,
     k: &AeadKey,
@@ -180,7 +201,6 @@ pub(crate) fn aead_encrypt(
     plain: &Bytes,
     aad: &Bytes,
 ) -> Result<Bytes, TLSError> {
-    println!("enc key {}\n nonce: {}", k.to_hex(), iv.to_hex());
     let res = aead::encrypt_detached(
         &ae_key_wrap(alg, k)?,
         plain.declassify(),
@@ -197,6 +217,7 @@ pub(crate) fn aead_encrypt(
     }
 }
 
+/// AEAD decrypt.
 pub(crate) fn aead_decrypt(
     alg: &AeadAlgorithm,
     k: &AeadKey,
@@ -204,7 +225,6 @@ pub(crate) fn aead_decrypt(
     cip: &Bytes,
     aad: &Bytes,
 ) -> Result<Bytes, TLSError> {
-    println!("dec key {}\n nonce: {}", k.to_hex(), iv.to_hex());
     let tag = cip.slice(cip.len() - 16, 16);
     let cip = cip.slice(0, cip.len() - 16);
     let tag: [u8; 16] = tag.declassify_array()?;
@@ -221,6 +241,7 @@ pub(crate) fn aead_decrypt(
     }
 }
 
+/// Signature schemes for Bertie.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum SignatureScheme {
     RsaPssRsaSha256,
@@ -228,7 +249,8 @@ pub enum SignatureScheme {
     ED25519,
 }
 
-pub(crate) fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algorithm, TLSError> {
+/// Get the libcrux signature algorithm from the [`SignatureScheme`].
+pub(crate) fn signature_algorithm(a: &SignatureScheme) -> Result<signature::Algorithm, TLSError> {
     match a {
         SignatureScheme::RsaPssRsaSha256 => Ok(signature::Algorithm::RsaPss(
             signature::DigestAlgorithm::Sha256,
@@ -240,6 +262,7 @@ pub(crate) fn to_libcrux_sig_alg(a: &SignatureScheme) -> Result<signature::Algor
     }
 }
 
+/// Sign the `input` with the provided RSA key.
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -260,38 +283,41 @@ pub(crate) fn sign_rsa(
         return tlserr(UNSUPPORTED_ALGORITHM);
     }
 
+    eprintln!(" >>> 1");
     let key_size = supported_rsa_key_size(pk_modulus)?;
+    eprintln!(" >>> 2");
 
     let pk =
         RsaPssPublicKey::new(key_size, &pk_modulus.declassify()[1..]).map_err(|_| CRYPTO_ERROR)?;
+    eprintln!(" >>> 3");
 
-    let sk = signature::rsa_pss::RsaPssPrivateKey::new(&pk, &sk.declassify())
-        .map_err(|_| CRYPTO_ERROR)?;
+    let sk = RsaPssPrivateKey::new(&pk, &sk.declassify()).map_err(|_| CRYPTO_ERROR)?;
+    eprintln!(" >>> 3");
 
-    let sig = sk.sign(
-        signature::DigestAlgorithm::Sha256,
-        &salt,
-        &input.declassify(),
-    );
+    let msg = &input.declassify();
+    eprintln!(" >>> 3.1");
+    let sig = sk.sign(signature::DigestAlgorithm::Sha256, &salt, msg);
+    eprintln!(" >>> 4 - {:x?}", sig);
     sig.map(|sig| sig.as_bytes().into())
         .map_err(|_| CRYPTO_ERROR)
 }
 
+/// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 pub(crate) fn sign(
-    alg: &SignatureScheme,
+    algorithm: &SignatureScheme,
     sk: &Bytes,
     input: &Bytes,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<Bytes, TLSError> {
-    let sig = match alg {
+    let sig = match algorithm {
         SignatureScheme::EcdsaSecp256r1Sha256 => signature::sign(
-            to_libcrux_sig_alg(alg)?,
+            signature_algorithm(algorithm)?,
             &input.declassify(),
             &sk.declassify(),
             rng,
         ),
         SignatureScheme::ED25519 => signature::sign(
-            to_libcrux_sig_alg(alg)?,
+            signature_algorithm(algorithm)?,
             &input.declassify(),
             &sk.declassify(),
             rng,
@@ -489,5 +515,55 @@ impl Algorithms {
     }
     pub fn zero_rtt(&self) -> bool {
         self.5
+    }
+}
+
+impl TryFrom<&str> for Algorithms {
+    type Error = Error;
+
+    /// Get the ciphersuite from a string description.
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        match s {
+            "SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519" => {
+                Ok(ciphersuites::SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519)
+            }
+            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519" => {
+                Ok(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519)
+            }
+            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256" => {
+                Ok(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256)
+            }
+            "SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256" => {
+                Ok(ciphersuites::SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256)
+            }
+            "SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256" => {
+                Ok(ciphersuites::SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256)
+            }
+            "SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519" => {
+                Ok(ciphersuites::SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519)
+            }
+            "SHA256_Aes128Gcm_RsaPssRsaSha256_P256" => {
+                Ok(ciphersuites::SHA256_Aes128Gcm_RsaPssRsaSha256_P256)
+            }
+            "SHA256_Aes128Gcm_RsaPssRsaSha256_X25519" => {
+                Ok(ciphersuites::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519)
+            }
+            "SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256" => {
+                Ok(ciphersuites::SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256)
+            }
+            "SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519" => {
+                Ok(ciphersuites::SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519)
+            }
+            "SHA384_Aes256Gcm_RsaPssRsaSha256_P256" => {
+                Ok(ciphersuites::SHA384_Aes256Gcm_RsaPssRsaSha256_P256)
+            }
+            "SHA384_Aes256Gcm_RsaPssRsaSha256_X25519" => {
+                Ok(ciphersuites::SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
+            }
+            _ => Err(Error::UnknownCiphersuite(format!(
+                "Invalid ciphersuite description: {}",
+                s
+            ))),
+        }
     }
 }

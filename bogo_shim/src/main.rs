@@ -9,9 +9,9 @@
 
 use std::{env, io::Write, net::TcpStream, process};
 
-use simple_https_client::tls13client;
-use simple_https_server::{tls13server, AppError};
 use tracing::Level;
+
+use bertie::stream::{BertieError, BertieStream};
 
 static BOGO_NACK: i32 = 89;
 
@@ -211,13 +211,44 @@ fn main() {
 
     match options.role {
         Role::Client => {
-            let _ = tls13client(&options.hostname, stream, None, "hello");
+            println!(" running bertie client ...");
+            let mut client = BertieStream::open_with_stream(
+                &options.hostname,
+                bertie::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                stream,
+            )
+            .unwrap();
+            let _r = client.start(&mut rand::thread_rng());
         }
         Role::Server => {
-            if let Err(e) = tls13server(stream, &options.hostname, None) {
+            let bertie_home = std::env::var("BERTIE_HOME")
+                .expect("Unable to read the BERTIE_HOME environment variable.");
+            println!(" bertie home: {:?}", bertie_home);
+
+            let (cert_file, key_file) = if !options.cert_file.is_empty() {
+                (
+                    bertie_home.clone() + "../tests/assets/rsa_cert.der",
+                    bertie_home + "../tests/assets/rsa_key.der",
+                )
+            } else {
+                (options.cert_file, options.key_file)
+            };
+            println!(" current dir: {:?}", std::env::current_dir().unwrap());
+            let mut server = BertieStream::server(
+                &options.hostname,
+                options.port,
+                stream,
+                bertie::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                &cert_file,
+                &key_file,
+            )
+            .unwrap();
+
+            if let Err(e) = server.connect(&mut rand::thread_rng()) {
                 match e {
-                    AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
-                    _ => eprintln!("Bertie server error {:?}", e),
+                    BertieError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
+                    // AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
+                    _ => println!("Bertie server error {:?}", e),
                 }
             }
         }
