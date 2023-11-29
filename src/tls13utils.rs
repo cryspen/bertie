@@ -7,6 +7,13 @@ pub(crate) fn parse_failed() -> TLSError {
     PARSE_FAILED
 }
 
+// Bertie errors
+#[derive(Debug, Clone)]
+pub enum Error {
+    /// Unknown ciphersuite
+    UnknownCiphersuite(String),
+}
+
 // Local error codes
 pub type TLSError = u8;
 pub const UNSUPPORTED_ALGORITHM: TLSError = 1u8;

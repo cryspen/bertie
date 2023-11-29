@@ -34,8 +34,8 @@ pub(crate) const ASN1_UNSUPPORTED_ALGORITHM: Asn1Error = 24u8;
 pub(crate) const ASN1_ERROR: Asn1Error = 25u8;
 
 pub(crate) fn asn1_error<T>(err: Asn1Error) -> Result<T, Asn1Error> {
-    let bt = backtrace::Backtrace::new();
-    println!("{:?}", bt);
+    // let bt = backtrace::Backtrace::new();
+    // println!("{:?}", bt);
     Err(err)
 }
 
@@ -79,7 +79,7 @@ fn short_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
 ///
 /// Returns: (offset, length)
 fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
-    if b[offset].declassify() & 0x80 == 0u8 {
+    if b[offset].declassify() & 0x80 == 0 {
         let len = short_length(b, offset)?;
         Ok((offset + 1, len))
     } else {
@@ -90,11 +90,11 @@ fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
     }
 }
 
-/// Read a byte sequence from the provided bytes.
+/// Read a byte sequence header from the provided bytes.
 ///
 /// Returns the new offset into the bytes.
 fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
-    check_tag(b, offset, 0x30u8)?;
+    check_tag(b, offset, 0x30)?;
     offset = offset + 1;
 
     let length_length = length_length(b, offset);
@@ -103,11 +103,25 @@ fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error
     Ok(offset)
 }
 
+/// Read an octet string from the provided bytes.
+///
+/// Returns the new offset into the bytes.
+fn read_octet_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
+    check_tag(b, offset, 0x04)?;
+    offset = offset + 1;
+
+    let length_length = length_length(b, offset);
+    offset = offset + length_length + 1; // 1 byte is always used for length
+
+    Ok(offset)
+}
+
+/// Check that the tag has a certain value.
 fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
     if b[offset].declassify() == value {
         Ok(())
     } else {
-        // println!("Got tag {:x}, expected {:x}", b[offset], value);
+        println!("Got tag {:x}, expected {:x}", b[offset].declassify(), value);
         asn1_error(ASN1_INVALID_TAG)
     }
 }
@@ -142,15 +156,24 @@ fn read_version_number(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error>
     }
 }
 
-/// Read an integer.
+/// Skip an integer.
 /// We don't really care, just check that it's some valid structure and keep the
 /// offset moving.
-fn read_integer(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
+fn skip_integer(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x02u8)?;
     offset = offset + 1;
 
     let (offset, length) = length(b, offset)?;
     Ok(offset + length)
+}
+
+/// Read an integer and return a copy of the actual bytes.
+fn read_integer(b: &Bytes, mut offset: usize) -> Result<Bytes, Asn1Error> {
+    check_tag(b, offset, 0x02u8)?;
+    offset = offset + 1;
+
+    let (offset, length) = length(b, offset)?;
+    Ok(b.slice(offset, length))
 }
 
 pub(crate) type Spki = (SignatureScheme, CertificateKey);
@@ -259,14 +282,13 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
     // Take the first sequence inside the outer because we're interested in the
-    // certificate
-
+    // signature key in the certificate
     let mut offset = read_sequence_header(cert, 0)?;
     offset = read_sequence_header(cert, offset)?;
 
     // Now we're inside the first sequence, the certificate.
     offset = read_version_number(cert, offset)?; // x509 version number
-    offset = read_integer(cert, offset)?; // serial number
+    offset = skip_integer(cert, offset)?; // serial number
     offset = skip_sequence(cert, offset)?; // signature algorithm
     offset = skip_sequence(cert, offset)?; // issuer
     offset = skip_sequence(cert, offset)?; // validity
@@ -297,6 +319,10 @@ pub(crate) fn rsa_public_key(
 
     // An RSA PK is a sequence of modulus N and public exponent e,
     // each encoded as integer.
+    eprintln!(
+        "rsa pk: {}",
+        cert.slice(offset, cert.len() - offset).to_hex()
+    );
     check_tag(cert, offset, 0x30u8)?;
     offset = offset + 1;
     let (mut offset, _seq_len) = length(cert, offset)?;
@@ -315,6 +341,47 @@ pub(crate) fn rsa_public_key(
     let e = cert.slice(offset, int_len);
 
     Ok((n, e))
+}
+
+/// Debug print a slice.
+fn debug_print(tag: &str, bytes: &Bytes, offset: usize) {
+    eprintln!(
+        "{}: {}",
+        tag,
+        bytes.slice(offset, bytes.len() - offset).to_hex()
+    );
+}
+
+/// Read the private key (d) from an RSA private key.
+/// We expect to have the [version, privateKeyAlgorithm, privateKey] with
+/// RSAPrivateKey ::= SEQUENCE {
+///     version   Version,
+///     modulus   INTEGER,  -- n
+///     publicExponentINTEGER,  -- e
+///     privateExponent   INTEGER,  -- d
+///     prime1INTEGER,  -- p
+///     prime2INTEGER,  -- q
+///     exponent1 INTEGER,  -- d mod (p-1)
+///     exponent2 INTEGER,  -- d mod (q-1)
+///     coefficient   INTEGER,  -- (inverse of q) mod p
+///     otherPrimeInfos   OtherPrimeInfos OPTIONAL
+/// }
+pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
+    let mut offset = read_sequence_header(key, 0)?;
+    offset = skip_integer(key, offset)?; // version
+    offset = skip_sequence(key, offset)?;
+    offset = read_octet_header(key, offset)?;
+    // debug_print("key 1", key, offset);
+    offset = read_sequence_header(key, offset)?;
+    // debug_print("key 2", key, offset);
+    offset = skip_integer(key, offset)?; // version
+    offset = skip_integer(key, offset)?; // private key algorithm
+                                         // debug_print("key 3", key, offset);
+    offset = skip_integer(key, offset)?; // public exponent 65537
+                                         // debug_print("key 4", key, offset);
+
+    // now we have reached the private exponent d
+    read_integer(key, offset)
 }
 
 /// Get the public key from from a certificate.

@@ -199,9 +199,13 @@ impl Server {
         let mut ch_rec = client_hello.clone();
         ch_rec[2] = U8::from(0x03);
         let ch = get_handshake_record(&ch_rec)?;
+        eprintln!("1");
         let (sh, sf, cipher0, cipher_hs, cipher1, sstate) = server_init(ciphersuite, &ch, db, rng)?;
+        eprintln!("2");
         let sh_rec = handshake_record(&sh)?;
+        eprintln!("3");
         let (sf_rec, cipher_hs) = encrypt_handshake(sf, 0, cipher_hs)?;
+        eprintln!("4");
         Ok((
             sh_rec,
             sf_rec,

@@ -9,9 +9,9 @@
 
 use std::{env, io::Write, net::TcpStream, process};
 
-use simple_https_client::tls13client;
-use simple_https_server::{tls13server, AppError};
 use tracing::Level;
+
+use bertie::stream::BertieStream;
 
 static BOGO_NACK: i32 = 89;
 
@@ -211,12 +211,23 @@ fn main() {
 
     match options.role {
         Role::Client => {
-            let _ = tls13client(&options.hostname, stream, None, "hello");
+            let _ = BertieStream::open_with_stream(
+                &options.hostname,
+                bertie::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                stream,
+            );
         }
         Role::Server => {
-            if let Err(e) = tls13server(stream, &options.hostname, None) {
+            if let Err(e) = BertieStream::server(
+                &options.hostname,
+                options.port,
+                stream,
+                bertie::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                &options.cert_file,
+                &options.cert_file,
+            ) {
                 match e {
-                    AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
+                    // AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
                     _ => eprintln!("Bertie server error {:?}", e),
                 }
             }

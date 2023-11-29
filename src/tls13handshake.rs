@@ -496,8 +496,16 @@ fn get_server_signature(
             SignatureScheme::RsaPssRsaSha256 => {
                 // To avoid cyclic dependencies between the modules we pull out
                 // the values from the RSA certificate here.
+                // We could really read this from the key as well.
                 let (cert_scheme, cert_slice) = verification_key_from_cert(&server.cert)?;
+                eprintln!("got cert scheme {:?}", cert_scheme);
                 let (pk_modulus, pk_exponent) = rsa_public_key(&server.cert, cert_slice)?;
+                eprintln!(
+                    "got rsa key: \n\t{}\n\t{}\n\t{}",
+                    pk_modulus.to_hex(),
+                    pk_exponent.to_hex(),
+                    server.sk.to_hex(),
+                );
                 sign_rsa(
                     &server.sk,
                     &pk_modulus,
@@ -509,6 +517,7 @@ fn get_server_signature(
             }
             SignatureScheme::ED25519 => unimplemented!(),
         };
+        eprintln!(" >> signed");
         let scv = certificate_verify(&algs, &sig)?;
         let tx = transcript_add1(tx, &scv);
         Ok((

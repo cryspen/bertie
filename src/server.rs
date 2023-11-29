@@ -12,6 +12,7 @@ use crate::{
 };
 
 /// The Server Database
+#[derive(Debug, Clone, Default)]
 pub struct ServerDB {
     pub(crate) server_name: Bytes,
     pub(crate) cert: Bytes,

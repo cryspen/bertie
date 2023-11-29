@@ -67,7 +67,7 @@ if options.sub == "extract":
         cargo_hax_into
         + [
             "-i",
-            "-**::non_hax::**",
+            "-**::non_hax::** -bertie::stream::**",
             "fstar",
         ],
         cwd=".",
