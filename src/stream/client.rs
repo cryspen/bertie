@@ -151,6 +151,7 @@ impl BertieStream<ClientState<TcpStream>> {
         let cstate = match cstate.read_handshake(&Bytes::from(server_hello)) {
             Ok((_, cstate)) => cstate,
             Err(e) => {
+                println!(" >>> ERROR {e}");
                 match e {
                     UNSUPPORTED_ALGORITHM => {
                         eprintln!("Server does not support proposed algorithms.")
