@@ -601,9 +601,9 @@ let derive_app_keys
 let derive_hk_ms
       (ha: Bertie.Tls13crypto.t_HashAlgorithm)
       (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
-      (gxy: Bertie.Tls13utils.t_Bytes)
+      (shared_secret: Bertie.Tls13utils.t_Bytes)
       (psko: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      (tx: Bertie.Tls13utils.t_Bytes)
+      (transcript_hash: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result
       (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes &
@@ -726,7 +726,9 @@ let derive_hk_ms
       in
       let* handshake_secret:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.hkdf_extract ha gxy derived_secret
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.hkdf_extract ha
+                shared_secret
+                derived_secret
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -768,7 +770,7 @@ let derive_hk_ms
                       t_Slice u8)
                   <:
                   Bertie.Tls13utils.t_Bytes)
-                tx
+                transcript_hash
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -810,7 +812,7 @@ let derive_hk_ms
                       t_Slice u8)
                   <:
                   Bertie.Tls13utils.t_Bytes)
-                tx
+                transcript_hash
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -1608,25 +1610,6 @@ let get_server_signature
                           t_ServerPostCertificateVerify) u8)
                     (Bertie.Tls13crypto.t_SignatureScheme & Bertie.Tls13cert.t_CertificateKey)
               in
-              let _:Prims.unit =
-                Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize (let list =
-                              ["got cert scheme "; "\n"]
-                            in
-                            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                            Rust_primitives.Hax.array_of_list list)
-                        <:
-                        t_Slice string)
-                      (Rust_primitives.unsize (let list =
-                              [Core.Fmt.Rt.impl_1__new_debug cert_scheme <: Core.Fmt.Rt.t_Argument]
-                            in
-                            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                            Rust_primitives.Hax.array_of_list list)
-                        <:
-                        t_Slice Core.Fmt.Rt.t_Argument)
-                    <:
-                    Core.Fmt.t_Arguments)
-              in
-              let _:Prims.unit = () in
               let* pk:Bertie.Tls13crypto.t_RsaVerificationKey =
                 match
                   Core.Ops.Try_trait.f_branch (Bertie.Tls13cert.rsa_public_key server
@@ -1670,44 +1653,6 @@ let get_server_signature
                           Bertie.Tls13utils.t_HandshakeData &
                           t_ServerPostCertificateVerify) u8) Bertie.Tls13crypto.t_RsaVerificationKey
               in
-              let _:Prims.unit =
-                Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize (let list =
-                              ["got rsa key: \n\t"; "\n\t"; "\n\t"; "\n"]
-                            in
-                            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 4);
-                            Rust_primitives.Hax.array_of_list list)
-                        <:
-                        t_Slice string)
-                      (Rust_primitives.unsize (let list =
-                              [
-                                Core.Fmt.Rt.impl_1__new_display (Bertie.Tls13utils.impl__Bytes__as_hex
-                                      pk.Bertie.Tls13crypto.f_modulus
-                                    <:
-                                    Alloc.String.t_String)
-                                <:
-                                Core.Fmt.Rt.t_Argument;
-                                Core.Fmt.Rt.impl_1__new_display (Bertie.Tls13utils.impl__Bytes__as_hex
-                                      pk.Bertie.Tls13crypto.f_exponent
-                                    <:
-                                    Alloc.String.t_String)
-                                <:
-                                Core.Fmt.Rt.t_Argument;
-                                Core.Fmt.Rt.impl_1__new_display (Bertie.Tls13utils.impl__Bytes__as_hex
-                                      server.Bertie.Server.f_sk
-                                    <:
-                                    Alloc.String.t_String)
-                                <:
-                                Core.Fmt.Rt.t_Argument
-                              ]
-                            in
-                            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 3);
-                            Rust_primitives.Hax.array_of_list list)
-                        <:
-                        t_Slice Core.Fmt.Rt.t_Argument)
-                    <:
-                    Core.Fmt.t_Arguments)
-              in
-              let _:Prims.unit = () in
               let tmp0, out:(impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
                 Bertie.Tls13crypto.sign_rsa server.Bertie.Server.f_sk
                   pk.Bertie.Tls13crypto.f_modulus
@@ -1779,18 +1724,6 @@ let get_server_signature
                       t_ServerPostCertificateVerify) u8)
                 (impl_916461611_ & Bertie.Tls13utils.t_Bytes)
           in
-          let _:Prims.unit =
-            Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
-                          [" >> signed\n"]
-                        in
-                        FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                        Rust_primitives.Hax.array_of_list list)
-                    <:
-                    t_Slice string)
-                <:
-                Core.Fmt.t_Arguments)
-          in
-          let _:Prims.unit = () in
           let* scv:Bertie.Tls13utils.t_HandshakeData =
             match
               Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.certificate_verify algs sig
@@ -2416,7 +2349,7 @@ let get_server_hello
         (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) =
         Core.Ops.Try_trait.f_branch hoist497
       in
-      let* gxy, gy:(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) =
+      let* shared_secret, gy:(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) =
         match hoist498 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist496:Rust_primitives.Hax.t_Never =
@@ -2490,7 +2423,7 @@ let get_server_hello
                   t_ServerPostServerHello) u8) Bertie.Tls13utils.t_HandshakeData
       in
       let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx sh in
-      let* th:Bertie.Tls13utils.t_Bytes =
+      let* transcript_hash:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
               <:
@@ -2531,7 +2464,11 @@ let get_server_hello
         Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes) =
         match
-          Core.Ops.Try_trait.f_branch (derive_hk_ms ha ae gxy server.Bertie.Server.f_psk_opt th
+          Core.Ops.Try_trait.f_branch (derive_hk_ms ha
+                ae
+                shared_secret
+                server.Bertie.Server.f_psk_opt
+                transcript_hash
               <:
               Core.Result.t_Result
                 (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
@@ -2612,24 +2549,15 @@ let get_server_hello
             (Bertie.Tls13utils.t_HandshakeData & Bertie.Tls13record.t_DuplexCipherStateH &
               t_ServerPostServerHello) u8))
 
-let put_server_hello (sh: Bertie.Tls13utils.t_HandshakeData) (st: t_ClientPostClientHello)
+let put_server_hello (handshake: Bertie.Tls13utils.t_HandshakeData) (state: t_ClientPostClientHello)
     : Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let ClientPostClientHello cr algs0 x psk tx:t_ClientPostClientHello
-      =
-        st
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let
+      ClientPostClientHello cr ciphersuite sk psk tx:t_ClientPostClientHello =
+        state
       in
-      let
-      { Bertie.Tls13crypto.f_hash = ha ;
-        Bertie.Tls13crypto.f_aead = ae ;
-        Bertie.Tls13crypto.f_signature = v__sa ;
-        Bertie.Tls13crypto.f_kem = ks ;
-        Bertie.Tls13crypto.f_psk_mode = v__psk_mode ;
-        Bertie.Tls13crypto.f_zero_rtt = v__zero_rtt }:Bertie.Tls13crypto.t_Algorithms =
-        algs0
-      in
-      let* sr, gy:(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) =
+      let* sr, ct:(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.parse_server_hello algs0 sh
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.parse_server_hello ciphersuite handshake
               <:
               Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
         with
@@ -2654,10 +2582,13 @@ let put_server_hello (sh: Bertie.Tls13utils.t_HandshakeData) (st: t_ClientPostCl
                 (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
             (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx sh in
-      let* gxy:Bertie.Tls13utils.t_Bytes =
+      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx handshake in
+      let* shared_secret:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.kem_decap ks gy x
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.kem_decap ciphersuite
+                  .Bertie.Tls13crypto.f_kem
+                ct
+                sk
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2714,7 +2645,11 @@ let put_server_hello (sh: Bertie.Tls13utils.t_HandshakeData) (st: t_ClientPostCl
         Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes) =
         match
-          Core.Ops.Try_trait.f_branch (derive_hk_ms ha ae gxy psk th
+          Core.Ops.Try_trait.f_branch (derive_hk_ms ciphersuite.Bertie.Tls13crypto.f_hash
+                ciphersuite.Bertie.Tls13crypto.f_aead
+                shared_secret
+                psk
+                th
               <:
               Core.Result.t_Result
                 (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
@@ -2752,7 +2687,7 @@ let put_server_hello (sh: Bertie.Tls13utils.t_HandshakeData) (st: t_ClientPostCl
       Core.Ops.Control_flow.ControlFlow_Continue
       (Core.Result.Result_Ok
         (Bertie.Tls13record.impl__DuplexCipherStateH__new chk 0uL shk 0uL,
-          (ClientPostServerHello cr sr algs0 ms cfk sfk tx <: t_ClientPostServerHello)
+          (ClientPostServerHello cr sr ciphersuite ms cfk sfk tx <: t_ClientPostServerHello)
           <:
           (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello))
         <:

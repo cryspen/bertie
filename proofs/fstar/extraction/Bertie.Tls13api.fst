@@ -256,7 +256,7 @@ let impl__Client__read (self: t_Client) (message_bytes: Bertie.Tls13utils.t_Byte
             Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_AppData & t_Client) u8
           | Bertie.Tls13formats.ContentType_Handshake  ->
             let _:Prims.unit =
-              Std.Io.Stdio.v__print (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
+              Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
                             ["Received Session Ticket\n"]
                           in
                           FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
@@ -751,7 +751,7 @@ let impl__Server__accept
           Bertie.Tls13handshake.t_ServerPostServerFinished) =
         Core.Ops.Try_trait.f_branch hoist580
       in
-      let* sh, sf, cipher0, cipher_hs, cipher1, sstate:(Bertie.Tls13utils.t_HandshakeData &
+      let* server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate:(Bertie.Tls13utils.t_HandshakeData &
         Bertie.Tls13utils.t_HandshakeData &
         Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
         Bertie.Tls13record.t_DuplexCipherStateH &
@@ -796,7 +796,7 @@ let impl__Server__accept
       in
       let* sh_rec:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.handshake_record sh
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.handshake_record server_hello
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -830,7 +830,9 @@ let impl__Server__accept
       in
       let* sf_rec, cipher_hs:(Bertie.Tls13utils.t_Bytes & Bertie.Tls13record.t_DuplexCipherStateH) =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13record.encrypt_handshake sf (sz 0) cipher_hs
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13record.encrypt_handshake server_finished
+                (sz 0)
+                cipher_hs
               <:
               Core.Result.t_Result
                 (Bertie.Tls13utils.t_Bytes & Bertie.Tls13record.t_DuplexCipherStateH) u8)

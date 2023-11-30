@@ -1493,18 +1493,6 @@ let sign_rsa
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
       in
-      let _:Prims.unit =
-        Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
-                      [" >>> 1\n"]
-                    in
-                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                    Rust_primitives.Hax.array_of_list list)
-                <:
-                t_Slice string)
-            <:
-            Core.Fmt.t_Arguments)
-      in
-      let _:Prims.unit = () in
       let* key_size:Libcrux.Signature.Rsa_pss.t_RsaPssKeySize =
         match
           Core.Ops.Try_trait.f_branch (supported_rsa_key_size pk_modulus
@@ -1532,18 +1520,6 @@ let sign_rsa
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssKeySize
       in
-      let _:Prims.unit =
-        Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
-                      [" >>> 2\n"]
-                    in
-                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                    Rust_primitives.Hax.array_of_list list)
-                <:
-                t_Slice string)
-            <:
-            Core.Fmt.t_Arguments)
-      in
-      let _:Prims.unit = () in
       let* pk:Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey =
         match
           Core.Ops.Try_trait.f_branch (Core.Result.impl__map_err (Libcrux.Signature.Rsa_pss.impl__RsaPssPublicKey__new
@@ -1585,18 +1561,6 @@ let sign_rsa
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey
       in
-      let _:Prims.unit =
-        Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
-                      [" >>> 3\n"]
-                    in
-                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                    Rust_primitives.Hax.array_of_list list)
-                <:
-                t_Slice string)
-            <:
-            Core.Fmt.t_Arguments)
-      in
-      let _:Prims.unit = () in
       let* sk:Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey =
         match
           Core.Ops.Try_trait.f_branch (Core.Result.impl__map_err (Libcrux.Signature.Rsa_pss.impl_5__new
@@ -1637,33 +1601,9 @@ let sign_rsa
             Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let _:Prims.unit =
-          Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
-                        [" >>> 3\n"]
-                      in
-                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                      Rust_primitives.Hax.array_of_list list)
-                  <:
-                  t_Slice string)
-              <:
-              Core.Fmt.t_Arguments)
-        in
-        let _:Prims.unit = () in
-        let msg:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+      (let msg:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
           Bertie.Tls13utils.impl__Bytes__declassify input
         in
-        let _:Prims.unit =
-          Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_const (Rust_primitives.unsize (let list =
-                        [" >>> 3.1\n"]
-                      in
-                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                      Rust_primitives.Hax.array_of_list list)
-                  <:
-                  t_Slice string)
-              <:
-              Core.Fmt.t_Arguments)
-        in
-        let _:Prims.unit = () in
         let sig:Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssSignature
           Libcrux.Signature.t_Error =
           Libcrux.Signature.Rsa_pss.impl_5__sign sk
@@ -1671,47 +1611,6 @@ let sign_rsa
             (Rust_primitives.unsize salt <: t_Slice u8)
             (Core.Ops.Deref.f_deref msg <: t_Slice u8)
         in
-        let _:Prims.unit =
-          Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_v1_formatted (Rust_primitives.unsize (let
-                      list =
-                        [" >>> 4 - "; "\n"]
-                      in
-                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                      Rust_primitives.Hax.array_of_list list)
-                  <:
-                  t_Slice string)
-                (Rust_primitives.unsize (let list =
-                        [Core.Fmt.Rt.impl_1__new_debug sig <: Core.Fmt.Rt.t_Argument]
-                      in
-                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                      Rust_primitives.Hax.array_of_list list)
-                  <:
-                  t_Slice Core.Fmt.Rt.t_Argument)
-                (Rust_primitives.unsize (let list =
-                        [
-                          Core.Fmt.Rt.impl__Placeholder__new (sz 0)
-                            ' '
-                            (Core.Fmt.Rt.Alignment_Unknown <: Core.Fmt.Rt.t_Alignment)
-                            16ul
-                            (Core.Fmt.Rt.Count_Implied <: Core.Fmt.Rt.t_Count)
-                            (Core.Fmt.Rt.Count_Implied <: Core.Fmt.Rt.t_Count)
-                          <:
-                          Core.Fmt.Rt.t_Placeholder
-                        ]
-                      in
-                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                      Rust_primitives.Hax.array_of_list list)
-                  <:
-                  t_Slice Core.Fmt.Rt.t_Placeholder)
-                (Rust_primitives.Hax.failure ""
-                    "{ Types.attributes = [];\n  contents =\n  Types.Block {\n    expr =\n    (Some { Types.attributes = [];\n            contents =\n            Types.Call {args = [];\n              fn_span =\n              { Types.filename =\n                (Types.Real\n                   Types.Remapped {\n                     local_path =\n                     (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                     virtual_name =\n                     \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n                hi = { Types.col = \"61\"; line = \"209\" };\n                lo = { Types.col = \"28\"; line = \"209\" } };\n              from_hir_call = true;\n              fun' =\n              { Types.attributes = [];\n                contents =\n                Types.GlobalName {\n                  id =\n                  { Types.index = (2, 9101); krate = \"core\";\n                    path =\n                    [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                      { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                      { Types.data = Types.Impl; disambiguator = 2 };\n                      { Types.data = (Types.ValueNs \"new\"); disambiguator = 0\n                        }\n                      ]\n                    }};\n                hir_id = None;\n                span =\n                { Types.filename =\n                  (Types.Real\n                     Types.Remapped {\n                       local_path =\n                       (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                       virtual_name =\n                       \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n                  hi = { Types.col = \"61\"; line = \"209\" };\n                  lo = { Types.col = \"28\"; line = \"209\" } };\n                ty =\n                (Types.Arrow\n                   { Types.bound_vars = [];\n                     value =\n                     { Types.abi = Types.Abi {todo = \"Rust\"};\n                       c_variadic = false; inputs = [];\n                       output =\n                       Types.Adt {\n                         def_id =\n                         { Types.index = (2, 9098); krate = \"core\";\n                           path =\n                           [{ Types.data = (Types.TypeNs \"fmt\");\n                              disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"rt\");\n                               disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"UnsafeArg\");\n                               disambiguator = 0 }\n                             ]\n                           };\n                         generic_args = []};\n                       unsafety = Types.Unsafe }\n                     })\n                };\n              generic_args = []; impl = None;\n              ty =\n              (Types.Arrow\n                 { Types.bound_vars = [];\n                   value =\n                   { Types.abi = Types.Abi {todo = \"Rust\"};\n                     c_variadic = false; inputs = [];\n                     output =\n                     Types.Adt {\n                       def_id =\n                       { Types.index = (2, 9098); krate = \"core\";\n                         path =\n                         [{ Types.data = (Types.TypeNs \"fmt\");\n                            disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"rt\");\n                             disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"UnsafeArg\");\n                             disambiguator = 0 }\n                           ]\n                         };\n                       generic_args = []};\n                     unsafety = Types.Unsafe }\n                   })};\n            hir_id = (Some (\"540\", \"334\"));\n            span =\n            { Types.filename =\n              (Types.Real\n                 Types.Remapped {\n                   local_path =\n                   (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                   virtual_name =\n                   \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n              hi = { Types.col = \"61\"; line = \"209\" };\n              lo = { Types.col = \"28\"; line = \"209\" } };\n            ty =\n            Types.Adt {\n              def_id =\n              { Types.index = (2, 9098); krate = \"core\";\n                path =\n                [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"UnsafeArg\");\n                    disambiguator = 0 }\n                  ]\n                };\n              generic_args = []}\n            });\n    opt_destruction_scope = None;\n    region_scope = { Types.data = Types.Node; id = \"335\" };\n    safety_mode = Types.BuiltinUnsafe;\n    span =\n    { Types.filename =\n      (Types.Real\n         Types.Remapped {\n           local_path =\n           (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n           virtual_name =\n           \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n      hi = { Types.col = \"61\"; line = \"209\" };\n      lo = { Types.col = \"28\"; line = \"209\" } };\n    stmts = []; targeted_by_break = false};\n  hir_id = (Some (\"540\", \"336\"));\n  span =\n  { Types.filename =\n    (Types.Real\n       Types.Remapped {\n         local_path =\n         (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n         virtual_name =\n         \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n    hi = { Types.col = \"61\"; line = \"209\" };\n    lo = { Types.col = \"28\"; line = \"209\" } };\n  ty =\n  Types.Adt {\n    def_id =\n    { Types.index = (2, 9098); krate = \"core\";\n      path =\n      [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"UnsafeArg\"); disambiguator = 0 }]\n      };\n    generic_args = []}\n  }"
-
-                  <:
-                  Core.Fmt.Rt.t_UnsafeArg)
-              <:
-              Core.Fmt.t_Arguments)
-        in
-        let _:Prims.unit = () in
         let hax_temp_output:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
           Core.Result.impl__map_err (Core.Result.impl__map sig
                 (fun sig ->
@@ -1843,6 +1742,34 @@ let into_raw (alg: t_KemScheme) (point: Bertie.Tls13utils.t_Bytes) : Bertie.Tls1
         Core.Ops.Range.t_Range usize)
   else point
 
+let to_shared_secret (alg: t_KemScheme) (shared_secret: Bertie.Tls13utils.t_Bytes)
+    : Bertie.Tls13utils.t_Bytes =
+  if alg =. (KemScheme_Secp256r1 <: t_KemScheme)
+  then
+    Bertie.Tls13utils.impl__Bytes__slice_range shared_secret
+      ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 32 }
+        <:
+        Core.Ops.Range.t_Range usize)
+  else
+    if alg =. (KemScheme_Secp384r1 <: t_KemScheme) || alg =. (KemScheme_Secp521r1 <: t_KemScheme)
+    then
+      Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize
+                    (let list = ["not implemented: not supported yet"] in
+                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                      Rust_primitives.Hax.array_of_list list)
+                  <:
+                  t_Slice string)
+                (Rust_primitives.unsize (Core.Fmt.Rt.impl_1__none
+                      <:
+                      t_Array Core.Fmt.Rt.t_Argument (sz 0))
+                  <:
+                  t_Slice Core.Fmt.Rt.t_Argument)
+              <:
+              Core.Fmt.t_Arguments)
+          <:
+          Rust_primitives.Hax.t_Never)
+    else shared_secret
+
 let kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* librux_algorithm:Libcrux.Kem.t_Algorithm
@@ -1895,13 +1822,14 @@ let kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
           Libcrux.Kem.decapsulate ct sk
         in
         match res with
-        | Core.Result.Result_Ok x ->
-          Core.Result.Result_Ok
-          (Core.Convert.f_into (Libcrux.Kem.impl__Ss__encode x
+        | Core.Result.Result_Ok shared_secret ->
+          let (shared_secret: Bertie.Tls13utils.t_Bytes):Bertie.Tls13utils.t_Bytes =
+            Core.Convert.f_into (Libcrux.Kem.impl__Ss__encode shared_secret
                 <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global))
-          <:
-          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+          in
+          let shared_secret:Bertie.Tls13utils.t_Bytes = to_shared_secret alg shared_secret in
+          Core.Result.Result_Ok shared_secret <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
         | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1917,7 +1845,10 @@ let kem_encap
       (rng: impl_916461611_)
     : (impl_916461611_ &
       Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist42:Libcrux.Kem.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let pk:Bertie.Tls13utils.t_Bytes =
+        into_raw alg (Core.Clone.f_clone pk <: Bertie.Tls13utils.t_Bytes)
+      in
+      let* hoist42:Libcrux.Kem.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
               <:
@@ -1950,10 +1881,7 @@ let kem_encap
       Core.Ops.Control_flow.ControlFlow_Continue
       (let hoist43:Core.Result.t_Result Libcrux.Kem.t_PublicKey Libcrux.Kem.t_Error =
           Libcrux.Kem.impl__PublicKey__decode hoist42
-            (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify (into_raw alg
-                        (Core.Clone.f_clone pk <: Bertie.Tls13utils.t_Bytes)
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
+            (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify pk
                   <:
                   Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
               <:
@@ -1971,7 +1899,7 @@ let kem_encap
         let hax_temp_output:Core.Result.t_Result
           (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
           match res with
-          | Core.Result.Result_Ok (ss, ct) ->
+          | Core.Result.Result_Ok (shared_secret, ct) ->
             let ct:Bertie.Tls13utils.t_Bytes =
               Bertie.Tls13utils.impl__Bytes__concat (encoding_prefix alg
                   <:
@@ -1982,13 +1910,16 @@ let kem_encap
                   <:
                   Bertie.Tls13utils.t_Bytes)
             in
-            Core.Result.Result_Ok
-            (Core.Convert.f_from (Libcrux.Kem.impl__Ss__encode ss
+            let shared_secret:Bertie.Tls13utils.t_Bytes =
+              to_shared_secret alg
+                (Core.Convert.f_from (Libcrux.Kem.impl__Ss__encode shared_secret
+                      <:
+                      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
                   <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
-              ct
-              <:
-              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+                  Bertie.Tls13utils.t_Bytes)
+            in
+            Core.Result.Result_Ok
+            (shared_secret, ct <: (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
             <:
             Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
           | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR

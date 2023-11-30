@@ -1374,38 +1374,6 @@ let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
       =
         indices
       in
-      let _:Prims.unit =
-        Std.Io.Stdio.v__eprint (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize (let list =
-                      ["rsa pk: "; "\n"]
-                    in
-                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                    Rust_primitives.Hax.array_of_list list)
-                <:
-                t_Slice string)
-              (Rust_primitives.unsize (let list =
-                      [
-                        Core.Fmt.Rt.impl_1__new_display (Bertie.Tls13utils.impl__Bytes__as_hex (Bertie.Tls13utils.impl__Bytes__slice
-                                  cert
-                                  offset
-                                  ((Bertie.Tls13utils.impl__Bytes__len cert <: usize) -! offset
-                                    <:
-                                    usize)
-                                <:
-                                Bertie.Tls13utils.t_Bytes)
-                            <:
-                            Alloc.String.t_String)
-                        <:
-                        Core.Fmt.Rt.t_Argument
-                      ]
-                    in
-                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                    Rust_primitives.Hax.array_of_list list)
-                <:
-                t_Slice Core.Fmt.Rt.t_Argument)
-            <:
-            Core.Fmt.t_Arguments)
-      in
-      let _:Prims.unit = () in
       let* _:Prims.unit =
         match
           Core.Ops.Try_trait.f_branch (check_tag cert offset 48uy
