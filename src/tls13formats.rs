@@ -3,13 +3,12 @@
 
 use crate::{
     tls13crypto::{
-        zero_key, AeadAlgorithm, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, KemScheme, Random,
-        SignatureScheme,
+        zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
     tls13utils::{
-        bytes1, bytes2, check_eq, check_lbytes1, check_lbytes1_full, check_lbytes2,
-        check_lbytes2_full, check_lbytes3, check_lbytes3_full, check_mem, eq, eq1,
-        handshake_concat, handshake_data, handshake_data_len, lbytes1, lbytes2, lbytes3,
+        bytes1, bytes2, check_eq, check_lbytes2, check_lbytes2_full, check_lbytes3,
+        check_lbytes3_full, check_mem, check_u8_encoded_full, decode_u8_length, encode_u16,
+        encode_u8, eq, eq1, handshake_concat, handshake_data, handshake_data_len, lbytes3,
         parse_failed, tlserr, Bytes, HandshakeData, TLSError,
         APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
         INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
@@ -17,7 +16,7 @@ use crate::{
     },
 };
 
-/// Well Known Constants
+// Well Known Constants
 
 pub const LABEL_IV: [u8; 2] = [105, 118];
 pub const LABEL_KEY: [u8; 3] = [107, 101, 121];
@@ -50,58 +49,17 @@ pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
     0x79, 0x00,
 ];
 
-/*
-const SHA256_EMPTY: [u8; 3]2 = [u8; 3]2(([
-    0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
-    0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
-]));
-*/
-
-/// Returns the TLS ciphersuite for the given algorithm when it is supported, or
-/// a [`TLSError`] otherwise.
-fn ciphersuite(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
-    match (ciphersuite.hash(), ciphersuite.aead()) {
-        (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok(bytes2(0x13, 0x01)),
-        (HashAlgorithm::SHA384, AeadAlgorithm::Aes256Gcm) => Ok(bytes2(0x13, 0x02)),
-        (HashAlgorithm::SHA256, AeadAlgorithm::Chacha20Poly1305) => Ok(bytes2(0x13, 0x03)),
-        _ => tlserr(UNSUPPORTED_ALGORITHM),
-    }
-}
-
-/// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
-/// otherwise.
-fn supported_group(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
-    match ciphersuite.kem() {
-        KemScheme::X25519 => Ok(bytes2(0x00, 0x1D)),
-        KemScheme::Secp256r1 => Ok(bytes2(0x00, 0x17)),
-        KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
-        KemScheme::Secp384r1 => tlserr(UNSUPPORTED_ALGORITHM),
-        KemScheme::Secp521r1 => tlserr(UNSUPPORTED_ALGORITHM),
-    }
-}
-
-/// Returns the signature id for the given algorithm when it is supported, or a
-///  [`TLSError`] otherwise.
-fn signature_algorithm(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
-    match ciphersuite.signature() {
-        SignatureScheme::RsaPssRsaSha256 => Ok(bytes2(0x08, 0x04)),
-        SignatureScheme::EcdsaSecp256r1Sha256 => Ok(bytes2(0x04, 0x03)),
-        SignatureScheme::ED25519 => tlserr(UNSUPPORTED_ALGORITHM),
-    }
-}
-
-fn check_ciphersuites(algs: &Algorithms, b: &Bytes) -> Result<usize, TLSError> {
-    let len = check_lbytes2(b)?;
-    let cs = ciphersuite(algs)?;
-    let csl = b.slice_range(2..2 + len);
-    check_mem(&cs, &csl)?;
-    Ok(len + 2)
-}
-
+/// Build the server name out of the `sn` bytes for the client hello.
 fn server_name(sn: &Bytes) -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 0).concat(&lbytes2(&lbytes2(&bytes1(0).concat(&lbytes2(sn)?))?)?))
+    Ok(Bytes::from([0, 0]).concat(&encode_u16(&encode_u16(
+        &Bytes::from([0]).concat(&encode_u16(sn)?),
+    )?)?))
 }
 
+/// Check the server name for the sni extension.
+///
+/// Returns the value for the server name indicator when successful, and a `[TLSError`]
+/// otherwise.
 fn check_server_name(ext: &Bytes) -> Result<Bytes, TLSError> {
     check_lbytes2_full(ext)?;
     check_eq(&bytes1(0), &ext.slice_range(2..3))?;
@@ -109,17 +67,22 @@ fn check_server_name(ext: &Bytes) -> Result<Bytes, TLSError> {
     Ok(ext.slice_range(5..ext.len()))
 }
 
-fn supported_versions(_algs: &Algorithms) -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 0x2b).concat(&lbytes2(&lbytes1(&bytes2(3, 4))?)?))
+/// Build the supported versions bytes for the client hello.
+fn supported_versions() -> Result<Bytes, TLSError> {
+    Ok(Bytes::from([0, 0x2b]).concat(&encode_u16(&encode_u8(&Bytes::from([3, 4]))?)?))
 }
 
-fn check_supported_versions(_algs: &Algorithms, ch: &Bytes) -> Result<(), TLSError> {
-    check_lbytes1_full(ch)?;
-    check_mem(&bytes2(3, 4), &ch.slice_range(1..ch.len()))
+/// Check the TLS version in the provided `client_hello`.
+fn check_supported_versions(client_hello: &Bytes) -> Result<(), TLSError> {
+    check_u8_encoded_full(client_hello)?;
+    check_mem(
+        &[3, 4].into(),
+        &client_hello.slice_range(1..client_hello.len()),
+    )
 }
 
 fn server_supported_version(_algs: &Algorithms) -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 0x2b).concat(&lbytes2(&bytes2(3, 4))?))
+    Ok(bytes2(0, 0x2b).concat(&encode_u16(&bytes2(3, 4))?))
 }
 
 fn check_server_supported_version(_algs: &Algorithms, b: &Bytes) -> Result<(), TLSError> {
@@ -127,35 +90,35 @@ fn check_server_supported_version(_algs: &Algorithms, b: &Bytes) -> Result<(), T
 }
 
 fn supported_groups(algs: &Algorithms) -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 0x0a).concat(&lbytes2(&lbytes2(&supported_group(algs)?)?)?))
+    Ok(bytes2(0, 0x0a).concat(&encode_u16(&encode_u16(&algs.supported_group()?)?)?))
 }
 
 fn check_supported_groups(algs: &Algorithms, ch: &Bytes) -> Result<(), TLSError> {
     check_lbytes2_full(ch)?;
-    check_mem(&supported_group(algs)?, &ch.slice_range(2..ch.len()))
+    check_mem(&algs.supported_group()?, &ch.slice_range(2..ch.len()))
 }
 
 fn signature_algorithms(algs: &Algorithms) -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 0x0d).concat(&lbytes2(&lbytes2(&signature_algorithm(algs)?)?)?))
+    Ok(bytes2(0, 0x0d).concat(&encode_u16(&encode_u16(&algs.signature_algorithm()?)?)?))
 }
 
 fn check_signature_algorithms(algs: &Algorithms, ch: &Bytes) -> Result<(), TLSError> {
     check_lbytes2_full(ch)?;
-    check_mem(&signature_algorithm(algs)?, &ch.slice_range(2..ch.len()))
+    check_mem(&algs.signature_algorithm()?, &ch.slice_range(2..ch.len()))
 }
 
 pub fn psk_key_exchange_modes() -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 0x2d).concat(&lbytes2(&lbytes1(&bytes1(1))?)?))
+    Ok(bytes2(0, 0x2d).concat(&encode_u16(&encode_u8(&bytes1(1))?)?))
 }
 
 pub fn check_psk_key_exchange_modes(client_hello: &Bytes) -> Result<(), TLSError> {
-    check_lbytes1_full(client_hello)?;
+    check_u8_encoded_full(client_hello)?;
     check_eq(&bytes1(1), &client_hello.slice_range(1..2))
 }
 
 pub fn key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
-    let ks = supported_group(algs)?.concat(&lbytes2(gx)?);
-    Ok(bytes2(0, 0x33).concat(&lbytes2(&lbytes2(&ks)?)?))
+    let ks = algs.supported_group()?.concat(&encode_u16(gx)?);
+    Ok(bytes2(0, 0x33).concat(&encode_u16(&encode_u16(&ks)?)?))
 }
 
 pub fn find_key_share(g: &Bytes, ch: &Bytes) -> Result<Bytes, TLSError> {
@@ -172,16 +135,16 @@ pub fn find_key_share(g: &Bytes, ch: &Bytes) -> Result<Bytes, TLSError> {
 
 pub fn check_key_shares(algs: &Algorithms, ch: &Bytes) -> Result<Bytes, TLSError> {
     check_lbytes2_full(ch)?;
-    find_key_share(&supported_group(algs)?, &ch.slice_range(2..ch.len()))
+    find_key_share(&algs.supported_group()?, &ch.slice_range(2..ch.len()))
 }
 
 pub fn server_key_shares(algs: &Algorithms, gx: &KemPk) -> Result<Bytes, TLSError> {
-    let ks = supported_group(algs)?.concat(&lbytes2(gx)?);
-    Ok(bytes2(0, 0x33).concat(&lbytes2(&ks)?))
+    let ks = algs.supported_group()?.concat(&encode_u16(gx)?);
+    Ok(bytes2(0, 0x33).concat(&encode_u16(&ks)?))
 }
 
 pub fn check_server_key_share(algs: &Algorithms, b: &Bytes) -> Result<Bytes, TLSError> {
-    check_eq(&supported_group(algs)?, &b.slice_range(0..2))?;
+    check_eq(&algs.supported_group()?, &b.slice_range(0..2))?;
     check_lbytes2_full(&b.slice_range(2..b.len()))?;
     Ok(b.slice_range(4..b.len()))
 }
@@ -191,9 +154,9 @@ pub fn pre_shared_key(
     session_ticket: &Bytes,
 ) -> Result<(Bytes, usize), TLSError> {
     let identities =
-        lbytes2(&lbytes2(session_ticket)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
-    let binders = lbytes2(&lbytes1(&zero_key(&algs.hash()))?)?;
-    let ext = bytes2(0, 41).concat(&lbytes2(&identities.concat(&binders))?);
+        encode_u16(&encode_u16(session_ticket)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
+    let binders = encode_u16(&encode_u8(&zero_key(&algs.hash()))?)?;
+    let ext = bytes2(0, 41).concat(&encode_u16(&identities.concat(&binders))?);
     Ok((ext, binders.len()))
 }
 
@@ -202,7 +165,7 @@ pub fn check_psk_shared_key(_algs: &Algorithms, ch: &Bytes) -> Result<(), TLSErr
     let len_tkt = check_lbytes2(&ch.slice_range(2..2 + len_id))?;
     if len_id == len_tkt + 6 {
         check_lbytes2_full(&ch.slice_range(2 + len_id..ch.len()))?;
-        check_lbytes1_full(&ch.slice_range(4 + len_id..ch.len()))?;
+        check_u8_encoded_full(&ch.slice_range(4 + len_id..ch.len()))?;
         if ch.len() - 6 - len_id != 32 {
             tlserr(parse_failed())
         } else {
@@ -214,7 +177,7 @@ pub fn check_psk_shared_key(_algs: &Algorithms, ch: &Bytes) -> Result<(), TLSErr
 }
 
 pub fn server_pre_shared_key(_algs: &Algorithms) -> Result<Bytes, TLSError> {
-    Ok(bytes2(0, 41).concat(&lbytes2(&bytes2(0, 0))?))
+    Ok(bytes2(0, 41).concat(&encode_u16(&bytes2(0, 0))?))
 }
 
 pub fn check_server_psk_shared_key(_algs: &Algorithms, b: &Bytes) -> Result<(), TLSError> {
@@ -277,7 +240,7 @@ fn check_extension(algs: &Algorithms, bytes: &Bytes) -> Result<(usize, Extension
             Ok((4 + len, out))
         }
         (0, 0x2b) => {
-            check_supported_versions(algs, &bytes.slice_range(4..4 + len))?;
+            check_supported_versions(&bytes.slice_range(4..4 + len))?;
             Ok((4 + len, out))
         }
         (0, 0x0a) => {
@@ -664,11 +627,11 @@ pub(crate) fn client_hello(
     session_ticket: &Option<Bytes>,
 ) -> Result<(HandshakeData, usize), TLSError> {
     let ver = bytes2(3, 3);
-    let sid = lbytes1(&Bytes::zeroes(32))?;
-    let cip = lbytes2(&ciphersuite(algs)?)?;
+    let sid = encode_u8(&Bytes::zeroes(32))?;
+    let cip = encode_u16(&algs.ciphersuite()?)?;
     let comp = bytes2(1, 0);
     let sn = server_name(sn)?;
-    let sv = supported_versions(algs)?;
+    let sv = supported_versions()?;
     let sg = supported_groups(algs)?;
     let sa = signature_algorithms(algs)?;
     let ks = key_shares(algs, gx)?;
@@ -691,7 +654,7 @@ pub(crate) fn client_hello(
             .concat(&sid)
             .concat(&cip)
             .concat(&comp)
-            .concat(&lbytes2(&exts)?),
+            .concat(&encode_u16(&exts)?),
     )?;
     Ok((ch, trunc_len))
 }
@@ -746,10 +709,10 @@ pub(super) fn parse_client_hello(
     next = next + 2;
     let crand = ch.slice_range(next..next + 32);
     next = next + 32;
-    let sidlen = check_lbytes1(&ch.slice_range(next..ch.len()))?;
+    let sidlen = decode_u8_length(&ch.slice_range(next..ch.len()))?;
     let sid = ch.slice_range(next + 1..next + 1 + sidlen);
     next = next + 1 + sidlen;
-    let cslen = check_ciphersuites(ciphersuite, &ch.slice_range(next..ch.len()))?;
+    let cslen = ciphersuite.check(&ch.slice_range(next..ch.len()))?;
     next = next + cslen;
     match check_eq(&comp, &ch.slice_range(next..next + 2)) {
         Ok(_) => (),
@@ -826,8 +789,8 @@ pub fn server_hello(
     gy: &KemPk,
 ) -> Result<HandshakeData, TLSError> {
     let ver = bytes2(3, 3);
-    let sid = lbytes1(sid)?;
-    let cip = ciphersuite(algs)?;
+    let sid = encode_u8(sid)?;
+    let cip = algs.ciphersuite()?;
     let comp = bytes1(0);
     let ks = server_key_shares(algs, gy)?;
     let sv = server_supported_version(algs)?;
@@ -842,7 +805,7 @@ pub fn server_hello(
             .concat(&sid)
             .concat(&cip)
             .concat(&comp)
-            .concat(&lbytes2(&exts)?),
+            .concat(&encode_u16(&exts)?),
     )?;
     Ok(sh)
 }
@@ -861,7 +824,7 @@ pub fn parse_server_hello(
 ) -> Result<(Random, KemPk), TLSError> {
     let HandshakeData(sh) = get_handshake_message_ty(HandshakeType::ServerHello, sh)?;
     let ver = bytes2(3, 3);
-    let cip = ciphersuite(algs)?;
+    let cip = algs.ciphersuite()?;
     let comp = bytes1(0);
     let mut next = 0;
     match check_eq(&ver, &sh.slice_range(next..next + 2)) {
@@ -871,7 +834,7 @@ pub fn parse_server_hello(
     next = next + 2;
     let srand = sh.slice_range(next..next + 32);
     next = next + 32;
-    let sidlen = check_lbytes1(&sh.slice_range(next..sh.len()))?;
+    let sidlen = decode_u8_length(&sh.slice_range(next..sh.len()))?;
     next = next + 1 + sidlen;
     match check_eq(&cip, &sh.slice_range(next..next + 2)) {
         Ok(_) => (),
@@ -896,7 +859,7 @@ pub fn parse_server_hello(
 pub fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let ty = bytes1(hs_type(HandshakeType::EncryptedExtensions));
     Ok(HandshakeData(
-        ty.concat(&lbytes3(&lbytes2(&Bytes::new())?)?),
+        ty.concat(&lbytes3(&encode_u16(&Bytes::new())?)?),
     ))
 }
 
@@ -908,9 +871,9 @@ pub fn parse_encrypted_extensions(_algs: &Algorithms, ee: &HandshakeData) -> Res
 }
 
 pub fn server_certificate(_algs: &Algorithms, cert: &Bytes) -> Result<HandshakeData, TLSError> {
-    let creq = lbytes1(&Bytes::new())?;
+    let creq = encode_u8(&Bytes::new())?;
     let crt = lbytes3(cert)?;
-    let ext = lbytes2(&Bytes::new())?;
+    let ext = encode_u16(&Bytes::new())?;
     let crts = lbytes3(&crt.concat(&ext))?;
     handshake_message(HandshakeType::Certificate, &creq.concat(&crts))
 }
@@ -918,7 +881,7 @@ pub fn server_certificate(_algs: &Algorithms, cert: &Bytes) -> Result<HandshakeD
 pub fn parse_server_certificate(_algs: &Algorithms, sc: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(sc) = get_handshake_message_ty(HandshakeType::Certificate, sc)?;
     let mut next = 0;
-    let creqlen = check_lbytes1(&sc.slice_range(4..sc.len()))?;
+    let creqlen = decode_u8_length(&sc.slice_range(4..sc.len()))?;
     next = next + 1 + creqlen;
     check_lbytes3_full(&sc.slice_range(next..sc.len()))?;
     next = next + 3;
@@ -945,8 +908,10 @@ fn ecdsa_signature(sv: &Bytes) -> Result<Bytes, TLSError> {
         if (s[0] as U8).declassify() >= 128 {
             s = b0.concat(&s);
         }
-        Ok(b1.concat(&lbytes1(
-            &b2.concat(&lbytes1(&r)?).concat(&b2).concat(&lbytes1(&s)?),
+        Ok(b1.concat(&encode_u8(
+            &b2.concat(&encode_u8(&r)?)
+                .concat(&b2)
+                .concat(&encode_u8(&s)?),
         )?))
     }
 }
@@ -964,16 +929,16 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
         tlserr(parse_failed())
     } else {
         check_eq(&bytes1(0x30), &sig.slice_range(0..1))?;
-        check_lbytes1_full(&sig.slice_range(1..sig.len()))?;
+        check_u8_encoded_full(&sig.slice_range(1..sig.len()))?;
         check_eq(&bytes1(0x02), &sig.slice_range(2..3))?;
-        let rlen = check_lbytes1(&sig.slice_range(3..sig.len()))?;
+        let rlen = decode_u8_length(&sig.slice_range(3..sig.len()))?;
         check_r_len(rlen)?;
         let r = sig.slice(4 + rlen - 32, 32);
         if sig.len() < 6 + rlen + 32 {
             tlserr(INVALID_SIGNATURE)
         } else {
             check_eq(&bytes1(0x02), &sig.slice_range(4 + rlen..5 + rlen))?;
-            check_lbytes1_full(&sig.slice_range(5 + rlen..sig.len()))?;
+            check_u8_encoded_full(&sig.slice_range(5 + rlen..sig.len()))?;
             let s = sig.slice(sig.len() - 32, 32);
             Ok(r.concat(&s))
         }
@@ -994,14 +959,14 @@ pub fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData
         }
     };
 
-    let sig = signature_algorithm(algs)?.concat(&lbytes2(&sv)?);
+    let sig = algs.signature_algorithm()?.concat(&encode_u16(&sv)?);
     handshake_message(HandshakeType::CertificateVerify, &sig)
 }
 
 pub fn parse_certificate_verify(algs: &Algorithms, cv: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(cv) = get_handshake_message_ty(HandshakeType::CertificateVerify, cv)?;
     let sa = algs.signature();
-    check_eq(&signature_algorithm(algs)?, &cv.slice_range(0..2))?;
+    check_eq(&algs.signature_algorithm()?, &cv.slice_range(0..2))?;
     check_lbytes2_full(&cv.slice_range(2..cv.len()))?;
     match sa {
         SignatureScheme::EcdsaSecp256r1Sha256 => parse_ecdsa_signature(cv.slice_range(4..cv.len())),
@@ -1028,10 +993,10 @@ pub fn parse_finished(_algs: &Algorithms, fin: &HandshakeData) -> Result<Bytes, 
 pub fn session_ticket(_algs: &Algorithms, tkt: &Bytes) -> Result<HandshakeData, TLSError> {
     let lifetime = U32::from(172800).to_be_bytes();
     let age = U32::from(9999).to_be_bytes();
-    let nonce = lbytes1(&bytes1(1))?;
-    let stkt = lbytes2(tkt)?;
-    let grease_ext = bytes2(0x5a, 0x5a).concat(&lbytes2(&Bytes::new())?);
-    let ext = lbytes2(&grease_ext)?;
+    let nonce = encode_u8(&bytes1(1))?;
+    let stkt = encode_u16(tkt)?;
+    let grease_ext = bytes2(0x5a, 0x5a).concat(&encode_u16(&Bytes::new())?);
+    let ext = encode_u16(&grease_ext)?;
     handshake_message(
         HandshakeType::NewSessionTicket,
         &lifetime
@@ -1049,7 +1014,7 @@ pub fn parse_session_ticket(
     let HandshakeData(tkt) = get_handshake_message_ty(HandshakeType::NewSessionTicket, tkt)?;
     let lifetime = U32::from_be_bytes(&tkt.slice_range(0..4))?;
     let age = U32::from_be_bytes(&tkt.slice_range(4..8))?;
-    let nonce_len = check_lbytes1(&tkt.slice_range(8..tkt.len()))?;
+    let nonce_len = decode_u8_length(&tkt.slice_range(8..tkt.len()))?;
     let stkt_len = check_lbytes2(&tkt.slice_range(9 + nonce_len..tkt.len()))?;
     let stkt = tkt.slice_range(11 + nonce_len..11 + nonce_len + stkt_len);
     check_lbytes2_full(&tkt.slice_range(11 + nonce_len + stkt_len..tkt.len()))?;
@@ -1101,7 +1066,7 @@ pub fn handshake_record(p: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(p) = p;
     let ty = bytes1(content_type(ContentType::Handshake));
     let ver = bytes2(3, 3);
-    Ok(ty.concat(&ver).concat(&lbytes2(p)?))
+    Ok(ty.concat(&ver).concat(&encode_u16(p)?))
 }
 
 fn protocol_version_alert() -> Result<(), TLSError> {

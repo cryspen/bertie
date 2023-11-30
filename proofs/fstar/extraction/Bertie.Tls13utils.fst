@@ -239,19 +239,19 @@ let impl_13 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C) =
   }
 
 let impl__U32__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U32 u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist35:t_Array u8 (sz 4) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist23:t_Array u8 (sz 4) =
         match
           Core.Ops.Try_trait.f_branch (impl__Bytes__declassify_array (sz 4) x
               <:
               Core.Result.t_Result (t_Array u8 (sz 4)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist34:Rust_primitives.Hax.t_Never =
+          let* hoist22:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_U32 u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist34)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist22)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U32 u8) (t_Array u8 (sz 4))
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -260,9 +260,9 @@ let impl__U32__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U32 u8 =
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U32 u8) (t_Array u8 (sz 4))
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist36:u32 = Core.Num.impl__u32__from_be_bytes hoist35 in
-        let hoist37:t_U32 = U32 hoist36 <: t_U32 in
-        Core.Result.Result_Ok hoist37 <: Core.Result.t_Result t_U32 u8)
+      (let hoist24:u32 = Core.Num.impl__u32__from_be_bytes hoist23 in
+        let hoist25:t_U32 = U32 hoist24 <: t_U32 in
+        Core.Result.Result_Ok hoist25 <: Core.Result.t_Result t_U32 u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U32 u8)
         (Core.Result.t_Result t_U32 u8))
@@ -278,19 +278,19 @@ let impl__U32__to_be_bytes (self: t_U32) : t_Bytes =
       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
 let impl__U16__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U16 u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist39:t_Array u8 (sz 2) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist27:t_Array u8 (sz 2) =
         match
           Core.Ops.Try_trait.f_branch (impl__Bytes__declassify_array (sz 2) x
               <:
               Core.Result.t_Result (t_Array u8 (sz 2)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist38:Rust_primitives.Hax.t_Never =
+          let* hoist26:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_U16 u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist38)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist26)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U16 u8) (t_Array u8 (sz 2))
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -299,9 +299,9 @@ let impl__U16__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U16 u8 =
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U16 u8) (t_Array u8 (sz 2))
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist40:u16 = Core.Num.impl__u16__from_be_bytes hoist39 in
-        let hoist41:t_U16 = U16 hoist40 <: t_U16 in
-        Core.Result.Result_Ok hoist41 <: Core.Result.t_Result t_U16 u8)
+      (let hoist28:u16 = Core.Num.impl__u16__from_be_bytes hoist27 in
+        let hoist29:t_U16 = U16 hoist28 <: t_U16 in
+        Core.Result.Result_Ok hoist29 <: Core.Result.t_Result t_U16 u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U16 u8)
         (Core.Result.t_Result t_U16 u8))
@@ -327,13 +327,73 @@ let impl_17: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
     f_index = fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> self._0.[ x ]
   }
 
-let impl__Bytes__concat (self x: t_Bytes) : t_Bytes =
+let impl__Bytes__as_hex (self: t_Bytes) : Alloc.String.t_String =
+  let (strs: Alloc.Vec.t_Vec Alloc.String.t_String Alloc.Alloc.t_Global):Alloc.Vec.t_Vec
+    Alloc.String.t_String Alloc.Alloc.t_Global =
+    Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map (Core.Slice.impl__iter (Core.Ops.Deref.f_deref
+                  self._0
+                <:
+                t_Slice t_U8)
+            <:
+            Core.Slice.Iter.t_Iter t_U8)
+          (fun b ->
+              let b:t_U8 = b in
+              Alloc.Fmt.format (Core.Fmt.impl_2__new_v1_formatted (Rust_primitives.unsize (let list
+                          =
+                            [""]
+                          in
+                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                          Rust_primitives.Hax.array_of_list list)
+                      <:
+                      t_Slice string)
+                    (Rust_primitives.unsize (let list =
+                            [
+                              Core.Fmt.Rt.impl_1__new_lower_hex (impl__U8__declassify b <: u8)
+                              <:
+                              Core.Fmt.Rt.t_Argument
+                            ]
+                          in
+                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                          Rust_primitives.Hax.array_of_list list)
+                      <:
+                      t_Slice Core.Fmt.Rt.t_Argument)
+                    (Rust_primitives.unsize (let list =
+                            [
+                              Core.Fmt.Rt.impl__Placeholder__new (sz 0)
+                                ' '
+                                (Core.Fmt.Rt.Alignment_Unknown <: Core.Fmt.Rt.t_Alignment)
+                                8ul
+                                (Core.Fmt.Rt.Count_Implied <: Core.Fmt.Rt.t_Count)
+                                (Core.Fmt.Rt.Count.v_Is (sz 2) <: Core.Fmt.Rt.t_Count)
+                              <:
+                              Core.Fmt.Rt.t_Placeholder
+                            ]
+                          in
+                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                          Rust_primitives.Hax.array_of_list list)
+                      <:
+                      t_Slice Core.Fmt.Rt.t_Placeholder)
+                    (Rust_primitives.Hax.failure ""
+                        "{ Types.attributes = [];\n  contents =\n  Types.Block {\n    expr =\n    (Some { Types.attributes = [];\n            contents =\n            Types.Call {args = [];\n              fn_span =\n              { Types.filename =\n                (Types.Real\n                   Types.Remapped {\n                     local_path =\n                     (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n                     virtual_name =\n                     \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n                hi = { Types.col = \"78\"; line = \"120\" };\n                lo = { Types.col = \"38\"; line = \"120\" } };\n              from_hir_call = true;\n              fun' =\n              { Types.attributes = [];\n                contents =\n                Types.GlobalName {\n                  id =\n                  { Types.index = (2, 9101); krate = \"core\";\n                    path =\n                    [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                      { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                      { Types.data = Types.Impl; disambiguator = 2 };\n                      { Types.data = (Types.ValueNs \"new\"); disambiguator = 0\n                        }\n                      ]\n                    }};\n                hir_id = None;\n                span =\n                { Types.filename =\n                  (Types.Real\n                     Types.Remapped {\n                       local_path =\n                       (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n                       virtual_name =\n                       \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n                  hi = { Types.col = \"78\"; line = \"120\" };\n                  lo = { Types.col = \"38\"; line = \"120\" } };\n                ty =\n                (Types.Arrow\n                   { Types.bound_vars = [];\n                     value =\n                     { Types.abi = Types.Abi {todo = \"Rust\"};\n                       c_variadic = false; inputs = [];\n                       output =\n                       Types.Adt {\n                         def_id =\n                         { Types.index = (2, 9098); krate = \"core\";\n                           path =\n                           [{ Types.data = (Types.TypeNs \"fmt\");\n                              disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"rt\");\n                               disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"UnsafeArg\");\n                               disambiguator = 0 }\n                             ]\n                           };\n                         generic_args = []};\n                       unsafety = Types.Unsafe }\n                     })\n                };\n              generic_args = []; impl = None;\n              ty =\n              (Types.Arrow\n                 { Types.bound_vars = [];\n                   value =\n                   { Types.abi = Types.Abi {todo = \"Rust\"};\n                     c_variadic = false; inputs = [];\n                     output =\n                     Types.Adt {\n                       def_id =\n                       { Types.index = (2, 9098); krate = \"core\";\n                         path =\n                         [{ Types.data = (Types.TypeNs \"fmt\");\n                            disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"rt\");\n                             disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"UnsafeArg\");\n                             disambiguator = 0 }\n                           ]\n                         };\n                       generic_args = []};\n                     unsafety = Types.Unsafe }\n                   })};\n            hir_id = (Some (\"692\", \"68\"));\n            span =\n            { Types.filename =\n              (Types.Real\n                 Types.Remapped {\n                   local_path =\n                   (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n                   virtual_name =\n                   \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n              hi = { Types.col = \"78\"; line = \"120\" };\n              lo = { Types.col = \"38\"; line = \"120\" } };\n            ty =\n            Types.Adt {\n              def_id =\n              { Types.index = (2, 9098); krate = \"core\";\n                path =\n                [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"UnsafeArg\");\n                    disambiguator = 0 }\n                  ]\n                };\n              generic_args = []}\n            });\n    opt_destruction_scope = None;\n    region_scope = { Types.data = Types.Node; id = \"69\" };\n    safety_mode = Types.BuiltinUnsafe;\n    span =\n    { Types.filename =\n      (Types.Real\n         Types.Remapped {\n           local_path =\n           (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n           virtual_name =\n           \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n      hi = { Types.col = \"78\"; line = \"120\" };\n      lo = { Types.col = \"38\"; line = \"120\" } };\n    stmts = []; targeted_by_break = false};\n  hir_id = (Some (\"692\", \"70\"));\n  span =\n  { Types.filename =\n    (Types.Real\n       Types.Remapped {\n         local_path =\n         (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n         virtual_name =\n         \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n    hi = { Types.col = \"78\"; line = \"120\" };\n    lo = { Types.col = \"38\"; line = \"120\" } };\n  ty =\n  Types.Adt {\n    def_id =\n    { Types.index = (2, 9098); krate = \"core\";\n      path =\n      [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"UnsafeArg\"); disambiguator = 0 }]\n      };\n    generic_args = []}\n  }"
+
+                      <:
+                      Core.Fmt.Rt.t_UnsafeArg)
+                  <:
+                  Core.Fmt.t_Arguments)
+              <:
+              Alloc.String.t_String)
+        <:
+        Core.Iter.Adapters.Map.t_Map (Core.Slice.Iter.t_Iter t_U8) (t_U8 -> Alloc.String.t_String))
+  in
+  Alloc.Slice.impl__join (Core.Ops.Deref.f_deref strs <: t_Slice Alloc.String.t_String) ""
+
+let impl__Bytes__concat (self other: t_Bytes) : t_Bytes =
   let res:Alloc.Vec.t_Vec t_U8 Alloc.Alloc.t_Global = Alloc.Vec.impl__new in
   let res:Alloc.Vec.t_Vec t_U8 Alloc.Alloc.t_Global =
     Alloc.Vec.impl_2__extend_from_slice res (Core.Ops.Deref.f_deref self._0 <: t_Slice t_U8)
   in
   let res:Alloc.Vec.t_Vec t_U8 Alloc.Alloc.t_Global =
-    Alloc.Vec.impl_2__extend_from_slice res (Core.Ops.Deref.f_deref x._0 <: t_Slice t_U8)
+    Alloc.Vec.impl_2__extend_from_slice res (Core.Ops.Deref.f_deref other._0 <: t_Slice t_U8)
   in
   Bytes res <: t_Bytes
 
@@ -446,70 +506,11 @@ let impl__Bytes__slice (self: t_Bytes) (start len: usize) : t_Bytes =
       <:
       t_Slice t_U8)
 
-let impl__Bytes__slice_range (self: t_Bytes) (r: Core.Ops.Range.t_Range usize) : t_Bytes =
-  Core.Convert.f_into (self._0.[ r ] <: t_Slice t_U8)
+let impl__Bytes__slice_range (self: t_Bytes) (range: Core.Ops.Range.t_Range usize) : t_Bytes =
+  Core.Convert.f_into (self._0.[ range ] <: t_Slice t_U8)
 
-let impl__Bytes__to_hex (self: t_Bytes) : Alloc.String.t_String =
-  let (strs: Alloc.Vec.t_Vec Alloc.String.t_String Alloc.Alloc.t_Global):Alloc.Vec.t_Vec
-    Alloc.String.t_String Alloc.Alloc.t_Global =
-    Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map (Core.Slice.impl__iter (Core.Ops.Deref.f_deref
-                  self._0
-                <:
-                t_Slice t_U8)
-            <:
-            Core.Slice.Iter.t_Iter t_U8)
-          (fun b ->
-              let b:t_U8 = b in
-              Alloc.Fmt.format (Core.Fmt.impl_2__new_v1_formatted (Rust_primitives.unsize (let list
-                          =
-                            [""]
-                          in
-                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                          Rust_primitives.Hax.array_of_list list)
-                      <:
-                      t_Slice string)
-                    (Rust_primitives.unsize (let list =
-                            [
-                              Core.Fmt.Rt.impl_1__new_lower_hex (impl__U8__declassify b <: u8)
-                              <:
-                              Core.Fmt.Rt.t_Argument
-                            ]
-                          in
-                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                          Rust_primitives.Hax.array_of_list list)
-                      <:
-                      t_Slice Core.Fmt.Rt.t_Argument)
-                    (Rust_primitives.unsize (let list =
-                            [
-                              Core.Fmt.Rt.impl__Placeholder__new (sz 0)
-                                ' '
-                                (Core.Fmt.Rt.Alignment_Unknown <: Core.Fmt.Rt.t_Alignment)
-                                8ul
-                                (Core.Fmt.Rt.Count_Implied <: Core.Fmt.Rt.t_Count)
-                                (Core.Fmt.Rt.Count.v_Is (sz 2) <: Core.Fmt.Rt.t_Count)
-                              <:
-                              Core.Fmt.Rt.t_Placeholder
-                            ]
-                          in
-                          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                          Rust_primitives.Hax.array_of_list list)
-                      <:
-                      t_Slice Core.Fmt.Rt.t_Placeholder)
-                    (Rust_primitives.Hax.failure ""
-                        "{ Types.attributes = [];\n  contents =\n  Types.Block {\n    expr =\n    (Some { Types.attributes = [];\n            contents =\n            Types.Call {args = [];\n              fn_span =\n              { Types.filename =\n                (Types.Real\n                   Types.Remapped {\n                     local_path =\n                     (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n                     virtual_name =\n                     \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n                hi = { Types.col = \"78\"; line = \"120\" };\n                lo = { Types.col = \"38\"; line = \"120\" } };\n              from_hir_call = true;\n              fun' =\n              { Types.attributes = [];\n                contents =\n                Types.GlobalName {\n                  id =\n                  { Types.index = (2, 9101); krate = \"core\";\n                    path =\n                    [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                      { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                      { Types.data = Types.Impl; disambiguator = 2 };\n                      { Types.data = (Types.ValueNs \"new\"); disambiguator = 0\n                        }\n                      ]\n                    }};\n                hir_id = None;\n                span =\n                { Types.filename =\n                  (Types.Real\n                     Types.Remapped {\n                       local_path =\n                       (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n                       virtual_name =\n                       \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n                  hi = { Types.col = \"78\"; line = \"120\" };\n                  lo = { Types.col = \"38\"; line = \"120\" } };\n                ty =\n                (Types.Arrow\n                   { Types.bound_vars = [];\n                     value =\n                     { Types.abi = Types.Abi {todo = \"Rust\"};\n                       c_variadic = false; inputs = [];\n                       output =\n                       Types.Adt {\n                         def_id =\n                         { Types.index = (2, 9098); krate = \"core\";\n                           path =\n                           [{ Types.data = (Types.TypeNs \"fmt\");\n                              disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"rt\");\n                               disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"UnsafeArg\");\n                               disambiguator = 0 }\n                             ]\n                           };\n                         generic_args = []};\n                       unsafety = Types.Unsafe }\n                     })\n                };\n              generic_args = []; impl = None;\n              ty =\n              (Types.Arrow\n                 { Types.bound_vars = [];\n                   value =\n                   { Types.abi = Types.Abi {todo = \"Rust\"};\n                     c_variadic = false; inputs = [];\n                     output =\n                     Types.Adt {\n                       def_id =\n                       { Types.index = (2, 9098); krate = \"core\";\n                         path =\n                         [{ Types.data = (Types.TypeNs \"fmt\");\n                            disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"rt\");\n                             disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"UnsafeArg\");\n                             disambiguator = 0 }\n                           ]\n                         };\n                       generic_args = []};\n                     unsafety = Types.Unsafe }\n                   })};\n            hir_id = (Some (\"692\", \"68\"));\n            span =\n            { Types.filename =\n              (Types.Real\n                 Types.Remapped {\n                   local_path =\n                   (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n                   virtual_name =\n                   \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n              hi = { Types.col = \"78\"; line = \"120\" };\n              lo = { Types.col = \"38\"; line = \"120\" } };\n            ty =\n            Types.Adt {\n              def_id =\n              { Types.index = (2, 9098); krate = \"core\";\n                path =\n                [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"UnsafeArg\");\n                    disambiguator = 0 }\n                  ]\n                };\n              generic_args = []}\n            });\n    opt_destruction_scope = None;\n    region_scope = { Types.data = Types.Node; id = \"69\" };\n    safety_mode = Types.BuiltinUnsafe;\n    span =\n    { Types.filename =\n      (Types.Real\n         Types.Remapped {\n           local_path =\n           (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n           virtual_name =\n           \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n      hi = { Types.col = \"78\"; line = \"120\" };\n      lo = { Types.col = \"38\"; line = \"120\" } };\n    stmts = []; targeted_by_break = false};\n  hir_id = (Some (\"692\", \"70\"));\n  span =\n  { Types.filename =\n    (Types.Real\n       Types.Remapped {\n         local_path =\n         (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/macros.rs\");\n         virtual_name =\n         \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/alloc/src/macros.rs\"});\n    hi = { Types.col = \"78\"; line = \"120\" };\n    lo = { Types.col = \"38\"; line = \"120\" } };\n  ty =\n  Types.Adt {\n    def_id =\n    { Types.index = (2, 9098); krate = \"core\";\n      path =\n      [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"UnsafeArg\"); disambiguator = 0 }]\n      };\n    generic_args = []}\n  }"
-
-                      <:
-                      Core.Fmt.Rt.t_UnsafeArg)
-                  <:
-                  Core.Fmt.t_Arguments)
-              <:
-              Alloc.String.t_String)
-        <:
-        Core.Iter.Adapters.Map.t_Map (Core.Slice.Iter.t_Iter t_U8) (t_U8 -> Alloc.String.t_String))
-  in
-  Alloc.Slice.impl__join (Core.Ops.Deref.f_deref strs <: t_Slice Alloc.String.t_String) ""
-
-let impl__Bytes__update_slice (self: t_Bytes) (st: usize) (src: t_Bytes) (beg len: usize) : t_Bytes =
+let impl__Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
+    : t_Bytes =
   let res:t_Bytes = Core.Clone.f_clone self in
   let res:t_Bytes =
     Core.Iter.Traits.Iterator.f_fold (Core.Iter.Traits.Collect.f_into_iter ({
@@ -525,8 +526,8 @@ let impl__Bytes__update_slice (self: t_Bytes) (st: usize) (src: t_Bytes) (beg le
           let res:t_Bytes = res in
           let i:usize = i in
           Rust_primitives.Hax.Monomorphized_update_at.update_at_usize res
-            (st +! i <: usize)
-            (src.[ beg +! i <: usize ] <: t_U8)
+            (start +! i <: usize)
+            (other.[ beg +! i <: usize ] <: t_U8)
           <:
           t_Bytes)
   in
@@ -550,42 +551,6 @@ let bytes2 (x y: u8) : t_Bytes =
       FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
       Rust_primitives.Hax.array_of_list list)
 
-let check_lbytes1 (b: t_Bytes) : Core.Result.t_Result usize u8 =
-  if impl__Bytes__is_empty b
-  then Core.Result.Result_Err parse_failed <: Core.Result.t_Result usize u8
-  else
-    let l:usize = cast (impl__U8__declassify (b.[ sz 0 ] <: t_U8) <: u8) <: usize in
-    if ((impl__Bytes__len b <: usize) -! sz 1 <: usize) <. l
-    then Core.Result.Result_Err parse_failed <: Core.Result.t_Result usize u8
-    else Core.Result.Result_Ok l <: Core.Result.t_Result usize u8
-
-let check_lbytes1_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist124:usize =
-        match Core.Ops.Try_trait.f_branch (check_lbytes1 b <: Core.Result.t_Result usize u8) with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist123:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist123)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist125:usize = hoist124 +! sz 1 in
-        let hoist126:bool = hoist125 <>. (impl__Bytes__len b <: usize) in
-        if hoist126
-        then Core.Result.Result_Err parse_failed <: Core.Result.t_Result Prims.unit u8
-        else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-        (Core.Result.t_Result Prims.unit u8))
-
 let check_lbytes2 (b: t_Bytes) : Core.Result.t_Result usize u8 =
   if (impl__Bytes__len b <: usize) <. sz 2
   then Core.Result.Result_Err parse_failed <: Core.Result.t_Result usize u8
@@ -598,15 +563,15 @@ let check_lbytes2 (b: t_Bytes) : Core.Result.t_Result usize u8 =
     else Core.Result.Result_Ok l <: Core.Result.t_Result usize u8
 
 let check_lbytes2_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist128:usize =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist100:usize =
         match Core.Ops.Try_trait.f_branch (check_lbytes2 b <: Core.Result.t_Result usize u8) with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist127:Rust_primitives.Hax.t_Never =
+          let* hoist99:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Prims.unit u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist127)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist99)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -615,9 +580,9 @@ let check_lbytes2_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist129:usize = hoist128 +! sz 2 in
-        let hoist130:bool = hoist129 <>. (impl__Bytes__len b <: usize) in
-        if hoist130
+      (let hoist101:usize = hoist100 +! sz 2 in
+        let hoist102:bool = hoist101 <>. (impl__Bytes__len b <: usize) in
+        if hoist102
         then Core.Result.Result_Err parse_failed <: Core.Result.t_Result Prims.unit u8
         else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8)
       <:
@@ -637,15 +602,15 @@ let check_lbytes3 (b: t_Bytes) : Core.Result.t_Result usize u8 =
     else Core.Result.Result_Ok l <: Core.Result.t_Result usize u8
 
 let check_lbytes3_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist136:usize =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist104:usize =
         match Core.Ops.Try_trait.f_branch (check_lbytes3 b <: Core.Result.t_Result usize u8) with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist135:Rust_primitives.Hax.t_Never =
+          let* hoist103:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Prims.unit u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist135)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist103)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -654,14 +619,76 @@ let check_lbytes3_full (b: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist137:usize = hoist136 +! sz 3 in
-        let hoist138:bool = hoist137 <>. (impl__Bytes__len b <: usize) in
-        if hoist138
+      (let hoist105:usize = hoist104 +! sz 3 in
+        let hoist106:bool = hoist105 <>. (impl__Bytes__len b <: usize) in
+        if hoist106
         then Core.Result.Result_Err parse_failed <: Core.Result.t_Result Prims.unit u8
         else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
         (Core.Result.t_Result Prims.unit u8))
+
+let decode_u8_length (b: t_Bytes) : Core.Result.t_Result usize u8 =
+  if impl__Bytes__is_empty b
+  then Core.Result.Result_Err parse_failed <: Core.Result.t_Result usize u8
+  else
+    let l:usize = cast (impl__U8__declassify (b.[ sz 0 ] <: t_U8) <: u8) <: usize in
+    if ((impl__Bytes__len b <: usize) -! sz 1 <: usize) <. l
+    then Core.Result.Result_Err parse_failed <: Core.Result.t_Result usize u8
+    else Core.Result.Result_Ok l <: Core.Result.t_Result usize u8
+
+let check_u8_encoded_full (bytes: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist108:usize =
+        match
+          Core.Ops.Try_trait.f_branch (decode_u8_length bytes <: Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist107:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist107)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist109:usize = hoist108 +! sz 1 in
+        let hoist110:bool = hoist109 <>. (impl__Bytes__len bytes <: usize) in
+        if hoist110
+        then Core.Result.Result_Err parse_failed <: Core.Result.t_Result Prims.unit u8
+        else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+        (Core.Result.t_Result Prims.unit u8))
+
+let encode_u16 (bytes: t_Bytes) : Core.Result.t_Result t_Bytes u8 =
+  let len:usize = impl__Bytes__len bytes in
+  if len >=. sz 65536
+  then Core.Result.Result_Err v_PAYLOAD_TOO_LONG <: Core.Result.t_Result t_Bytes u8
+  else
+    let len:t_Bytes = impl__U16__to_be_bytes (U16 (cast (len <: usize) <: u16) <: t_U16) in
+    let lenb:t_Bytes = impl__Bytes__new in
+    let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 0 ] <: t_U8) in
+    let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 1 ] <: t_U8) in
+    let lenb:t_Bytes = impl__Bytes__extend_from_slice lenb bytes in
+    Core.Result.Result_Ok lenb <: Core.Result.t_Result t_Bytes u8
+
+let encode_u8 (bytes: t_Bytes) : Core.Result.t_Result t_Bytes u8 =
+  let len:usize = impl__Bytes__len bytes in
+  if len >=. sz 256
+  then Core.Result.Result_Err v_PAYLOAD_TOO_LONG <: Core.Result.t_Result t_Bytes u8
+  else
+    let lenb:t_Bytes = impl__Bytes__new in
+    let lenb:t_Bytes =
+      impl__Bytes__push lenb (Core.Convert.f_into (cast (len <: usize) <: u8) <: t_U8)
+    in
+    let lenb:t_Bytes = impl__Bytes__extend_from_slice lenb bytes in
+    Core.Result.Result_Ok lenb <: Core.Result.t_Result t_Bytes u8
 
 let eq (b1 b2: t_Bytes) : bool =
   if (impl__Bytes__len b1 <: usize) <>. (impl__Bytes__len b2 <: usize)
@@ -738,30 +765,6 @@ let check_mem (b1 b2: t_Bytes) : Core.Result.t_Result Prims.unit u8 =
     if b
     then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
     else Core.Result.Result_Err parse_failed <: Core.Result.t_Result Prims.unit u8
-
-let lbytes1 (bytes: t_Bytes) : Core.Result.t_Result t_Bytes u8 =
-  let len:usize = impl__Bytes__len bytes in
-  if len >=. sz 256
-  then Core.Result.Result_Err v_PAYLOAD_TOO_LONG <: Core.Result.t_Result t_Bytes u8
-  else
-    let lenb:t_Bytes = impl__Bytes__new in
-    let lenb:t_Bytes =
-      impl__Bytes__push lenb (Core.Convert.f_into (cast (len <: usize) <: u8) <: t_U8)
-    in
-    let lenb:t_Bytes = impl__Bytes__extend_from_slice lenb bytes in
-    Core.Result.Result_Ok lenb <: Core.Result.t_Result t_Bytes u8
-
-let lbytes2 (bytes: t_Bytes) : Core.Result.t_Result t_Bytes u8 =
-  let len:usize = impl__Bytes__len bytes in
-  if len >=. sz 65536
-  then Core.Result.Result_Err v_PAYLOAD_TOO_LONG <: Core.Result.t_Result t_Bytes u8
-  else
-    let len:t_Bytes = impl__U16__to_be_bytes (U16 (cast (len <: usize) <: u16) <: t_U16) in
-    let lenb:t_Bytes = impl__Bytes__new in
-    let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 0 ] <: t_U8) in
-    let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 1 ] <: t_U8) in
-    let lenb:t_Bytes = impl__Bytes__extend_from_slice lenb bytes in
-    Core.Result.Result_Ok lenb <: Core.Result.t_Result t_Bytes u8
 
 let lbytes3 (bytes: t_Bytes) : Core.Result.t_Result t_Bytes u8 =
   let len:usize = impl__Bytes__len bytes in

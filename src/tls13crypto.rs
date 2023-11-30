@@ -5,11 +5,9 @@ use libcrux::{
 };
 use rand::{CryptoRng, RngCore};
 
-use crate::{
-    ciphersuites,
-    tls13utils::{
-        eq, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
-    },
+use crate::tls13utils::{
+    check_lbytes2, check_mem, eq, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE,
+    UNSUPPORTED_ALGORITHM,
 };
 
 pub(crate) type Random = Bytes; //was [U8;32]
@@ -600,6 +598,48 @@ impl Algorithms {
     pub fn zero_rtt(&self) -> bool {
         self.zero_rtt
     }
+
+    /// Returns the TLS ciphersuite for the given algorithm when it is supported, or
+    /// a [`TLSError`] otherwise.
+    pub(crate) fn ciphersuite(&self) -> Result<Bytes, TLSError> {
+        match (self.hash, self.aead) {
+            (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok([0x13, 0x01].into()),
+            (HashAlgorithm::SHA384, AeadAlgorithm::Aes256Gcm) => Ok([0x13, 0x02].into()),
+            (HashAlgorithm::SHA256, AeadAlgorithm::Chacha20Poly1305) => Ok([0x13, 0x03].into()),
+            _ => tlserr(UNSUPPORTED_ALGORITHM),
+        }
+    }
+
+    /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
+    /// otherwise.
+    pub(crate) fn supported_group(&self) -> Result<Bytes, TLSError> {
+        match self.kem() {
+            KemScheme::X25519 => Ok([0x00, 0x1D].into()),
+            KemScheme::Secp256r1 => Ok([0x00, 0x17].into()),
+            KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
+            KemScheme::Secp384r1 => tlserr(UNSUPPORTED_ALGORITHM),
+            KemScheme::Secp521r1 => tlserr(UNSUPPORTED_ALGORITHM),
+        }
+    }
+
+    /// Returns the signature id for the given algorithm when it is supported, or a
+    ///  [`TLSError`] otherwise.
+    pub(crate) fn signature_algorithm(&self) -> Result<Bytes, TLSError> {
+        match self.signature() {
+            SignatureScheme::RsaPssRsaSha256 => Ok([0x08, 0x04].into()),
+            SignatureScheme::EcdsaSecp256r1Sha256 => Ok([0x04, 0x03].into()),
+            SignatureScheme::ED25519 => tlserr(UNSUPPORTED_ALGORITHM),
+        }
+    }
+
+    /// Check the ciphersuite in `bytes` against this ciphersuite.
+    pub(crate) fn check(&self, bytes: &Bytes) -> Result<usize, TLSError> {
+        let len = check_lbytes2(bytes)?;
+        let cs = self.ciphersuite()?;
+        let csl = bytes.slice_range(2..2 + len);
+        check_mem(&cs, &csl)?;
+        Ok(len + 2)
+    }
 }
 
 impl TryFrom<&str> for Algorithms {
@@ -609,40 +649,36 @@ impl TryFrom<&str> for Algorithms {
     fn try_from(s: &str) -> Result<Self, Self::Error> {
         match s {
             "SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519" => {
-                Ok(ciphersuites::SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519)
+                Ok(SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519)
             }
             "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519" => {
-                Ok(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519)
+                Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519)
             }
             "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256" => {
-                Ok(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256)
+                Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256)
             }
             "SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256" => {
-                Ok(ciphersuites::SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256)
+                Ok(SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256)
             }
             "SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256" => {
-                Ok(ciphersuites::SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256)
+                Ok(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256)
             }
             "SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519" => {
-                Ok(ciphersuites::SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519)
+                Ok(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519)
             }
-            "SHA256_Aes128Gcm_RsaPssRsaSha256_P256" => {
-                Ok(ciphersuites::SHA256_Aes128Gcm_RsaPssRsaSha256_P256)
-            }
+            "SHA256_Aes128Gcm_RsaPssRsaSha256_P256" => Ok(SHA256_Aes128Gcm_RsaPssRsaSha256_P256),
             "SHA256_Aes128Gcm_RsaPssRsaSha256_X25519" => {
-                Ok(ciphersuites::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519)
+                Ok(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519)
             }
             "SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256" => {
-                Ok(ciphersuites::SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256)
+                Ok(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256)
             }
             "SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519" => {
-                Ok(ciphersuites::SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519)
+                Ok(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519)
             }
-            "SHA384_Aes256Gcm_RsaPssRsaSha256_P256" => {
-                Ok(ciphersuites::SHA384_Aes256Gcm_RsaPssRsaSha256_P256)
-            }
+            "SHA384_Aes256Gcm_RsaPssRsaSha256_P256" => Ok(SHA384_Aes256Gcm_RsaPssRsaSha256_P256),
             "SHA384_Aes256Gcm_RsaPssRsaSha256_X25519" => {
-                Ok(ciphersuites::SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
+                Ok(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
             }
             _ => Err(Error::UnknownCiphersuite(format!(
                 "Invalid ciphersuite description: {}",
@@ -651,3 +687,159 @@ impl TryFrom<&str> for Algorithms {
         }
     }
 }
+
+/// `TLS_AES_128_GCM_SHA256`
+/// with
+/// * x25519 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::X25519,
+    false,
+    false,
+);
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * x25519 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::X25519,
+    false,
+    false,
+);
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * x25519 for key exchange
+/// * RSA PSS SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::RsaPssRsaSha256,
+    KemScheme::X25519,
+    false,
+    false,
+);
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * P256 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::Secp256r1,
+    false,
+    false,
+);
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * P256 for key exchange
+/// * RSA PSSS SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::RsaPssRsaSha256,
+    KemScheme::Secp256r1,
+    false,
+    false,
+);
+
+/// `TLS_AES_128_GCM_SHA256`
+/// with
+/// * P256 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::Secp256r1,
+    false,
+    false,
+);
+
+/// `TLS_AES_128_GCM_SHA256`
+/// with
+/// * P256 for key exchange
+/// * RSA PSS SHA256 for signatures
+pub const SHA256_Aes128Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::RsaPssRsaSha256,
+    KemScheme::Secp256r1,
+    false,
+    false,
+);
+
+/// `TLS_AES_128_GCM_SHA256`
+/// with
+/// * x25519 for key exchange
+/// * RSA PSS SHA256 for signatures
+pub const SHA256_Aes128Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Aes128Gcm,
+    SignatureScheme::RsaPssRsaSha256,
+    KemScheme::X25519,
+    false,
+    false,
+);
+
+/// `TLS_AES_256_GCM_SHA384`
+/// with
+/// * x25519 for key exchange
+/// * RSA PSS SHA256 for signatures
+pub const SHA384_Aes256Gcm_RsaPssRsaSha256_X25519: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA384,
+    AeadAlgorithm::Aes256Gcm,
+    SignatureScheme::RsaPssRsaSha256,
+    KemScheme::X25519,
+    false,
+    false,
+);
+
+/// `TLS_AES_256_GCM_SHA384`
+/// with
+/// * x25519 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA384,
+    AeadAlgorithm::Aes256Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::X25519,
+    false,
+    false,
+);
+
+/// `TLS_AES_256_GCM_SHA384`
+/// with
+/// * P256 for key exchange
+/// * RSA PSS SHA256 for signatures
+pub const SHA384_Aes256Gcm_RsaPssRsaSha256_P256: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA384,
+    AeadAlgorithm::Aes256Gcm,
+    SignatureScheme::RsaPssRsaSha256,
+    KemScheme::Secp256r1,
+    false,
+    false,
+);
+
+/// `TLS_AES_256_GCM_SHA384`
+/// with
+/// * P256 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA384,
+    AeadAlgorithm::Aes256Gcm,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::Secp256r1,
+    false,
+    false,
+);

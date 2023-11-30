@@ -48,13 +48,13 @@ let lookup_db
                   Core.Result.t_Result Prims.unit u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist301:Rust_primitives.Hax.t_Never =
+              let* hoist254:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result t_ServerInfo u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist301)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist254)
               <:
               Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_ServerInfo u8) Prims.unit
             | Core.Ops.Control_flow.ControlFlow_Continue v_val ->

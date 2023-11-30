@@ -8,7 +8,7 @@ use std::{
     net::TcpStream,
 };
 
-use super::{read_record, BertieError, BertieStream, TlsStream};
+use super::stream::{read_record, BertieError, BertieStream, TlsStream};
 use crate::{tls13crypto::*, tls13utils::*, Client};
 
 pub struct ClientState<Stream: Read + Write> {
@@ -234,6 +234,8 @@ impl BertieStream<ClientState<TcpStream>> {
 mod tests {
     use rand::thread_rng;
 
+    use crate::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
+
     use super::*;
 
     #[test]
@@ -243,7 +245,7 @@ mod tests {
         let mut stream = BertieStream::client(
             host,
             port,
-            crate::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+            SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
             &mut thread_rng(),
         )
         .expect("Error connecting to server");

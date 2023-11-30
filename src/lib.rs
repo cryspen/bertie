@@ -12,7 +12,6 @@ mod tls13formats;
 mod tls13handshake;
 mod tls13record;
 
-pub mod ciphersuites;
 pub mod server;
 pub mod tls13api;
 pub mod tls13cert;

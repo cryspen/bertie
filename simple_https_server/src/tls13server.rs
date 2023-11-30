@@ -4,7 +4,10 @@
 
 use std::{net::TcpListener, time::Duration};
 
-use bertie::{ciphersuites, stream::BertieStream, tls13crypto::Algorithms};
+use bertie::{
+    stream::BertieStream, tls13crypto::Algorithms,
+    tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+};
 
 use clap::Parser;
 
@@ -49,7 +52,7 @@ pub fn main() -> anyhow::Result<()> {
     let ciphersuite = cli
         .algorithms
         .map(|s| Algorithms::try_from(s.as_str()).unwrap())
-        .unwrap_or(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
+        .unwrap_or(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
 
     let listener = TcpListener::bind((host.as_str(), port)).unwrap();
 

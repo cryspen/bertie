@@ -2,7 +2,11 @@
 //!
 //! A simple TLS 1.3 command line client based on Bertie.
 
-use bertie::{ciphersuites, stream::BertieStream, tls13crypto::Algorithms, tls13utils::*};
+use bertie::{
+    stream::BertieStream,
+    tls13crypto::{Algorithms, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519},
+    tls13utils::*,
+};
 use rand::thread_rng;
 use record::AppError;
 use tracing::{error, event, Level};
@@ -55,7 +59,7 @@ fn main() -> anyhow::Result<()> {
         .ciphersuite
         .map(|s| Algorithms::try_from(s.as_str()).ok())
         .flatten()
-        .unwrap_or(ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
+        .unwrap_or(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
 
     event!(Level::INFO, "Starting new Client connection ...");
     event!(Level::DEBUG, "  {host}:{port}");

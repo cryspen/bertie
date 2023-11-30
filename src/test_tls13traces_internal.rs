@@ -270,10 +270,10 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                 println!("Parsed CH!");
-                println!("cr: {}", cr.to_hex());
-                println!("sid: {}", sid.to_hex());
-                println!("sn: {}", sn.to_hex());
-                println!("gx: {}", gx.to_hex());
+                println!("cr: {}", cr.as_hex());
+                println!("sid: {}", sid.as_hex());
+                println!("sn: {}", sn.as_hex());
+                println!("gx: {}", gx.as_hex());
                 println!("trunc_len: {}", l);
             }
         }
@@ -298,10 +298,10 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 }
                 Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                     println!("Parsed CH!");
-                    println!("cr: {}", cr.to_hex());
-                    println!("sid: {}", sid.to_hex());
-                    println!("sn: {}", sn.to_hex());
-                    println!("gx: {}", gx.to_hex());
+                    println!("cr: {}", cr.as_hex());
+                    println!("sid: {}", sid.as_hex());
+                    println!("sn: {}", sn.as_hex());
+                    println!("gx: {}", gx.as_hex());
                     println!("trunc_len: {}", l);
                 }
             },
@@ -337,10 +337,10 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                     }
                     Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                         println!("Parsed CH!");
-                        println!("cr: {}", cr.to_hex());
-                        println!("sid: {}", sid.to_hex());
-                        println!("sn: {}", sn.to_hex());
-                        println!("gx: {}", gx.to_hex());
+                        println!("cr: {}", cr.as_hex());
+                        println!("sid: {}", sid.as_hex());
+                        println!("sn: {}", sn.as_hex());
+                        println!("gx: {}", gx.as_hex());
                         println!("trunc_len: {}", l);
                     }
                 }
@@ -361,8 +361,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             Ok((sr, gy)) => {
                 println!("Parsed SH!");
-                println!("sr: {}", sr.to_hex());
-                println!("gy: {}", gy.to_hex());
+                println!("sr: {}", sr.as_hex());
+                println!("gy: {}", gy.as_hex());
             }
         }
         assert!(b);
@@ -399,8 +399,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                     }
                     Ok((sr, gy)) => {
                         println!("Parsed SH!");
-                        println!("sr: {}", sr.to_hex());
-                        println!("gy: {}", gy.to_hex());
+                        println!("sr: {}", sr.as_hex());
+                        println!("gy: {}", gy.as_hex());
                     }
                 }
             }
@@ -496,8 +496,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             Ok(ha) => {
                 println!(
                     "computed hash(empty) {}\nexpected hash(empty) {}",
-                    ha.to_hex(),
-                    sha256_emp.to_hex()
+                    ha.as_hex(),
+                    sha256_emp.as_hex()
                 );
             }
             _ => {}
@@ -535,17 +535,17 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                         println!("Derive Succeeded!");
                         println!(
                             "chk: key {} \n iv {}",
-                            aead_key_iv1.key.bytes().to_hex(),
-                            aead_key_iv1.iv.to_hex()
+                            aead_key_iv1.key.bytes().as_hex(),
+                            aead_key_iv1.iv.as_hex()
                         );
                         println!(
                             "shk: key {} \n iv {}",
-                            aead_key_iv2.key.bytes().to_hex(),
-                            aead_key_iv2.iv.to_hex()
+                            aead_key_iv2.key.bytes().as_hex(),
+                            aead_key_iv2.iv.as_hex()
                         );
-                        println!("cfk: {}", cfk.to_hex());
-                        println!("sfk: {}", sfk.to_hex());
-                        println!("ms: {}", ms.to_hex());
+                        println!("cfk: {}", cfk.as_hex());
+                        println!("sfk: {}", sfk.as_hex());
+                        println!("ms: {}", ms.as_hex());
                         let transcript = transcript
                             .concat(&encrypted_extensions_bytes)
                             .concat(&server_certificate_bytes)
@@ -567,15 +567,15 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                                         println!("Derive Succeeded!");
                                         println!(
                                             "cak: key {} \n iv {}",
-                                            aead_key_iv1.key.bytes().to_hex(),
-                                            aead_key_iv1.iv.to_hex()
+                                            aead_key_iv1.key.bytes().as_hex(),
+                                            aead_key_iv1.iv.as_hex()
                                         );
                                         println!(
                                             "sak: key {} \n iv {}",
-                                            aead_key_iv2.key.bytes().to_hex(),
-                                            aead_key_iv2.iv.to_hex()
+                                            aead_key_iv2.key.bytes().as_hex(),
+                                            aead_key_iv2.iv.as_hex()
                                         );
-                                        println!("exp: {}", ms.to_hex());
+                                        println!("exp: {}", ms.as_hex());
                                     }
                                 }
                             }
@@ -651,8 +651,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 let m2 = hmac_tag(&ha, &cfk, &h2);
                 match (m1, m2) {
                     (Ok(m1), Ok(m2)) => {
-                        println!("computed sfin vd {}", m1.to_hex());
-                        println!("computed cfin vd {}", m2.to_hex());
+                        println!("computed sfin vd {}", m1.as_hex());
+                        println!("computed cfin vd {}", m2.as_hex());
                     }
                     _ => {
                         b = false;

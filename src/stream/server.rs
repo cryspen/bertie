@@ -17,7 +17,7 @@ use crate::{
     Server,
 };
 
-use super::{read_record, BertieError, BertieStream, TlsStream};
+use super::stream::{read_record, BertieError, BertieStream, TlsStream};
 
 /// The server state.
 ///
@@ -43,7 +43,7 @@ impl<Stream: Read + Write> ServerState<Stream> {
 }
 
 impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
-    fn write_tls(&mut self, bytes: &[u8]) -> Result<(), super::BertieError> {
+    fn write_tls(&mut self, bytes: &[u8]) -> Result<(), BertieError> {
         let sstate = match self.sstate.take() {
             Some(state) => state,
             None => return Err(BertieError::InvalidState),
@@ -58,14 +58,14 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
             .map_err(|e| e.into())
     }
 
-    fn read_tls(&mut self) -> Result<Vec<u8>, super::BertieError> {
+    fn read_tls(&mut self) -> Result<Vec<u8>, BertieError> {
         let mut sstate = match self.sstate.take() {
             Some(state) => state,
             None => return Err(BertieError::InvalidState),
         };
 
         let application_data = loop {
-            let record = super::read_record(&mut self.read_buffer, &mut self.stream)?;
+            let record = read_record(&mut self.read_buffer, &mut self.stream)?;
             let ad;
             (ad, sstate) = sstate.read(&record.into())?;
             match ad {
@@ -109,7 +109,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// A common pattern for the server would look as follows.
     /// ```
     /// use std::{net::{TcpStream, TcpListener}, thread};
-    /// use bertie::{stream::BertieStream, ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519};
+    /// use bertie::{stream::BertieStream, tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519};
     /// use rand::thread_rng;
     ///
     /// let host = "localhost";
@@ -276,7 +276,7 @@ fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, Bert
 
     eprintln!(
         "signature key: {}",
-        Bytes::from(signature_key.clone()).to_hex()
+        Bytes::from(signature_key.clone()).as_hex()
     );
     let spki = verification_key_from_cert(&cert)?;
     // for (i, &byte) in signature_key.iter().enumerate() {
@@ -309,7 +309,7 @@ fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, Bert
     // }
     eprintln!(
         "raw signature key: {}",
-        Bytes::from(raw_key.clone()).to_hex()
+        Bytes::from(raw_key.clone()).as_hex()
     );
     if raw_key.is_empty() {
         // We weren't able to read the key.

@@ -34,8 +34,8 @@ fn hkdf_expand_label(
         let lenb = U16::from(len as u16).to_be_bytes();
         let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
         let info = lenb
-            .concat(&lbytes1(&tls13_label)?)
-            .concat(&lbytes1(context)?);
+            .concat(&encode_u8(&tls13_label)?)
+            .concat(&encode_u8(context)?);
         hkdf_expand(ha, k, &info, len)
     }
 }
@@ -551,9 +551,9 @@ fn get_server_signature(
                 let pk = rsa_public_key(&server.cert, cert_slice)?;
                 eprintln!(
                     "got rsa key: \n\t{}\n\t{}\n\t{}",
-                    pk.modulus.to_hex(),
-                    pk.exponent.to_hex(),
-                    server.sk.to_hex(),
+                    pk.modulus.as_hex(),
+                    pk.exponent.as_hex(),
+                    server.sk.as_hex(),
                 );
                 sign_rsa(
                     &server.sk,

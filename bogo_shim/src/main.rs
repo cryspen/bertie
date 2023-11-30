@@ -214,7 +214,7 @@ fn main() {
             println!(" running bertie client ...");
             let mut client = BertieStream::open_with_stream(
                 &options.hostname,
-                bertie::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                bertie::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
                 stream,
             )
             .unwrap();
@@ -238,7 +238,7 @@ fn main() {
                 &options.hostname,
                 options.port,
                 stream,
-                bertie::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                bertie::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
                 &cert_file,
                 &key_file,
             )

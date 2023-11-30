@@ -321,7 +321,7 @@ pub(crate) fn rsa_public_key(
     // each encoded as integer.
     eprintln!(
         "rsa pk: {}",
-        cert.slice(offset, cert.len() - offset).to_hex()
+        cert.slice(offset, cert.len() - offset).as_hex()
     );
     check_tag(cert, offset, 0x30u8)?;
     offset = offset + 1;
@@ -351,7 +351,7 @@ fn debug_print(tag: &str, bytes: &Bytes, offset: usize) {
     eprintln!(
         "{}: {}",
         tag,
-        bytes.slice(offset, bytes.len() - offset).to_hex()
+        bytes.slice(offset, bytes.len() - offset).as_hex()
     );
 }
 
