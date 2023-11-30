@@ -88,26 +88,26 @@ run_bertie() {
 }
 
 bertie_server_test() {
-  # echo "Running Bertie Server with ECDSA P256 certificate | Chacha20Poly1305 x25519"
-  # run_bertie p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
-  # openssl s_client -connect localhost:6443 </dev/null
-  # kill $pid
+  echo "Running Bertie Server with ECDSA P256 certificate | Chacha20Poly1305 x25519"
+  run_bertie p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
+  openssl s_client -connect localhost:6443 </dev/null
+  kill $pid
 
   echo "Running Bertie Server with ECDSA P256 certificate | Chacha20Poly1305 P256"
   run_bertie p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256
   openssl s_client -curves P-256 -connect localhost:6443 </dev/null
   kill $pid
 
-  # echo "Running Bertie Server with RSA PSS certificate | Chacha20Poly1305 x25519"
-  # run_bertie rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
-  # openssl s_client -connect localhost:6443 </dev/null
-  # kill $pid
+  echo "Running Bertie Server with RSA PSS certificate | Chacha20Poly1305 x25519"
+  run_bertie rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
+  openssl s_client -connect localhost:6443 </dev/null
+  kill $pid
 
-  # echo "Running Bertie Server with RSA PSS certificate | Chacha20Poly1305 P256"
-  # run_bertie rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
-  # openssl s_client -curves P-256 -connect localhost:6443 </dev/null
-  # kill $pid
+  echo "Running Bertie Server with RSA PSS certificate | Chacha20Poly1305 P256"
+  run_bertie rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
+  openssl s_client -curves P-256 -connect localhost:6443 </dev/null
+  kill $pid
 }
 
-# bertie_client_test
+bertie_client_test
 bertie_server_test
