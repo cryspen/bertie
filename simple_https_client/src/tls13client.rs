@@ -57,8 +57,7 @@ fn main() -> anyhow::Result<()> {
 
     let ciphersuite = cli
         .ciphersuite
-        .map(|s| Algorithms::try_from(s.as_str()).ok())
-        .flatten()
+        .and_then(|s| Algorithms::try_from(s.as_str()).ok())
         .unwrap_or(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
 
     event!(Level::INFO, "Starting new Client connection ...");

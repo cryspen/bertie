@@ -5,11 +5,11 @@
 
 use self::{client::ClientState, server::ServerState};
 
+mod bertie_stream;
 mod client;
 mod server;
-mod stream;
 
-pub use stream::{BertieError, BertieStream, TlsStream};
+pub use bertie_stream::{BertieError, BertieStream, TlsStream};
 
 /// A Bertie Client stream.
 pub type BertieClient<Stream> = BertieStream<ClientState<Stream>>;

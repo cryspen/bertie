@@ -182,7 +182,7 @@ impl U32 {
     pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U32, TLSError> {
         Ok(U32(u32::from_be_bytes(x.declassify_array()?)))
     }
-    pub(crate) fn to_be_bytes(&self) -> Bytes {
+    pub(crate) fn as_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
     pub(crate) fn declassify(&self) -> u32 {
@@ -194,7 +194,7 @@ impl U16 {
     pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U16, TLSError> {
         Ok(U16(u16::from_be_bytes(x.declassify_array()?)))
     }
-    pub(crate) fn to_be_bytes(&self) -> Bytes {
+    pub(crate) fn as_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
     pub(crate) fn declassify(&self) -> u16 {
@@ -420,7 +420,7 @@ pub(crate) fn encode_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len = (U16(len as u16)).to_be_bytes();
+        let len = (U16(len as u16)).as_be_bytes();
         let mut lenb = Bytes::new();
         lenb.push(len[0]);
         lenb.push(len[1]);
@@ -435,7 +435,7 @@ pub(crate) fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len = U32(len as u32).to_be_bytes();
+        let len = U32(len as u32).as_be_bytes();
         let mut lenb = Bytes::new();
         lenb.push(len[1]);
         lenb.push(len[2]);

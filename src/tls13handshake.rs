@@ -31,7 +31,7 @@ fn hkdf_expand_label(
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let lenb = U16::from(len as u16).to_be_bytes();
+        let lenb = U16::from(len as u16).as_be_bytes();
         let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
         let info = lenb
             .concat(&encode_u8(&tls13_label)?)

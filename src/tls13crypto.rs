@@ -521,15 +521,11 @@ pub(crate) fn kem_keygen(
 /// concatenation of bytes. We have to prepend the 0x04 for
 /// uncompressed points on NIST curves.
 fn encoding_prefix(alg: KemScheme) -> Bytes {
-    let prefix = if alg == KemScheme::Secp256r1
-        || alg == KemScheme::Secp384r1
-        || alg == KemScheme::Secp521r1
-    {
+    if alg == KemScheme::Secp256r1 || alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
         Bytes::from([0x04])
     } else {
         Bytes::new()
-    };
-    prefix
+    }
 }
 
 /// Note that the `encode` in libcrux operates on the raw

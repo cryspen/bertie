@@ -9,7 +9,7 @@ use std::{
 };
 // use tracing::{event, Level};
 
-use super::stream::{read_record, BertieError, BertieStream, TlsStream};
+use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
 use crate::{tls13crypto::*, tls13utils::*, Client};
 
 pub struct ClientState<Stream: Read + Write> {
@@ -176,7 +176,7 @@ impl BertieStream<ClientState<TcpStream>> {
         // Finish the handshake
         let mut cf_rec = None;
         let mut cstate = cstate;
-        while cf_rec == None {
+        while cf_rec.is_none() {
             let rec = read_record(&mut read_buffer, &mut self.state.stream)?;
 
             let (new_cf_rec, new_cstate) = match cstate.read_handshake(&rec.into()) {

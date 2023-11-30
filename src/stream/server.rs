@@ -17,7 +17,7 @@ use crate::{
     Server,
 };
 
-use super::stream::{read_record, BertieError, BertieStream, TlsStream};
+use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
 
 /// The server state.
 ///

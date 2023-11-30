@@ -154,7 +154,7 @@ pub fn pre_shared_key(
     session_ticket: &Bytes,
 ) -> Result<(Bytes, usize), TLSError> {
     let identities =
-        encode_u16(&encode_u16(session_ticket)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
+        encode_u16(&encode_u16(session_ticket)?.concat(&U32::from(0xffffffff).as_be_bytes()))?;
     let binders = encode_u16(&encode_u8(&zero_key(&algs.hash()))?)?;
     let ext = bytes2(0, 41).concat(&encode_u16(&identities.concat(&binders))?);
     Ok((ext, binders.len()))
@@ -686,6 +686,7 @@ fn invalid_compression_list() -> Result<(), TLSError> {
 }
 
 /// Parse the provided `client_hello` with the given `ciphersuite`.
+#[allow(clippy::type_complexity)]
 pub(super) fn parse_client_hello(
     ciphersuite: &Algorithms,
     client_hello: &HandshakeData,
@@ -992,8 +993,8 @@ pub fn parse_finished(_algs: &Algorithms, fin: &HandshakeData) -> Result<Bytes, 
 }
 
 pub fn session_ticket(_algs: &Algorithms, tkt: &Bytes) -> Result<HandshakeData, TLSError> {
-    let lifetime = U32::from(172800).to_be_bytes();
-    let age = U32::from(9999).to_be_bytes();
+    let lifetime = U32::from(172800).as_be_bytes();
+    let age = U32::from(9999).as_be_bytes();
     let nonce = encode_u8(&bytes1(1))?;
     let stkt = encode_u16(tkt)?;
     let grease_ext = bytes2(0x5a, 0x5a).concat(&encode_u16(&Bytes::new())?);
