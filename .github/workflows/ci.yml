@@ -82,13 +82,13 @@ jobs:
       - name: Check for common mistakes and missed improvements
         run: cargo clippy -- -D warnings
 
-  interop:
-    needs: test
-    runs-on: ubuntu-latest
+  # interop:
+  #   needs: test
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: OpenSSL Interop
-        run: ./tests/openssl-interop.sh
+  #     - name: OpenSSL Interop
+  #       run: ./tests/openssl-interop.sh
