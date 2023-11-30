@@ -24,7 +24,8 @@ pub struct ServerCipherState0 {
     early_exporter_ms: Key,
 }
 
-pub fn server_cipher_state0(
+/// Create the initial cipher state for the server.
+pub(crate) fn server_cipher_state0(
     key_iv: AeadKeyIV,
     counter: u64,
     early_exporter_ms: Key,
