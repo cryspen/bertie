@@ -6,7 +6,9 @@ use crate::tls13utils::*;
 
 /* CipherStates Exported by the TLS 1.3 Handshake */
 pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, Key);
-pub fn client_cipher_state0(
+
+/// Build the initial client cipher state.
+pub(crate) fn client_cipher_state0(
     ae: AeadAlgorithm,
     kiv: AeadKeyIV,
     c: u64,
@@ -60,7 +62,9 @@ impl DuplexCipherStateH {
 }
 
 pub struct DuplexCipherState1(AeadAlgorithm, AeadKeyIV, u64, AeadKeyIV, u64, Key);
-pub fn duplex_cipher_state1(
+
+/// Create the next cipher state.
+pub(crate) fn duplex_cipher_state1(
     ae: AeadAlgorithm,
     kiv1: AeadKeyIV,
     c1: u64,

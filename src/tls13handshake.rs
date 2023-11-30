@@ -59,7 +59,8 @@ pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError
     )
 }
 
-pub fn derive_aead_key_iv(
+/// Derive an AEAD key and iv.
+pub(crate) fn derive_aead_key_iv(
     hash_algorithm: &HashAlgorithm,
     aead_algorithm: &AeadAlgorithm,
     key: &Key,
@@ -84,7 +85,8 @@ pub fn derive_aead_key_iv(
     ))
 }
 
-pub fn derive_0rtt_keys(
+/// Derive 0-RTT AEAD keys.
+pub(crate) fn derive_0rtt_keys(
     hash_algorithm: &HashAlgorithm,
     aead_algoorithm: &AeadAlgorithm,
     key: &Key,
