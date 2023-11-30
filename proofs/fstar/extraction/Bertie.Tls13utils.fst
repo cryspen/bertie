@@ -239,19 +239,19 @@ let impl_13 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C) =
   }
 
 let impl__U32__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U32 u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist23:t_Array u8 (sz 4) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist17:t_Array u8 (sz 4) =
         match
           Core.Ops.Try_trait.f_branch (impl__Bytes__declassify_array (sz 4) x
               <:
               Core.Result.t_Result (t_Array u8 (sz 4)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist22:Rust_primitives.Hax.t_Never =
+          let* hoist16:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_U32 u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist22)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist16)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U32 u8) (t_Array u8 (sz 4))
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -260,9 +260,9 @@ let impl__U32__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U32 u8 =
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U32 u8) (t_Array u8 (sz 4))
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist24:u32 = Core.Num.impl__u32__from_be_bytes hoist23 in
-        let hoist25:t_U32 = U32 hoist24 <: t_U32 in
-        Core.Result.Result_Ok hoist25 <: Core.Result.t_Result t_U32 u8)
+      (let hoist18:u32 = Core.Num.impl__u32__from_be_bytes hoist17 in
+        let hoist19:t_U32 = U32 hoist18 <: t_U32 in
+        Core.Result.Result_Ok hoist19 <: Core.Result.t_Result t_U32 u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U32 u8)
         (Core.Result.t_Result t_U32 u8))
@@ -278,19 +278,19 @@ let impl__U32__to_be_bytes (self: t_U32) : t_Bytes =
       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
 let impl__U16__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U16 u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist27:t_Array u8 (sz 2) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist21:t_Array u8 (sz 2) =
         match
           Core.Ops.Try_trait.f_branch (impl__Bytes__declassify_array (sz 2) x
               <:
               Core.Result.t_Result (t_Array u8 (sz 2)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist26:Rust_primitives.Hax.t_Never =
+          let* hoist20:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_U16 u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist26)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist20)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U16 u8) (t_Array u8 (sz 2))
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -299,9 +299,9 @@ let impl__U16__from_be_bytes (x: t_Bytes) : Core.Result.t_Result t_U16 u8 =
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U16 u8) (t_Array u8 (sz 2))
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist28:u16 = Core.Num.impl__u16__from_be_bytes hoist27 in
-        let hoist29:t_U16 = U16 hoist28 <: t_U16 in
-        Core.Result.Result_Ok hoist29 <: Core.Result.t_Result t_U16 u8)
+      (let hoist22:u16 = Core.Num.impl__u16__from_be_bytes hoist21 in
+        let hoist23:t_U16 = U16 hoist22 <: t_U16 in
+        Core.Result.Result_Ok hoist23 <: Core.Result.t_Result t_U16 u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_U16 u8)
         (Core.Result.t_Result t_U16 u8))

@@ -52,37 +52,7 @@ let check_tag (b: Bertie.Tls13utils.t_Bytes) (offset: usize) (value: u8)
   if
     (Bertie.Tls13utils.impl__U8__declassify (b.[ offset ] <: Bertie.Tls13utils.t_U8) <: u8) =. value
   then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
-  else
-    let _:Prims.unit =
-      Std.Io.Stdio.v__print (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize (let list =
-                    ["Got tag "; ", expected "; "\n"]
-                  in
-                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 3);
-                  Rust_primitives.Hax.array_of_list list)
-              <:
-              t_Slice string)
-            (Rust_primitives.unsize (let list =
-                    [
-                      Core.Fmt.Rt.impl_1__new_lower_hex (Bertie.Tls13utils.impl__U8__declassify (b.[
-                                offset ]
-                              <:
-                              Bertie.Tls13utils.t_U8)
-                          <:
-                          u8)
-                      <:
-                      Core.Fmt.Rt.t_Argument;
-                      Core.Fmt.Rt.impl_1__new_lower_hex value <: Core.Fmt.Rt.t_Argument
-                    ]
-                  in
-                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                  Rust_primitives.Hax.array_of_list list)
-              <:
-              t_Slice Core.Fmt.Rt.t_Argument)
-          <:
-          Core.Fmt.t_Arguments)
-    in
-    let _:Prims.unit = () in
-    asn1_error v_ASN1_INVALID_TAG
+  else asn1_error v_ASN1_INVALID_TAG
 
 let length_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : usize =
   if
@@ -105,12 +75,12 @@ let read_octet_header (b: Bertie.Tls13utils.t_Bytes) (offset: usize) : Core.Resu
           Core.Ops.Try_trait.f_branch (check_tag b offset 4uy <: Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist30:Rust_primitives.Hax.t_Never =
+          let* hoist24:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist30)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist24)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -135,12 +105,12 @@ let read_sequence_header (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
             )
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist31:Rust_primitives.Hax.t_Never =
+          let* hoist25:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist31)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist25)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -188,12 +158,12 @@ let read_version_number (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
             Core.Ops.Try_trait.f_branch (short_length b offset <: Core.Result.t_Result usize u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist32:Rust_primitives.Hax.t_Never =
+            let* hoist26:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result usize u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist32)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist26)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) usize
           | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -264,12 +234,12 @@ let ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKe
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist43:Rust_primitives.Hax.t_Never =
+          let* hoist39:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist43)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist39)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit

@@ -1,12 +1,12 @@
 use std::fmt::{Display, Formatter};
 
-use bertie::{get_alert_description, get_alert_level, get_content_type, get_hs_type, ContentType};
+use bertie::{get_alert_description, get_alert_level, get_hs_type, ContentType};
 use tracing::{error, info};
 
 /// For debugging only.
 pub fn info_record(record: &[u8]) {
     if !record.is_empty() {
-        let content_type = get_content_type(record[0]);
+        let content_type = ContentType::try_from_u8(record[0]);
 
         match content_type {
             Ok(ContentType::Handshake) => {

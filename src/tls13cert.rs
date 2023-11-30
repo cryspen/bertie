@@ -121,7 +121,7 @@ fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
     if b[offset].declassify() == value {
         Ok(())
     } else {
-        println!("Got tag {:x}, expected {:x}", b[offset].declassify(), value);
+        // eprintln!("Got tag {:x}, expected {:x}", b[offset].declassify(), value);
         asn1_error(ASN1_INVALID_TAG)
     }
 }
@@ -319,10 +319,6 @@ pub(crate) fn rsa_public_key(
 
     // An RSA PK is a sequence of modulus N and public exponent e,
     // each encoded as integer.
-    eprintln!(
-        "rsa pk: {}",
-        cert.slice(offset, cert.len() - offset).as_hex()
-    );
     check_tag(cert, offset, 0x30u8)?;
     offset = offset + 1;
     let (mut offset, _seq_len) = length(cert, offset)?;

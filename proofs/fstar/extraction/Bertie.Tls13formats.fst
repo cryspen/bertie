@@ -43,6 +43,14 @@ type t_ContentType =
   | ContentType_Handshake : t_ContentType
   | ContentType_ApplicationData : t_ContentType
 
+let impl__ContentType__as_u8 (self: t_ContentType) : u8 =
+  match self with
+  | ContentType_Invalid  -> 0uy
+  | ContentType_ChangeCipherSpec  -> 20uy
+  | ContentType_Alert  -> 21uy
+  | ContentType_Handshake  -> 22uy
+  | ContentType_ApplicationData  -> 23uy
+
 type t_HandshakeType =
   | HandshakeType_ClientHello : t_HandshakeType
   | HandshakeType_ServerHello : t_HandshakeType
@@ -181,14 +189,6 @@ let alert_level (t: t_AlertLevel) : u8 =
   | AlertLevel_Warning  -> 1uy
   | AlertLevel_Fatal  -> 2uy
 
-let content_type (t: t_ContentType) : u8 =
-  match t with
-  | ContentType_Invalid  -> 0uy
-  | ContentType_ChangeCipherSpec  -> 20uy
-  | ContentType_Alert  -> 21uy
-  | ContentType_Handshake  -> 22uy
-  | ContentType_ApplicationData  -> 23uy
-
 let hs_type (t: t_HandshakeType) : u8 =
   match t with
   | HandshakeType_ClientHello  -> 1uy
@@ -225,6 +225,27 @@ let check_r_len (rlen: usize) : Core.Result.t_Result Prims.unit u8 =
     <:
     Core.Result.t_Result Prims.unit u8
   else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
+
+let impl__ContentType__try_from_u8 (t: u8) : Core.Result.t_Result t_ContentType u8 =
+  match t with
+  | 0uy -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
+  | 20uy ->
+    Core.Result.Result_Ok (ContentType_ChangeCipherSpec <: t_ContentType)
+    <:
+    Core.Result.t_Result t_ContentType u8
+  | 21uy ->
+    Core.Result.Result_Ok (ContentType_Alert <: t_ContentType)
+    <:
+    Core.Result.t_Result t_ContentType u8
+  | 22uy ->
+    Core.Result.Result_Ok (ContentType_Handshake <: t_ContentType)
+    <:
+    Core.Result.t_Result t_ContentType u8
+  | 23uy ->
+    Core.Result.Result_Ok (ContentType_ApplicationData <: t_ContentType)
+    <:
+    Core.Result.t_Result t_ContentType u8
+  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 let get_alert_description (t: u8) : Core.Result.t_Result t_AlertDescription u8 =
   match t with
@@ -346,27 +367,6 @@ let get_alert_level (t: u8) : Core.Result.t_Result t_AlertLevel u8 =
     Core.Result.t_Result t_AlertLevel u8
   | 2uy ->
     Core.Result.Result_Ok (AlertLevel_Fatal <: t_AlertLevel) <: Core.Result.t_Result t_AlertLevel u8
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
-
-let get_content_type (t: u8) : Core.Result.t_Result t_ContentType u8 =
-  match t with
-  | 0uy -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
-  | 20uy ->
-    Core.Result.Result_Ok (ContentType_ChangeCipherSpec <: t_ContentType)
-    <:
-    Core.Result.t_Result t_ContentType u8
-  | 21uy ->
-    Core.Result.Result_Ok (ContentType_Alert <: t_ContentType)
-    <:
-    Core.Result.t_Result t_ContentType u8
-  | 22uy ->
-    Core.Result.Result_Ok (ContentType_Handshake <: t_ContentType)
-    <:
-    Core.Result.t_Result t_ContentType u8
-  | 23uy ->
-    Core.Result.Result_Ok (ContentType_ApplicationData <: t_ContentType)
-    <:
-    Core.Result.t_Result t_ContentType u8
   | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed <: u8)
 
 let get_hs_type (t: u8) : Core.Result.t_Result t_HandshakeType u8 =
@@ -3070,7 +3070,10 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
           (Core.Result.t_Result (Bertie.Tls13utils.t_HandshakeData & usize) u8)
       else
         let ty:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.bytes1 (content_type (ContentType_Handshake <: t_ContentType) <: u8)
+          Bertie.Tls13utils.bytes1 (impl__ContentType__as_u8 (ContentType_Handshake <: t_ContentType
+                )
+              <:
+              u8)
         in
         let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
         let* _:Prims.unit =
@@ -3396,7 +3399,9 @@ let handshake_record (p: Bertie.Tls13utils.t_HandshakeData)
         p
       in
       let ty:Bertie.Tls13utils.t_Bytes =
-        Bertie.Tls13utils.bytes1 (content_type (ContentType_Handshake <: t_ContentType) <: u8)
+        Bertie.Tls13utils.bytes1 (impl__ContentType__as_u8 (ContentType_Handshake <: t_ContentType)
+            <:
+            u8)
       in
       let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
       let* hoist337:Bertie.Tls13utils.t_Bytes =

@@ -7,6 +7,7 @@ use std::{
     io::{Read, Write},
     net::TcpStream,
 };
+// use tracing::{event, Level};
 
 use super::stream::{read_record, BertieError, BertieStream, TlsStream};
 use crate::{tls13crypto::*, tls13utils::*, Client};
@@ -104,8 +105,7 @@ impl BertieStream<ClientState<TcpStream>> {
 
     /// Open a connection to `host:port`.
     pub fn open(host: &str, port: u16, ciphersuite: Algorithms) -> Result<Self, BertieError> {
-        let stream = TcpStream::connect((host, port));
-        let stream = stream?;
+        let stream = TcpStream::connect((host, port))?;
         stream.set_nodelay(true)?;
         Ok(Self {
             state: ClientState::new(stream),
@@ -129,15 +129,14 @@ impl BertieStream<ClientState<TcpStream>> {
             let sni = self.host.as_bytes();
             Client::connect(self.ciphersuite, &Bytes::from(sni), None, None, rng)?
         };
-        eprintln!(" Sending client hello ...");
+        // event!(Level::TRACE, "client hello: {}", client_hello.as_hex());
+        // event!(Level::DEBUG, "  {ciphersuite:?}");
         self.write_all(&client_hello.declassify())?;
 
         let mut read_buffer = Vec::new();
 
         // Server Hello
-        eprintln!(" Reading server hello ...");
         let server_hello = read_record(&mut read_buffer, &mut self.state.stream)?;
-        eprintln!("  foo ...");
 
         // Check for alerts
         if server_hello[0] == 21 {

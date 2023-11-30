@@ -782,7 +782,8 @@ pub(super) fn parse_client_hello(
     }
 }
 
-pub fn server_hello(
+/// Build the server hello message.
+pub(crate) fn server_hello(
     algs: &Algorithms,
     sr: &Random,
     sid: &Bytes,
@@ -1041,30 +1042,34 @@ pub enum ContentType {
     ApplicationData,
 }
 
-pub fn content_type(t: ContentType) -> u8 {
-    match t {
-        ContentType::Invalid => 0,
-        ContentType::ChangeCipherSpec => 20,
-        ContentType::Alert => 21,
-        ContentType::Handshake => 22,
-        ContentType::ApplicationData => 23,
+impl ContentType {
+    /// Get the `u8` representation of this [`ContentType`].
+    pub(crate) fn as_u8(self) -> u8 {
+        match self {
+            ContentType::Invalid => 0,
+            ContentType::ChangeCipherSpec => 20,
+            ContentType::Alert => 21,
+            ContentType::Handshake => 22,
+            ContentType::ApplicationData => 23,
+        }
     }
-}
 
-pub fn get_content_type(t: u8) -> Result<ContentType, TLSError> {
-    match t {
-        0 => tlserr(parse_failed()),
-        20 => Ok(ContentType::ChangeCipherSpec),
-        21 => Ok(ContentType::Alert),
-        22 => Ok(ContentType::Handshake),
-        23 => Ok(ContentType::ApplicationData),
-        _ => tlserr(parse_failed()),
+    /// Get the [`ContentType`] from the `u8` representation.
+    pub fn try_from_u8(t: u8) -> Result<Self, TLSError> {
+        match t {
+            0 => tlserr(parse_failed()),
+            20 => Ok(ContentType::ChangeCipherSpec),
+            21 => Ok(ContentType::Alert),
+            22 => Ok(ContentType::Handshake),
+            23 => Ok(ContentType::ApplicationData),
+            _ => tlserr(parse_failed()),
+        }
     }
 }
 
 pub fn handshake_record(p: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(p) = p;
-    let ty = bytes1(content_type(ContentType::Handshake));
+    let ty = bytes1(ContentType::Handshake.as_u8());
     let ver = bytes2(3, 3);
     Ok(ty.concat(&ver).concat(&encode_u16(p)?))
 }
@@ -1081,7 +1086,7 @@ pub fn check_handshake_record(p: &Bytes) -> Result<(HandshakeData, usize), TLSEr
     if p.len() < 5 {
         tlserr(parse_failed())
     } else {
-        let ty = bytes1(content_type(ContentType::Handshake));
+        let ty = bytes1(ContentType::Handshake.as_u8());
         let ver = bytes2(3, 3);
         match check_eq(&ty, &p.slice_range(0..1)) {
             Ok(_) => (),

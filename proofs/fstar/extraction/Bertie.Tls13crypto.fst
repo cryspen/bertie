@@ -1000,99 +1000,21 @@ let t_SignatureKey = Bertie.Tls13utils.t_Bytes
 unfold
 let t_VerificationKey = Bertie.Tls13utils.t_Bytes
 
-let kem_keygen
-      (#impl_916461611_: Type)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
-      (alg: t_KemScheme)
-      (rng: impl_916461611_)
-    : (impl_916461611_ &
-      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist2:Libcrux.Kem.t_Algorithm =
-        match
-          Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
-              <:
-              Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist1:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
-                (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-                <:
-                (impl_916461611_ &
-                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist1)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (impl_916461611_ &
-              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-            Libcrux.Kem.t_Algorithm
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (impl_916461611_ &
-              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-            Libcrux.Kem.t_Algorithm
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let tmp0, out:(impl_916461611_ &
-          Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
-            Libcrux.Kem.t_Error) =
-          Libcrux.Kem.key_gen hoist2 rng
-        in
-        let rng:impl_916461611_ = tmp0 in
-        let res:Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
-          Libcrux.Kem.t_Error =
-          out
-        in
-        let hax_temp_output:Core.Result.t_Result
-          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
-          match res with
-          | Core.Result.Result_Ok (sk, pk) ->
-            Core.Result.Result_Ok
-            (Core.Convert.f_from (Libcrux.Kem.impl__PrivateKey__encode sk
-                  <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
-              Core.Convert.f_from (Libcrux.Kem.impl__PublicKey__encode pk
-                  <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-              <:
-              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
-            <:
-            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
-        in
-        rng, hax_temp_output
-        <:
-        (impl_916461611_ &
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
-      <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (impl_916461611_ &
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-        (impl_916461611_ &
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
-
 let impl__HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist4:Libcrux.Digest.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist2:Libcrux.Digest.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (impl__HashAlgorithm__libcrux_algorithm self
               <:
               Core.Result.t_Result Libcrux.Digest.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist3:Rust_primitives.Hax.t_Never =
+          let* hoist1:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist3)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist1)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Digest.t_Algorithm
@@ -1103,35 +1025,35 @@ let impl__HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t
             Libcrux.Digest.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist5:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-          Libcrux.Digest.hash hoist4
+      (let hoist3:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Libcrux.Digest.hash hoist2
             (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify data
                   <:
                   Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
               <:
               t_Slice u8)
         in
-        let hoist6:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist5 in
-        Core.Result.Result_Ok hoist6 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        let hoist4:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist3 in
+        Core.Result.Result_Ok hoist4 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
 let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist8:Libcrux.Hkdf.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist6:Libcrux.Hkdf.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (hkdf_algorithm alg
               <:
               Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist7:Rust_primitives.Hax.t_Never =
+          let* hoist5:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist7)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist5)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Hkdf.t_Algorithm
@@ -1142,9 +1064,9 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
             Libcrux.Hkdf.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist9:Core.Result.t_Result (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+      (let hoist7:Core.Result.t_Result (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
           Libcrux.Hkdf.t_Error =
-          Libcrux.Hkdf.expand hoist8
+          Libcrux.Hkdf.expand hoist6
             (Bertie.Tls13utils.impl__Bytes__declassify prk
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1153,7 +1075,7 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
             len
         in
-        match hoist9 with
+        match hoist7 with
         | Core.Result.Result_Ok x ->
           Core.Result.Result_Ok (Core.Convert.f_into x)
           <:
@@ -1165,19 +1087,19 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
 
 let hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist11:Libcrux.Hkdf.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist9:Libcrux.Hkdf.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (hkdf_algorithm alg
               <:
               Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist10:Rust_primitives.Hax.t_Never =
+          let* hoist8:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist10)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist8)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Hkdf.t_Algorithm
@@ -1188,8 +1110,8 @@ let hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
             Libcrux.Hkdf.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist12:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-          Libcrux.Hkdf.extract hoist11
+      (let hoist10:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Libcrux.Hkdf.extract hoist9
             (Bertie.Tls13utils.impl__Bytes__declassify salt
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1197,27 +1119,27 @@ let hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
         in
-        let hoist13:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist12 in
-        Core.Result.Result_Ok hoist13 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        let hoist11:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist10 in
+        Core.Result.Result_Ok hoist11 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
 let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist15:Libcrux.Hmac.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist13:Libcrux.Hmac.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (impl__HashAlgorithm__hmac_algorithm alg
               <:
               Core.Result.t_Result Libcrux.Hmac.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist14:Rust_primitives.Hax.t_Never =
+          let* hoist12:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist14)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist12)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Hmac.t_Algorithm
@@ -1228,8 +1150,8 @@ let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
             Libcrux.Hmac.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist16:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-          Libcrux.Hmac.hmac hoist15
+      (let hoist14:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Libcrux.Hmac.hmac hoist13
             (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify mk
                   <:
                   Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1242,158 +1164,11 @@ let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
               t_Slice u8)
             (Core.Option.Option_None <: Core.Option.t_Option usize)
         in
-        let hoist17:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist16 in
-        Core.Result.Result_Ok hoist17 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        let hoist15:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist14 in
+        Core.Result.Result_Ok hoist15 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* alg:Libcrux.Kem.t_Algorithm =
-        match
-          Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
-              <:
-              Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist18:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist18)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Libcrux.Kem.t_Algorithm
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Libcrux.Kem.t_Algorithm
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let sk:Libcrux.Kem.t_PrivateKey =
-          Core.Result.impl__unwrap (Libcrux.Kem.impl__PrivateKey__decode alg
-                (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify sk
-                      <:
-                      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-                  <:
-                  t_Slice u8)
-              <:
-              Core.Result.t_Result Libcrux.Kem.t_PrivateKey Libcrux.Kem.t_Error)
-        in
-        let ct:Libcrux.Kem.t_Ct =
-          Core.Result.impl__unwrap (Libcrux.Kem.impl__Ct__decode alg
-                (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify ct
-                      <:
-                      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-                  <:
-                  t_Slice u8)
-              <:
-              Core.Result.t_Result Libcrux.Kem.t_Ct Libcrux.Kem.t_Error)
-        in
-        let res:Core.Result.t_Result Libcrux.Kem.t_Ss Libcrux.Kem.t_Error =
-          Libcrux.Kem.decapsulate ct sk
-        in
-        match res with
-        | Core.Result.Result_Ok x ->
-          Core.Result.Result_Ok
-          (Core.Convert.f_into (Libcrux.Kem.impl__Ss__encode x
-                <:
-                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global))
-          <:
-          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-        | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let kem_encap
-      (#impl_916461611_: Type)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
-      (alg: t_KemScheme)
-      (pk: Bertie.Tls13utils.t_Bytes)
-      (rng: impl_916461611_)
-    : (impl_916461611_ &
-      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist20:Libcrux.Kem.t_Algorithm =
-        match
-          Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
-              <:
-              Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist19:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
-                (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-                <:
-                (impl_916461611_ &
-                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist19)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (impl_916461611_ &
-              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-            Libcrux.Kem.t_Algorithm
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (impl_916461611_ &
-              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-            Libcrux.Kem.t_Algorithm
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist21:Core.Result.t_Result Libcrux.Kem.t_PublicKey Libcrux.Kem.t_Error =
-          Libcrux.Kem.impl__PublicKey__decode hoist20
-            (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify pk
-                  <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-              <:
-              t_Slice u8)
-        in
-        let pk:Libcrux.Kem.t_PublicKey = Core.Result.impl__unwrap hoist21 in
-        let tmp0, out:(impl_916461611_ &
-          Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error) =
-          Libcrux.Kem.encapsulate pk rng
-        in
-        let rng:impl_916461611_ = tmp0 in
-        let res:Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error =
-          out
-        in
-        let hax_temp_output:Core.Result.t_Result
-          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
-          match res with
-          | Core.Result.Result_Ok (gxy, gy) ->
-            Core.Result.Result_Ok
-            (Core.Convert.f_from (Libcrux.Kem.impl__Ss__encode gxy
-                  <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
-              Core.Convert.f_from (Libcrux.Kem.impl__Ct__encode gy
-                  <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-              <:
-              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
-            <:
-            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
-        in
-        rng, hax_temp_output
-        <:
-        (impl_916461611_ &
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
-      <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (impl_916461611_ &
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-        (impl_916461611_ &
-          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
 
 let sign
       (#impl_916461611_: Type)
@@ -1408,14 +1183,14 @@ let sign
         Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
         match algorithm with
         | SignatureScheme_EcdsaSecp256r1Sha256  ->
-          let* hoist34:Libcrux.Signature.t_Algorithm =
+          let* hoist28:Libcrux.Signature.t_Algorithm =
             match
               Core.Ops.Try_trait.f_branch (impl__SignatureScheme__libcrux_scheme algorithm
                   <:
                   Core.Result.t_Result Libcrux.Signature.t_Algorithm u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist33:Rust_primitives.Hax.t_Never =
+              let* hoist27:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                     (Core.Ops.Try_trait.f_from_residual residual
                       <:
@@ -1423,7 +1198,7 @@ let sign
                     <:
                     (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist33)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist27)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1438,7 +1213,7 @@ let sign
           Core.Ops.Control_flow.ControlFlow_Continue
           (let tmp0, out:(impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
-              Libcrux.Signature.sign hoist34
+              Libcrux.Signature.sign hoist28
                 (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify input
                       <:
                       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1462,14 +1237,14 @@ let sign
             (impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
         | SignatureScheme_ED25519  ->
-          let* hoist36:Libcrux.Signature.t_Algorithm =
+          let* hoist30:Libcrux.Signature.t_Algorithm =
             match
               Core.Ops.Try_trait.f_branch (impl__SignatureScheme__libcrux_scheme algorithm
                   <:
                   Core.Result.t_Result Libcrux.Signature.t_Algorithm u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist35:Rust_primitives.Hax.t_Never =
+              let* hoist29:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                     (Core.Ops.Try_trait.f_from_residual residual
                       <:
@@ -1477,7 +1252,7 @@ let sign
                     <:
                     (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist35)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist29)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1492,7 +1267,7 @@ let sign
           Core.Ops.Control_flow.ControlFlow_Continue
           (let tmp0, out:(impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
-              Libcrux.Signature.sign hoist36
+              Libcrux.Signature.sign hoist30
                 (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify input
                       <:
                       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1630,13 +1405,13 @@ let supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
             (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssKeySize
         | _ ->
-          let* hoist37:Rust_primitives.Hax.t_Never =
+          let* hoist31:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
 
                 <:
                 Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist37)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist31)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
@@ -1674,7 +1449,7 @@ let sign_rsa
             | SignatureScheme_RsaPssRsaSha256  -> true
             | _ -> false)
         then
-          let* hoist38:Rust_primitives.Hax.t_Never =
+          let* hoist32:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
                   <:
@@ -1682,7 +1457,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist38)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist32)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
@@ -1700,7 +1475,7 @@ let sign_rsa
             <:
             bool)
         then
-          let* hoist39:Rust_primitives.Hax.t_Never =
+          let* hoist33:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
                   <:
@@ -1708,7 +1483,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist39)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist33)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
@@ -1737,7 +1512,7 @@ let sign_rsa
               Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist40:Rust_primitives.Hax.t_Never =
+          let* hoist34:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1745,7 +1520,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist40)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist34)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1790,7 +1565,7 @@ let sign_rsa
               Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist41:Rust_primitives.Hax.t_Never =
+          let* hoist35:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1798,7 +1573,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist41)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist35)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1841,7 +1616,7 @@ let sign_rsa
               Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist42:Rust_primitives.Hax.t_Never =
+          let* hoist36:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1849,7 +1624,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist42)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist36)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1929,7 +1704,7 @@ let sign_rsa
                   <:
                   t_Slice Core.Fmt.Rt.t_Placeholder)
                 (Rust_primitives.Hax.failure ""
-                    "{ Types.attributes = [];\n  contents =\n  Types.Block {\n    expr =\n    (Some { Types.attributes = [];\n            contents =\n            Types.Call {args = [];\n              fn_span =\n              { Types.filename =\n                (Types.Real\n                   Types.Remapped {\n                     local_path =\n                     (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                     virtual_name =\n                     \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n                hi = { Types.col = \"61\"; line = \"209\" };\n                lo = { Types.col = \"28\"; line = \"209\" } };\n              from_hir_call = true;\n              fun' =\n              { Types.attributes = [];\n                contents =\n                Types.GlobalName {\n                  id =\n                  { Types.index = (2, 9101); krate = \"core\";\n                    path =\n                    [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                      { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                      { Types.data = Types.Impl; disambiguator = 2 };\n                      { Types.data = (Types.ValueNs \"new\"); disambiguator = 0\n                        }\n                      ]\n                    }};\n                hir_id = None;\n                span =\n                { Types.filename =\n                  (Types.Real\n                     Types.Remapped {\n                       local_path =\n                       (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                       virtual_name =\n                       \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n                  hi = { Types.col = \"61\"; line = \"209\" };\n                  lo = { Types.col = \"28\"; line = \"209\" } };\n                ty =\n                (Types.Arrow\n                   { Types.bound_vars = [];\n                     value =\n                     { Types.abi = Types.Abi {todo = \"Rust\"};\n                       c_variadic = false; inputs = [];\n                       output =\n                       Types.Adt {\n                         def_id =\n                         { Types.index = (2, 9098); krate = \"core\";\n                           path =\n                           [{ Types.data = (Types.TypeNs \"fmt\");\n                              disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"rt\");\n                               disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"UnsafeArg\");\n                               disambiguator = 0 }\n                             ]\n                           };\n                         generic_args = []};\n                       unsafety = Types.Unsafe }\n                     })\n                };\n              generic_args = []; impl = None;\n              ty =\n              (Types.Arrow\n                 { Types.bound_vars = [];\n                   value =\n                   { Types.abi = Types.Abi {todo = \"Rust\"};\n                     c_variadic = false; inputs = [];\n                     output =\n                     Types.Adt {\n                       def_id =\n                       { Types.index = (2, 9098); krate = \"core\";\n                         path =\n                         [{ Types.data = (Types.TypeNs \"fmt\");\n                            disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"rt\");\n                             disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"UnsafeArg\");\n                             disambiguator = 0 }\n                           ]\n                         };\n                       generic_args = []};\n                     unsafety = Types.Unsafe }\n                   })};\n            hir_id = (Some (\"542\", \"334\"));\n            span =\n            { Types.filename =\n              (Types.Real\n                 Types.Remapped {\n                   local_path =\n                   (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                   virtual_name =\n                   \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n              hi = { Types.col = \"61\"; line = \"209\" };\n              lo = { Types.col = \"28\"; line = \"209\" } };\n            ty =\n            Types.Adt {\n              def_id =\n              { Types.index = (2, 9098); krate = \"core\";\n                path =\n                [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"UnsafeArg\");\n                    disambiguator = 0 }\n                  ]\n                };\n              generic_args = []}\n            });\n    opt_destruction_scope = None;\n    region_scope = { Types.data = Types.Node; id = \"335\" };\n    safety_mode = Types.BuiltinUnsafe;\n    span =\n    { Types.filename =\n      (Types.Real\n         Types.Remapped {\n           local_path =\n           (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n           virtual_name =\n           \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n      hi = { Types.col = \"61\"; line = \"209\" };\n      lo = { Types.col = \"28\"; line = \"209\" } };\n    stmts = []; targeted_by_break = false};\n  hir_id = (Some (\"542\", \"336\"));\n  span =\n  { Types.filename =\n    (Types.Real\n       Types.Remapped {\n         local_path =\n         (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n         virtual_name =\n         \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n    hi = { Types.col = \"61\"; line = \"209\" };\n    lo = { Types.col = \"28\"; line = \"209\" } };\n  ty =\n  Types.Adt {\n    def_id =\n    { Types.index = (2, 9098); krate = \"core\";\n      path =\n      [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"UnsafeArg\"); disambiguator = 0 }]\n      };\n    generic_args = []}\n  }"
+                    "{ Types.attributes = [];\n  contents =\n  Types.Block {\n    expr =\n    (Some { Types.attributes = [];\n            contents =\n            Types.Call {args = [];\n              fn_span =\n              { Types.filename =\n                (Types.Real\n                   Types.Remapped {\n                     local_path =\n                     (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                     virtual_name =\n                     \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n                hi = { Types.col = \"61\"; line = \"209\" };\n                lo = { Types.col = \"28\"; line = \"209\" } };\n              from_hir_call = true;\n              fun' =\n              { Types.attributes = [];\n                contents =\n                Types.GlobalName {\n                  id =\n                  { Types.index = (2, 9101); krate = \"core\";\n                    path =\n                    [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                      { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                      { Types.data = Types.Impl; disambiguator = 2 };\n                      { Types.data = (Types.ValueNs \"new\"); disambiguator = 0\n                        }\n                      ]\n                    }};\n                hir_id = None;\n                span =\n                { Types.filename =\n                  (Types.Real\n                     Types.Remapped {\n                       local_path =\n                       (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                       virtual_name =\n                       \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n                  hi = { Types.col = \"61\"; line = \"209\" };\n                  lo = { Types.col = \"28\"; line = \"209\" } };\n                ty =\n                (Types.Arrow\n                   { Types.bound_vars = [];\n                     value =\n                     { Types.abi = Types.Abi {todo = \"Rust\"};\n                       c_variadic = false; inputs = [];\n                       output =\n                       Types.Adt {\n                         def_id =\n                         { Types.index = (2, 9098); krate = \"core\";\n                           path =\n                           [{ Types.data = (Types.TypeNs \"fmt\");\n                              disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"rt\");\n                               disambiguator = 0 };\n                             { Types.data = (Types.TypeNs \"UnsafeArg\");\n                               disambiguator = 0 }\n                             ]\n                           };\n                         generic_args = []};\n                       unsafety = Types.Unsafe }\n                     })\n                };\n              generic_args = []; impl = None;\n              ty =\n              (Types.Arrow\n                 { Types.bound_vars = [];\n                   value =\n                   { Types.abi = Types.Abi {todo = \"Rust\"};\n                     c_variadic = false; inputs = [];\n                     output =\n                     Types.Adt {\n                       def_id =\n                       { Types.index = (2, 9098); krate = \"core\";\n                         path =\n                         [{ Types.data = (Types.TypeNs \"fmt\");\n                            disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"rt\");\n                             disambiguator = 0 };\n                           { Types.data = (Types.TypeNs \"UnsafeArg\");\n                             disambiguator = 0 }\n                           ]\n                         };\n                       generic_args = []};\n                     unsafety = Types.Unsafe }\n                   })};\n            hir_id = (Some (\"540\", \"334\"));\n            span =\n            { Types.filename =\n              (Types.Real\n                 Types.Remapped {\n                   local_path =\n                   (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n                   virtual_name =\n                   \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n              hi = { Types.col = \"61\"; line = \"209\" };\n              lo = { Types.col = \"28\"; line = \"209\" } };\n            ty =\n            Types.Adt {\n              def_id =\n              { Types.index = (2, 9098); krate = \"core\";\n                path =\n                [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n                  { Types.data = (Types.TypeNs \"UnsafeArg\");\n                    disambiguator = 0 }\n                  ]\n                };\n              generic_args = []}\n            });\n    opt_destruction_scope = None;\n    region_scope = { Types.data = Types.Node; id = \"335\" };\n    safety_mode = Types.BuiltinUnsafe;\n    span =\n    { Types.filename =\n      (Types.Real\n         Types.Remapped {\n           local_path =\n           (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n           virtual_name =\n           \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n      hi = { Types.col = \"61\"; line = \"209\" };\n      lo = { Types.col = \"28\"; line = \"209\" } };\n    stmts = []; targeted_by_break = false};\n  hir_id = (Some (\"540\", \"336\"));\n  span =\n  { Types.filename =\n    (Types.Real\n       Types.Remapped {\n         local_path =\n         (Some \"/Users/franziskus/.rustup/toolchains/nightly-2023-06-02-aarch64-apple-darwin/lib/rustlib/src/rust/library/std/src/macros.rs\");\n         virtual_name =\n         \"/rustc/d59363ad0b6391b7fc5bbb02c9ccf9300eef3753/library/std/src/macros.rs\"});\n    hi = { Types.col = \"61\"; line = \"209\" };\n    lo = { Types.col = \"28\"; line = \"209\" } };\n  ty =\n  Types.Adt {\n    def_id =\n    { Types.index = (2, 9098); krate = \"core\";\n      path =\n      [{ Types.data = (Types.TypeNs \"fmt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"rt\"); disambiguator = 0 };\n        { Types.data = (Types.TypeNs \"UnsafeArg\"); disambiguator = 0 }]\n      };\n    generic_args = []}\n  }"
 
                   <:
                   Core.Fmt.Rt.t_UnsafeArg)
@@ -1960,6 +1735,274 @@ let sign_rsa
       Core.Ops.Control_flow.t_ControlFlow
         (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let encoding_prefix (alg: t_KemScheme) : Bertie.Tls13utils.t_Bytes =
+  if
+    alg =. (KemScheme_Secp256r1 <: t_KemScheme) || alg =. (KemScheme_Secp384r1 <: t_KemScheme) ||
+    alg =. (KemScheme_Secp521r1 <: t_KemScheme)
+  then
+    Core.Convert.f_from (let list = [4uy] in
+        FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+        Rust_primitives.Hax.array_of_list list)
+  else Bertie.Tls13utils.impl__Bytes__new
+
+let kem_keygen
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
+      (alg: t_KemScheme)
+      (rng: impl_916461611_)
+    : (impl_916461611_ &
+      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist38:Libcrux.Kem.t_Algorithm =
+        match
+          Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
+              <:
+              Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist37:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                <:
+                (impl_916461611_ &
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist37)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            Libcrux.Kem.t_Algorithm
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            Libcrux.Kem.t_Algorithm
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let tmp0, out:(impl_916461611_ &
+          Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
+            Libcrux.Kem.t_Error) =
+          Libcrux.Kem.key_gen hoist38 rng
+        in
+        let rng:impl_916461611_ = tmp0 in
+        let res:Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
+          Libcrux.Kem.t_Error =
+          out
+        in
+        let hax_temp_output:Core.Result.t_Result
+          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+          match res with
+          | Core.Result.Result_Ok (sk, pk) ->
+            Core.Result.Result_Ok
+            (Core.Convert.f_from (Libcrux.Kem.impl__PrivateKey__encode sk
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
+              Bertie.Tls13utils.impl__Bytes__concat (encoding_prefix alg
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+                (Core.Convert.f_from (Libcrux.Kem.impl__PublicKey__encode pk
+                      <:
+                      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+              <:
+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+            <:
+            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+      <:
+      Core.Ops.Control_flow.t_ControlFlow
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+
+let into_raw (alg: t_KemScheme) (point: Bertie.Tls13utils.t_Bytes) : Bertie.Tls13utils.t_Bytes =
+  if
+    alg =. (KemScheme_Secp256r1 <: t_KemScheme) || alg =. (KemScheme_Secp384r1 <: t_KemScheme) ||
+    alg =. (KemScheme_Secp521r1 <: t_KemScheme)
+  then
+    Bertie.Tls13utils.impl__Bytes__slice_range point
+      ({
+          Core.Ops.Range.f_start = sz 1;
+          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len point <: usize
+        }
+        <:
+        Core.Ops.Range.t_Range usize)
+  else point
+
+let kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* librux_algorithm:Libcrux.Kem.t_Algorithm
+      =
+        match
+          Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
+              <:
+              Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist40:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist40)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Libcrux.Kem.t_Algorithm
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Libcrux.Kem.t_Algorithm
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let sk:Libcrux.Kem.t_PrivateKey =
+          Core.Result.impl__unwrap (Libcrux.Kem.impl__PrivateKey__decode librux_algorithm
+                (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify sk
+                      <:
+                      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+                  <:
+                  t_Slice u8)
+              <:
+              Core.Result.t_Result Libcrux.Kem.t_PrivateKey Libcrux.Kem.t_Error)
+        in
+        let ct:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Bertie.Tls13utils.impl__Bytes__declassify (into_raw alg
+                (Core.Clone.f_clone ct <: Bertie.Tls13utils.t_Bytes)
+              <:
+              Bertie.Tls13utils.t_Bytes)
+        in
+        let ct:Libcrux.Kem.t_Ct =
+          Core.Result.impl__unwrap (Libcrux.Kem.impl__Ct__decode librux_algorithm
+                (Core.Ops.Deref.f_deref ct <: t_Slice u8)
+              <:
+              Core.Result.t_Result Libcrux.Kem.t_Ct Libcrux.Kem.t_Error)
+        in
+        let res:Core.Result.t_Result Libcrux.Kem.t_Ss Libcrux.Kem.t_Error =
+          Libcrux.Kem.decapsulate ct sk
+        in
+        match res with
+        | Core.Result.Result_Ok x ->
+          Core.Result.Result_Ok
+          (Core.Convert.f_into (Libcrux.Kem.impl__Ss__encode x
+                <:
+                Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global))
+          <:
+          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let kem_encap
+      (#impl_916461611_: Type)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii1: Rand_core.t_CryptoRng impl_916461611_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii2: Rand_core.t_RngCore impl_916461611_)
+      (alg: t_KemScheme)
+      (pk: Bertie.Tls13utils.t_Bytes)
+      (rng: impl_916461611_)
+    : (impl_916461611_ &
+      Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist42:Libcrux.Kem.t_Algorithm =
+        match
+          Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
+              <:
+              Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist41:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (rng,
+                (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                <:
+                (impl_916461611_ &
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist41)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            Libcrux.Kem.t_Algorithm
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (impl_916461611_ &
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+            Libcrux.Kem.t_Algorithm
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist43:Core.Result.t_Result Libcrux.Kem.t_PublicKey Libcrux.Kem.t_Error =
+          Libcrux.Kem.impl__PublicKey__decode hoist42
+            (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify (into_raw alg
+                        (Core.Clone.f_clone pk <: Bertie.Tls13utils.t_Bytes)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+              <:
+              t_Slice u8)
+        in
+        let pk:Libcrux.Kem.t_PublicKey = Core.Result.impl__unwrap hoist43 in
+        let tmp0, out:(impl_916461611_ &
+          Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error) =
+          Libcrux.Kem.encapsulate pk rng
+        in
+        let rng:impl_916461611_ = tmp0 in
+        let res:Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error =
+          out
+        in
+        let hax_temp_output:Core.Result.t_Result
+          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
+          match res with
+          | Core.Result.Result_Ok (ss, ct) ->
+            let ct:Bertie.Tls13utils.t_Bytes =
+              Bertie.Tls13utils.impl__Bytes__concat (encoding_prefix alg
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+                (Core.Convert.f_from (Libcrux.Kem.impl__Ct__encode ct
+                      <:
+                      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+            in
+            Core.Result.Result_Ok
+            (Core.Convert.f_from (Libcrux.Kem.impl__Ss__encode ss
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global),
+              ct
+              <:
+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+            <:
+            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+          | Core.Result.Result_Err _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
+        in
+        rng, hax_temp_output
+        <:
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
+      <:
+      Core.Ops.Control_flow.t_ControlFlow
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        (impl_916461611_ &
+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
 
 let zero_key (alg: t_HashAlgorithm) : Bertie.Tls13utils.t_Bytes =
   Bertie.Tls13utils.impl__Bytes__zeroes (impl__HashAlgorithm__hash_len alg <: usize)
@@ -2200,7 +2243,7 @@ type t_PublicVerificationKey =
   | PublicVerificationKey_EcDsa : Bertie.Tls13utils.t_Bytes -> t_PublicVerificationKey
   | PublicVerificationKey_Rsa : t_RsaVerificationKey -> t_PublicVerificationKey
 
-let aead_decrypt (alg: t_AeadAlgorithm) (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
+let aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let tag:Bertie.Tls13utils.t_Bytes =
         Bertie.Tls13utils.impl__Bytes__slice cip
@@ -2302,7 +2345,7 @@ let aead_decrypt (alg: t_AeadAlgorithm) (k: t_AeadKey) (iv cip aad: Bertie.Tls13
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
-let aead_encrypt (alg: t_AeadAlgorithm) (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
+let aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist285:Libcrux.Aead.t_Key =
         match

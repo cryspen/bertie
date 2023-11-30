@@ -5,6 +5,8 @@ use libcrux::{
 };
 use rand::{CryptoRng, RngCore};
 
+use tracing::{event, Level};
+
 use crate::tls13utils::{
     check_lbytes2, check_mem, eq, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE,
     UNSUPPORTED_ALGORITHM,
@@ -237,7 +239,6 @@ impl AeadAlgorithm {
 
 /// AEAD encrypt
 pub(crate) fn aead_encrypt(
-    alg: &AeadAlgorithm,
     k: &AeadKey,
     iv: &AeadIV,
     plain: &Bytes,
@@ -261,12 +262,13 @@ pub(crate) fn aead_encrypt(
 
 /// AEAD decrypt.
 pub(crate) fn aead_decrypt(
-    alg: &AeadAlgorithm,
     k: &AeadKey,
     iv: &AeadIV,
     cip: &Bytes,
     aad: &Bytes,
 ) -> Result<Bytes, TLSError> {
+    // event!(Level::DEBUG, "AEAD decrypt with {:?}", k.alg);
+
     let tag = cip.slice(cip.len() - 16, 16);
     let cip = cip.slice(0, cip.len() - 16);
     let tag: [u8; 16] = tag.declassify_array()?;
@@ -327,21 +329,14 @@ pub(crate) fn sign_rsa(
         return tlserr(UNSUPPORTED_ALGORITHM);
     }
 
-    eprintln!(" >>> 1");
     let key_size = supported_rsa_key_size(pk_modulus)?;
-    eprintln!(" >>> 2");
-
     let pk =
         RsaPssPublicKey::new(key_size, &pk_modulus.declassify()[1..]).map_err(|_| CRYPTO_ERROR)?;
-    eprintln!(" >>> 3");
 
     let sk = RsaPssPrivateKey::new(&pk, &sk.declassify()).map_err(|_| CRYPTO_ERROR)?;
-    eprintln!(" >>> 3");
 
     let msg = &input.declassify();
-    eprintln!(" >>> 3.1");
     let sig = sk.sign(signature::DigestAlgorithm::Sha256, &salt, msg);
-    eprintln!(" >>> 4 - {:x?}", sig);
     sig.map(|sig| sig.as_bytes().into())
         .map_err(|_| CRYPTO_ERROR)
 }
@@ -471,7 +466,7 @@ fn valid_rsa_exponent(e: Vec<u8>) -> bool {
 /// Bertie KEM schemes.
 ///
 /// This includes ECDH curves.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum KemScheme {
     X25519,
     Secp256r1,
@@ -500,37 +495,104 @@ impl KemScheme {
     }
 }
 
+/// Generate a new KEM key pair.
 pub(crate) fn kem_keygen(
-    alg: &KemScheme,
+    alg: KemScheme,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(KemSk, KemPk), TLSError> {
     let res = kem::key_gen(alg.libcrux_algorithm()?, rng);
     match res {
-        Ok((sk, pk)) => Ok((Bytes::from(sk.encode()), Bytes::from(pk.encode()))),
+        Ok((sk, pk)) => {
+            // event!(
+            //     Level::TRACE,
+            //     "Generated KEM public key: {}",
+            //     Bytes::from(pk.encode()).as_hex()
+            // );
+            Ok((
+                Bytes::from(sk.encode()),
+                encoding_prefix(alg).concat(&Bytes::from(pk.encode())),
+            ))
+        }
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }
 
+/// Note that the `encode` in libcrux currently returns the raw
+/// concatenation of bytes. We have to prepend the 0x04 for
+/// uncompressed points on NIST curves.
+fn encoding_prefix(alg: KemScheme) -> Bytes {
+    let prefix = if alg == KemScheme::Secp256r1
+        || alg == KemScheme::Secp384r1
+        || alg == KemScheme::Secp521r1
+    {
+        Bytes::from([0x04])
+    } else {
+        Bytes::new()
+    };
+    prefix
+}
+
+/// Note that the `encode` in libcrux operates on the raw
+/// concatenation of bytes. We have to work with uncompressed NIST points here.
+fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
+    if alg == KemScheme::Secp256r1 || alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
+        point.slice_range(1..point.len())
+    } else {
+        point
+    }
+}
+
+/// KEM encapsulation
 pub(crate) fn kem_encap(
-    alg: &KemScheme,
+    alg: KemScheme,
     pk: &Bytes,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(Bytes, Bytes), TLSError> {
-    let pk = PublicKey::decode(alg.libcrux_algorithm()?, &pk.declassify()).unwrap();
+    // event!(Level::DEBUG, "KEM Encaps with {alg:?}");
+
+    let pk = PublicKey::decode(
+        alg.libcrux_algorithm()?,
+        &into_raw(alg, pk.clone()).declassify(),
+    )
+    .unwrap();
     let res = kem::encapsulate(&pk, rng);
     match res {
-        Ok((gxy, gy)) => Ok((Bytes::from(gxy.encode()), Bytes::from(gy.encode()))),
+        Ok((ss, ct)) => {
+            let ct = encoding_prefix(alg).concat(&Bytes::from(ct.encode()));
+            // event!(Level::TRACE, "  output ciphertext: {}", ct.as_hex());
+            Ok((Bytes::from(ss.encode()), ct))
+        }
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }
 
-pub(crate) fn kem_decap(alg: &KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
-    let alg = alg.libcrux_algorithm()?;
-    let sk = PrivateKey::decode(alg, &sk.declassify()).unwrap();
-    let ct = Ct::decode(alg, &ct.declassify()).unwrap();
+/// We only want the X coordinate for points on NIST curves.
+fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
+    if alg == KemScheme::Secp256r1 {
+        shared_secret.slice_range(0..32)
+    } else if alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
+        unimplemented!("not supported yet");
+    } else {
+        shared_secret
+    }
+}
+
+/// KEM decapsulation
+pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
+    event!(Level::DEBUG, "KEM Decaps with {alg:?}");
+    event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
+
+    let librux_algorithm = alg.libcrux_algorithm()?;
+    let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).unwrap();
+    let ct = into_raw(alg, ct.clone()).declassify();
+    let ct = Ct::decode(librux_algorithm, &ct).unwrap();
     let res = kem::decapsulate(&ct, &sk);
     match res {
-        Ok(x) => Ok(x.encode().into()),
+        Ok(shared_secret) => {
+            let shared_secret = shared_secret.encode().into();
+            let shared_secret = to_shared_secret(alg, shared_secret);
+            Ok(shared_secret)
+        }
         Err(_) => tlserr(CRYPTO_ERROR),
     }
 }

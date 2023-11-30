@@ -182,9 +182,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// Connect the incoming TLS stream.
     /// This function blocks until it was able to read the TLS client hello.
     pub fn connect(&mut self, rng: &mut (impl RngCore + CryptoRng)) -> Result<(), BertieError> {
-        eprintln!("waiting for incoming client hello ...");
         let client_hello = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
-        eprintln!("client hello: {client_hello:x?}");
 
         match Server::accept(
             self.ciphersuite,
@@ -224,6 +222,13 @@ impl BertieStream<ServerState<TcpStream>> {
             }
         }
 
+        Ok(())
+    }
+
+    /// Close the connection.
+    pub fn close(mut self) -> Result<(), BertieError> {
+        // send a close_notify alert
+        self.write_all(&[21, 03, 03, 00, 02, 1, 00])?;
         Ok(())
     }
 
@@ -274,12 +279,7 @@ fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, Bert
     let signature_key = read_file(key_file)?;
     let cert = read_file(cert_file)?.into();
 
-    eprintln!(
-        "signature key: {}",
-        Bytes::from(signature_key.clone()).as_hex()
-    );
     let spki = verification_key_from_cert(&cert)?;
-    // for (i, &byte) in signature_key.iter().enumerate() {
     let raw_key = match spki.0 {
         SignatureScheme::EcdsaSecp256r1Sha256 => {
             let mut raw_key = vec![];
@@ -301,16 +301,10 @@ fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, Bert
         }
         SignatureScheme::RsaPssRsaSha256 => {
             // Read the private exponent (d) from the key.
-            eprintln!("Getting RSA private key");
             rsa_private_key(&Bytes::from(signature_key))?.declassify()
         }
         _ => unreachable!("Unsupported signature scheme {:?}", spki.0),
     };
-    // }
-    eprintln!(
-        "raw signature key: {}",
-        Bytes::from(raw_key.clone()).as_hex()
-    );
     if raw_key.is_empty() {
         // We weren't able to read the key.
         return Err(BertieError::TLS(255)); // TODO: error code

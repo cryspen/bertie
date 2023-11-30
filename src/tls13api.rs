@@ -133,7 +133,7 @@ impl Client {
                         Ok((Some(AppData::new(hd)), Client::Client1(state, cipher1)))
                     }
                     ContentType::Handshake => {
-                        println!("Received Session Ticket");
+                        eprintln!("Received Session Ticket");
                         Ok((None, Client::Client1(state, cipher1)))
                     }
                     _ => Err(PARSE_FAILED),

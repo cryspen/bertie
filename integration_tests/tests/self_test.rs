@@ -82,6 +82,8 @@ fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_x25519() {
 }
 
 fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let (tx, rx) = std::sync::mpsc::channel();
 
     // Server thread.

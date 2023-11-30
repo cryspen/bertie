@@ -85,17 +85,29 @@ pub fn derive_aead_key_iv(
 }
 
 pub fn derive_0rtt_keys(
-    ha: &HashAlgorithm,
-    ae: &AeadAlgorithm,
-    k: &Key,
+    hash_algorithm: &HashAlgorithm,
+    aead_algoorithm: &AeadAlgorithm,
+    key: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, Key), TLSError> {
-    let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
-    let client_early_traffic_secret =
-        derive_secret(ha, &early_secret, &bytes(&LABEL_C_E_TRAFFIC), tx)?;
-    let early_exporter_master_secret =
-        derive_secret(ha, &early_secret, &bytes(&LABEL_E_EXP_MASTER), tx)?;
-    let sender_write_key_iv = derive_aead_key_iv(ha, ae, &client_early_traffic_secret)?;
+    let early_secret = hkdf_extract(hash_algorithm, key, &zero_key(hash_algorithm))?;
+    let client_early_traffic_secret = derive_secret(
+        hash_algorithm,
+        &early_secret,
+        &bytes(&LABEL_C_E_TRAFFIC),
+        tx,
+    )?;
+    let early_exporter_master_secret = derive_secret(
+        hash_algorithm,
+        &early_secret,
+        &bytes(&LABEL_E_EXP_MASTER),
+        tx,
+    )?;
+    let sender_write_key_iv = derive_aead_key_iv(
+        hash_algorithm,
+        aead_algoorithm,
+        &client_early_traffic_secret,
+    )?;
     Ok((sender_write_key_iv, early_exporter_master_secret))
 }
 
@@ -112,7 +124,7 @@ pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSErr
 pub fn derive_hk_ms(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
-    gxy: &Key,
+    shared_secret: &Key,
     psko: &Option<Psk>,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
@@ -124,23 +136,15 @@ pub fn derive_hk_ms(
     let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
     let digest_emp = hash_empty(ha)?;
     let derived_secret = derive_secret(ha, &early_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
-    //    println!("derived secret: {}", derived_secret.to_hex());
-    let handshake_secret = hkdf_extract(ha, gxy, &derived_secret)?;
-    //    println!("handshake secret: {}", handshake_secret.to_hex());
+    let handshake_secret = hkdf_extract(ha, shared_secret, &derived_secret)?;
     let client_handshake_traffic_secret =
         derive_secret(ha, &handshake_secret, &bytes(&LABEL_C_HS_TRAFFIC), tx)?;
-    //    println!("c h ts: {}", client_handshake_traffic_secret.to_hex());
     let server_handshake_traffic_secret =
         derive_secret(ha, &handshake_secret, &bytes(&LABEL_S_HS_TRAFFIC), tx)?;
-    //   println!("s h ts: {}", server_handshake_traffic_secret.to_hex());
     let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret)?;
-    //   println!("cfk: {}", client_finished_key.to_hex());
     let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret)?;
-    //    println!("sfk: {}", server_finished_key.to_hex());
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret)?;
-    //   let (k,iv) = &client_write_key_iv; println!("chk: {}\n     {}", k.to_hex(), iv.to_hex());
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
-    //   let (k,iv) = &server_write_key_iv; println!("shk: {}\n     {}", k.to_hex(), iv.to_hex());
     let master_secret_ = derive_secret(ha, &handshake_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
     let master_secret = hkdf_extract(ha, &zero_key(ha), &master_secret_)?;
     Ok((
@@ -237,7 +241,7 @@ fn build_client_hello(
     let tx = transcript_empty(ciphersuite.hash());
     let mut cr = [0u8; 32];
     rng.fill_bytes(&mut cr);
-    let (x, gx) = kem_keygen(&ciphersuite.kem(), rng)?;
+    let (x, gx) = kem_keygen(ciphersuite.kem(), rng)?;
     let (ch, trunc_len) = client_hello(&ciphersuite, &cr.into(), &gx, sn, &tkt)?;
     let (nch, cipher0, tx_ch) = compute_psk_binder_zero_rtt(ciphersuite, ch, trunc_len, &psk, tx)?;
     Ok((
@@ -287,26 +291,26 @@ fn compute_psk_binder_zero_rtt(
 }
 
 fn put_server_hello(
-    sh: &HandshakeData,
-    st: ClientPostClientHello,
+    handshake: &HandshakeData,
+    state: ClientPostClientHello,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
-    let ClientPostClientHello(cr, algs0, x, psk, tx) = st;
-    let Algorithms {
-        hash: ha,
-        aead: ae,
-        signature: _sa,
-        kem: ks,
-        psk_mode: _psk_mode,
-        zero_rtt: _zero_rtt,
-    } = algs0;
-    let (sr, gy) = parse_server_hello(&algs0, sh)?;
-    let tx = transcript_add1(tx, sh);
-    let gxy = kem_decap(&ks, &gy, &x)?;
+    let ClientPostClientHello(cr, ciphersuite, sk, psk, tx) = state;
+
+    let (sr, ct) = parse_server_hello(&ciphersuite, handshake)?;
+    let tx = transcript_add1(tx, handshake);
+    let shared_secret = kem_decap(ciphersuite.kem, &ct, &sk)?;
     let th = get_transcript_hash(&tx)?;
-    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &psk, &th)?;
+    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
+        &ciphersuite.hash,
+        &ciphersuite.aead,
+        &shared_secret,
+        &psk,
+        &th,
+    )?;
+
     Ok((
-        duplex_cipher_state_hs(ae, chk, 0, shk, 0),
-        ClientPostServerHello(cr, sr, algs0, ms, cfk, sfk, tx),
+        DuplexCipherStateH::new(chk, 0, shk, 0),
+        ClientPostServerHello(cr, sr, ciphersuite, ms, cfk, sfk, tx),
     ))
 }
 
@@ -408,7 +412,8 @@ pub fn client_init(
     build_client_hello(algs, sn, tkt, psk, rng)
 }
 
-pub fn client_set_params(
+/// Update the client state after generating the client hello message.
+pub(crate) fn client_set_params(
     payload: &HandshakeData,
     st: ClientPostClientHello,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
@@ -458,28 +463,22 @@ fn put_client_hello(
     ))
 }
 
+/// Process the PSK binder for 0-RTT
 fn process_psk_binder_zero_rtt(
-    algs: Algorithms,
+    ciphersuite: Algorithms,
     th_trunc: Digest,
     th: Digest,
     psko: &Option<Psk>,
     bindero: Option<Bytes>,
 ) -> Result<Option<ServerCipherState0>, TLSError> {
-    let Algorithms {
-        hash: ha,
-        aead: ae,
-        signature: _sa,
-        kem: _ks,
-        psk_mode,
-        zero_rtt,
-    } = algs;
-    match (psk_mode, psko, bindero) {
+    match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
-            let mk = derive_binder_key(&ha, k)?;
-            hmac_verify(&ha, &mk, &th_trunc, &binder)?;
-            if zero_rtt {
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
-                let cipher0 = Some(server_cipher_state0(ae, aek, 0, key));
+            let mk = derive_binder_key(&ciphersuite.hash, k)?;
+            hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
+            if ciphersuite.zero_rtt {
+                let (key_iv, early_exporter_ms) =
+                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, k, &th)?;
+                let cipher0 = Some(server_cipher_state0(key_iv, 0, early_exporter_ms));
                 Ok(cipher0)
             } else {
                 Ok(None)
@@ -506,14 +505,14 @@ fn get_server_hello(
 
     let mut sr = [0u8; 32];
     rng.fill_bytes(&mut sr);
-    let (gxy, gy) = kem_encap(&ks, &gx, rng)?;
+    let (gxy, gy) = kem_encap(ks, &gx, rng)?;
     let sh = server_hello(&algs, &sr.into(), &sid, &gy)?;
     let tx = transcript_add1(tx, &sh);
     let th = get_transcript_hash(&tx)?;
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &server.psk_opt, &th)?;
     Ok((
         sh,
-        duplex_cipher_state_hs(ae, shk, 0, chk, 0),
+        DuplexCipherStateH::new(shk, 0, chk, 0),
         ServerPostServerHello(cr, sr.into(), algs, server, ms, cfk, sfk, tx),
     ))
 }
@@ -547,14 +546,7 @@ fn get_server_signature(
                 // the values from the RSA certificate here.
                 // We could really read this from the key as well.
                 let (cert_scheme, cert_slice) = verification_key_from_cert(&server.cert)?;
-                eprintln!("got cert scheme {:?}", cert_scheme);
                 let pk = rsa_public_key(&server.cert, cert_slice)?;
-                eprintln!(
-                    "got rsa key: \n\t{}\n\t{}\n\t{}",
-                    pk.modulus.as_hex(),
-                    pk.exponent.as_hex(),
-                    server.sk.as_hex(),
-                );
                 sign_rsa(
                     &server.sk,
                     &pk.modulus,
@@ -566,7 +558,6 @@ fn get_server_signature(
             }
             SignatureScheme::ED25519 => unimplemented!(),
         };
-        eprintln!(" >> signed");
         let scv = certificate_verify(&algs, &sig)?;
         let tx = transcript_add1(tx, &scv);
         Ok((

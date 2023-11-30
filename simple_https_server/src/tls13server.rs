@@ -10,6 +10,7 @@ use bertie::{
 };
 
 use clap::Parser;
+use rand::thread_rng;
 
 #[derive(Parser)]
 struct Cli {
@@ -18,6 +19,14 @@ struct Cli {
     /// Port to listen on, defaults to port 443
     #[arg(short, long)]
     port: Option<u16>,
+
+    /// The file with the server key in DER
+    #[arg(long)]
+    key: String,
+
+    /// The file with the server certificate in DER
+    #[arg(long)]
+    cert: String,
 
     /// Algorithms to attempt to accept from a client.
     /// Can be one of the following strings:
@@ -37,7 +46,7 @@ struct Cli {
     /// The default value is SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519.
     #[clap(verbatim_doc_comment)]
     #[arg(short, long)]
-    algorithms: Option<String>,
+    ciphersuite: Option<String>,
 }
 
 pub fn main() -> anyhow::Result<()> {
@@ -50,7 +59,7 @@ pub fn main() -> anyhow::Result<()> {
     let port = cli.port.unwrap_or(443);
 
     let ciphersuite = cli
-        .algorithms
+        .ciphersuite
         .map(|s| Algorithms::try_from(s.as_str()).unwrap())
         .unwrap_or(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
 
@@ -64,19 +73,17 @@ pub fn main() -> anyhow::Result<()> {
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
         println!("New connection established!");
-        match BertieStream::server(
-            &host,
-            port,
-            stream,
-            ciphersuite,
-            "./tests/assets/p256_cert.der",
-            "./tests/assets/p256_key.der",
-        ) {
-            Ok(_server) => {
-                println!("Connection to {} succeeded\n", host);
+        match BertieStream::server(&host, port, stream, ciphersuite, &cli.cert, &cli.key) {
+            Ok(mut server) => {
+                server.connect(&mut thread_rng()).unwrap();
+                server
+                    .write(b"Hello, this is the Bertie TLS 1.3 server.\n")
+                    .unwrap();
+                server.close().unwrap();
+                println!("Connection to {} succeeded; closed connection.", host);
             }
             Err(error) => {
-                println!("Connection to {} failed with {:?}\n", host, error);
+                println!("Connection to {} failed with {:?}", host, error);
             }
         }
     }
