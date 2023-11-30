@@ -98,7 +98,7 @@ fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
 
         // tls13server(stream, "127.0.0.1", Some(algorithms)).unwrap();
 
-        let (cert_file, key_file) = match ciphersuite.sig_alg() {
+        let (cert_file, key_file) = match ciphersuite.signature() {
             SignatureScheme::EcdsaSecp256r1Sha256 => (
                 "../tests/assets/p256_cert.der",
                 "../tests/assets/p256_key.der",

@@ -21,18 +21,72 @@ pub(crate) type KemPk = Bytes;
 pub(crate) type KemSk = Bytes;
 pub(crate) type Hmac = Bytes;
 pub(crate) type Digest = Bytes;
-pub(crate) type AeadKey = Bytes;
 pub(crate) type AeadIV = Bytes;
-pub(crate) type AeadKeyIV = (Bytes, Bytes);
 pub(crate) type VerificationKey = Bytes;
-pub(crate) type RsaVerificationKey = (Bytes, Bytes); // N, e
 
+/// An AEAD key and iv package.
+pub(crate) struct AeadKeyIV {
+    pub(crate) key: AeadKey,
+    pub(crate) iv: Bytes,
+}
+
+impl AeadKeyIV {
+    /// Create a new [`AeadKeyIV`].
+    pub(crate) fn new(key: AeadKey, iv: Bytes) -> Self {
+        Self { key, iv }
+    }
+}
+
+/// An AEAD key.
+pub(crate) struct AeadKey {
+    bytes: Bytes,
+    alg: AeadAlgorithm,
+}
+
+impl AeadKey {
+    /// Create a new AEAD key from the raw bytes and the algorithm.
+    pub(crate) fn new(bytes: Bytes, alg: AeadAlgorithm) -> Self {
+        Self { bytes, alg }
+    }
+
+    /// Convert a raw AEAD key into a usable libcrux key.
+    ///
+    /// This copies the key.
+    fn as_libcrux_key(&self) -> Result<aead::Key, TLSError> {
+        match self.alg {
+            AeadAlgorithm::Chacha20Poly1305 => Ok(aead::Key::Chacha20Poly1305(aead::Chacha20Key(
+                self.bytes.declassify_array()?,
+            ))),
+            AeadAlgorithm::Aes128Gcm => Ok(aead::Key::Aes128(aead::Aes128Key(
+                self.bytes.declassify_array()?,
+            ))),
+            AeadAlgorithm::Aes256Gcm => Ok(aead::Key::Aes256(aead::Aes256Key(
+                self.bytes.declassify_array()?,
+            ))),
+        }
+    }
+
+    /// Get the raw bytes of the key.
+    pub(crate) fn bytes(&self) -> &Bytes {
+        &self.bytes
+    }
+}
+
+/// An RSA public key.
+#[derive(Debug)]
+pub(crate) struct RsaVerificationKey {
+    pub(crate) modulus: Bytes,
+    pub(crate) exponent: Bytes,
+}
+
+/// Bertie public verification keys.
 #[derive(Debug)]
 pub(crate) enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
 }
 
+/// Bertie hash algorithms.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum HashAlgorithm {
     SHA256,
@@ -40,42 +94,45 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
-/// Get the libcrux hash algorithm
-fn hash_algorithm(alg: &HashAlgorithm) -> Result<digest::Algorithm, TLSError> {
-    match alg {
-        HashAlgorithm::SHA256 => Ok(digest::Algorithm::Sha256),
-        HashAlgorithm::SHA384 => Ok(digest::Algorithm::Sha384),
-        HashAlgorithm::SHA512 => Ok(digest::Algorithm::Sha512),
+impl HashAlgorithm {
+    /// Get the libcrux hash algorithm
+    fn libcrux_algorithm(&self) -> Result<digest::Algorithm, TLSError> {
+        match self {
+            HashAlgorithm::SHA256 => Ok(digest::Algorithm::Sha256),
+            HashAlgorithm::SHA384 => Ok(digest::Algorithm::Sha384),
+            HashAlgorithm::SHA512 => Ok(digest::Algorithm::Sha512),
+        }
     }
-}
 
-/// Hash `data` with the given `algorithm`.
-///
-/// Returns the digest or an [`TLSError`].
-pub(crate) fn hash(algorithm: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
-    Ok(digest::hash(hash_algorithm(algorithm)?, &data.declassify()).into())
-}
-
-/// Get the size of the hash digest.
-pub(crate) fn hash_len(alg: &HashAlgorithm) -> usize {
-    match alg {
-        HashAlgorithm::SHA256 => digest::digest_size(digest::Algorithm::Sha256),
-        HashAlgorithm::SHA384 => digest::digest_size(digest::Algorithm::Sha384),
-        HashAlgorithm::SHA512 => digest::digest_size(digest::Algorithm::Sha512),
+    /// Hash `data` with the given `algorithm`.
+    ///
+    /// Returns the digest or an [`TLSError`].
+    pub(crate) fn hash(&self, data: &Bytes) -> Result<Bytes, TLSError> {
+        Ok(digest::hash(self.libcrux_algorithm()?, &data.declassify()).into())
     }
-}
 
-/// Get the libcrux hmac algorithm.
-fn hmac_algorithm(alg: &HashAlgorithm) -> Result<hmac::Algorithm, TLSError> {
-    match alg {
-        HashAlgorithm::SHA256 => Ok(hmac::Algorithm::Sha256),
-        HashAlgorithm::SHA384 => Ok(hmac::Algorithm::Sha384),
-        HashAlgorithm::SHA512 => Ok(hmac::Algorithm::Sha512),
+    /// Get the size of the hash digest.
+    pub(crate) fn hash_len(&self) -> usize {
+        match self {
+            HashAlgorithm::SHA256 => digest::digest_size(digest::Algorithm::Sha256),
+            HashAlgorithm::SHA384 => digest::digest_size(digest::Algorithm::Sha384),
+            HashAlgorithm::SHA512 => digest::digest_size(digest::Algorithm::Sha512),
+        }
     }
-}
-/// Get the size of the hmac tag.
-pub(crate) fn hmac_tag_len(alg: &HashAlgorithm) -> usize {
-    hash_len(alg)
+
+    /// Get the libcrux hmac algorithm.
+    fn hmac_algorithm(&self) -> Result<hmac::Algorithm, TLSError> {
+        match self {
+            HashAlgorithm::SHA256 => Ok(hmac::Algorithm::Sha256),
+            HashAlgorithm::SHA384 => Ok(hmac::Algorithm::Sha384),
+            HashAlgorithm::SHA512 => Ok(hmac::Algorithm::Sha512),
+        }
+    }
+
+    /// Get the size of the hmac tag.
+    pub(crate) fn hmac_tag_len(&self) -> usize {
+        self.hash_len()
+    }
 }
 
 /// Compute the HMAC tag.
@@ -83,7 +140,7 @@ pub(crate) fn hmac_tag_len(alg: &HashAlgorithm) -> usize {
 /// Returns the tag [`Hmac`] or a [`TLSError`].
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac::hmac(
-        hmac_algorithm(alg)?,
+        alg.hmac_algorithm()?,
         &mk.declassify(),
         &input.declassify(),
         None,
@@ -109,7 +166,7 @@ pub(crate) fn hmac_verify(
 
 /// Get an empty key of the correct size.
 pub(crate) fn zero_key(alg: &HashAlgorithm) -> Bytes {
-    Bytes::zeroes(hash_len(alg))
+    Bytes::zeroes(alg.hash_len())
 }
 
 /// Get the libcrux HKDF algorithm.
@@ -160,36 +217,23 @@ pub enum AeadAlgorithm {
     Aes256Gcm,
 }
 
-pub(crate) fn to_libcrux_aead_alg(alg: &AeadAlgorithm) -> Result<aead::Algorithm, TLSError> {
-    match alg {
-        AeadAlgorithm::Chacha20Poly1305 => Ok(aead::Algorithm::Chacha20Poly1305),
-        AeadAlgorithm::Aes128Gcm => Ok(aead::Algorithm::Aes128Gcm),
-        AeadAlgorithm::Aes256Gcm => Ok(aead::Algorithm::Aes256Gcm),
+impl AeadAlgorithm {
+    /// Get the key length of the AEAD algorithm in bytes.
+    pub(crate) fn key_len(&self) -> usize {
+        match self {
+            AeadAlgorithm::Chacha20Poly1305 => 32,
+            AeadAlgorithm::Aes128Gcm => 16,
+            AeadAlgorithm::Aes256Gcm => 32,
+        }
     }
-}
-pub(crate) fn ae_key_len(alg: &AeadAlgorithm) -> usize {
-    match alg {
-        AeadAlgorithm::Chacha20Poly1305 => 32,
-        AeadAlgorithm::Aes128Gcm => 16,
-        AeadAlgorithm::Aes256Gcm => 32,
-    }
-}
 
-pub(crate) fn ae_key_wrap(alg: &AeadAlgorithm, k: &AeadKey) -> Result<aead::Key, TLSError> {
-    match alg {
-        AeadAlgorithm::Chacha20Poly1305 => Ok(aead::Key::Chacha20Poly1305(aead::Chacha20Key(
-            k.declassify_array()?,
-        ))),
-        AeadAlgorithm::Aes128Gcm => Ok(aead::Key::Aes128(aead::Aes128Key(k.declassify_array()?))),
-        AeadAlgorithm::Aes256Gcm => Ok(aead::Key::Aes256(aead::Aes256Key(k.declassify_array()?))),
-    }
-}
-
-pub(crate) fn ae_iv_len(alg: &AeadAlgorithm) -> usize {
-    match alg {
-        AeadAlgorithm::Chacha20Poly1305 => 12,
-        AeadAlgorithm::Aes128Gcm => 12,
-        AeadAlgorithm::Aes256Gcm => 12,
+    /// Get the length of the IV for this algorithm.
+    pub(crate) fn iv_len(self) -> usize {
+        match self {
+            AeadAlgorithm::Chacha20Poly1305 => 12,
+            AeadAlgorithm::Aes128Gcm => 12,
+            AeadAlgorithm::Aes256Gcm => 12,
+        }
     }
 }
 
@@ -202,7 +246,7 @@ pub(crate) fn aead_encrypt(
     aad: &Bytes,
 ) -> Result<Bytes, TLSError> {
     let res = aead::encrypt_detached(
-        &ae_key_wrap(alg, k)?,
+        &k.as_libcrux_key()?,
         plain.declassify(),
         aead::Iv(iv.declassify_array()?),
         aad.declassify(),
@@ -229,7 +273,7 @@ pub(crate) fn aead_decrypt(
     let cip = cip.slice(0, cip.len() - 16);
     let tag: [u8; 16] = tag.declassify_array()?;
     let plain = aead::decrypt_detached(
-        &ae_key_wrap(alg, k)?,
+        &k.as_libcrux_key()?,
         cip.declassify(),
         aead::Iv(iv.declassify_array()?),
         aad.declassify(),
@@ -249,16 +293,18 @@ pub enum SignatureScheme {
     ED25519,
 }
 
-/// Get the libcrux signature algorithm from the [`SignatureScheme`].
-pub(crate) fn signature_algorithm(a: &SignatureScheme) -> Result<signature::Algorithm, TLSError> {
-    match a {
-        SignatureScheme::RsaPssRsaSha256 => Ok(signature::Algorithm::RsaPss(
-            signature::DigestAlgorithm::Sha256,
-        )),
-        SignatureScheme::ED25519 => Ok(signature::Algorithm::Ed25519),
-        SignatureScheme::EcdsaSecp256r1Sha256 => Ok(signature::Algorithm::EcDsaP256(
-            signature::DigestAlgorithm::Sha256,
-        )),
+impl SignatureScheme {
+    /// Get the libcrux signature algorithm from the [`SignatureScheme`].
+    fn libcrux_scheme(&self) -> Result<signature::Algorithm, TLSError> {
+        match self {
+            SignatureScheme::RsaPssRsaSha256 => Ok(signature::Algorithm::RsaPss(
+                signature::DigestAlgorithm::Sha256,
+            )),
+            SignatureScheme::ED25519 => Ok(signature::Algorithm::Ed25519),
+            SignatureScheme::EcdsaSecp256r1Sha256 => Ok(signature::Algorithm::EcDsaP256(
+                signature::DigestAlgorithm::Sha256,
+            )),
+        }
     }
 }
 
@@ -311,13 +357,13 @@ pub(crate) fn sign(
 ) -> Result<Bytes, TLSError> {
     let sig = match algorithm {
         SignatureScheme::EcdsaSecp256r1Sha256 => signature::sign(
-            signature_algorithm(algorithm)?,
+            algorithm.libcrux_scheme()?,
             &input.declassify(),
             &sk.declassify(),
             rng,
         ),
         SignatureScheme::ED25519 => signature::sign(
-            signature_algorithm(algorithm)?,
+            algorithm.libcrux_scheme()?,
             &input.declassify(),
             &sk.declassify(),
             rng,
@@ -337,6 +383,9 @@ pub(crate) fn sign(
     }
 }
 
+/// Verify the `input` bytes against the provided `signature`.
+///
+/// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
@@ -371,7 +420,13 @@ pub(crate) fn verify(
                 Err(_) => tlserr(INVALID_SIGNATURE),
             }
         }
-        (SignatureScheme::RsaPssRsaSha256, PublicVerificationKey::Rsa((n, e))) => {
+        (
+            SignatureScheme::RsaPssRsaSha256,
+            PublicVerificationKey::Rsa(RsaVerificationKey {
+                modulus: n,
+                exponent: e,
+            }),
+        ) => {
             if !valid_rsa_exponent(e.declassify()) {
                 tlserr(UNSUPPORTED_ALGORITHM)
             } else {
@@ -415,6 +470,9 @@ fn valid_rsa_exponent(e: Vec<u8>) -> bool {
     e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1
 }
 
+/// Bertie KEM schemes.
+///
+/// This includes ECDH curves.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum KemScheme {
     X25519,
@@ -424,26 +482,31 @@ pub enum KemScheme {
     Secp521r1,
 }
 
-pub(crate) fn kem_priv_len(alg: &KemScheme) -> usize {
-    match alg {
-        KemScheme::X25519 => 32,
-        KemScheme::Secp256r1 => 32,
-        _ => 64, //Check
+impl KemScheme {
+    /// Get the length of the private key for a given [`KemScheme`].
+    pub(crate) fn kem_priv_len(&self) -> usize {
+        match self {
+            KemScheme::X25519 => 32,
+            KemScheme::Secp256r1 => 32,
+            _ => unimplemented!("Only x25519 and P256 are supported right now"),
+        }
+    }
+
+    /// Get the libcrux algorithm for this [`KemScheme`].
+    fn libcrux_algorithm(self) -> Result<kem::Algorithm, TLSError> {
+        match self {
+            KemScheme::X25519 => Ok(kem::Algorithm::X25519),
+            KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
+            _ => tlserr(UNSUPPORTED_ALGORITHM),
+        }
     }
 }
 
-pub(crate) fn to_libcrux_kem_alg(alg: &KemScheme) -> Result<kem::Algorithm, TLSError> {
-    match alg {
-        KemScheme::X25519 => Ok(kem::Algorithm::X25519),
-        KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
-        _ => tlserr(UNSUPPORTED_ALGORITHM),
-    }
-}
 pub(crate) fn kem_keygen(
     alg: &KemScheme,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(KemSk, KemPk), TLSError> {
-    let res = kem::key_gen(to_libcrux_kem_alg(alg)?, rng);
+    let res = kem::key_gen(alg.libcrux_algorithm()?, rng);
     match res {
         Ok((sk, pk)) => Ok((Bytes::from(sk.encode()), Bytes::from(pk.encode()))),
         Err(_) => tlserr(CRYPTO_ERROR),
@@ -455,7 +518,7 @@ pub(crate) fn kem_encap(
     pk: &Bytes,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(Bytes, Bytes), TLSError> {
-    let pk = PublicKey::decode(to_libcrux_kem_alg(alg)?, &pk.declassify()).unwrap();
+    let pk = PublicKey::decode(alg.libcrux_algorithm()?, &pk.declassify()).unwrap();
     let res = kem::encapsulate(&pk, rng);
     match res {
         Ok((gxy, gy)) => Ok((Bytes::from(gxy.encode()), Bytes::from(gy.encode()))),
@@ -464,7 +527,7 @@ pub(crate) fn kem_encap(
 }
 
 pub(crate) fn kem_decap(alg: &KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
-    let alg = to_libcrux_kem_alg(alg)?;
+    let alg = alg.libcrux_algorithm()?;
     let sk = PrivateKey::decode(alg, &sk.declassify()).unwrap();
     let ct = Ct::decode(alg, &ct.declassify()).unwrap();
     let res = kem::decapsulate(&ct, &sk);
@@ -474,16 +537,19 @@ pub(crate) fn kem_decap(alg: &KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes
     }
 }
 
-// Algorithmns(ha, ae, sa, gn, psk_mode, zero_rtt)
+/// The algorithms for Bertie.
+///
+/// Note that this is more than the TLS 1.3 ciphersuite. It contains all
+/// necessary cryptographic algorithms and options.
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct Algorithms(
-    pub(crate) HashAlgorithm,
-    pub(crate) AeadAlgorithm,
-    pub(crate) SignatureScheme,
-    pub(crate) KemScheme,
-    pub(crate) bool,
-    pub(crate) bool,
-);
+pub struct Algorithms {
+    pub(crate) hash: HashAlgorithm,
+    pub(crate) aead: AeadAlgorithm,
+    pub(crate) signature: SignatureScheme,
+    pub(crate) kem: KemScheme,
+    pub(crate) psk_mode: bool,
+    pub(crate) zero_rtt: bool,
+}
 
 impl Algorithms {
     /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
@@ -495,26 +561,44 @@ impl Algorithms {
         psk: bool,
         zero_rtt: bool,
     ) -> Self {
-        Self(hash, aead, sig, kem, psk, zero_rtt)
+        Self {
+            hash,
+            aead,
+            signature: sig,
+            kem,
+            psk_mode: psk,
+            zero_rtt,
+        }
     }
 
-    pub fn hash_alg(&self) -> HashAlgorithm {
-        self.0
+    /// Get the [`HashAlgorithm`].
+    pub fn hash(&self) -> HashAlgorithm {
+        self.hash
     }
-    pub fn aead_alg(&self) -> AeadAlgorithm {
-        self.1
+
+    /// Get the [`AeadAlgorithm`].
+    pub fn aead(&self) -> AeadAlgorithm {
+        self.aead
     }
-    pub fn sig_alg(&self) -> SignatureScheme {
-        self.2
+
+    /// Get the [`SignatureAlgorithm`].
+    pub fn signature(&self) -> SignatureScheme {
+        self.signature
     }
-    pub fn kem_alg(&self) -> KemScheme {
-        self.3
+
+    /// Get the [`KemScheme`].
+    pub fn kem(&self) -> KemScheme {
+        self.kem
     }
+
+    /// Returns `true` when using the PSK mode and `false` otherwise.
     pub fn psk_mode(&self) -> bool {
-        self.4
+        self.psk_mode
     }
+
+    /// Returns `true` when using zero rtt and `false` otherwise.
     pub fn zero_rtt(&self) -> bool {
-        self.5
+        self.zero_rtt
     }
 }
 

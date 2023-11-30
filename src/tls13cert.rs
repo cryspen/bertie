@@ -340,7 +340,10 @@ pub(crate) fn rsa_public_key(
     let (offset, int_len) = length(cert, offset)?;
     let e = cert.slice(offset, int_len);
 
-    Ok((n, e))
+    Ok(RsaVerificationKey {
+        modulus: n,
+        exponent: e,
+    })
 }
 
 /// Debug print a slice.

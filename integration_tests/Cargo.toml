@@ -10,6 +10,4 @@ bertie = { version = "0.1.0-pre.1", path = ".." }
 libcrux-platform = "0.0.2-pre.1"
 
 [dev-dependencies]
-simple_https_client = { path = "../simple_https_client" }
-simple_https_server = { path = "../simple_https_server" }
 rand = "0.8.0"

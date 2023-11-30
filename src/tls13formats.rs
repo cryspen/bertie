@@ -3,8 +3,8 @@
 
 use crate::{
     tls13crypto::{
-        hash, hash_len, zero_key, AeadAlgorithm, Algorithms, Digest, HashAlgorithm, Hmac, KemPk,
-        KemScheme, Random, SignatureScheme,
+        zero_key, AeadAlgorithm, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, KemScheme, Random,
+        SignatureScheme,
     },
     tls13utils::{
         bytes1, bytes2, check_eq, check_lbytes1, check_lbytes1_full, check_lbytes2,
@@ -60,7 +60,7 @@ const SHA256_EMPTY: [u8; 3]2 = [u8; 3]2(([
 /// Returns the TLS ciphersuite for the given algorithm when it is supported, or
 /// a [`TLSError`] otherwise.
 fn ciphersuite(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
-    match (ciphersuite.hash_alg(), ciphersuite.aead_alg()) {
+    match (ciphersuite.hash(), ciphersuite.aead()) {
         (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok(bytes2(0x13, 0x01)),
         (HashAlgorithm::SHA384, AeadAlgorithm::Aes256Gcm) => Ok(bytes2(0x13, 0x02)),
         (HashAlgorithm::SHA256, AeadAlgorithm::Chacha20Poly1305) => Ok(bytes2(0x13, 0x03)),
@@ -71,7 +71,7 @@ fn ciphersuite(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
 /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
 /// otherwise.
 fn supported_group(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
-    match ciphersuite.kem_alg() {
+    match ciphersuite.kem() {
         KemScheme::X25519 => Ok(bytes2(0x00, 0x1D)),
         KemScheme::Secp256r1 => Ok(bytes2(0x00, 0x17)),
         KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
@@ -83,7 +83,7 @@ fn supported_group(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
 /// Returns the signature id for the given algorithm when it is supported, or a
 ///  [`TLSError`] otherwise.
 fn signature_algorithm(ciphersuite: &Algorithms) -> Result<Bytes, TLSError> {
-    match ciphersuite.sig_alg() {
+    match ciphersuite.signature() {
         SignatureScheme::RsaPssRsaSha256 => Ok(bytes2(0x08, 0x04)),
         SignatureScheme::EcdsaSecp256r1Sha256 => Ok(bytes2(0x04, 0x03)),
         SignatureScheme::ED25519 => tlserr(UNSUPPORTED_ALGORITHM),
@@ -192,7 +192,7 @@ pub fn pre_shared_key(
 ) -> Result<(Bytes, usize), TLSError> {
     let identities =
         lbytes2(&lbytes2(session_ticket)?.concat(&U32::from(0xffffffff).to_be_bytes()))?;
-    let binders = lbytes2(&lbytes1(&zero_key(&algs.hash_alg()))?)?;
+    let binders = lbytes2(&lbytes1(&zero_key(&algs.hash()))?)?;
     let ext = bytes2(0, 41).concat(&lbytes2(&identities.concat(&binders))?);
     Ok((ext, binders.len()))
 }
@@ -697,14 +697,14 @@ pub(crate) fn client_hello(
 }
 
 pub fn set_client_hello_binder(
-    algs: &Algorithms,
+    ciphersuite: &Algorithms,
     binder: &Option<Hmac>,
-    ch: HandshakeData,
+    client_hello: HandshakeData,
     trunc_len: Option<usize>,
 ) -> Result<HandshakeData, TLSError> {
-    let HandshakeData(ch) = ch;
+    let HandshakeData(ch) = client_hello;
     let chlen = &ch.len();
-    let hlen = hash_len(&algs.hash_alg());
+    let hlen = ciphersuite.hash().hash_len();
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
             if chlen - hlen == trunc_len {
@@ -722,10 +722,10 @@ fn invalid_compression_list() -> Result<(), TLSError> {
     Result::<(), TLSError>::Err(INVALID_COMPRESSION_LIST)
 }
 
-#[allow(clippy::type_complexity)]
-pub fn parse_client_hello(
-    algs: &Algorithms,
-    ch: &HandshakeData,
+/// Parse the provided `client_hello` with the given `ciphersuite`.
+pub(super) fn parse_client_hello(
+    ciphersuite: &Algorithms,
+    client_hello: &HandshakeData,
 ) -> Result<
     (
         Random,
@@ -738,7 +738,7 @@ pub fn parse_client_hello(
     ),
     TLSError,
 > {
-    let HandshakeData(ch) = get_handshake_message_ty(HandshakeType::ClientHello, ch)?;
+    let HandshakeData(ch) = get_handshake_message_ty(HandshakeType::ClientHello, client_hello)?;
     let ver = bytes2(3, 3);
     let comp = bytes2(1, 0);
     let mut next = 0;
@@ -749,7 +749,7 @@ pub fn parse_client_hello(
     let sidlen = check_lbytes1(&ch.slice_range(next..ch.len()))?;
     let sid = ch.slice_range(next + 1..next + 1 + sidlen);
     next = next + 1 + sidlen;
-    let cslen = check_ciphersuites(algs, &ch.slice_range(next..ch.len()))?;
+    let cslen = check_ciphersuites(ciphersuite, &ch.slice_range(next..ch.len()))?;
     next = next + cslen;
     match check_eq(&comp, &ch.slice_range(next..next + 2)) {
         Ok(_) => (),
@@ -758,10 +758,10 @@ pub fn parse_client_hello(
     next = next + 2;
     check_lbytes2_full(&ch.slice_range(next..ch.len()))?;
     next = next + 2;
-    let exts = check_extensions(algs, &ch.slice_range(next..ch.len()))?;
+    let exts = check_extensions(ciphersuite, &ch.slice_range(next..ch.len()))?;
     //println!("check_extensions");
-    let trunc_len = ch.len() - hash_len(&algs.hash_alg()) - 3;
-    match (algs.psk_mode(), exts) {
+    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+    match (ciphersuite.psk_mode(), exts) {
         (
             _,
             Extensions {
@@ -980,7 +980,7 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
     }
 }
 pub fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
-    let sv = match algs.2 {
+    let sv = match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => cv.clone(),
         SignatureScheme::EcdsaSecp256r1Sha256 => {
             if cv.len() != 64 {
@@ -1000,7 +1000,7 @@ pub fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData
 
 pub fn parse_certificate_verify(algs: &Algorithms, cv: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(cv) = get_handshake_message_ty(HandshakeType::CertificateVerify, cv)?;
-    let sa = algs.sig_alg();
+    let sa = algs.signature();
     check_eq(&signature_algorithm(algs)?, &cv.slice_range(0..2))?;
     check_lbytes2_full(&cv.slice_range(2..cv.len()))?;
     match sa {
@@ -1156,7 +1156,7 @@ pub fn transcript_add1(tx: Transcript, msg: &HandshakeData) -> Transcript {
 
 pub fn get_transcript_hash(tx: &Transcript) -> Result<Digest, TLSError> {
     let Transcript(ha, HandshakeData(txby)) = tx;
-    let th = hash(ha, txby)?;
+    let th = ha.hash(txby)?;
     Ok(th)
 }
 
@@ -1167,5 +1167,5 @@ pub fn get_transcript_hash_truncated_client_hello(
 ) -> Result<Digest, TLSError> {
     let Transcript(ha, HandshakeData(tx)) = tx;
     let HandshakeData(ch) = ch;
-    hash(ha, &tx.concat(&ch.slice_range(0..trunc_len)))
+    ha.hash(&tx.concat(&ch.slice_range(0..trunc_len)))
 }
