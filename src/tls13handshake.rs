@@ -121,12 +121,13 @@ pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSErr
     )
 }
 
-pub fn derive_hk_ms(
+/// Derive the handshake keys and master secret.
+pub(crate) fn derive_hk_ms(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
     shared_secret: &Key,
     psko: &Option<Psk>,
-    tx: &Digest,
+    transcript_hash: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
     let psk = if let Some(k) = psko {
         k.clone()
@@ -137,10 +138,18 @@ pub fn derive_hk_ms(
     let digest_emp = hash_empty(ha)?;
     let derived_secret = derive_secret(ha, &early_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
     let handshake_secret = hkdf_extract(ha, shared_secret, &derived_secret)?;
-    let client_handshake_traffic_secret =
-        derive_secret(ha, &handshake_secret, &bytes(&LABEL_C_HS_TRAFFIC), tx)?;
-    let server_handshake_traffic_secret =
-        derive_secret(ha, &handshake_secret, &bytes(&LABEL_S_HS_TRAFFIC), tx)?;
+    let client_handshake_traffic_secret = derive_secret(
+        ha,
+        &handshake_secret,
+        &bytes(&LABEL_C_HS_TRAFFIC),
+        transcript_hash,
+    )?;
+    let server_handshake_traffic_secret = derive_secret(
+        ha,
+        &handshake_secret,
+        &bytes(&LABEL_S_HS_TRAFFIC),
+        transcript_hash,
+    )?;
     let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret)?;
     let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret)?;
@@ -156,7 +165,8 @@ pub fn derive_hk_ms(
     ))
 }
 
-pub fn derive_app_keys(
+/// Derive the application keys and master secret.
+pub(crate) fn derive_app_keys(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
     master_secret: &Key,
@@ -176,7 +186,11 @@ pub fn derive_app_keys(
     ))
 }
 
-pub fn derive_rms(ha: &HashAlgorithm, master_secret: &Key, tx: &Digest) -> Result<Key, TLSError> {
+pub(crate) fn derive_rms(
+    ha: &HashAlgorithm,
+    master_secret: &Key,
+    tx: &Digest,
+) -> Result<Key, TLSError> {
     derive_secret(ha, master_secret, &bytes(&LABEL_RES_MASTER), tx)
 }
 
@@ -505,11 +519,12 @@ fn get_server_hello(
 
     let mut sr = [0u8; 32];
     rng.fill_bytes(&mut sr);
-    let (gxy, gy) = kem_encap(ks, &gx, rng)?;
+    let (shared_secret, gy) = kem_encap(ks, &gx, rng)?;
     let sh = server_hello(&algs, &sr.into(), &sid, &gy)?;
     let tx = transcript_add1(tx, &sh);
-    let th = get_transcript_hash(&tx)?;
-    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(&ha, &ae, &gxy, &server.psk_opt, &th)?;
+    let transcript_hash = get_transcript_hash(&tx)?;
+    let (chk, shk, cfk, sfk, ms) =
+        derive_hk_ms(&ha, &ae, &shared_secret, &server.psk_opt, &transcript_hash)?;
     Ok((
         sh,
         DuplexCipherStateH::new(shk, 0, chk, 0),

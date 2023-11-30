@@ -109,4 +109,5 @@ bertie_server_test() {
   # kill $pid
 }
 
+# bertie_client_test
 bertie_server_test

@@ -180,6 +180,7 @@ pub(crate) fn encrypt_handshake(
     mut state: DuplexCipherStateH,
 ) -> Result<(Bytes, DuplexCipherStateH), TLSError> {
     let payload = handshake_data_bytes(&payload);
+
     let rec = encrypt_record_payload(
         &state.sender_key_iv,
         state.sender_counter,

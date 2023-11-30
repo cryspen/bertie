@@ -5,7 +5,7 @@ use libcrux::{
 };
 use rand::{CryptoRng, RngCore};
 
-use tracing::{event, Level};
+// use tracing::{event, Level};
 
 use crate::tls13utils::{
     check_lbytes2, check_mem, eq, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE,
@@ -549,18 +549,17 @@ pub(crate) fn kem_encap(
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(Bytes, Bytes), TLSError> {
     // event!(Level::DEBUG, "KEM Encaps with {alg:?}");
+    // event!(Level::TRACE, "  pk:  {}", pk.as_hex());
 
-    let pk = PublicKey::decode(
-        alg.libcrux_algorithm()?,
-        &into_raw(alg, pk.clone()).declassify(),
-    )
-    .unwrap();
+    let pk = into_raw(alg, pk.clone());
+    let pk = PublicKey::decode(alg.libcrux_algorithm()?, &pk.declassify()).unwrap();
     let res = kem::encapsulate(&pk, rng);
     match res {
-        Ok((ss, ct)) => {
+        Ok((shared_secret, ct)) => {
             let ct = encoding_prefix(alg).concat(&Bytes::from(ct.encode()));
+            let shared_secret = to_shared_secret(alg, Bytes::from(shared_secret.encode()));
             // event!(Level::TRACE, "  output ciphertext: {}", ct.as_hex());
-            Ok((Bytes::from(ss.encode()), ct))
+            Ok((shared_secret, ct))
         }
         Err(_) => tlserr(CRYPTO_ERROR),
     }
@@ -579,8 +578,8 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 
 /// KEM decapsulation
 pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
-    event!(Level::DEBUG, "KEM Decaps with {alg:?}");
-    event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
+    // event!(Level::DEBUG, "KEM Decaps with {alg:?}");
+    // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
 
     let librux_algorithm = alg.libcrux_algorithm()?;
     let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).unwrap();
@@ -589,7 +588,8 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     let res = kem::decapsulate(&ct, &sk);
     match res {
         Ok(shared_secret) => {
-            let shared_secret = shared_secret.encode().into();
+            let shared_secret: Bytes = shared_secret.encode().into();
+            // event!(Level::TRACE, "  shared secret: {}", shared_secret.as_hex());
             let shared_secret = to_shared_secret(alg, shared_secret);
             Ok(shared_secret)
         }
