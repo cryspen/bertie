@@ -104,7 +104,8 @@ impl BertieStream<ClientState<TcpStream>> {
 
     /// Open a connection to `host:port`.
     pub fn open(host: &str, port: u16, ciphersuite: Algorithms) -> Result<Self, BertieError> {
-        let stream = TcpStream::connect((host, port))?;
+        let stream = TcpStream::connect((host, port));
+        let stream = stream?;
         stream.set_nodelay(true)?;
         Ok(Self {
             state: ClientState::new(stream),

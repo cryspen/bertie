@@ -4,6 +4,7 @@
 
 set -e
 
+cwd=$(cd $(dirname $0); pwd -P)
 openssl_cmd=${OPENSSL_CMD:-openssl}
 
 openssl_version=$($openssl_cmd version)
@@ -15,15 +16,16 @@ fi
 
 # start openssl server
 $openssl_cmd s_server \
-    -cert assets/p256_cert.pem \
-    -key assets/p256_key.pem \
+    -cert $cwd/assets/p256_cert.pem \
+    -key $cwd/assets/p256_key.pem \
     -cipher ECDHE \
     -ciphersuites "TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256" \
+    -port 6433 \
     -www &
 pid=$(echo $!)
 
 # run bertie client (auto closes after receiving http response)
-cargo run -p simple_https_client -- 127.0.0.1 4433
+cargo run -p simple_https_client -- 127.0.0.1 --port 6433
 
 # kill openssl process
 kill $pid
