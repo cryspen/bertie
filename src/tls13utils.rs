@@ -37,18 +37,18 @@ pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub const DECODE_ERROR: TLSError = 142u8;
 
-pub fn error_string(c: u8) -> String {
+pub(crate) fn error_string(c: u8) -> String {
     format!("{}", c)
 }
 
-pub fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
+pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     let bt = backtrace::Backtrace::new();
     println!("{:?}", bt);
     Err(err)
 }
 
 /*
-pub fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
+pub(crate) fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     if s1 == s2 {Ok(())}
     else {Err(parse_failed())}
 }*/
@@ -71,7 +71,7 @@ impl From<u8> for U8 {
 }
 #[cfg(feature = "secret_integers")]
 impl U8 {
-    pub fn declassify(&self) -> u8 {
+    pub(crate) fn declassify(&self) -> u8 {
         self.0
     }
 }
@@ -79,7 +79,7 @@ impl U8 {
 #[cfg(not(feature = "secret_integers"))]
 type U8 = u8;
 #[cfg(not(feature = "secret_integers"))]
-pub fn U8(x: u8) -> U8 {
+pub(crate) fn U8(x: u8) -> U8 {
     x
 }
 #[cfg(not(feature = "secret_integers"))]
@@ -136,18 +136,18 @@ impl Bytes {
     }
 
     /// Convert the bytes into raw bytes
-    pub fn into_raw(self) -> Vec<U8> {
+    pub(crate) fn into_raw(self) -> Vec<U8> {
         self.0
     }
 
     /// Get a reference to the raw bytes.
-    pub fn as_raw(&self) -> &[U8] {
+    pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }
 }
 
 impl Bytes {
-    pub fn declassify_array<const C: usize>(&self) -> Result<[u8; C], TLSError> {
+    pub(crate) fn declassify_array<const C: usize>(&self) -> Result<[u8; C], TLSError> {
         self.declassify()
             .try_into()
             .map_err(|_| INCORRECT_ARRAY_LENGTH)
@@ -179,36 +179,36 @@ impl<const C: usize> From<&[u8; C]> for Bytes {
 }
 
 impl U32 {
-    pub fn from_be_bytes(x: &Bytes) -> Result<U32, TLSError> {
+    pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U32, TLSError> {
         Ok(U32(u32::from_be_bytes(x.declassify_array()?)))
     }
-    pub fn to_be_bytes(&self) -> Bytes {
+    pub(crate) fn as_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
-    pub fn declassify(&self) -> u32 {
+    pub(crate) fn declassify(&self) -> u32 {
         self.0
     }
 }
 
 impl U16 {
-    pub fn from_be_bytes(x: &Bytes) -> Result<U16, TLSError> {
+    pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U16, TLSError> {
         Ok(U16(u16::from_be_bytes(x.declassify_array()?)))
     }
-    pub fn to_be_bytes(&self) -> Bytes {
+    pub(crate) fn as_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
-    pub fn declassify(&self) -> u16 {
+    pub(crate) fn declassify(&self) -> u16 {
         self.0
     }
 }
 
-pub fn bytes(x: &[u8]) -> Bytes {
+pub(crate) fn bytes(x: &[u8]) -> Bytes {
     x.into()
 }
-pub fn bytes1(x: u8) -> Bytes {
+pub(crate) fn bytes1(x: u8) -> Bytes {
     [x].into()
 }
-pub fn bytes2(x: u8, y: u8) -> Bytes {
+pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
@@ -243,31 +243,33 @@ impl core::ops::Index<Range<usize>> for Bytes {
 }
 
 impl Bytes {
-    pub fn new() -> Bytes {
+    pub(crate) fn new() -> Bytes {
         Bytes(Vec::new())
     }
-    pub fn zeroes(len: usize) -> Bytes {
+    pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
-    pub fn with_capacity(len: usize) -> Bytes {
+    pub(crate) fn with_capacity(len: usize) -> Bytes {
         Bytes(Vec::with_capacity(len))
     }
-    pub fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
-    pub fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
-    pub fn push(&mut self, x: U8) {
+    pub(crate) fn push(&mut self, x: U8) {
         self.0.push(x)
     }
-    pub fn extend_from_slice(&mut self, x: &Bytes) {
+    pub(crate) fn extend_from_slice(&mut self, x: &Bytes) {
         self.0.extend_from_slice(&x.0)
     }
 
-    pub fn from_slice(s: &[u8]) -> Bytes {
+    pub(crate) fn from_slice(s: &[u8]) -> Bytes {
         s.into()
     }
+
+    /// Read a hex string into [`Bytes`].
     pub fn from_hex(s: &str) -> Bytes {
         let s: String = s.split_whitespace().collect();
         if s.len() % 2 == 0 {
@@ -286,7 +288,8 @@ impl Bytes {
         }
     }
 
-    pub fn to_hex(&self) -> String {
+    /// Get a hex representation of self as [`String`].
+    pub(crate) fn as_hex(&self) -> String {
         let strs: Vec<String> = self
             .0
             .iter()
@@ -294,35 +297,44 @@ impl Bytes {
             .collect();
         strs.join("")
     }
-    pub fn slice_range(&self, r: Range<usize>) -> Bytes {
-        self.0[r].into()
+
+    /// Get a new copy of the given `range` as [`Bytes`].
+    pub(crate) fn slice_range(&self, range: Range<usize>) -> Bytes {
+        self.0[range].into()
     }
-    pub fn slice(&self, start: usize, len: usize) -> Bytes {
+
+    /// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
+    pub(crate) fn slice(&self, start: usize, len: usize) -> Bytes {
         self.0[start..start + len].into()
     }
-    pub fn concat(&self, x: &Bytes) -> Bytes {
+
+    /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
+    pub fn concat(&self, other: &Bytes) -> Bytes {
         let mut res = Vec::new();
         res.extend_from_slice(&self.0);
-        res.extend_from_slice(&x.0);
+        res.extend_from_slice(&other.0);
         Bytes(res)
     }
 
-    pub fn update_slice(&self, st: usize, src: &Bytes, beg: usize, len: usize) -> Bytes {
+    /// Update the slice `self[start..start+len] = other[beg..beg+len]` and return
+    /// a copy as [`Bytes`].
+    pub(crate) fn update_slice(
+        &self,
+        start: usize,
+        other: &Bytes,
+        beg: usize,
+        len: usize,
+    ) -> Bytes {
         let mut res = self.clone();
         for i in 0..len {
-            res[st + i] = src[beg + i];
+            res[start + i] = other[beg + i];
         }
         res
     }
-
-    /* pub fn to_array<const sz:usize>(&self) -> Result<[U8; sz],TLSError> {
-        if self.len() == sz {
-            Ok(self.0.clone().try_into().unwrap())
-        } else {Err(PARSE_FAILED)}
-    }*/
 }
 
-pub fn check(b: bool) -> Result<(), TLSError> {
+/// Convert the bool `b` into a Result.
+pub(crate) fn check(b: bool) -> Result<(), TLSError> {
     if b {
         Ok(())
     } else {
@@ -330,10 +342,11 @@ pub fn check(b: bool) -> Result<(), TLSError> {
     }
 }
 
-pub fn eq1(b1: U8, b2: U8) -> bool {
+pub(crate) fn eq1(b1: U8, b2: U8) -> bool {
     b1.declassify() == b2.declassify()
 }
-pub fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
+
+pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     if eq1(b1, b2) {
         Ok(())
     } else {
@@ -342,6 +355,7 @@ pub fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
 }
 
 // TODO: This function should short-circuit once hax supports returns within loops
+/// Compare two
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     if b1.len() != b2.len() {
         false
@@ -356,7 +370,7 @@ pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     }
 }
 
-pub fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
+pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     let b = eq(b1, b2);
     if b {
         Ok(())
@@ -366,7 +380,10 @@ pub fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
 }
 
 // TODO: This function should short-circuit once hax supports returns within loops
-pub fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
+/// Compare the two provided byte slices.
+///
+/// Returns `Ok(())` when they are equal, and a [`TLSError`] otherwise.
+pub(crate) fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {
@@ -385,7 +402,7 @@ pub fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
 }
 
 /// TLS encode the `bytes` with [`u8`] length.
-pub fn lbytes1(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
@@ -398,12 +415,12 @@ pub fn lbytes1(bytes: &Bytes) -> Result<Bytes, TLSError> {
 }
 
 /// TLS encode the `bytes` with [`u16`] length.
-pub fn lbytes2(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len = (U16(len as u16)).to_be_bytes();
+        let len = (U16(len as u16)).as_be_bytes();
         let mut lenb = Bytes::new();
         lenb.push(len[0]);
         lenb.push(len[1]);
@@ -413,12 +430,12 @@ pub fn lbytes2(bytes: &Bytes) -> Result<Bytes, TLSError> {
 }
 
 /// TLS encode the `bytes` with [`u24`] length.
-pub fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len = U32(len as u32).to_be_bytes();
+        let len = U32(len as u32).as_be_bytes();
         let mut lenb = Bytes::new();
         lenb.push(len[1]);
         lenb.push(len[2]);
@@ -428,7 +445,7 @@ pub fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
     }
 }
 
-pub fn check_lbytes1(b: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn decode_u8_length(b: &Bytes) -> Result<usize, TLSError> {
     if b.is_empty() {
         Err(parse_failed())
     } else {
@@ -441,7 +458,7 @@ pub fn check_lbytes1(b: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
-pub fn check_lbytes2(b: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn check_lbytes2(b: &Bytes) -> Result<usize, TLSError> {
     if b.len() < 2 {
         Err(parse_failed())
     } else {
@@ -456,7 +473,7 @@ pub fn check_lbytes2(b: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
-pub fn check_lbytes3(b: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn check_lbytes3(b: &Bytes) -> Result<usize, TLSError> {
     if b.len() < 3 {
         Err(parse_failed())
     } else {
@@ -472,15 +489,19 @@ pub fn check_lbytes3(b: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
-pub fn check_lbytes1_full(b: &Bytes) -> Result<(), TLSError> {
-    if check_lbytes1(b)? + 1 != b.len() {
+/// Check if `bytes` contains more than the TLS `u8` length encoded content.
+///
+/// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
+/// more bytes in the `bytes`.
+pub(crate) fn check_u8_encoded_full(bytes: &Bytes) -> Result<(), TLSError> {
+    if decode_u8_length(bytes)? + 1 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
     }
 }
 
-pub fn check_lbytes2_full(b: &Bytes) -> Result<(), TLSError> {
+pub(crate) fn check_lbytes2_full(b: &Bytes) -> Result<(), TLSError> {
     if check_lbytes2(b)? + 2 != b.len() {
         Err(parse_failed())
     } else {
@@ -488,7 +509,7 @@ pub fn check_lbytes2_full(b: &Bytes) -> Result<(), TLSError> {
     }
 }
 
-pub fn check_lbytes3_full(b: &Bytes) -> Result<(), TLSError> {
+pub(crate) fn check_lbytes3_full(b: &Bytes) -> Result<(), TLSError> {
     if check_lbytes3(b)? + 3 != b.len() {
         Err(parse_failed())
     } else {
@@ -499,18 +520,18 @@ pub fn check_lbytes3_full(b: &Bytes) -> Result<(), TLSError> {
 // Handshake Data
 pub struct HandshakeData(pub Bytes);
 
-pub fn handshake_data(b: Bytes) -> HandshakeData {
+pub(crate) fn handshake_data(b: Bytes) -> HandshakeData {
     HandshakeData(b)
 }
-pub fn handshake_data_bytes(hd: &HandshakeData) -> Bytes {
+pub(crate) fn handshake_data_bytes(hd: &HandshakeData) -> Bytes {
     hd.0.clone()
 }
 
-pub fn handshake_data_len(p: &HandshakeData) -> usize {
+pub(crate) fn handshake_data_len(p: &HandshakeData) -> usize {
     p.0.len()
 }
 
-pub fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
+pub(crate) fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
     let HandshakeData(mut m1) = msg1;
     let HandshakeData(m2) = msg2;
     m1.0.extend_from_slice(&m2.0);

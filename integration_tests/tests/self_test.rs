@@ -2,7 +2,9 @@ use rand::thread_rng;
 use std::net::TcpListener;
 
 use bertie::{
-    ciphersuites::{
+    stream::BertieStream,
+    tls13crypto::SignatureScheme,
+    tls13crypto::{
         SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256, SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
         SHA256_Aes128Gcm_RsaPssRsaSha256_P256, SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
@@ -12,8 +14,6 @@ use bertie::{
         SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
         SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
     },
-    stream::BertieStream,
-    tls13crypto::SignatureScheme,
 };
 
 #[test]
@@ -82,6 +82,8 @@ fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_x25519() {
 }
 
 fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
+    let _ = tracing_subscriber::fmt::try_init();
+
     let (tx, rx) = std::sync::mpsc::channel();
 
     // Server thread.
@@ -98,7 +100,7 @@ fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
 
         // tls13server(stream, "127.0.0.1", Some(algorithms)).unwrap();
 
-        let (cert_file, key_file) = match ciphersuite.sig_alg() {
+        let (cert_file, key_file) = match ciphersuite.signature() {
             SignatureScheme::EcdsaSecp256r1Sha256 => (
                 "../tests/assets/p256_cert.der",
                 "../tests/assets/p256_key.der",

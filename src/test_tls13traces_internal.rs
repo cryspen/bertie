@@ -5,8 +5,7 @@ mod internal_tests {
     use crate::tls13utils::*;
     use crate::{
         tls13crypto::{
-            hash, hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random,
-            SignatureScheme,
+            hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
         },
         tls13formats::*,
     };
@@ -190,31 +189,31 @@ c1 fc eb e1 1a 03 9e c1 76 94 fa c6 e9 85 27 b6 42 f2 ed d5 ce
 d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 26 c4 05 46";
 
-    const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms(
-        HashAlgorithm::SHA256,
-        AeadAlgorithm::Aes128Gcm,
-        SignatureScheme::RsaPssRsaSha256,
-        KemScheme::X25519,
-        false,
-        false,
-    );
+    const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms {
+        hash: HashAlgorithm::SHA256,
+        aead: AeadAlgorithm::Aes128Gcm,
+        signature: SignatureScheme::RsaPssRsaSha256,
+        kem: KemScheme::X25519,
+        psk_mode: false,
+        zero_rtt: false,
+    };
 
-    const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms(
-        HashAlgorithm::SHA256,
-        AeadAlgorithm::Aes128Gcm,
-        SignatureScheme::EcdsaSecp256r1Sha256,
-        KemScheme::X25519,
-        false,
-        false,
-    );
-    const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms(
-        HashAlgorithm::SHA256,
-        AeadAlgorithm::Chacha20Poly1305,
-        SignatureScheme::EcdsaSecp256r1Sha256,
-        KemScheme::X25519,
-        false,
-        false,
-    );
+    const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms {
+        hash: HashAlgorithm::SHA256,
+        aead: AeadAlgorithm::Aes128Gcm,
+        signature: SignatureScheme::EcdsaSecp256r1Sha256,
+        kem: KemScheme::X25519,
+        psk_mode: false,
+        zero_rtt: false,
+    };
+    const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms {
+        hash: HashAlgorithm::SHA256,
+        aead: AeadAlgorithm::Chacha20Poly1305,
+        signature: SignatureScheme::EcdsaSecp256r1Sha256,
+        kem: KemScheme::X25519,
+        psk_mode: false,
+        zero_rtt: false,
+    };
 
     const ECDSA_P256_SHA256_CERT: [u8; 522] = [
         0x30, 0x82, 0x02, 0x06, 0x30, 0x82, 0x01, 0xAC, 0x02, 0x09, 0x00, 0xD1, 0xA2, 0xE4, 0xD5,
@@ -271,10 +270,10 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                 println!("Parsed CH!");
-                println!("cr: {}", cr.to_hex());
-                println!("sid: {}", sid.to_hex());
-                println!("sn: {}", sn.to_hex());
-                println!("gx: {}", gx.to_hex());
+                println!("cr: {}", cr.as_hex());
+                println!("sid: {}", sid.as_hex());
+                println!("sn: {}", sn.as_hex());
+                println!("gx: {}", gx.as_hex());
                 println!("trunc_len: {}", l);
             }
         }
@@ -299,10 +298,10 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 }
                 Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                     println!("Parsed CH!");
-                    println!("cr: {}", cr.to_hex());
-                    println!("sid: {}", sid.to_hex());
-                    println!("sn: {}", sn.to_hex());
-                    println!("gx: {}", gx.to_hex());
+                    println!("cr: {}", cr.as_hex());
+                    println!("sid: {}", sid.as_hex());
+                    println!("sn: {}", sn.as_hex());
+                    println!("gx: {}", gx.as_hex());
                     println!("trunc_len: {}", l);
                 }
             },
@@ -338,10 +337,10 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                     }
                     Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                         println!("Parsed CH!");
-                        println!("cr: {}", cr.to_hex());
-                        println!("sid: {}", sid.to_hex());
-                        println!("sn: {}", sn.to_hex());
-                        println!("gx: {}", gx.to_hex());
+                        println!("cr: {}", cr.as_hex());
+                        println!("sid: {}", sid.as_hex());
+                        println!("sn: {}", sn.as_hex());
+                        println!("gx: {}", gx.as_hex());
                         println!("trunc_len: {}", l);
                     }
                 }
@@ -362,8 +361,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
             }
             Ok((sr, gy)) => {
                 println!("Parsed SH!");
-                println!("sr: {}", sr.to_hex());
-                println!("gy: {}", gy.to_hex());
+                println!("sr: {}", sr.as_hex());
+                println!("gy: {}", gy.as_hex());
             }
         }
         assert!(b);
@@ -400,8 +399,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                     }
                     Ok((sr, gy)) => {
                         println!("Parsed SH!");
-                        println!("sr: {}", sr.to_hex());
-                        println!("gy: {}", gy.to_hex());
+                        println!("sr: {}", sr.as_hex());
+                        println!("gy: {}", gy.as_hex());
                     }
                 }
             }
@@ -493,47 +492,66 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     fn test_key_schedule() {
         let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         let sha256_emp = Bytes::from_hex(sha256_emp_str);
-        match hash(&HashAlgorithm::SHA256, &Bytes::new()) {
+        match HashAlgorithm::SHA256.hash(&Bytes::new()) {
             Ok(ha) => {
                 println!(
                     "computed hash(empty) {}\nexpected hash(empty) {}",
-                    ha.to_hex(),
-                    sha256_emp.to_hex()
+                    ha.as_hex(),
+                    sha256_emp.as_hex()
                 );
             }
             _ => {}
         }
-        let ch = Bytes::from_hex(client_hello);
-        let sh = Bytes::from_hex(server_hello);
-        let ee = Bytes::from_hex(encrypted_extensions);
-        let sc = Bytes::from_hex(server_certificate);
-        let cv = Bytes::from_hex(server_certificate_verify);
-        let sf = Bytes::from_hex(server_finished);
-        let gxy = Bytes::from_hex(shared_secret);
-        let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = TLS_AES_128_GCM_SHA256_X25519_RSA;
-        let tx = ch.concat(&sh);
-        let tx_hash = hash(&ha, &tx);
+        let client_hello_bytes = Bytes::from_hex(client_hello);
+        let server_hello_bytes = Bytes::from_hex(server_hello);
+        let encrypted_extensions_bytes = Bytes::from_hex(encrypted_extensions);
+        let server_certificate_bytes = Bytes::from_hex(server_certificate);
+        let server_cert_verify_bytes = Bytes::from_hex(server_certificate_verify);
+        let server_finished_bytes = Bytes::from_hex(server_finished);
+        let shared_secret_bytes = Bytes::from_hex(shared_secret);
+        let Algorithms {
+            hash: ha,
+            aead: ae,
+            signature: sa,
+            kem: gn,
+            psk_mode,
+            zero_rtt,
+        } = TLS_AES_128_GCM_SHA256_X25519_RSA;
+        let transcript = client_hello_bytes.concat(&server_hello_bytes);
+        let tx_hash = ha.hash(&transcript);
         let mut b = true;
         match tx_hash {
             Err(x) => {
                 println!("Error: {}", x);
             }
             Ok(tx_hash) => {
-                let keys = derive_hk_ms(&ha, &ae, &gxy, &None, &tx_hash);
+                let keys = derive_hk_ms(&ha, &ae, &shared_secret_bytes, &None, &tx_hash);
                 b = keys.is_ok();
                 match keys {
                     Err(x) => {
                         println!("Error: {}", x);
                     }
-                    Ok(((k1, iv1), (k2, iv2), cfk, sfk, ms)) => {
+                    Ok((aead_key_iv1, aead_key_iv2, cfk, sfk, ms)) => {
                         println!("Derive Succeeded!");
-                        println!("chk: key {} \n iv {}", k1.to_hex(), iv1.to_hex());
-                        println!("shk: key {} \n iv {}", k2.to_hex(), iv2.to_hex());
-                        println!("cfk: {}", cfk.to_hex());
-                        println!("sfk: {}", sfk.to_hex());
-                        println!("ms: {}", ms.to_hex());
-                        let tx = tx.concat(&ee).concat(&sc).concat(&cv).concat(&sf);
-                        let tx_hash = hash(&ha, &tx);
+                        println!(
+                            "chk: key {} \n iv {}",
+                            aead_key_iv1.key.bytes().as_hex(),
+                            aead_key_iv1.iv.as_hex()
+                        );
+                        println!(
+                            "shk: key {} \n iv {}",
+                            aead_key_iv2.key.bytes().as_hex(),
+                            aead_key_iv2.iv.as_hex()
+                        );
+                        println!("cfk: {}", cfk.as_hex());
+                        println!("sfk: {}", sfk.as_hex());
+                        println!("ms: {}", ms.as_hex());
+                        let transcript = transcript
+                            .concat(&encrypted_extensions_bytes)
+                            .concat(&server_certificate_bytes)
+                            .concat(&server_cert_verify_bytes)
+                            .concat(&server_finished_bytes);
+                        let tx_hash = ha.hash(&transcript);
                         match tx_hash {
                             Err(x) => {
                                 println!("Error: {}", x);
@@ -545,11 +563,19 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                                     Err(x) => {
                                         println!("Error: {}", x);
                                     }
-                                    Ok(((k1, iv1), (k2, iv2), ms)) => {
+                                    Ok((aead_key_iv1, aead_key_iv2, ms)) => {
                                         println!("Derive Succeeded!");
-                                        println!("cak: key {} \n iv {}", k1.to_hex(), iv1.to_hex());
-                                        println!("sak: key {} \n iv {}", k2.to_hex(), iv2.to_hex());
-                                        println!("exp: {}", ms.to_hex());
+                                        println!(
+                                            "cak: key {} \n iv {}",
+                                            aead_key_iv1.key.bytes().as_hex(),
+                                            aead_key_iv1.iv.as_hex()
+                                        );
+                                        println!(
+                                            "sak: key {} \n iv {}",
+                                            aead_key_iv2.key.bytes().as_hex(),
+                                            aead_key_iv2.iv.as_hex()
+                                        );
+                                        println!("exp: {}", ms.as_hex());
                                     }
                                 }
                             }
@@ -606,11 +632,18 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
         let sc: Bytes = Bytes::from_hex(server_certificate);
         let cv: Bytes = Bytes::from_hex(server_certificate_verify);
         let sf: Bytes = Bytes::from_hex(server_finished);
-        let Algorithms(ha, ae, sa, gn, psk_mode, zero_rtt) = TLS_AES_128_GCM_SHA256_X25519_RSA;
+        let Algorithms {
+            hash: ha,
+            aead: ae,
+            signature: sa,
+            kem: gn,
+            psk_mode,
+            zero_rtt,
+        } = TLS_AES_128_GCM_SHA256_X25519_RSA;
         let tx1 = ch.concat(&sh).concat(&ee).concat(&sc).concat(&cv);
-        let tx_hash1 = hash(&ha, &tx1);
+        let tx_hash1 = ha.hash(&tx1);
         let tx2 = tx1.concat(&sf);
-        let tx_hash2 = hash(&ha, &tx2);
+        let tx_hash2 = ha.hash(&tx2);
         let mut b = true;
         match (tx_hash1, tx_hash2) {
             (Ok(h1), Ok(h2)) => {
@@ -618,8 +651,8 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 let m2 = hmac_tag(&ha, &cfk, &h2);
                 match (m1, m2) {
                     (Ok(m1), Ok(m2)) => {
-                        println!("computed sfin vd {}", m1.to_hex());
-                        println!("computed cfin vd {}", m2.to_hex());
+                        println!("computed sfin vd {}", m1.as_hex());
+                        println!("computed cfin vd {}", m2.as_hex());
                     }
                     _ => {
                         b = false;

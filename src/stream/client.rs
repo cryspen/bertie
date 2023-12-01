@@ -7,8 +7,9 @@ use std::{
     io::{Read, Write},
     net::TcpStream,
 };
+// use tracing::{event, Level};
 
-use super::{read_record, BertieError, BertieStream, TlsStream};
+use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
 use crate::{tls13crypto::*, tls13utils::*, Client};
 
 pub struct ClientState<Stream: Read + Write> {
@@ -128,15 +129,14 @@ impl BertieStream<ClientState<TcpStream>> {
             let sni = self.host.as_bytes();
             Client::connect(self.ciphersuite, &Bytes::from(sni), None, None, rng)?
         };
-        eprintln!(" Sending client hello ...");
+        // event!(Level::TRACE, "client hello: {}", client_hello.as_hex());
+        // event!(Level::DEBUG, "  {ciphersuite:?}");
         self.write_all(&client_hello.declassify())?;
 
         let mut read_buffer = Vec::new();
 
         // Server Hello
-        eprintln!(" Reading server hello ...");
         let server_hello = read_record(&mut read_buffer, &mut self.state.stream)?;
-        eprintln!("  foo ...");
 
         // Check for alerts
         if server_hello[0] == 21 {
@@ -176,7 +176,7 @@ impl BertieStream<ClientState<TcpStream>> {
         // Finish the handshake
         let mut cf_rec = None;
         let mut cstate = cstate;
-        while cf_rec == None {
+        while cf_rec.is_none() {
             let rec = read_record(&mut read_buffer, &mut self.state.stream)?;
 
             let (new_cf_rec, new_cstate) = match cstate.read_handshake(&rec.into()) {
@@ -234,6 +234,8 @@ impl BertieStream<ClientState<TcpStream>> {
 mod tests {
     use rand::thread_rng;
 
+    use crate::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
+
     use super::*;
 
     #[test]
@@ -243,7 +245,7 @@ mod tests {
         let mut stream = BertieStream::client(
             host,
             port,
-            crate::ciphersuites::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+            SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
             &mut thread_rng(),
         )
         .expect("Error connecting to server");

@@ -12,7 +12,6 @@ mod tls13formats;
 mod tls13handshake;
 mod tls13record;
 
-pub mod ciphersuites;
 pub mod server;
 pub mod tls13api;
 pub mod tls13cert;
@@ -21,9 +20,7 @@ pub mod tls13utils;
 
 pub use tls13api::{Client, Server};
 // Debug exports only
-pub use tls13formats::{
-    get_alert_description, get_alert_level, get_content_type, get_hs_type, ContentType,
-};
+pub use tls13formats::{get_alert_description, get_alert_level, get_hs_type, ContentType};
 
 // === Public API that is NOT in hacspec
 
