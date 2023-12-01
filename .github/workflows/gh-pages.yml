@@ -1,4 +1,4 @@
-name: Build and Deploy GH Pages
+name: GH Pages
 
 on:
   workflow_dispatch:
@@ -45,7 +45,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build
 
-    if: ${{ github.event_name == 'workflow_dispatch'  || github.event_name == 'merge_group'   }}
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Documentation to GitHub Pages
