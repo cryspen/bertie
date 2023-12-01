@@ -1,7 +1,7 @@
 //! Bertie is a minimal, high-assurance implementation of TLS 1.3
 //!
 //! It is built upon the following design principles:
-//! 
+//!
 //! 1) **Purely functional**: no mutable data structures or externally visible side-effects.
 //! 2) **Verification friendly**: written in a way that can be translated to verifiable models
 //! 3) **Succinct and minimal**: configured with a single protocol version and cipher suite.
@@ -20,8 +20,6 @@
 //! [hax]: https://github.com/hacspec/hax
 //! [tls13client]: ../tls13client/index.html
 //! [tls13server]: ../tls13server/index.html
-
-
 
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
