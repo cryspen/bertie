@@ -44,9 +44,9 @@ cd $cwd/../
 file="util/$url_file"
 i=0
 
-rust_log=
+rust_log=debug
 if [ $verbose -eq 1 ]; then
-    rust_log=debug
+    rust_log=trace
 fi
 
 while IFS= read -r line || [ -n "$line" ]; do
@@ -64,14 +64,16 @@ while IFS= read -r line || [ -n "$line" ]; do
 
     log=$(RUST_LOG=$rust_log \
         timeout 30s \
-        cargo run -p simple_https_client \
-        --no-default-features --features evercrypt -- \
-        $line 2>&1)
+        cargo run -p simple_https_client -- $line 2>&1)
 
     if [ $verbose -eq 1 ]; then
         echo "$log"
     else
-        echo "$log" | grep 'Error:\|succeeded'
+        if [[ $log == *"succeeded."* ]]; then
+            echo " ... Succeeded"
+        else
+            echo " ... Failed"
+        fi
     fi
 
     i=$((i + 1))

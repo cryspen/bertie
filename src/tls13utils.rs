@@ -2,8 +2,8 @@ use core::ops::Range;
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
-    let bt = backtrace::Backtrace::new();
-    println!("{:?}", bt);
+    // let bt = backtrace::Backtrace::new();
+    // println!("{:?}", bt);
     PARSE_FAILED
 }
 
