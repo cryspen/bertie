@@ -1,0 +1,53 @@
+name: Build and Deploy GH Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Documentation
+        run: |
+          cargo doc --no-deps
+          cat > target/doc/index.html <<EOF
+          <!doctype html>
+          <html>
+          <a href="bertie/index.html">Docs</a>
+          </html>
+          EOF
+
+      - name: Upload Documentation Artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: "target/doc"
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+
+    if: ${{ github.event_name == 'workflow_dispatch'  || github.event_name == 'merge_group'   }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Documentation to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
