@@ -545,11 +545,7 @@ pub fn handshake_message(
 pub fn get_next_handshake_message(
     payload: &HandshakeData,
 ) -> Result<(HandshakeData, HandshakeData), TLSError> {
-    if ({
-        let p: &HandshakeData = &payload;
-        p.len()
-    }) < 4
-    {
+    if (payload.len()) < 4 {
         tlserr(parse_failed())
     } else {
         let len = check_lbytes3(&payload.0.slice_range(1..payload.0.len()))?;
@@ -647,11 +643,7 @@ pub fn find_handshake_message(
     payload: &HandshakeData,
     start: usize,
 ) -> bool {
-    if ({
-        let p: &HandshakeData = &payload;
-        p.len()
-    }) < start + 4
-    {
+    if (payload.len()) < start + 4 {
         false
     } else {
         match check_lbytes3(&payload.0.slice_range(start + 1..payload.0.len())) {
