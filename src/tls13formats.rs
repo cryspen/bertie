@@ -8,10 +8,10 @@ use crate::{
     tls13utils::{
         bytes1, bytes2, check_eq, check_lbyte, check_lbyte_full, check_lbytes2, check_lbytes2_full,
         check_lbytes3, check_lbytes3_full, check_mem, encode_lbyte, encode_lbytes2, encode_lbytes3,
-        eq, eq1, parse_failed, tlserr, Bytes,
-        HandshakeData, TLSError, APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR,
-        INVALID_COMPRESSION_LIST, INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT,
-        PSK_MODE_MISMATCH, U32, U8, UNSUPPORTED_ALGORITHM,
+        eq, eq1, parse_failed, tlserr, Bytes, HandshakeData, TLSError,
+        APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
+        INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
+        UNSUPPORTED_ALGORITHM,
     },
 };
 
@@ -548,7 +548,8 @@ pub fn get_next_handshake_message(
     if ({
         let p: &HandshakeData = &payload;
         p.len()
-    }) < 4 {
+    }) < 4
+    {
         tlserr(parse_failed())
     } else {
         let len = check_lbytes3(&payload.0.slice_range(1..payload.0.len()))?;
@@ -568,7 +569,8 @@ pub fn get_handshake_message(payload: &HandshakeData) -> Result<HandshakeData, T
     if ({
         let p = &payload_rest;
         p.len()
-    }) != 0 {
+    }) != 0
+    {
         tlserr(parse_failed())
     } else {
         Ok(message)
@@ -606,7 +608,8 @@ pub fn get_handshake_messages2(
     if ({
         let p = &payload_rest;
         p.len()
-    }) != 0 {
+    }) != 0
+    {
         tlserr(parse_failed())
     } else {
         Ok((message1, message2))
@@ -628,7 +631,8 @@ pub fn get_handshake_messages4(
     if ({
         let p = &payload_rest;
         p.len()
-    }) != 0 {
+    }) != 0
+    {
         tlserr(parse_failed())
     } else {
         Ok((message1, message2, message3, message4))
@@ -646,7 +650,8 @@ pub fn find_handshake_message(
     if ({
         let p: &HandshakeData = &payload;
         p.len()
-    }) < start + 4 {
+    }) < start + 4
+    {
         false
     } else {
         match check_lbytes3(&payload.0.slice_range(start + 1..payload.0.len())) {
