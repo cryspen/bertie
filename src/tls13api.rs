@@ -65,11 +65,14 @@ impl Client {
         psk: Option<Key>,
         rng: &mut (impl CryptoRng + RngCore),
     ) -> Result<(Bytes, Self), TLSError> {
-        let (ch, cipher0, cstate) =
+        let (client_hello, cipherstate0, client_state) =
             client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
-        let mut client_hello = handshake_record(&ch)?;
-        client_hello[2] = U8::from(0x01);
-        Ok((client_hello, Self::Client0(cstate, cipher0)))
+        let mut client_hello_record = handshake_record(&client_hello)?;
+        client_hello_record[2] = U8::from(0x01);
+        Ok((
+            client_hello_record,
+            Self::Client0(client_state, cipherstate0),
+        ))
     }
 
     // This function reads handshake records and decrypts them using the TLS 1.3 record protocol
@@ -93,12 +96,12 @@ impl Client {
             Self::Client0(state, cipher_state) => {
                 let sf = get_handshake_record(handshake_bytes)?;
                 let (cipher1, cstate) = client_set_params(&sf, state)?;
-                let buf = handshake_data(Bytes::new());
+                let buf = HandshakeData::from(Bytes::new());
                 Ok((None, Self::ClientH(cstate, cipher_state, cipher1, buf)))
             }
             Self::ClientH(cstate, cipher0, cipher_hs, buf) => {
                 let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
-                let buf = handshake_concat(buf, &hd);
+                let buf = buf.concat(&hd);
                 if find_handshake_message(HandshakeType::Finished, &buf, 0) {
                     let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
                     let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;

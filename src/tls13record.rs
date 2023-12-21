@@ -184,7 +184,7 @@ pub(crate) fn encrypt_handshake(
     pad: usize,
     mut state: DuplexCipherStateH,
 ) -> Result<(Bytes, DuplexCipherStateH), TLSError> {
-    let payload = handshake_data_bytes(&payload);
+    let payload = payload.bytes();
 
     let rec = encrypt_record_payload(
         &state.sender_key_iv,
@@ -210,7 +210,7 @@ pub(crate) fn decrypt_handshake(
     } else {
         check(ct == ContentType::Handshake)?;
         state.receiver_counter += 1;
-        Ok((handshake_data(payload), state))
+        Ok((HandshakeData::from(payload), state))
     }
 }
 

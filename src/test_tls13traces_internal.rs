@@ -260,7 +260,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_client_hello() {
-        let ch = handshake_data(Bytes::from_hex(client_hello));
+        let ch = HandshakeData::from(Bytes::from_hex(client_hello));
         //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
         let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
         let b = res.is_ok();
@@ -351,7 +351,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_server_hello() {
-        let sh = handshake_data(Bytes::from_hex(server_hello));
+        let sh = HandshakeData::from(Bytes::from_hex(server_hello));
         //   let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
         let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
         let b = res.is_ok();
@@ -371,7 +371,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     #[ignore = "Enable this later."]
     fn test_parse_server_hello_length_zero() {
-        let sh = handshake_data(Bytes::from_hex("02000000"));
+        let sh = HandshakeData::from(Bytes::from_hex("02000000"));
         let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
     }
 
@@ -410,7 +410,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_encrypted_extensions() {
-        let ee = handshake_data(Bytes::from_hex(encrypted_extensions));
+        let ee = HandshakeData::from(Bytes::from_hex(encrypted_extensions));
         let res = parse_encrypted_extensions(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ee);
         let b = res.is_ok();
         match res {
@@ -426,7 +426,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_server_certificate() {
-        let sc = handshake_data(Bytes::from_hex(server_certificate));
+        let sc = HandshakeData::from(Bytes::from_hex(server_certificate));
         let res = parse_server_certificate(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sc);
         let b = res.is_ok();
         match res {
@@ -442,7 +442,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_server_certificate_verify() {
-        let cv = handshake_data(Bytes::from_hex(server_certificate_verify));
+        let cv = HandshakeData::from(Bytes::from_hex(server_certificate_verify));
         let res = parse_certificate_verify(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cv);
         let b = res.is_ok();
         match res {
@@ -458,7 +458,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_server_finished() {
-        let sf = handshake_data(Bytes::from_hex(server_finished));
+        let sf = HandshakeData::from(Bytes::from_hex(server_finished));
         let res = parse_finished(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sf);
         let b = res.is_ok();
         match res {
@@ -474,7 +474,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_client_finished() {
-        let cf = handshake_data(Bytes::from_hex(client_finished));
+        let cf = HandshakeData::from(Bytes::from_hex(client_finished));
         let res = parse_finished(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cf);
         let b = res.is_ok();
         match res {
