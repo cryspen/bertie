@@ -412,7 +412,7 @@ pub(crate) fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
 /// On success, return a new [Bytes] slice such that its first byte encodes the
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
-pub(crate) fn encode_lbyte(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_length_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
@@ -429,7 +429,7 @@ pub(crate) fn encode_lbyte(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first two bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in two bytes.
-pub(crate) fn encode_lbytes2(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_length_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
@@ -448,7 +448,7 @@ pub(crate) fn encode_lbytes2(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first three bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in three bytes.
-pub(crate) fn encode_lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
@@ -469,7 +469,7 @@ pub(crate) fn encode_lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is
 /// empty or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
-pub(crate) fn check_lbyte(bytes: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn length_u8_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
     if bytes.is_empty() {
         Err(parse_failed())
     } else {
@@ -488,7 +488,7 @@ pub(crate) fn check_lbyte(bytes: &Bytes) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 2
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
-pub(crate) fn check_lbytes2(bytes: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn length_u16_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
     if bytes.len() < 2 {
         Err(parse_failed())
     } else {
@@ -509,7 +509,7 @@ pub(crate) fn check_lbytes2(bytes: &Bytes) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 3
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
-pub(crate) fn check_lbytes3(bytes: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn length_u24_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
     if bytes.len() < 3 {
         Err(parse_failed())
     } else {
@@ -529,8 +529,8 @@ pub(crate) fn check_lbytes3(bytes: &Bytes) -> Result<usize, TLSError> {
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
-pub(crate) fn check_lbyte_full(bytes: &Bytes) -> Result<(), TLSError> {
-    if check_lbyte(bytes)? + 1 != bytes.len() {
+pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
+    if length_u8_encoded(bytes)? + 1 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
@@ -542,8 +542,8 @@ pub(crate) fn check_lbyte_full(bytes: &Bytes) -> Result<(), TLSError> {
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
-pub(crate) fn check_lbytes2_full(bytes: &Bytes) -> Result<(), TLSError> {
-    if check_lbytes2(bytes)? + 2 != bytes.len() {
+pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
+    if length_u16_encoded(bytes)? + 2 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
@@ -555,8 +555,8 @@ pub(crate) fn check_lbytes2_full(bytes: &Bytes) -> Result<(), TLSError> {
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
-pub(crate) fn check_lbytes3_full(bytes: &Bytes) -> Result<(), TLSError> {
-    if check_lbytes3(bytes)? + 3 != bytes.len() {
+pub(crate) fn check_length_encoding_u24(bytes: &Bytes) -> Result<(), TLSError> {
+    if length_u24_encoded(bytes)? + 3 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())

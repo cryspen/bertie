@@ -34,8 +34,8 @@ fn hkdf_expand_label(
         let lenb = U16::from(len as u16).as_be_bytes();
         let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
         let info = lenb
-            .concat(&encode_lbyte(&tls13_label)?)
-            .concat(&encode_lbyte(context)?);
+            .concat(&encode_length_u8(&tls13_label)?)
+            .concat(&encode_length_u8(context)?);
         hkdf_expand(hash_algorithm, key, &info, len)
     }
 }
