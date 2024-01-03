@@ -342,10 +342,13 @@ pub(crate) fn check(b: bool) -> Result<(), TLSError> {
     }
 }
 
+/// Test if [Bytes] `b1` and `b2` have the same value.
 pub(crate) fn eq1(b1: U8, b2: U8) -> bool {
     b1.declassify() == b2.declassify()
 }
 
+/// Parser function to check if [Bytes] `b1` and `b2` have the same value,
+/// returning a [TLSError] otherwise.
 pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     if eq1(b1, b2) {
         Ok(())
@@ -355,7 +358,8 @@ pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
 }
 
 // TODO: This function should short-circuit once hax supports returns within loops
-/// Compare two
+/// Check if [Bytes] slices `b1` and `b2` are of the same
+/// length and agree on all positions.
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     if b1.len() != b2.len() {
         false
@@ -370,6 +374,8 @@ pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     }
 }
 
+/// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
+/// length and agree on all positions, returning a [TLSError] otherwise.
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     let b = eq(b1, b2);
     if b {
@@ -401,8 +407,12 @@ pub(crate) fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     }
 }
 
-/// TLS encode the `bytes` with [`u8`] length.
-pub(crate) fn encode_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
+/// Attempt to TLS encode the `bytes` with [`u8`] length.
+///
+/// On success, return a new [Bytes] slice such that its first byte encodes the
+/// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
+/// the length of `bytes` exceeds what can be encoded in one byte.
+pub(crate) fn encode_length_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
@@ -414,8 +424,12 @@ pub(crate) fn encode_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
     }
 }
 
-/// TLS encode the `bytes` with [`u16`] length.
-pub(crate) fn encode_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
+/// Attempt to TLS encode the `bytes` with [`u16`] length.
+///
+/// On success, return a new [Bytes] slice such that its first two bytes encode the
+/// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
+/// the length of `bytes` exceeds what can be encoded in two bytes.
+pub(crate) fn encode_length_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
@@ -429,8 +443,12 @@ pub(crate) fn encode_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
     }
 }
 
-/// TLS encode the `bytes` with [`u24`] length.
-pub(crate) fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
+/// Attempt to TLS encode the `bytes` with [`u24`] length.
+///
+/// On success, return a new [Bytes] slice such that its first three bytes encode the
+/// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
+/// the length of `bytes` exceeds what can be encoded in three bytes.
+pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
@@ -445,12 +463,18 @@ pub(crate) fn lbytes3(bytes: &Bytes) -> Result<Bytes, TLSError> {
     }
 }
 
-pub(crate) fn decode_u8_length(b: &Bytes) -> Result<usize, TLSError> {
-    if b.is_empty() {
+/// Check if `bytes[1..]` is at least as long as the length encoded by
+/// `bytes[0]` in big-endian order.
+///
+/// On success, return the encoded length. Return a [TLSError] if `bytes` is
+/// empty or if the encoded length exceeds the length of the remainder of
+/// `bytes`.
+pub(crate) fn length_u8_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
+    if bytes.is_empty() {
         Err(parse_failed())
     } else {
-        let l = b[0].declassify() as usize;
-        if b.len() - 1 < l {
+        let l = bytes[0].declassify() as usize;
+        if bytes.len() - 1 < l {
             Err(parse_failed())
         } else {
             Ok(l)
@@ -458,14 +482,20 @@ pub(crate) fn decode_u8_length(b: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
-pub(crate) fn check_lbytes2(b: &Bytes) -> Result<usize, TLSError> {
-    if b.len() < 2 {
+/// Check if `bytes[2..]` is at least as long as the length encoded by `bytes[0..2]`
+/// in big-endian order.
+///
+/// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 2
+/// bytes long or if the encoded length exceeds the length of the remainder of
+/// `bytes`.
+pub(crate) fn length_u16_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
+    if bytes.len() < 2 {
         Err(parse_failed())
     } else {
-        let l0 = b[0].declassify() as usize;
-        let l1 = b[1].declassify() as usize;
+        let l0 = bytes[0].declassify() as usize;
+        let l1 = bytes[1].declassify() as usize;
         let l = l0 * 256 + l1;
-        if b.len() - 2 < l {
+        if bytes.len() - 2 < l {
             Err(parse_failed())
         } else {
             Ok(l)
@@ -473,15 +503,21 @@ pub(crate) fn check_lbytes2(b: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
-pub(crate) fn check_lbytes3(b: &Bytes) -> Result<usize, TLSError> {
-    if b.len() < 3 {
+/// Check if `bytes[3..]` is at least as long as the length encoded by `bytes[0..3]`
+/// in big-endian order.
+///
+/// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 3
+/// bytes long or if the encoded length exceeds the length of the remainder of
+/// `bytes`.
+pub(crate) fn length_u24_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
+    if bytes.len() < 3 {
         Err(parse_failed())
     } else {
-        let l0 = b[0].declassify() as usize;
-        let l1 = b[1].declassify() as usize;
-        let l2 = b[2].declassify() as usize;
+        let l0 = bytes[0].declassify() as usize;
+        let l1 = bytes[1].declassify() as usize;
+        let l2 = bytes[2].declassify() as usize;
         let l = l0 * 65536 + l1 * 256 + l2;
-        if b.len() - 3 < l {
+        if bytes.len() - 3 < l {
             Err(parse_failed())
         } else {
             Ok(l)
@@ -489,28 +525,38 @@ pub(crate) fn check_lbytes3(b: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
-/// Check if `bytes` contains more than the TLS `u8` length encoded content.
+/// Check if `bytes` contains exactly the TLS `u8` length encoded content.
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
-pub(crate) fn check_u8_encoded_full(bytes: &Bytes) -> Result<(), TLSError> {
-    if decode_u8_length(bytes)? + 1 != bytes.len() {
+pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
+    if length_u8_encoded(bytes)? + 1 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn check_lbytes2_full(b: &Bytes) -> Result<(), TLSError> {
-    if check_lbytes2(b)? + 2 != b.len() {
+/// Check if `bytes` contains exactly as many bytes of content as encoded by its
+/// first two bytes.
+///
+/// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
+/// more bytes in the `bytes`.
+pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
+    if length_u16_encoded(bytes)? + 2 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn check_lbytes3_full(b: &Bytes) -> Result<(), TLSError> {
-    if check_lbytes3(b)? + 3 != b.len() {
+/// Check if `bytes` contains exactly as many bytes of content as encoded by its
+/// first three bytes.
+///
+/// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
+/// more bytes in the `bytes`.
+pub(crate) fn check_length_encoding_u24(bytes: &Bytes) -> Result<(), TLSError> {
+    if length_u24_encoded(bytes)? + 3 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
@@ -520,22 +566,32 @@ pub(crate) fn check_lbytes3_full(b: &Bytes) -> Result<(), TLSError> {
 // Handshake Data
 pub struct HandshakeData(pub Bytes);
 
-pub(crate) fn handshake_data(b: Bytes) -> HandshakeData {
-    HandshakeData(b)
-}
-pub(crate) fn handshake_data_bytes(hd: &HandshakeData) -> Bytes {
-    hd.0.clone()
+impl HandshakeData {
+    /// Returns the length, in bytes.
+    pub(crate) fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns the handshake data bytes.
+    pub(crate) fn to_bytes(&self) -> Bytes {
+        self.0.clone()
+    }
+
+    /// Returns a new [`HandshakeData`] that contains the bytes of
+    /// `other` appended to the bytes of `self`.
+    pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
+        let mut message1 = self.to_bytes();
+        let message2 = other.to_bytes();
+
+        message1.0.extend_from_slice(&message2.0);
+        HandshakeData::from(message1)
+    }
 }
 
-pub(crate) fn handshake_data_len(p: &HandshakeData) -> usize {
-    p.0.len()
-}
-
-pub(crate) fn handshake_concat(msg1: HandshakeData, msg2: &HandshakeData) -> HandshakeData {
-    let HandshakeData(mut m1) = msg1;
-    let HandshakeData(m2) = msg2;
-    m1.0.extend_from_slice(&m2.0);
-    HandshakeData(m1)
+impl From<Bytes> for HandshakeData {
+    fn from(value: Bytes) -> Self {
+        HandshakeData(value)
+    }
 }
 
 // Application Data

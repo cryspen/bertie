@@ -8,8 +8,8 @@ use rand::{CryptoRng, RngCore};
 // use tracing::{event, Level};
 
 use crate::tls13utils::{
-    check_lbytes2, check_mem, eq, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR, INVALID_SIGNATURE,
-    UNSUPPORTED_ALGORITHM,
+    check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
+    INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
 };
 
 pub(crate) type Random = Bytes; //was [U8;32]
@@ -692,7 +692,7 @@ impl Algorithms {
 
     /// Check the ciphersuite in `bytes` against this ciphersuite.
     pub(crate) fn check(&self, bytes: &Bytes) -> Result<usize, TLSError> {
-        let len = check_lbytes2(bytes)?;
+        let len = length_u16_encoded(bytes)?;
         let cs = self.ciphersuite()?;
         let csl = bytes.slice_range(2..2 + len);
         check_mem(&cs, &csl)?;
