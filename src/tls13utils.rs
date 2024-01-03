@@ -572,12 +572,13 @@ impl HandshakeData {
     }
 
     pub(crate) fn bytes(&self) -> Bytes {
+    pub(crate) fn to_bytes(&self) -> Bytes {
         self.0.clone()
     }
 
     pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
-        let mut message1 = self.bytes();
-        let message2 = other.bytes();
+        let mut message1 = self.to_bytes();
+        let message2 = other.to_bytes();
 
         message1.0.extend_from_slice(&message2.0);
         HandshakeData::from(message1)
