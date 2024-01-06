@@ -102,7 +102,7 @@ impl Client {
             Self::ClientH(cstate, cipher0, cipher_hs, buf) => {
                 let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
                 let buf = buf.concat(&hd);
-                if find_handshake_message(HandshakeType::Finished, &buf, 0) {
+                if buf.find_handshake_message(HandshakeType::Finished, 0) {
                     let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
                     let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
                     Ok((Some(cf_rec), Self::Client1(cstate, cipher1)))

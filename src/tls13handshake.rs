@@ -431,7 +431,7 @@ fn put_server_finished(
         zero_rtt,
     } = algorithms;
     let transcript_hash = get_transcript_hash(&transcript)?;
-    let verify_data = parse_finished(&algorithms, server_finished)?;
+    let verify_data = parse_finished(server_finished)?;
     hmac_verify(&hash, &server_finished_key, &transcript_hash, &verify_data)?;
     let transcript = transcript_add1(transcript, server_finished);
     let transcript_hash_server_finished = get_transcript_hash(&transcript)?;
@@ -468,7 +468,7 @@ fn get_client_finished(
     ) = handshake_state;
     let transcript_hash = get_transcript_hash(&transcript)?;
     let verify_data = hmac_tag(&algorithms.hash(), &client_finished_key, &transcript_hash)?;
-    let client_finished = finished(&algorithms, &verify_data)?;
+    let client_finished = finished(&verify_data)?;
     let transcript = transcript_add1(transcript, &client_finished);
     let transcript_hash = get_transcript_hash(&transcript)?;
     let resumption_master_secret =
@@ -526,7 +526,7 @@ pub fn client_finish(
                 server_certificate,
                 server_certificate_verify,
                 server_finished,
-            ) = get_handshake_messages4(payload)?;
+            ) = payload.to_four()?;
             let client_state_certificate_verify = put_server_signature(
                 &encrypted_extensions,
                 &server_certificate,
@@ -540,7 +540,7 @@ pub fn client_finish(
             Ok((client_finished, cipher, client_state))
         }
         true => {
-            let (encrypted_extensions, server_finished) = get_handshake_messages2(payload)?;
+            let (encrypted_extensions, server_finished) = payload.to_two()?;
             let client_state_certificate_verify =
                 put_psk_skip_server_signature(&encrypted_extensions, handshake_state)?;
             let (cipher, client_state_server_finished) =
@@ -712,7 +712,7 @@ fn get_server_finished(
     } = algs;
     let th_scv = get_transcript_hash(&tx)?;
     let vd = hmac_tag(&ha, &sfk, &th_scv)?;
-    let sfin = finished(&algs, &vd)?;
+    let sfin = finished(&vd)?;
     let tx = transcript_add1(tx, &sfin);
     let th_sfin = get_transcript_hash(&tx)?;
     let (cak, sak, exp) = derive_app_keys(&ha, &ae, &ms, &th_sfin)?;
@@ -730,7 +730,7 @@ fn put_client_finished(
 ) -> Result<ServerPostClientFinished, TLSError> {
     let ServerPostServerFinished(cr, sr, algs, ms, cfk, tx) = st;
     let th = get_transcript_hash(&tx)?;
-    let vd = parse_finished(&algs, cfin)?;
+    let vd = parse_finished(cfin)?;
     hmac_verify(&algs.hash(), &cfk, &th, &vd)?;
     let tx = transcript_add1(tx, cfin);
     let th = get_transcript_hash(&tx)?;

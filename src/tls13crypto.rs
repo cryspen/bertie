@@ -7,14 +7,12 @@ use libcrux::{
 };
 use rand::{CryptoRng, RngCore};
 
-// use tracing::{event, Level};
-
 use crate::tls13utils::{
     check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
     INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
 };
 
-pub(crate) type Random = Bytes; //was [U8;32]
+pub(crate) type Random = Bytes;
 pub type SignatureKey = Bytes;
 pub(crate) type Psk = Bytes;
 pub(crate) type Key = Bytes;

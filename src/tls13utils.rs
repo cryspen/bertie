@@ -565,37 +565,6 @@ pub(crate) fn check_length_encoding_u24(bytes: &Bytes) -> Result<(), TLSError> {
     }
 }
 
-// Handshake Data
-pub struct HandshakeData(pub Bytes);
-
-impl HandshakeData {
-    /// Returns the length, in bytes.
-    pub(crate) fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// Returns the handshake data bytes.
-    pub(crate) fn to_bytes(&self) -> Bytes {
-        self.0.clone()
-    }
-
-    /// Returns a new [`HandshakeData`] that contains the bytes of
-    /// `other` appended to the bytes of `self`.
-    pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
-        let mut message1 = self.to_bytes();
-        let message2 = other.to_bytes();
-
-        message1.0.extend_from_slice(&message2.0);
-        HandshakeData::from(message1)
-    }
-}
-
-impl From<Bytes> for HandshakeData {
-    fn from(value: Bytes) -> Self {
-        HandshakeData(value)
-    }
-}
-
 // Application Data
 #[derive(PartialEq)]
 pub struct AppData(Bytes);

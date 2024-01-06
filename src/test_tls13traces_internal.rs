@@ -459,7 +459,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_server_finished() {
         let sf = HandshakeData::from(Bytes::from_hex(server_finished));
-        let res = parse_finished(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sf);
+        let res = parse_finished(&sf);
         let b = res.is_ok();
         match res {
             Err(x) => {
@@ -475,7 +475,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     fn test_parse_client_finished() {
         let cf = HandshakeData::from(Bytes::from_hex(client_finished));
-        let res = parse_finished(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cf);
+        let res = parse_finished(&cf);
         let b = res.is_ok();
         match res {
             Err(x) => {
