@@ -473,7 +473,8 @@ let decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCiph
             u8))
 
 let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCipherStateH)
-    : Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8 =
+    : Core.Result.t_Result
+      (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* ct, payload:(Bertie.Tls13formats.t_ContentType &
         Bertie.Tls13utils.t_Bytes) =
         match
@@ -488,19 +489,21 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
           let* hoist515:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
-                Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8
-              )
+                Core.Result.t_Result
+                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist515)
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+            (Core.Result.t_Result
+                (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
             (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
           Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+            (Core.Result.t_Result
+                (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
             (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
       in
       if ct =. (Bertie.Tls13formats.ContentType_Alert <: Bertie.Tls13formats.t_ContentType)
@@ -508,11 +511,14 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
         Core.Ops.Control_flow.ControlFlow_Continue
         (Core.Result.Result_Err Bertie.Tls13utils.v_GOT_HANDSHAKE_FAILURE_ALERT
           <:
-          Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+          Core.Result.t_Result
+            (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow
-          (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
-          (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+          (Core.Result.t_Result
+              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
+          (Core.Result.t_Result
+              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
       else
         let* _:Prims.unit =
           match
@@ -527,19 +533,21 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
             let* hoist516:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
-                  Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH)
-                    u8)
+                  Core.Result.t_Result
+                    (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
             in
             Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist516)
             <:
             Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+              (Core.Result.t_Result
+                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
               Prims.unit
           | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
             Core.Ops.Control_flow.ControlFlow_Continue v_val
             <:
             Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+              (Core.Result.t_Result
+                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
               Prims.unit
         in
         Core.Ops.Control_flow.ControlFlow_Continue
@@ -551,13 +559,16 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
           Core.Result.Result_Ok
           (Core.Convert.f_from payload, state
             <:
-            (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH))
+            (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH))
           <:
-          Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
+          Core.Result.t_Result
+            (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow
-          (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8)
-          (Core.Result.t_Result (Bertie.Tls13formats.t_HandshakeData & t_DuplexCipherStateH) u8))
+          (Core.Result.t_Result
+              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
+          (Core.Result.t_Result
+              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8))
 
 let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0)
     : Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8 =
@@ -695,12 +706,12 @@ let encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
         (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8))
 
 let encrypt_handshake
-      (payload: Bertie.Tls13formats.t_HandshakeData)
+      (payload: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (pad: usize)
       (state: t_DuplexCipherStateH)
     : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let payload:Bertie.Tls13utils.t_Bytes =
-        Bertie.Tls13formats.impl__HandshakeData__to_bytes payload
+        Bertie.Tls13formats.Handshake_data.impl__HandshakeData__to_bytes payload
       in
       let* v_rec:Bertie.Tls13utils.t_Bytes =
         match
