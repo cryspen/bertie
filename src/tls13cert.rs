@@ -411,7 +411,7 @@ mod unit_test {
     use super::*;
 
     fn test(cert: &Bytes) {
-        let spki = verification_key_from_cert(&cert);
+        let spki = verification_key_from_cert(cert);
         match spki {
             Ok(spki) => {
                 let pk = cert_public_key(cert, &spki).expect("Error reading public key from cert");
@@ -419,7 +419,7 @@ mod unit_test {
             }
             Err(e) => {
                 println!("verif key extraction error {}", e);
-                None.unwrap()
+                panic!()
             }
         }
     }
@@ -443,10 +443,10 @@ mod unit_test {
         for file in files {
             let file = file.expect("Error reading file ...").path();
             let mut f = fs::File::open(file.clone())
-                .expect(&format!("Didn't find the file {}.", file.display()));
+                .unwrap_or_else(|_| panic!("Didn't find the file {}.", file.display()));
             let mut bytes = Vec::new();
             f.read_to_end(&mut bytes)
-                .expect(&format!("Error reading file {}", file.display()));
+                .unwrap_or_else(|_| panic!("Error reading file {}", file.display()));
             test(&bytes.into());
         }
     }

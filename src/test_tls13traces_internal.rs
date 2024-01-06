@@ -492,16 +492,15 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     fn test_key_schedule() {
         let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         let sha256_emp = Bytes::from_hex(sha256_emp_str);
-        match HashAlgorithm::SHA256.hash(&Bytes::new()) {
-            Ok(ha) => {
-                println!(
-                    "computed hash(empty) {}\nexpected hash(empty) {}",
-                    ha.as_hex(),
-                    sha256_emp.as_hex()
-                );
-            }
-            _ => {}
+
+        if let Ok(ha) = HashAlgorithm::SHA256.hash(&Bytes::new()) {
+            println!(
+                "computed hash(empty) {}\nexpected hash(empty) {}",
+                ha.as_hex(),
+                sha256_emp.as_hex()
+            );
         }
+
         let client_hello_bytes = Bytes::from_hex(client_hello);
         let server_hello_bytes = Bytes::from_hex(server_hello);
         let encrypted_extensions_bytes = Bytes::from_hex(encrypted_extensions);
