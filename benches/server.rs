@@ -18,8 +18,18 @@ use bertie::{
 };
 use libcrux::{digest, drbg::Drbg};
 
-fn duration(d: Duration) -> f64 {
-    ((d.as_secs() as f64) + (d.subsec_nanos() as f64 * 1e-9)) * 1000000f64
+fn hs_per_second(d: Duration) -> f64 {
+    // ITERATIONS per d
+    let d = d.as_nanos() as f64 / 1_000_000_000.0;
+    ITERATIONS as f64 / d
+}
+
+fn mb_per_second(d: Duration) -> f64 {
+    // ITERATIONS per d
+    // NUM_PAYLOAD_BYTES / 1024 / 1024 per iteration
+    let d = d.as_nanos() as f64 / 1_000_000_000.0;
+    let iteration = d / ITERATIONS as f64;
+    (NUM_PAYLOAD_BYTES as f64 / 1024.0 / 1024.0) / iteration
 }
 
 const ITERATIONS: usize = 50;
@@ -60,8 +70,8 @@ fn main() {
         };
         let db = init_db(server_name_str, key_file, cert_file).unwrap();
 
-        let mut handshake_time = 0f64;
-        let mut application_time = 0f64;
+        let mut handshake_time = Duration::ZERO;
+        let mut application_time = Duration::ZERO;
         let payload = rng.generate_vec(NUM_PAYLOAD_BYTES).unwrap();
 
         for _ in 0..ITERATIONS {
@@ -72,7 +82,7 @@ fn main() {
             let (server_hello, server_finished, server) =
                 Server::accept(ciphersuite, db.clone(), &client_hello, &mut rng).unwrap();
             let end_time = Instant::now();
-            handshake_time += duration(end_time.duration_since(start_time));
+            handshake_time += end_time.duration_since(start_time);
 
             let (_client_msg, client) = client.read_handshake(&Bytes::from(server_hello)).unwrap();
             let (client_msg, client) = client
@@ -82,7 +92,7 @@ fn main() {
             let start_time = Instant::now();
             let server = server.read_handshake(&client_msg.unwrap()).unwrap();
             let end_time = Instant::now();
-            handshake_time += duration(end_time.duration_since(start_time));
+            handshake_time += end_time.duration_since(start_time);
 
             let application_data = payload.clone().into();
             let (c_msg_bytes, _client) = client.write(application_data).unwrap();
@@ -90,16 +100,18 @@ fn main() {
             let start_time = Instant::now();
             let (msg, _server) = server.read(&c_msg_bytes).unwrap();
             let end_time = Instant::now();
-            application_time += duration(end_time.duration_since(start_time));
+            application_time += end_time.duration_since(start_time);
 
             assert_eq!(msg.unwrap().as_raw().declassify(), payload);
         }
 
         println!(
-            " - {}:\n\tHandshake: {} μs\n\tApplication: {} μs",
+            " - {}:\n\tHandshake: {} μs | {} /s \n\tApplication: {} μs | {} MB/s",
             ciphersuite,
-            handshake_time / (ITERATIONS as f64),
-            application_time / (ITERATIONS as f64)
+            handshake_time.as_micros() / (ITERATIONS as u128),
+            hs_per_second(handshake_time),
+            application_time.as_micros() / (ITERATIONS as u128),
+            mb_per_second(application_time),
         );
     }
 }
