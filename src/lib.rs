@@ -44,7 +44,7 @@ pub mod tls13utils;
 pub use tls13api::{Client, Server};
 // Debug exports only
 pub use tls13formats::{
-    get_alert_description, get_alert_level, handshake_data::get_hs_type, ContentType,
+    get_alert_level, handshake_data::get_hs_type, AlertDescription, ContentType,
 };
 
 // === Public API that is NOT in hacspec

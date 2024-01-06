@@ -52,6 +52,7 @@ pub fn get_hs_type(t: u8) -> Result<HandshakeType, TLSError> {
     }
 }
 
+/// Hadshake data of the TLS handshake.
 pub struct HandshakeData(pub(crate) Bytes);
 
 impl HandshakeData {
@@ -147,8 +148,7 @@ impl HandshakeData {
     /// by parsing four messages.
     pub(crate) fn to_four(
         &self,
-    ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError>
-    {
+    ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
         let (message1, payload_rest) = self.next_handshake_message()?;
         let (message2, payload_rest) = payload_rest.next_handshake_message()?;
         let (message3, payload_rest) = payload_rest.next_handshake_message()?;

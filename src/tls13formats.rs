@@ -200,10 +200,23 @@ fn check_server_psk_shared_key(_algs: &Algorithms, b: &Bytes) -> Result<(), TLSE
 
 /// TLS Extensions
 pub struct Extensions {
-    pub sni: Option<Bytes>,
-    pub key_share: Option<Bytes>,
-    pub ticket: Option<Bytes>,
-    pub binder: Option<Bytes>,
+    sni: Option<Bytes>,
+    key_share: Option<Bytes>,
+    ticket: Option<Bytes>,
+    binder: Option<Bytes>,
+}
+
+impl Extensions {
+    /// Merge the two extensions.
+    /// This will fail if both have set the same extension.
+    fn merge(self, e2: Self) -> Result<Self, TLSError> {
+        Ok(Extensions {
+            sni: merge_opts(self.sni, e2.sni)?,
+            key_share: merge_opts(self.key_share, e2.key_share)?,
+            ticket: merge_opts(self.ticket, e2.ticket)?,
+            binder: merge_opts(self.binder, e2.binder)?,
+        })
+    }
 }
 
 /// Merge two options as xor and return `Some(value)`, `None`, or an error if
@@ -215,17 +228,6 @@ fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError> {
         (None, None) => Ok(None),
         _ => tlserr(parse_failed()),
     }
-}
-
-/// Merge the two extensions.
-/// This will fail if both have set the same extension.
-fn merge_extensions(e1: Extensions, e2: Extensions) -> Result<Extensions, TLSError> {
-    Ok(Extensions {
-        sni: merge_opts(e1.sni, e2.sni)?,
-        key_share: merge_opts(e1.key_share, e2.key_share)?,
-        ticket: merge_opts(e1.ticket, e2.ticket)?,
-        binder: merge_opts(e1.binder, e2.binder)?,
-    })
 }
 
 /// Check an extension for validity.
@@ -312,7 +314,7 @@ fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError
         Ok(out)
     } else {
         let out_rest = check_extensions(algs, &b.slice_range(len..b.len()))?;
-        merge_extensions(out, out_rest)
+        out.merge(out_rest)
     }
 }
 
@@ -393,98 +395,73 @@ pub fn get_alert_level(t: u8) -> Result<AlertLevel, TLSError> {
 ///     (255)
 /// } AlertDescription;
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[repr(u8)]
 pub enum AlertDescription {
-    CloseNotify,
-    UnexpectedMessage,
-    BadRecordMac,
-    RecordOverflow,
-    HandshakeFailure,
-    BadCertificate,
-    UnsupportedCertificate,
-    CertificateRevoked,
-    CertificateExpired,
-    CertificateUnknown,
-    IllegalParameter,
-    UnknownCa,
-    AccessDenied,
-    DecodeError,
-    DecryptError,
-    ProtocolVersion,
-    InsufficientSecurity,
-    InternalError,
-    InappropriateFallback,
-    UserCanceled,
-    MissingExtension,
-    UnsupportedExtension,
-    UnrecognizedName,
-    BadCertificateStatusResponse,
-    UnknownPskIdentity,
-    CertificateRequired,
-    NoApplicationProtocol,
+    CloseNotify = 0,
+    UnexpectedMessage = 10,
+    BadRecordMac = 20,
+    RecordOverflow = 22,
+    HandshakeFailure = 40,
+    BadCertificate = 42,
+    UnsupportedCertificate = 43,
+    CertificateRevoked = 44,
+    CertificateExpired = 45,
+    CertificateUnknown = 46,
+    IllegalParameter = 47,
+    UnknownCa = 48,
+    AccessDenied = 49,
+    DecodeError = 50,
+    DecryptError = 51,
+    ProtocolVersion = 70,
+    InsufficientSecurity = 71,
+    InternalError = 80,
+    InappropriateFallback = 86,
+    UserCanceled = 90,
+    MissingExtension = 109,
+    UnsupportedExtension = 110,
+    UnrecognizedName = 112,
+    BadCertificateStatusResponse = 113,
+    UnknownPskIdentity = 115,
+    CertificateRequired = 116,
+    NoApplicationProtocol = 120,
 }
 
-fn alert_description(t: AlertDescription) -> u8 {
-    match t {
-        AlertDescription::CloseNotify => 0,
-        AlertDescription::UnexpectedMessage => 10,
-        AlertDescription::BadRecordMac => 20,
-        AlertDescription::RecordOverflow => 22,
-        AlertDescription::HandshakeFailure => 40,
-        AlertDescription::BadCertificate => 42,
-        AlertDescription::UnsupportedCertificate => 43,
-        AlertDescription::CertificateRevoked => 44,
-        AlertDescription::CertificateExpired => 45,
-        AlertDescription::CertificateUnknown => 46,
-        AlertDescription::IllegalParameter => 47,
-        AlertDescription::UnknownCa => 48,
-        AlertDescription::AccessDenied => 49,
-        AlertDescription::DecodeError => 50,
-        AlertDescription::DecryptError => 51,
-        AlertDescription::ProtocolVersion => 70,
-        AlertDescription::InsufficientSecurity => 71,
-        AlertDescription::InternalError => 80,
-        AlertDescription::InappropriateFallback => 86,
-        AlertDescription::UserCanceled => 90,
-        AlertDescription::MissingExtension => 109,
-        AlertDescription::UnsupportedExtension => 110,
-        AlertDescription::UnrecognizedName => 112,
-        AlertDescription::BadCertificateStatusResponse => 113,
-        AlertDescription::UnknownPskIdentity => 115,
-        AlertDescription::CertificateRequired => 116,
-        AlertDescription::NoApplicationProtocol => 120,
-    }
-}
+impl AlertDescription {}
 
-pub fn get_alert_description(t: u8) -> Result<AlertDescription, TLSError> {
-    match t {
-        0 => Ok(AlertDescription::CloseNotify),
-        10 => Ok(AlertDescription::UnexpectedMessage),
-        20 => Ok(AlertDescription::BadRecordMac),
-        22 => Ok(AlertDescription::RecordOverflow),
-        40 => Ok(AlertDescription::HandshakeFailure),
-        42 => Ok(AlertDescription::BadCertificate),
-        43 => Ok(AlertDescription::UnsupportedCertificate),
-        44 => Ok(AlertDescription::CertificateRevoked),
-        45 => Ok(AlertDescription::CertificateExpired),
-        46 => Ok(AlertDescription::CertificateUnknown),
-        47 => Ok(AlertDescription::IllegalParameter),
-        48 => Ok(AlertDescription::UnknownCa),
-        49 => Ok(AlertDescription::AccessDenied),
-        50 => Ok(AlertDescription::DecodeError),
-        51 => Ok(AlertDescription::DecryptError),
-        70 => Ok(AlertDescription::ProtocolVersion),
-        71 => Ok(AlertDescription::InsufficientSecurity),
-        80 => Ok(AlertDescription::InternalError),
-        86 => Ok(AlertDescription::InappropriateFallback),
-        90 => Ok(AlertDescription::UserCanceled),
-        109 => Ok(AlertDescription::MissingExtension),
-        110 => Ok(AlertDescription::UnsupportedExtension),
-        112 => Ok(AlertDescription::UnrecognizedName),
-        113 => Ok(AlertDescription::BadCertificateStatusResponse),
-        115 => Ok(AlertDescription::UnknownPskIdentity),
-        116 => Ok(AlertDescription::CertificateRequired),
-        120 => Ok(AlertDescription::NoApplicationProtocol),
-        _ => tlserr(parse_failed()),
+impl TryFrom<u8> for AlertDescription {
+    type Error = TLSError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(AlertDescription::CloseNotify),
+            10 => Ok(AlertDescription::UnexpectedMessage),
+            20 => Ok(AlertDescription::BadRecordMac),
+            22 => Ok(AlertDescription::RecordOverflow),
+            40 => Ok(AlertDescription::HandshakeFailure),
+            42 => Ok(AlertDescription::BadCertificate),
+            43 => Ok(AlertDescription::UnsupportedCertificate),
+            44 => Ok(AlertDescription::CertificateRevoked),
+            45 => Ok(AlertDescription::CertificateExpired),
+            46 => Ok(AlertDescription::CertificateUnknown),
+            47 => Ok(AlertDescription::IllegalParameter),
+            48 => Ok(AlertDescription::UnknownCa),
+            49 => Ok(AlertDescription::AccessDenied),
+            50 => Ok(AlertDescription::DecodeError),
+            51 => Ok(AlertDescription::DecryptError),
+            70 => Ok(AlertDescription::ProtocolVersion),
+            71 => Ok(AlertDescription::InsufficientSecurity),
+            80 => Ok(AlertDescription::InternalError),
+            86 => Ok(AlertDescription::InappropriateFallback),
+            90 => Ok(AlertDescription::UserCanceled),
+            109 => Ok(AlertDescription::MissingExtension),
+            110 => Ok(AlertDescription::UnsupportedExtension),
+            112 => Ok(AlertDescription::UnrecognizedName),
+            113 => Ok(AlertDescription::BadCertificateStatusResponse),
+            115 => Ok(AlertDescription::UnknownPskIdentity),
+            116 => Ok(AlertDescription::CertificateRequired),
+            120 => Ok(AlertDescription::NoApplicationProtocol),
+            _ => tlserr(parse_failed()),
+        }
     }
 }
 

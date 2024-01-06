@@ -574,7 +574,6 @@ fn put_client_hello(
     db: ServerDB,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
     let (cr, sid, sni, gx, tkto, bindero, trunc_len) = parse_client_hello(&algs, ch)?;
-    //println!("parse_client_hello");
     let tx = transcript_empty(algs.hash());
     let th_trunc = get_transcript_hash_truncated_client_hello(&tx, ch, trunc_len)?;
     let tx = transcript_add1(tx, ch);
