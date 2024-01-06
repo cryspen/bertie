@@ -548,7 +548,7 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
             t_DuplexCipherStateH
           in
           Core.Result.Result_Ok
-          (Bertie.Tls13utils.handshake_data payload, state
+          (Core.Convert.f_from payload, state
             <:
             (Bertie.Tls13utils.t_HandshakeData & t_DuplexCipherStateH))
           <:
@@ -699,7 +699,7 @@ let encrypt_handshake
       (state: t_DuplexCipherStateH)
     : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let payload:Bertie.Tls13utils.t_Bytes =
-        Bertie.Tls13utils.handshake_data_bytes payload
+        Bertie.Tls13utils.impl__HandshakeData__to_bytes payload
       in
       let* v_rec:Bertie.Tls13utils.t_Bytes =
         match

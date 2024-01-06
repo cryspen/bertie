@@ -76,7 +76,7 @@ let impl__Client__connect
           Bertie.Tls13handshake.t_ClientPostClientHello) =
         Core.Ops.Try_trait.f_branch hoist518
       in
-      let* ch, cipher0, cstate:(Bertie.Tls13utils.t_HandshakeData &
+      let* client_hello, cipherstate0, client_state:(Bertie.Tls13utils.t_HandshakeData &
         Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
         Bertie.Tls13handshake.t_ClientPostClientHello) =
         match hoist519 with
@@ -105,9 +105,9 @@ let impl__Client__connect
               Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               Bertie.Tls13handshake.t_ClientPostClientHello)
       in
-      let* client_hello:Bertie.Tls13utils.t_Bytes =
+      let* client_hello_record:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.handshake_record ch
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.handshake_record client_hello
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -133,14 +133,14 @@ let impl__Client__connect
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let client_hello:Bertie.Tls13utils.t_Bytes =
-          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize client_hello
+      (let client_hello_record:Bertie.Tls13utils.t_Bytes =
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize client_hello_record
             (sz 2)
             (Core.Convert.f_from 1uy <: Bertie.Tls13utils.t_U8)
         in
         let hax_temp_output:Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8 =
           Core.Result.Result_Ok
-          (client_hello, Bertie.Tls13api.Client.v_Client0 cstate cipher0
+          (client_hello_record, Bertie.Tls13api.Client.v_Client0 client_state cipherstate0
             <:
             (Bertie.Tls13utils.t_Bytes & t_Client))
           <:
@@ -524,9 +524,7 @@ let impl__Client__read_handshake (self: t_Client) (handshake_bytes: Bertie.Tls13
         in
         Core.Ops.Control_flow.ControlFlow_Continue
         (let buf:Bertie.Tls13utils.t_HandshakeData =
-            Bertie.Tls13utils.handshake_data (Bertie.Tls13utils.impl__Bytes__new
-                <:
-                Bertie.Tls13utils.t_Bytes)
+            Core.Convert.f_from (Bertie.Tls13utils.impl__Bytes__new () <: Bertie.Tls13utils.t_Bytes)
           in
           Core.Result.Result_Ok
           ((Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
@@ -568,7 +566,9 @@ let impl__Client__read_handshake (self: t_Client) (handshake_bytes: Bertie.Tls13
               (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes & t_Client) u8)
               (Bertie.Tls13utils.t_HandshakeData & Bertie.Tls13record.t_DuplexCipherStateH)
         in
-        let buf:Bertie.Tls13utils.t_HandshakeData = Bertie.Tls13utils.handshake_concat buf hd in
+        let buf:Bertie.Tls13utils.t_HandshakeData =
+          Bertie.Tls13utils.impl__HandshakeData__concat buf hd
+        in
         if
           Bertie.Tls13formats.find_handshake_message (Bertie.Tls13formats.HandshakeType_Finished
               <:

@@ -18,7 +18,7 @@ let v_ASN1_UNSUPPORTED_ALGORITHM: u8 = 24uy
 
 let asn1_error
       (#v_T: Type)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] ii0: Core.Marker.t_Sized v_T)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Core.Marker.t_Sized v_T)
       (err: u8)
     : Core.Result.t_Result v_T u8 = Core.Result.Result_Err err <: Core.Result.t_Result v_T u8
 
@@ -32,17 +32,17 @@ type t_CertificateKey = | CertificateKey : usize -> usize -> t_CertificateKey
 unfold
 let t_Spki = (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey)
 
-let ecdsa_secp256r1_sha256_oid: Bertie.Tls13utils.t_Bytes =
+let ecdsa_secp256r1_sha256_oid (_: Prims.unit) : Bertie.Tls13utils.t_Bytes =
   Core.Convert.f_into (let list = [42uy; 134uy; 72uy; 206uy; 61uy; 3uy; 1uy; 7uy] in
       FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 8);
       Rust_primitives.Hax.array_of_list list)
 
-let rsa_pkcs1_encryption_oid: Bertie.Tls13utils.t_Bytes =
+let rsa_pkcs1_encryption_oid (_: Prims.unit) : Bertie.Tls13utils.t_Bytes =
   Core.Convert.f_into (let list = [42uy; 134uy; 72uy; 134uy; 247uy; 13uy; 1uy; 1uy; 1uy] in
       FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 9);
       Rust_primitives.Hax.array_of_list list)
 
-let x962_ec_public_key_oid: Bertie.Tls13utils.t_Bytes =
+let x962_ec_public_key_oid (_: Prims.unit) : Bertie.Tls13utils.t_Bytes =
   Core.Convert.f_into (let list = [42uy; 134uy; 72uy; 206uy; 61uy; 2uy; 1uy] in
       FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 7);
       Rust_primitives.Hax.array_of_list list)
@@ -589,8 +589,8 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
       let ec_pk_oid, ecdsa_p256, rsa_pk_oid:(bool & bool & bool) =
         false, false, false <: (bool & bool & bool)
       in
-      let ec_oid:Bertie.Tls13utils.t_Bytes = x962_ec_public_key_oid in
-      let rsa_oid:Bertie.Tls13utils.t_Bytes = rsa_pkcs1_encryption_oid in
+      let ec_oid:Bertie.Tls13utils.t_Bytes = x962_ec_public_key_oid () in
+      let rsa_oid:Bertie.Tls13utils.t_Bytes = rsa_pkcs1_encryption_oid () in
       let* ec_pk_oid, ecdsa_p256, oid_offset:(bool & bool & usize) =
         if (Bertie.Tls13utils.impl__Bytes__len ec_oid <: usize) =. oid_len
         then
@@ -680,7 +680,7 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
                   ) (usize & usize)
             in
             let ecdsa_p256:bool = true in
-            let ec_oid:Bertie.Tls13utils.t_Bytes = ecdsa_secp256r1_sha256_oid in
+            let ec_oid:Bertie.Tls13utils.t_Bytes = ecdsa_secp256r1_sha256_oid () in
             let ecdsa_p256:bool =
               Core.Iter.Traits.Iterator.f_fold (Core.Iter.Traits.Collect.f_into_iter ({
                         Core.Ops.Range.f_start = sz 0;
