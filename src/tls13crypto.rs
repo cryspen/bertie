@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use libcrux::{
     kem::{Ct, PrivateKey, PublicKey},
     signature::rsa_pss::{RsaPssKeySize, RsaPssPrivateKey, RsaPssPublicKey},
@@ -743,6 +745,16 @@ impl TryFrom<&str> for Algorithms {
                 s
             ))),
         }
+    }
+}
+
+impl Display for Algorithms {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TLS_{:?}_{:?} w/ {:?} | {:?}",
+            self.aead, self.hash, self.signature, self.kem
+        )
     }
 }
 

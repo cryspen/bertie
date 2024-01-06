@@ -121,6 +121,7 @@ impl core::ops::Add for U32 {
     }
 }
 
+/// Bytes used in Bertie.
 #[derive(Clone, PartialEq, Debug, Default)]
 pub struct Bytes(Vec<U8>);
 
@@ -131,6 +132,7 @@ impl From<Vec<u8>> for Bytes {
 }
 
 impl Bytes {
+    /// Declassify these bytes and return a copy of [`u8`].
     pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
     }
@@ -612,6 +614,30 @@ impl AppData {
     /// Get a reference to the raw bytes.
     pub fn as_raw(&self) -> &Bytes {
         &self.0
+    }
+}
+
+impl From<&[u8]> for AppData {
+    fn from(value: &[u8]) -> Self {
+        Self(value.into())
+    }
+}
+
+impl<const N: usize> From<&[u8; N]> for AppData {
+    fn from(value: &[u8; N]) -> Self {
+        Self(value.into())
+    }
+}
+
+impl From<Vec<u8>> for AppData {
+    fn from(value: Vec<u8>) -> Self {
+        Self(value.into())
+    }
+}
+
+impl From<Bytes> for AppData {
+    fn from(value: Bytes) -> Self {
+        Self(value)
     }
 }
 
