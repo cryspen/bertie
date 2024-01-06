@@ -60,5 +60,5 @@ default-members = [
     "integration_tests",
 ]
 
-# [patch.'https://github.com/cryspen/libcrux']
+# [patch.crates-io]
 # libcrux = { path = "../libcrux" }
