@@ -180,7 +180,7 @@ pub fn decrypt_zerortt(
 /// Returns the ciphertext, new [`DuplexCipherStateH`] if successful, or a
 /// [`TLSError`] otherwise.
 pub(crate) fn encrypt_handshake(
-    payload: HandshakeData,
+    payload: handshake_data::HandshakeData,
     pad: usize,
     mut state: DuplexCipherStateH,
 ) -> Result<(Bytes, DuplexCipherStateH), TLSError> {
@@ -202,15 +202,15 @@ pub(crate) fn encrypt_handshake(
 pub(crate) fn decrypt_handshake(
     ciphertext: &Bytes,
     mut state: DuplexCipherStateH,
-) -> Result<(HandshakeData, DuplexCipherStateH), TLSError> {
+) -> Result<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError> {
     let (ct, payload) =
         decrypt_record_payload(&state.receiver_key_iv, state.receiver_counter, ciphertext)?;
     if ct == ContentType::Alert {
-        Result::<(HandshakeData, DuplexCipherStateH), TLSError>::Err(GOT_HANDSHAKE_FAILURE_ALERT)
+        Result::<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError>::Err(GOT_HANDSHAKE_FAILURE_ALERT)
     } else {
         check(ct == ContentType::Handshake)?;
         state.receiver_counter += 1;
-        Ok((HandshakeData::from(payload), state))
+        Ok((handshake_data::HandshakeData::from(payload), state))
     }
 }
 

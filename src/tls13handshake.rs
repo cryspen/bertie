@@ -8,7 +8,7 @@ use crate::{
         sign_rsa, verify, zero_key, AeadAlgorithm, AeadKey, AeadKeyIV, Algorithms, Digest,
         HashAlgorithm, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
-    tls13formats::*,
+    tls13formats::{handshake_data::HandshakeData, *},
     tls13record::*,
     tls13utils::*,
 };
@@ -253,7 +253,7 @@ fn build_client_hello(
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
-        HandshakeData,
+        handshake_data::HandshakeData,
         Option<ClientCipherState0>,
         ClientPostClientHello,
     ),
@@ -276,11 +276,18 @@ fn build_client_hello(
 
 fn compute_psk_binder_zero_rtt(
     algs0: Algorithms,
-    ch: HandshakeData,
+    ch: handshake_data::HandshakeData,
     trunc_len: usize,
     psk: &Option<Psk>,
     tx: Transcript,
-) -> Result<(HandshakeData, Option<ClientCipherState0>, Transcript), TLSError> {
+) -> Result<
+    (
+        handshake_data::HandshakeData,
+        Option<ClientCipherState0>,
+        Transcript,
+    ),
+    TLSError,
+> {
     let Algorithms {
         hash: ha,
         aead: ae,
@@ -314,7 +321,7 @@ fn compute_psk_binder_zero_rtt(
 }
 
 fn put_server_hello(
-    handshake: &HandshakeData,
+    handshake: &handshake_data::HandshakeData,
     state: ClientPostClientHello,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
     let ClientPostClientHello(client_random, ciphersuite, sk, psk, tx) = state;
@@ -338,9 +345,9 @@ fn put_server_hello(
 }
 
 fn put_server_signature(
-    encrypted_extensions: &HandshakeData,
-    server_certificate: &HandshakeData,
-    server_certificate_verify: &HandshakeData,
+    encrypted_extensions: &handshake_data::HandshakeData,
+    server_certificate: &handshake_data::HandshakeData,
+    server_certificate_verify: &handshake_data::HandshakeData,
     handshake_state: ClientPostServerHello,
 ) -> Result<ClientPostCertificateVerify, TLSError> {
     let ClientPostServerHello(
@@ -380,7 +387,7 @@ fn put_server_signature(
 }
 
 fn put_psk_skip_server_signature(
-    encrypted_extensions: &HandshakeData,
+    encrypted_extensions: &handshake_data::HandshakeData,
     handshake_state: ClientPostServerHello,
 ) -> Result<ClientPostCertificateVerify, TLSError> {
     let ClientPostServerHello(
@@ -410,7 +417,7 @@ fn put_psk_skip_server_signature(
 }
 
 fn put_server_finished(
-    server_finished: &HandshakeData,
+    server_finished: &handshake_data::HandshakeData,
     handshake_state: ClientPostCertificateVerify,
 ) -> Result<(DuplexCipherState1, ClientPostServerFinished), TLSError> {
     let ClientPostCertificateVerify(
@@ -457,7 +464,7 @@ fn put_server_finished(
 
 fn get_client_finished(
     handshake_state: ClientPostServerFinished,
-) -> Result<(HandshakeData, ClientPostClientFinished), TLSError> {
+) -> Result<(handshake_data::HandshakeData, ClientPostClientFinished), TLSError> {
     let ClientPostServerFinished(
         client_random,
         server_random,
@@ -498,7 +505,7 @@ pub fn client_init(
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
-        HandshakeData,
+        handshake_data::HandshakeData,
         Option<ClientCipherState0>,
         ClientPostClientHello,
     ),
@@ -509,16 +516,23 @@ pub fn client_init(
 
 /// Update the client state after generating the client hello message.
 pub(crate) fn client_set_params(
-    payload: &HandshakeData,
+    payload: &handshake_data::HandshakeData,
     st: ClientPostClientHello,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
     put_server_hello(payload, st)
 }
 
 pub fn client_finish(
-    payload: &HandshakeData,
+    payload: &handshake_data::HandshakeData,
     handshake_state: ClientPostServerHello,
-) -> Result<(HandshakeData, DuplexCipherState1, ClientPostClientFinished), TLSError> {
+) -> Result<
+    (
+        handshake_data::HandshakeData,
+        DuplexCipherState1,
+        ClientPostClientFinished,
+    ),
+    TLSError,
+> {
     match algs_post_server_hello(&handshake_state).psk_mode() {
         false => {
             let (
@@ -556,7 +570,7 @@ pub fn client_finish(
 
 fn put_client_hello(
     algs: Algorithms,
-    ch: &HandshakeData,
+    ch: &handshake_data::HandshakeData,
     db: ServerDB,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
     let (cr, sid, sni, gx, tkto, bindero, trunc_len) = parse_client_hello(&algs, ch)?;
@@ -725,7 +739,7 @@ fn get_server_finished(
 }
 
 fn put_client_finished(
-    cfin: &HandshakeData,
+    cfin: &handshake_data::HandshakeData,
     st: ServerPostServerFinished,
 ) -> Result<ServerPostClientFinished, TLSError> {
     let ServerPostServerFinished(cr, sr, algs, ms, cfk, tx) = st;
@@ -745,13 +759,13 @@ fn put_client_finished(
 #[allow(clippy::type_complexity)]
 pub fn server_init(
     algs: Algorithms,
-    ch: &HandshakeData,
+    ch: &handshake_data::HandshakeData,
     db: ServerDB,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
-        HandshakeData,
-        HandshakeData,
+        handshake_data::HandshakeData,
+        handshake_data::HandshakeData,
         Option<ServerCipherState0>,
         DuplexCipherStateH,
         DuplexCipherState1,
@@ -778,7 +792,7 @@ pub fn server_init(
 }
 
 pub fn server_finish(
-    cf: &HandshakeData,
+    cf: &handshake_data::HandshakeData,
     st: ServerPostServerFinished,
 ) -> Result<ServerPostClientFinished, TLSError> {
     put_client_finished(cf, st)

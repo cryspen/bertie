@@ -7,7 +7,7 @@ mod internal_tests {
         tls13crypto::{
             hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
         },
-        tls13formats::*,
+        tls13formats::{handshake_data::HandshakeData, *},
     };
 
     // These are the sample TLS 1.3 traces taken from RFC 8448
@@ -260,7 +260,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_client_hello() {
-        let ch = HandshakeData::from(Bytes::from_hex(client_hello));
+        let ch = handshake_data::HandshakeData::from(Bytes::from_hex(client_hello));
         //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
         let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
         let b = res.is_ok();
@@ -351,7 +351,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 
     #[test]
     fn test_parse_server_hello() {
-        let sh = HandshakeData::from(Bytes::from_hex(server_hello));
+        let sh = handshake_data::HandshakeData::from(Bytes::from_hex(server_hello));
         //   let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
         let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
         let b = res.is_ok();
@@ -371,7 +371,7 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
     #[test]
     #[ignore = "Enable this later."]
     fn test_parse_server_hello_length_zero() {
-        let sh = HandshakeData::from(Bytes::from_hex("02000000"));
+        let sh = handshake_data::HandshakeData::from(Bytes::from_hex("02000000"));
         let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
     }
 
