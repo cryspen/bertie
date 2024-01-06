@@ -559,21 +559,21 @@ pub(super) fn parse_client_hello(
     let comp = bytes2(1, 0);
     let mut next = 0;
     check_eq(&ver, &ch.slice_range(next..next + 2))?;
-    next = next + 2;
+    next += 2;
     let crand = ch.slice_range(next..next + 32);
-    next = next + 32;
+    next += 32;
     let sidlen = length_u8_encoded(&ch.slice_range(next..ch.len()))?;
     let sid = ch.slice_range(next + 1..next + 1 + sidlen);
     next = next + 1 + sidlen;
     let cslen = ciphersuite.check(&ch.slice_range(next..ch.len()))?;
-    next = next + cslen;
+    next += cslen;
     match check_eq(&comp, &ch.slice_range(next..next + 2)) {
         Ok(_) => (),
         Err(_) => invalid_compression_list()?,
     };
-    next = next + 2;
+    next += 2;
     check_length_encoding_u16(&ch.slice_range(next..ch.len()))?;
-    next = next + 2;
+    next += 2;
     let exts = check_extensions(ciphersuite, &ch.slice_range(next..ch.len()))?;
     //println!("check_extensions");
     let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
@@ -686,23 +686,23 @@ pub(crate) fn parse_server_hello(
         Ok(_) => (),
         Err(_) => protocol_version_alert()?,
     };
-    next = next + 2;
+    next += 2;
     let srand = server_hello.slice_range(next..next + 32);
-    next = next + 32;
+    next += 32;
     let sidlen = length_u8_encoded(&server_hello.slice_range(next..server_hello.len()))?;
     next = next + 1 + sidlen;
     match check_eq(&cip, &server_hello.slice_range(next..next + 2)) {
         Ok(_) => (),
         Err(_) => unsupported_cipher_alert()?,
     };
-    next = next + 2;
+    next += 2;
     match check_eq(&comp, &server_hello.slice_range(next..next + 1)) {
         Ok(_) => (),
         Err(_) => invalid_compression_method_alert()?,
     };
-    next = next + 1;
+    next += 1;
     check_length_encoding_u16(&server_hello.slice_range(next..server_hello.len()))?;
-    next = next + 2;
+    next += 2;
     let gy = check_server_extensions(algs, &server_hello.slice_range(next..server_hello.len()))?;
     if let Some(gy) = gy {
         Ok((srand, gy))
@@ -753,11 +753,11 @@ pub(crate) fn parse_server_certificate(
     let creqlen = length_u8_encoded(&sc.slice_range(4..sc.len()))?;
     next = next + 1 + creqlen;
     check_length_encoding_u24(&sc.slice_range(next..sc.len()))?;
-    next = next + 3;
+    next += 3;
     let crtlen = length_u24_encoded(&sc.slice_range(next..sc.len()))?;
-    next = next + 3;
+    next += 3;
     let crt = sc.slice_range(next..next + crtlen);
-    next = next + crtlen;
+    next += crtlen;
     let _extlen = length_u16_encoded(&sc.slice_range(next..sc.len()))?;
     Ok(crt)
 }

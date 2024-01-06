@@ -206,7 +206,9 @@ pub(crate) fn decrypt_handshake(
     let (ct, payload) =
         decrypt_record_payload(&state.receiver_key_iv, state.receiver_counter, ciphertext)?;
     if ct == ContentType::Alert {
-        Result::<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError>::Err(GOT_HANDSHAKE_FAILURE_ALERT)
+        Result::<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError>::Err(
+            GOT_HANDSHAKE_FAILURE_ALERT,
+        )
     } else {
         check(ct == ContentType::Handshake)?;
         state.receiver_counter += 1;
