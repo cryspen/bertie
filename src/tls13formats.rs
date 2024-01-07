@@ -26,7 +26,7 @@ pub const LABEL_TLS13: [u8; 6] = [116, 108, 115, 049, 051, 032];
 pub const LABEL_DERIVED: [u8; 7] = [100, 101, 114, 105, 118, 101, 100];
 pub const LABEL_FINISHED: [u8; 8] = [102, 105, 110, 105, 115, 104, 101, 100];
 pub const LABEL_RES_BINDER: [u8; 10] = [114, 101, 115, 032, 098, 105, 110, 100, 101, 114];
-pub const LABEL_EXT_BINDER: [u8; 10] = [101, 120, 116, 032, 098, 105, 110, 100, 101, 114];
+// pub const LABEL_EXT_BINDER: [u8; 10] = [101, 120, 116, 032, 098, 105, 110, 100, 101, 114];
 pub const LABEL_EXP_MASTER: [u8; 10] = [101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
 pub const LABEL_RES_MASTER: [u8; 10] = [114, 101, 115, 032, 109, 097, 115, 116, 101, 114];
 pub const LABEL_C_E_TRAFFIC: [u8; 11] = [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099];
@@ -343,23 +343,21 @@ fn check_server_extensions(algs: &Algorithms, b: &Bytes) -> Result<Option<Bytes>
 /// } AlertLevel;
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[repr(u8)]
 pub enum AlertLevel {
-    Warning,
-    Fatal,
+    Warning = 1,
+    Fatal = 2,
 }
 
-fn alert_level(t: AlertLevel) -> u8 {
-    match t {
-        AlertLevel::Warning => 1,
-        AlertLevel::Fatal => 2,
-    }
-}
+impl TryFrom<u8> for AlertLevel {
+    type Error = TLSError;
 
-pub fn get_alert_level(t: u8) -> Result<AlertLevel, TLSError> {
-    match t {
-        1 => Ok(AlertLevel::Warning),
-        2 => Ok(AlertLevel::Fatal),
-        _ => tlserr(parse_failed()),
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(AlertLevel::Warning),
+            2 => Ok(AlertLevel::Fatal),
+            _ => tlserr(parse_failed()),
+        }
     }
 }
 

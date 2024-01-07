@@ -1,19 +1,16 @@
-#[cfg(test)]
-mod internal_tests {
+use crate::tls13handshake::*;
+use crate::tls13utils::*;
+use crate::{
+    tls13crypto::{
+        hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
+    },
+    tls13formats::{handshake_data::HandshakeData, *},
+};
 
-    use crate::tls13handshake::*;
-    use crate::tls13utils::*;
-    use crate::{
-        tls13crypto::{
-            hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
-        },
-        tls13formats::{handshake_data::HandshakeData, *},
-    };
+// These are the sample TLS 1.3 traces taken from RFC 8448
 
-    // These are the sample TLS 1.3 traces taken from RFC 8448
-
-    /* Server's RSA Private Key */
-    const modulus: &str = "b4 bb 49 8f 82 79 30 3d 98 08 36 39 9b 36 c6 98 8c
+/* Server's RSA Private Key */
+const modulus: &str = "b4 bb 49 8f 82 79 30 3d 98 08 36 39 9b 36 c6 98 8c
 0c 68 de 55 e1 bd b8 26 d3 90 1a 24 61 ea fd 2d e4 9a 91 d0 15 ab
 bc 9a 95 13 7a ce 6c 1a f1 9e aa 6a f9 8c 7c ed 43 12 09 98 e1 87
 a8 0e e0 cc b0 52 4b 1b 01 8c 3e 0b 63 26 4d 44 9a 6d 38 e2 2a 5f
@@ -21,9 +18,9 @@ da 43 08 46 74 80 30 53 0e f0 46 1c 8c a9 d9 ef bf ae 8e a6 d1 d0
 3e 2b d1 93 ef f0 ab 9a 80 02 c4 74 28 a6 d3 5a 8d 88 d7 9f 7f 1e
 3f";
 
-    const public_exponent: &str = "01 00 01";
+const public_exponent: &str = "01 00 01";
 
-    const private_exponent: &str = "04 de a7 05 d4 3a 6e a7 20 9d d8 07 21 11 a8 3c 81
+const private_exponent: &str = "04 de a7 05 d4 3a 6e a7 20 9d d8 07 21 11 a8 3c 81
 e3 22 a5 92 78 b3 34 80 64 1e af 7c 0a 69 85 b8 e3 1c 44 f6 de 62
 e1 b4 c2 30 9f 61 26 e7 7b 7c 41 e9 23 31 4b bf a3 88 13 05 dc 12
 17 f1 6c 81 9c e5 38 e9 22 f3 69 82 8d 0e 57 19 5d 8c 84 88 46 02
@@ -31,49 +28,49 @@ e1 b4 c2 30 9f 61 26 e7 7b 7c 41 e9 23 31 4b bf a3 88 13 05 dc 12
 97 0a ac 44 1c e4 e0 c3 08 8d f2 5a e6 79 23 3d f8 a3 bd a2 ff 99
 41";
 
-    const prime1: &str = "e4 35 fb 7c c8 37 37 75 6d ac ea 96 ab 7f 59 a2 cc 10 69 db
+const prime1: &str = "e4 35 fb 7c c8 37 37 75 6d ac ea 96 ab 7f 59 a2 cc 10 69 db
 7d eb 19 0e 17 e3 3a 53 2b 27 3f 30 a3 27 aa 0a aa bc 58 cd 67 46
 6a f9 84 5f ad c6 75 fe 09 4a f9 2c 4b d1 f2 c1 bc 33 dd 2e 05 15";
 
-    const prime2: &str = "ca bd 3b c0 e0 43 86 64 c8 d4 cc 9f 99 97 7a 94 d9 bb fe ad
+const prime2: &str = "ca bd 3b c0 e0 43 86 64 c8 d4 cc 9f 99 97 7a 94 d9 bb fe ad
 8e 43 87 0a ba e3 f7 eb 8b 4e 0e ee 8a f1 d9 b4 71 9b a6 19 6c f2
 cb ba ee eb f8 b3 49 0a fe 9e 9f fa 74 a8 8a a5 1f c6 45 62 93 03";
 
-    const exponent1: &str = "3f 57 34 5c 27 fe 1b 68 7e 6e 76 16 27 b7 8b 1b 82 64 33
+const exponent1: &str = "3f 57 34 5c 27 fe 1b 68 7e 6e 76 16 27 b7 8b 1b 82 64 33
 dd 76 0f a0 be a6 a6 ac f3 94 90 aa 1b 47 cd a4 86 9d 68 f5 84 dd
 5b 50 29 bd 32 09 3b 82 58 66 1f e7 15 02 5e 5d 70 a4 5a 08 d3 d3
 19";
 
-    const exponent2: &str = "18 3d a0 13 63 bd 2f 28 85 ca cb dc 99 64 bf 47 64 f1 51
+const exponent2: &str = "18 3d a0 13 63 bd 2f 28 85 ca cb dc 99 64 bf 47 64 f1 51
 76 36 f8 64 01 28 6f 71 89 3c 52 cc fe 40 a6 c2 3d 0d 08 6b 47 c6
 fb 10 d8 fd 10 41 e0 4d ef 7e 9a 40 ce 95 7c 41 77 94 e1 04 12 d1
 39";
 
-    const coefficient: &str = "83 9c a9 a0 85 e4 28 6b 2c 90 e4 66 99 7a 2c 68 1f 21
+const coefficient: &str = "83 9c a9 a0 85 e4 28 6b 2c 90 e4 66 99 7a 2c 68 1f 21
 33 9a a3 47 78 14 e4 de c1 18 33 05 0e d5 0d d1 3c c0 38 04 8a 43
 c5 9b 2a cc 41 68 89 c0 37 66 5f e5 af a6 05 96 9f 8c 01 df a5 ca
 96 9d";
 
-    // ECDH keys
+// ECDH keys
 
-    const client_x25519_priv: &str = "49 af 42 ba 7f 79 94 85 2d 71 3e f2 78
+const client_x25519_priv: &str = "49 af 42 ba 7f 79 94 85 2d 71 3e f2 78
 4b cb ca a7 91 1d e2 6a dc 56 42 cb 63 45 40 e7 ea 50 05";
 
-    const client_x25519_pub: &str = "99 38 1d e5 60 e4 bd 43 d2 3d 8e 43 5a 7d
+const client_x25519_pub: &str = "99 38 1d e5 60 e4 bd 43 d2 3d 8e 43 5a 7d
 ba fe b3 c0 6e 51 c1 3c ae 4d 54 13 69 1e 52 9a af 2c";
 
-    const server_x25519_priv: &str = "b1 58 0e ea df 6d d5 89 b8 ef 4f 2d 56
+const server_x25519_priv: &str = "b1 58 0e ea df 6d d5 89 b8 ef 4f 2d 56
 52 57 8c c8 10 e9 98 01 91 ec 8d 05 83 08 ce a2 16 a2 1e";
 
-    const server_x25519_pub: &str = "c9 82 88 76 11 20 95 fe 66 76 2b db f7 c6
+const server_x25519_pub: &str = "c9 82 88 76 11 20 95 fe 66 76 2b db f7 c6
 72 e1 56 d6 cc 25 3b 83 3d f1 dd 69 b1 b0 4e 75 1f 0f";
 
-    const shared_secret: &str = "8b d4 05 4f b5 5b 9d 63 fd fb ac f9 f0 4b 9f 0d
+const shared_secret: &str = "8b d4 05 4f b5 5b 9d 63 fd fb ac f9 f0 4b 9f 0d
 35 e6 d6 3f 53 75 63 ef d4 62 72 90 0f 89 49 2d";
 
-    //Simple 1-RTT Handshake Transcript
+//Simple 1-RTT Handshake Transcript
 
-    const client_hello: &str = "01 00 00 c0 03 03 cb 34 ec b1 e7 81 63
+const client_hello: &str = "01 00 00 c0 03 03 cb 34 ec b1 e7 81 63
 ba 1c 38 c6 da cb 19 6a 6d ff a2 1a 8d 99 12 ec 18 a2 ef 62 83
 02 4d ec e7 00 00 06 13 01 13 03 13 02 01 00 00 91 00 00 00 0b
 00 09 00 00 06 73 65 72 76 65 72 ff 01 00 01 00 00 0a 00 14 00
@@ -84,7 +81,7 @@ af 2c 00 2b 00 03 02 03 04 00 0d 00 20 00 1e 04 03 05 03 06 03
 02 03 08 04 08 05 08 06 04 01 05 01 06 01 02 01 04 02 05 02 06
 02 02 02 00 2d 00 02 01 01 00 1c 00 02 40 01";
 
-    const client_hello_record: &str = "16 03 01 00 c4 01 00 00 c0 03 03 cb
+const client_hello_record: &str = "16 03 01 00 c4 01 00 00 c0 03 03 cb
 34 ec b1 e7 81 63 ba 1c 38 c6 da cb 19 6a 6d ff a2 1a 8d 99 12
 ec 18 a2 ef 62 83 02 4d ec e7 00 00 06 13 01 13 03 13 02 01 00
 00 91 00 00 00 0b 00 09 00 00 06 73 65 72 76 65 72 ff 01 00 01
@@ -95,23 +92,23 @@ e5 60 e4 bd 43 d2 3d 8e 43 5a 7d ba fe b3 c0 6e 51 c1 3c ae 4d
 04 03 05 03 06 03 02 03 08 04 08 05 08 06 04 01 05 01 06 01 02
 01 04 02 05 02 06 02 02 02 00 2d 00 02 01 01 00 1c 00 02 40 01";
 
-    const server_hello: &str = "02 00 00 56 03 03 a6 af 06 a4 12 18 60
+const server_hello: &str = "02 00 00 56 03 03 a6 af 06 a4 12 18 60
 dc 5e 6e 60 24 9c d3 4c 95 93 0c 8a c5 cb 14 34 da c1 55 77 2e
 d3 e2 69 28 00 13 01 00 00 2e 00 33 00 24 00 1d 00 20 c9 82 88
 76 11 20 95 fe 66 76 2b db f7 c6 72 e1 56 d6 cc 25 3b 83 3d f1
 dd 69 b1 b0 4e 75 1f 0f 00 2b 00 02 03 04";
 
-    const server_hello_record: &str = "16 03 03 00 5a 02 00 00 56 03 03 a6
+const server_hello_record: &str = "16 03 03 00 5a 02 00 00 56 03 03 a6
 af 06 a4 12 18 60 dc 5e 6e 60 24 9c d3 4c 95 93 0c 8a c5 cb 14
 34 da c1 55 77 2e d3 e2 69 28 00 13 01 00 00 2e 00 33 00 24 00
 1d 00 20 c9 82 88 76 11 20 95 fe 66 76 2b db f7 c6 72 e1 56 d6
 cc 25 3b 83 3d f1 dd 69 b1 b0 4e 75 1f 0f 00 2b 00 02 03 04";
 
-    const encrypted_extensions: &str = "08 00 00 24 00 22 00 0a 00 14 00
+const encrypted_extensions: &str = "08 00 00 24 00 22 00 0a 00 14 00
 12 00 1d 00 17 00 18 00 19 01 00 01 01 01 02 01 03 01 04 00 1c
 00 02 40 01 00 00 00 00";
 
-    const server_certificate: &str = "0b 00 01 b9 00 00 01 b5 00 01 b0 30 82
+const server_certificate: &str = "0b 00 01 b9 00 00 01 b5 00 01 b0 30 82
 01 ac 30 82 01 15 a0 03 02 01 02 02 01 02 30 0d 06 09 2a 86 48
 86 f7 0d 01 01 0b 05 00 30 0e 31 0c 30 0a 06 03 55 04 03 13 03
 72 73 61 30 1e 17 0d 31 36 30 37 33 30 30 31 32 33 35 39 5a 17
@@ -134,7 +131,7 @@ c1 fc 63 a4 2a 99 be 5c 3e b7 10 7c 3c 54 e9 b9 eb 2b d5 20 3b
 1c 3b 84 e0 a8 b2 f7 59 40 9b a3 ea c9 d9 1d 40 2d cc 0c c8 f8
 96 12 29 ac 91 87 b4 2b 4d e1 00 00";
 
-    const server_certificate_verify: &str = "0f 00 00 84 08 04 00 80 5a 74 7c
+const server_certificate_verify: &str = "0f 00 00 84 08 04 00 80 5a 74 7c
 5d 88 fa 9b d2 e5 5a b0 85 a6 10 15 b7 21 1f 82 4c d4 84 14 5a
 b3 ff 52 f1 fd a8 47 7b 0b 7a bc 90 db 78 e2 d3 3a 5c 14 1a 07
 86 53 fa 6b ef 78 0c 5e a2 48 ee aa a7 85 c4 f3 94 ca b6 d3 0b
@@ -142,11 +139,11 @@ be 8d 48 59 ee 51 1f 60 29 57 b1 54 11 ac 02 76 71 45 9e 46 44
 5c 9e a5 8c 18 1e 81 8e 95 b8 c3 fb 0b f3 27 84 09 d3 be 15 2a
 3d a5 04 3e 06 3d da 65 cd f5 ae a2 0d 53 df ac d4 2f 74 f3";
 
-    const server_finished: &str = "14 00 00 20 9b 9b 14 1d 90 63 37 fb d2 cb
+const server_finished: &str = "14 00 00 20 9b 9b 14 1d 90 63 37 fb d2 cb
 dc e7 1d f4 de da 4a b4 2c 30 95 72 cb 7f ff ee 54 54 b7 8f 07
 18";
 
-    const server_finished_record: &str = "17 03 03 02 a2 d1 ff 33 4a 56 f5 bf
+const server_finished_record: &str = "17 03 03 02 a2 d1 ff 33 4a 56 f5 bf
 f6 59 4a 07 cc 87 b5 80 23 3f 50 0f 45 e4 89 e7 f3 3a f3 5e df
 78 69 fc f4 0a a4 0a a2 b8 ea 73 f8 48 a7 ca 07 61 2e f9 f9 45
 cb 96 0b 40 68 90 51 23 ea 78 b1 11 b4 29 ba 91 91 cd 05 d2 a3
@@ -180,93 +177,118 @@ d5 02 78 40 16 e4 b3 be 7e f0 4d da 49 f4 b4 40 a3 0c b5 d2 af
 93 98 28 fd 4a e3 79 4e 44 f9 4d f5 a6 31 ed e4 2c 17 19 bf da
 bf 02 53 fe 51 75 be 89 8e 75 0e dc 53 37 0d 2b";
 
-    const client_finished: &str = "14 00 00 20 a8 ec 43 6d 67 76 34 ae 52 5a
+const client_finished: &str = "14 00 00 20 a8 ec 43 6d 67 76 34 ae 52 5a
 c1 fc eb e1 1a 03 9e c1 76 94 fa c6 e9 85 27 b6 42 f2 ed d5 ce
 61";
 
-    const client_finished_record: &str = "17 03 03 00 35 75 ec 4d c2 38 cc e6
+const client_finished_record: &str = "17 03 03 00 35 75 ec 4d c2 38 cc e6
 0b 29 80 44 a7 1e 21 9c 56 cc 77 b0 51 7f e9 b9 3c 7a 4b fc 44
 d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
 26 c4 05 46";
 
-    const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms {
-        hash: HashAlgorithm::SHA256,
-        aead: AeadAlgorithm::Aes128Gcm,
-        signature: SignatureScheme::RsaPssRsaSha256,
-        kem: KemScheme::X25519,
-        psk_mode: false,
-        zero_rtt: false,
-    };
+const TLS_AES_128_GCM_SHA256_X25519_RSA: Algorithms = Algorithms {
+    hash: HashAlgorithm::SHA256,
+    aead: AeadAlgorithm::Aes128Gcm,
+    signature: SignatureScheme::RsaPssRsaSha256,
+    kem: KemScheme::X25519,
+    psk_mode: false,
+    zero_rtt: false,
+};
 
-    const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms {
-        hash: HashAlgorithm::SHA256,
-        aead: AeadAlgorithm::Aes128Gcm,
-        signature: SignatureScheme::EcdsaSecp256r1Sha256,
-        kem: KemScheme::X25519,
-        psk_mode: false,
-        zero_rtt: false,
-    };
-    const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms {
-        hash: HashAlgorithm::SHA256,
-        aead: AeadAlgorithm::Chacha20Poly1305,
-        signature: SignatureScheme::EcdsaSecp256r1Sha256,
-        kem: KemScheme::X25519,
-        psk_mode: false,
-        zero_rtt: false,
-    };
+const TLS_AES_128_GCM_SHA256_X25519: Algorithms = Algorithms {
+    hash: HashAlgorithm::SHA256,
+    aead: AeadAlgorithm::Aes128Gcm,
+    signature: SignatureScheme::EcdsaSecp256r1Sha256,
+    kem: KemScheme::X25519,
+    psk_mode: false,
+    zero_rtt: false,
+};
+const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms {
+    hash: HashAlgorithm::SHA256,
+    aead: AeadAlgorithm::Chacha20Poly1305,
+    signature: SignatureScheme::EcdsaSecp256r1Sha256,
+    kem: KemScheme::X25519,
+    psk_mode: false,
+    zero_rtt: false,
+};
 
-    const ECDSA_P256_SHA256_CERT: [u8; 522] = [
-        0x30, 0x82, 0x02, 0x06, 0x30, 0x82, 0x01, 0xAC, 0x02, 0x09, 0x00, 0xD1, 0xA2, 0xE4, 0xD5,
-        0x78, 0x05, 0x08, 0x61, 0x30, 0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03,
-        0x02, 0x30, 0x81, 0x8A, 0x31, 0x0B, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02,
-        0x44, 0x45, 0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0C, 0x06, 0x42, 0x65,
-        0x72, 0x6C, 0x69, 0x6E, 0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x07, 0x0C, 0x06,
-        0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31, 0x10, 0x30, 0x0E, 0x06, 0x03, 0x55, 0x04, 0x0A,
-        0x0C, 0x07, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03,
-        0x55, 0x04, 0x0B, 0x0C, 0x06, 0x62, 0x65, 0x72, 0x74, 0x69, 0x65, 0x31, 0x17, 0x30, 0x15,
-        0x06, 0x03, 0x55, 0x04, 0x03, 0x0C, 0x0E, 0x62, 0x65, 0x72, 0x74, 0x69, 0x65, 0x2E, 0x68,
-        0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31, 0x1D, 0x30, 0x1B, 0x06, 0x09, 0x2A, 0x86, 0x48,
-        0x86, 0xF7, 0x0D, 0x01, 0x09, 0x01, 0x16, 0x0E, 0x62, 0x65, 0x72, 0x74, 0x69, 0x65, 0x40,
-        0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x30, 0x1E, 0x17, 0x0D, 0x32, 0x31, 0x30, 0x34,
-        0x32, 0x39, 0x31, 0x31, 0x34, 0x37, 0x34, 0x35, 0x5A, 0x17, 0x0D, 0x33, 0x31, 0x30, 0x34,
-        0x32, 0x37, 0x31, 0x31, 0x34, 0x37, 0x34, 0x35, 0x5A, 0x30, 0x81, 0x8A, 0x31, 0x0B, 0x30,
-        0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x44, 0x45, 0x31, 0x0F, 0x30, 0x0D, 0x06,
-        0x03, 0x55, 0x04, 0x08, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31, 0x0F, 0x30,
-        0x0D, 0x06, 0x03, 0x55, 0x04, 0x07, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31,
-        0x10, 0x30, 0x0E, 0x06, 0x03, 0x55, 0x04, 0x0A, 0x0C, 0x07, 0x68, 0x61, 0x63, 0x73, 0x70,
-        0x65, 0x63, 0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x0B, 0x0C, 0x06, 0x62, 0x65,
-        0x72, 0x74, 0x69, 0x65, 0x31, 0x17, 0x30, 0x15, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0C, 0x0E,
-        0x62, 0x65, 0x72, 0x74, 0x69, 0x65, 0x2E, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31,
-        0x1D, 0x30, 0x1B, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x01, 0x16,
-        0x0E, 0x62, 0x65, 0x72, 0x74, 0x69, 0x65, 0x40, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63,
-        0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08,
-        0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00, 0x04, 0xD8, 0xE0, 0x74,
-        0xF7, 0xCB, 0xEF, 0x19, 0xC7, 0x56, 0xA4, 0x52, 0x59, 0x0C, 0x02, 0x70, 0xCC, 0x9B, 0xFC,
-        0x45, 0x8D, 0x73, 0x28, 0x39, 0x1D, 0x3B, 0xF5, 0x26, 0x17, 0x8B, 0x0D, 0x25, 0x04, 0x91,
-        0xE8, 0xC8, 0x72, 0x22, 0x59, 0x9A, 0x2C, 0xBB, 0x26, 0x31, 0xB1, 0xCC, 0x6B, 0x6F, 0x5A,
-        0x10, 0xD9, 0x7D, 0xD7, 0x86, 0x56, 0xFB, 0x89, 0x39, 0x9E, 0x0A, 0x91, 0x9F, 0x35, 0x81,
-        0xE7, 0x30, 0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02, 0x03, 0x48,
-        0x00, 0x30, 0x45, 0x02, 0x21, 0x00, 0xA1, 0x81, 0xB3, 0xD6, 0x8C, 0x9F, 0x62, 0x66, 0xC6,
-        0xB7, 0x3F, 0x26, 0xE7, 0xFD, 0x88, 0xF9, 0x4B, 0xD8, 0x15, 0xD1, 0x45, 0xC7, 0x66, 0x69,
-        0x40, 0xC2, 0x55, 0x21, 0x84, 0x9F, 0xE6, 0x8C, 0x02, 0x20, 0x10, 0x7E, 0xEF, 0xF3, 0x1D,
-        0x58, 0x32, 0x6E, 0xF7, 0xCB, 0x0A, 0x47, 0xF2, 0xBA, 0xEB, 0xBC, 0xB7, 0x8F, 0x46, 0x56,
-        0xF1, 0x5B, 0xCC, 0x2E, 0xD5, 0xB3, 0xC4, 0x0F, 0x5B, 0x22, 0xBD, 0x02,
-    ];
-    const ECDSA_P256_SHA256_Key: [u8; 32] = [
-        0xA6, 0xDE, 0x48, 0x21, 0x0E, 0x56, 0x12, 0xDD, 0x95, 0x3A, 0x91, 0x4E, 0x9F, 0x56, 0xC3,
-        0xA2, 0xDB, 0x7A, 0x36, 0x20, 0x08, 0xE9, 0x52, 0xEE, 0xDB, 0xCE, 0xAC, 0x3B, 0x26, 0xF9,
-        0x20, 0xBD,
-    ];
+const ECDSA_P256_SHA256_CERT: [u8; 522] = [
+    0x30, 0x82, 0x02, 0x06, 0x30, 0x82, 0x01, 0xAC, 0x02, 0x09, 0x00, 0xD1, 0xA2, 0xE4, 0xD5, 0x78,
+    0x05, 0x08, 0x61, 0x30, 0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02, 0x30,
+    0x81, 0x8A, 0x31, 0x0B, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x44, 0x45, 0x31,
+    0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E,
+    0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x07, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69,
+    0x6E, 0x31, 0x10, 0x30, 0x0E, 0x06, 0x03, 0x55, 0x04, 0x0A, 0x0C, 0x07, 0x68, 0x61, 0x63, 0x73,
+    0x70, 0x65, 0x63, 0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x0B, 0x0C, 0x06, 0x62, 0x65,
+    0x72, 0x74, 0x69, 0x65, 0x31, 0x17, 0x30, 0x15, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0C, 0x0E, 0x62,
+    0x65, 0x72, 0x74, 0x69, 0x65, 0x2E, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31, 0x1D, 0x30,
+    0x1B, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x01, 0x16, 0x0E, 0x62, 0x65,
+    0x72, 0x74, 0x69, 0x65, 0x40, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x30, 0x1E, 0x17, 0x0D,
+    0x32, 0x31, 0x30, 0x34, 0x32, 0x39, 0x31, 0x31, 0x34, 0x37, 0x34, 0x35, 0x5A, 0x17, 0x0D, 0x33,
+    0x31, 0x30, 0x34, 0x32, 0x37, 0x31, 0x31, 0x34, 0x37, 0x34, 0x35, 0x5A, 0x30, 0x81, 0x8A, 0x31,
+    0x0B, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x44, 0x45, 0x31, 0x0F, 0x30, 0x0D,
+    0x06, 0x03, 0x55, 0x04, 0x08, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31, 0x0F, 0x30,
+    0x0D, 0x06, 0x03, 0x55, 0x04, 0x07, 0x0C, 0x06, 0x42, 0x65, 0x72, 0x6C, 0x69, 0x6E, 0x31, 0x10,
+    0x30, 0x0E, 0x06, 0x03, 0x55, 0x04, 0x0A, 0x0C, 0x07, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63,
+    0x31, 0x0F, 0x30, 0x0D, 0x06, 0x03, 0x55, 0x04, 0x0B, 0x0C, 0x06, 0x62, 0x65, 0x72, 0x74, 0x69,
+    0x65, 0x31, 0x17, 0x30, 0x15, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0C, 0x0E, 0x62, 0x65, 0x72, 0x74,
+    0x69, 0x65, 0x2E, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x31, 0x1D, 0x30, 0x1B, 0x06, 0x09,
+    0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x09, 0x01, 0x16, 0x0E, 0x62, 0x65, 0x72, 0x74, 0x69,
+    0x65, 0x40, 0x68, 0x61, 0x63, 0x73, 0x70, 0x65, 0x63, 0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A,
+    0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07,
+    0x03, 0x42, 0x00, 0x04, 0xD8, 0xE0, 0x74, 0xF7, 0xCB, 0xEF, 0x19, 0xC7, 0x56, 0xA4, 0x52, 0x59,
+    0x0C, 0x02, 0x70, 0xCC, 0x9B, 0xFC, 0x45, 0x8D, 0x73, 0x28, 0x39, 0x1D, 0x3B, 0xF5, 0x26, 0x17,
+    0x8B, 0x0D, 0x25, 0x04, 0x91, 0xE8, 0xC8, 0x72, 0x22, 0x59, 0x9A, 0x2C, 0xBB, 0x26, 0x31, 0xB1,
+    0xCC, 0x6B, 0x6F, 0x5A, 0x10, 0xD9, 0x7D, 0xD7, 0x86, 0x56, 0xFB, 0x89, 0x39, 0x9E, 0x0A, 0x91,
+    0x9F, 0x35, 0x81, 0xE7, 0x30, 0x0A, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04, 0x03, 0x02,
+    0x03, 0x48, 0x00, 0x30, 0x45, 0x02, 0x21, 0x00, 0xA1, 0x81, 0xB3, 0xD6, 0x8C, 0x9F, 0x62, 0x66,
+    0xC6, 0xB7, 0x3F, 0x26, 0xE7, 0xFD, 0x88, 0xF9, 0x4B, 0xD8, 0x15, 0xD1, 0x45, 0xC7, 0x66, 0x69,
+    0x40, 0xC2, 0x55, 0x21, 0x84, 0x9F, 0xE6, 0x8C, 0x02, 0x20, 0x10, 0x7E, 0xEF, 0xF3, 0x1D, 0x58,
+    0x32, 0x6E, 0xF7, 0xCB, 0x0A, 0x47, 0xF2, 0xBA, 0xEB, 0xBC, 0xB7, 0x8F, 0x46, 0x56, 0xF1, 0x5B,
+    0xCC, 0x2E, 0xD5, 0xB3, 0xC4, 0x0F, 0x5B, 0x22, 0xBD, 0x02,
+];
+const ECDSA_P256_SHA256_Key: [u8; 32] = [
+    0xA6, 0xDE, 0x48, 0x21, 0x0E, 0x56, 0x12, 0xDD, 0x95, 0x3A, 0x91, 0x4E, 0x9F, 0x56, 0xC3, 0xA2,
+    0xDB, 0x7A, 0x36, 0x20, 0x08, 0xE9, 0x52, 0xEE, 0xDB, 0xCE, 0xAC, 0x3B, 0x26, 0xF9, 0x20, 0xBD,
+];
 
-    #[test]
-    fn test_parse_client_hello() {
-        let ch = handshake_data::HandshakeData::from(Bytes::from_hex(client_hello));
-        //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-        let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
-        let b = res.is_ok();
-        match res {
+#[test]
+fn test_parse_client_hello() {
+    let ch = handshake_data::HandshakeData::from(Bytes::from_hex(client_hello));
+    //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
+    let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok((cr, sid, sn, gx, tkto, bo, l)) => {
+            println!("Parsed CH!");
+            println!("cr: {}", cr.as_hex());
+            println!("sid: {}", sid.as_hex());
+            println!("sn: {}", sn.as_hex());
+            println!("gx: {}", gx.as_hex());
+            println!("trunc_len: {}", l);
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_parse_client_hello_record() {
+    let mut ch: Bytes = Bytes::from_hex(client_hello_record);
+    ch[2] = 3.into();
+    //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
+    let mut b = true;
+    match check_handshake_record(&ch) {
+        Err(x) => {
+            println!("Error: {}", x);
+            b = false;
+        }
+        Ok((hs, len)) => match parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &hs) {
             Err(x) => {
                 println!("Error: {}", x);
+                b = false;
             }
             Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                 println!("Parsed CH!");
@@ -276,25 +298,31 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 println!("gx: {}", gx.as_hex());
                 println!("trunc_len: {}", l);
             }
-        }
-        assert!(b);
+        },
     }
+    assert!(b);
+}
 
-    #[test]
-    fn test_parse_client_hello_record() {
-        let mut ch: Bytes = Bytes::from_hex(client_hello_record);
-        ch[2] = 3.into();
-        //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-        let mut b = true;
-        match check_handshake_record(&ch) {
-            Err(x) => {
-                println!("Error: {}", x);
-                b = false;
-            }
-            Ok((hs, len)) => match parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &hs) {
+#[test]
+fn test_parse_client_hello_roundtrip() {
+    let cr = Random::new();
+    let gx = Bytes::from_hex(client_x25519_pub);
+    let sn = Bytes::zeroes(23);
+    let ch =
+        crate::tls13formats::client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cr, &gx, &sn, &None);
+    let mut b = true;
+    match ch {
+        Err(x) => {
+            println!("Error serializing: {}", x);
+            b = false;
+        }
+        Ok((ch, _)) => {
+            //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
+            let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
+            let b = res.is_ok();
+            match res {
                 Err(x) => {
                     println!("Error: {}", x);
-                    b = false;
                 }
                 Ok((cr, sid, sn, gx, tkto, bo, l)) => {
                     println!("Parsed CH!");
@@ -304,278 +332,237 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                     println!("gx: {}", gx.as_hex());
                     println!("trunc_len: {}", l);
                 }
-            },
+            }
         }
-        assert!(b);
     }
+    assert!(b);
+}
 
-    #[test]
-    fn test_parse_client_hello_roundtrip() {
-        let cr = Random::new();
-        let gx = Bytes::from_hex(client_x25519_pub);
-        let sn = Bytes::zeroes(23);
-        let ch = crate::tls13formats::client_hello(
-            &TLS_AES_128_GCM_SHA256_X25519_RSA,
-            &cr,
-            &gx,
-            &sn,
-            &None,
+#[test]
+fn test_parse_server_hello() {
+    let sh = handshake_data::HandshakeData::from(Bytes::from_hex(server_hello));
+    //   let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
+    let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok((sr, gy)) => {
+            println!("Parsed SH!");
+            println!("sr: {}", sr.as_hex());
+            println!("gy: {}", gy.as_hex());
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+#[ignore = "Enable this later."]
+fn test_parse_server_hello_length_zero() {
+    let sh = handshake_data::HandshakeData::from(Bytes::from_hex("02000000"));
+    let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+}
+
+#[test]
+fn test_parse_server_hello_roundtrip() {
+    let sr: Random = Random::new();
+    let mut sid = Bytes::zeroes(24);
+    sid[0] = 255.into();
+    let gy = Bytes::from_hex(server_x25519_pub);
+    let sh = crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
+    let mut b = true;
+    match sh {
+        Err(x) => {
+            println!("Error serializing: {}", x);
+            b = false;
+        }
+        Ok(sh) => {
+            //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
+            let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
+            let b = res.is_ok();
+            match res {
+                Err(x) => {
+                    println!("Error: {}", x);
+                }
+                Ok((sr, gy)) => {
+                    println!("Parsed SH!");
+                    println!("sr: {}", sr.as_hex());
+                    println!("gy: {}", gy.as_hex());
+                }
+            }
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_parse_encrypted_extensions() {
+    let ee = HandshakeData::from(Bytes::from_hex(encrypted_extensions));
+    let res = parse_encrypted_extensions(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ee);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok(()) => {
+            println!("Parsed EE!");
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_parse_server_certificate() {
+    let sc = HandshakeData::from(Bytes::from_hex(server_certificate));
+    let res = parse_server_certificate(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sc);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok(_) => {
+            println!("Parsed SC!");
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_parse_server_certificate_verify() {
+    let cv = HandshakeData::from(Bytes::from_hex(server_certificate_verify));
+    let res = parse_certificate_verify(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cv);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok(_) => {
+            println!("Parsed CV!");
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_parse_server_finished() {
+    let sf = HandshakeData::from(Bytes::from_hex(server_finished));
+    let res = parse_finished(&sf);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok(_) => {
+            println!("Parsed SF!");
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_parse_client_finished() {
+    let cf = HandshakeData::from(Bytes::from_hex(client_finished));
+    let res = parse_finished(&cf);
+    let b = res.is_ok();
+    match res {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok(_) => {
+            println!("Parsed CF!");
+        }
+    }
+    assert!(b);
+}
+
+#[test]
+fn test_key_schedule() {
+    let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    let sha256_emp = Bytes::from_hex(sha256_emp_str);
+
+    if let Ok(ha) = HashAlgorithm::SHA256.hash(&Bytes::new()) {
+        println!(
+            "computed hash(empty) {}\nexpected hash(empty) {}",
+            ha.as_hex(),
+            sha256_emp.as_hex()
         );
-        let mut b = true;
-        match ch {
-            Err(x) => {
-                println!("Error serializing: {}", x);
-                b = false;
-            }
-            Ok((ch, _)) => {
-                //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-                let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
-                let b = res.is_ok();
-                match res {
-                    Err(x) => {
-                        println!("Error: {}", x);
-                    }
-                    Ok((cr, sid, sn, gx, tkto, bo, l)) => {
-                        println!("Parsed CH!");
-                        println!("cr: {}", cr.as_hex());
-                        println!("sid: {}", sid.as_hex());
-                        println!("sn: {}", sn.as_hex());
-                        println!("gx: {}", gx.as_hex());
-                        println!("trunc_len: {}", l);
-                    }
+    }
+
+    let client_hello_bytes = Bytes::from_hex(client_hello);
+    let server_hello_bytes = Bytes::from_hex(server_hello);
+    let encrypted_extensions_bytes = Bytes::from_hex(encrypted_extensions);
+    let server_certificate_bytes = Bytes::from_hex(server_certificate);
+    let server_cert_verify_bytes = Bytes::from_hex(server_certificate_verify);
+    let server_finished_bytes = Bytes::from_hex(server_finished);
+    let shared_secret_bytes = Bytes::from_hex(shared_secret);
+    let Algorithms {
+        hash: ha,
+        aead: ae,
+        signature: sa,
+        kem: gn,
+        psk_mode,
+        zero_rtt,
+    } = TLS_AES_128_GCM_SHA256_X25519_RSA;
+    let transcript = client_hello_bytes.concat(&server_hello_bytes);
+    let tx_hash = ha.hash(&transcript);
+    let mut b = true;
+    match tx_hash {
+        Err(x) => {
+            println!("Error: {}", x);
+        }
+        Ok(tx_hash) => {
+            let keys = derive_hk_ms(&ha, &ae, &shared_secret_bytes, &None, &tx_hash);
+            b = keys.is_ok();
+            match keys {
+                Err(x) => {
+                    println!("Error: {}", x);
                 }
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_parse_server_hello() {
-        let sh = handshake_data::HandshakeData::from(Bytes::from_hex(server_hello));
-        //   let default_algs = Algorithms(SHA256,AES_128_GCM,ECDSA_SECP256R1_SHA256,X25519,false,false);
-        let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
-        let b = res.is_ok();
-        match res {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok((sr, gy)) => {
-                println!("Parsed SH!");
-                println!("sr: {}", sr.as_hex());
-                println!("gy: {}", gy.as_hex());
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    #[ignore = "Enable this later."]
-    fn test_parse_server_hello_length_zero() {
-        let sh = handshake_data::HandshakeData::from(Bytes::from_hex("02000000"));
-        let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
-    }
-
-    #[test]
-    fn test_parse_server_hello_roundtrip() {
-        let sr: Random = Random::new();
-        let mut sid = Bytes::zeroes(24);
-        sid[0] = 255.into();
-        let gy = Bytes::from_hex(server_x25519_pub);
-        let sh =
-            crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
-        let mut b = true;
-        match sh {
-            Err(x) => {
-                println!("Error serializing: {}", x);
-                b = false;
-            }
-            Ok(sh) => {
-                //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-                let res = parse_server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sh);
-                let b = res.is_ok();
-                match res {
-                    Err(x) => {
-                        println!("Error: {}", x);
-                    }
-                    Ok((sr, gy)) => {
-                        println!("Parsed SH!");
-                        println!("sr: {}", sr.as_hex());
-                        println!("gy: {}", gy.as_hex());
-                    }
-                }
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_parse_encrypted_extensions() {
-        let ee = HandshakeData::from(Bytes::from_hex(encrypted_extensions));
-        let res = parse_encrypted_extensions(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ee);
-        let b = res.is_ok();
-        match res {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok(()) => {
-                println!("Parsed EE!");
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_parse_server_certificate() {
-        let sc = HandshakeData::from(Bytes::from_hex(server_certificate));
-        let res = parse_server_certificate(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sc);
-        let b = res.is_ok();
-        match res {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok(_) => {
-                println!("Parsed SC!");
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_parse_server_certificate_verify() {
-        let cv = HandshakeData::from(Bytes::from_hex(server_certificate_verify));
-        let res = parse_certificate_verify(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cv);
-        let b = res.is_ok();
-        match res {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok(_) => {
-                println!("Parsed CV!");
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_parse_server_finished() {
-        let sf = HandshakeData::from(Bytes::from_hex(server_finished));
-        let res = parse_finished(&sf);
-        let b = res.is_ok();
-        match res {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok(_) => {
-                println!("Parsed SF!");
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_parse_client_finished() {
-        let cf = HandshakeData::from(Bytes::from_hex(client_finished));
-        let res = parse_finished(&cf);
-        let b = res.is_ok();
-        match res {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok(_) => {
-                println!("Parsed CF!");
-            }
-        }
-        assert!(b);
-    }
-
-    #[test]
-    fn test_key_schedule() {
-        let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let sha256_emp = Bytes::from_hex(sha256_emp_str);
-
-        if let Ok(ha) = HashAlgorithm::SHA256.hash(&Bytes::new()) {
-            println!(
-                "computed hash(empty) {}\nexpected hash(empty) {}",
-                ha.as_hex(),
-                sha256_emp.as_hex()
-            );
-        }
-
-        let client_hello_bytes = Bytes::from_hex(client_hello);
-        let server_hello_bytes = Bytes::from_hex(server_hello);
-        let encrypted_extensions_bytes = Bytes::from_hex(encrypted_extensions);
-        let server_certificate_bytes = Bytes::from_hex(server_certificate);
-        let server_cert_verify_bytes = Bytes::from_hex(server_certificate_verify);
-        let server_finished_bytes = Bytes::from_hex(server_finished);
-        let shared_secret_bytes = Bytes::from_hex(shared_secret);
-        let Algorithms {
-            hash: ha,
-            aead: ae,
-            signature: sa,
-            kem: gn,
-            psk_mode,
-            zero_rtt,
-        } = TLS_AES_128_GCM_SHA256_X25519_RSA;
-        let transcript = client_hello_bytes.concat(&server_hello_bytes);
-        let tx_hash = ha.hash(&transcript);
-        let mut b = true;
-        match tx_hash {
-            Err(x) => {
-                println!("Error: {}", x);
-            }
-            Ok(tx_hash) => {
-                let keys = derive_hk_ms(&ha, &ae, &shared_secret_bytes, &None, &tx_hash);
-                b = keys.is_ok();
-                match keys {
-                    Err(x) => {
-                        println!("Error: {}", x);
-                    }
-                    Ok((aead_key_iv1, aead_key_iv2, cfk, sfk, ms)) => {
-                        println!("Derive Succeeded!");
-                        println!(
-                            "chk: key {} \n iv {}",
-                            aead_key_iv1.key.bytes().as_hex(),
-                            aead_key_iv1.iv.as_hex()
-                        );
-                        println!(
-                            "shk: key {} \n iv {}",
-                            aead_key_iv2.key.bytes().as_hex(),
-                            aead_key_iv2.iv.as_hex()
-                        );
-                        println!("cfk: {}", cfk.as_hex());
-                        println!("sfk: {}", sfk.as_hex());
-                        println!("ms: {}", ms.as_hex());
-                        let transcript = transcript
-                            .concat(&encrypted_extensions_bytes)
-                            .concat(&server_certificate_bytes)
-                            .concat(&server_cert_verify_bytes)
-                            .concat(&server_finished_bytes);
-                        let tx_hash = ha.hash(&transcript);
-                        match tx_hash {
-                            Err(x) => {
-                                println!("Error: {}", x);
-                            }
-                            Ok(tx_hash) => {
-                                let keys = derive_app_keys(&ha, &ae, &ms, &tx_hash);
-                                b = keys.is_ok();
-                                match keys {
-                                    Err(x) => {
-                                        println!("Error: {}", x);
-                                    }
-                                    Ok((aead_key_iv1, aead_key_iv2, ms)) => {
-                                        println!("Derive Succeeded!");
-                                        println!(
-                                            "cak: key {} \n iv {}",
-                                            aead_key_iv1.key.bytes().as_hex(),
-                                            aead_key_iv1.iv.as_hex()
-                                        );
-                                        println!(
-                                            "sak: key {} \n iv {}",
-                                            aead_key_iv2.key.bytes().as_hex(),
-                                            aead_key_iv2.iv.as_hex()
-                                        );
-                                        println!("exp: {}", ms.as_hex());
-                                    }
+                Ok((aead_key_iv1, aead_key_iv2, cfk, sfk, ms)) => {
+                    println!("Derive Succeeded!");
+                    println!(
+                        "chk: key {} \n iv {}",
+                        aead_key_iv1.key.bytes().as_hex(),
+                        aead_key_iv1.iv.as_hex()
+                    );
+                    println!(
+                        "shk: key {} \n iv {}",
+                        aead_key_iv2.key.bytes().as_hex(),
+                        aead_key_iv2.iv.as_hex()
+                    );
+                    println!("cfk: {}", cfk.as_hex());
+                    println!("sfk: {}", sfk.as_hex());
+                    println!("ms: {}", ms.as_hex());
+                    let transcript = transcript
+                        .concat(&encrypted_extensions_bytes)
+                        .concat(&server_certificate_bytes)
+                        .concat(&server_cert_verify_bytes)
+                        .concat(&server_finished_bytes);
+                    let tx_hash = ha.hash(&transcript);
+                    match tx_hash {
+                        Err(x) => {
+                            println!("Error: {}", x);
+                        }
+                        Ok(tx_hash) => {
+                            let keys = derive_app_keys(&ha, &ae, &ms, &tx_hash);
+                            b = keys.is_ok();
+                            match keys {
+                                Err(x) => {
+                                    println!("Error: {}", x);
+                                }
+                                Ok((aead_key_iv1, aead_key_iv2, ms)) => {
+                                    println!("Derive Succeeded!");
+                                    println!(
+                                        "cak: key {} \n iv {}",
+                                        aead_key_iv1.key.bytes().as_hex(),
+                                        aead_key_iv1.iv.as_hex()
+                                    );
+                                    println!(
+                                        "sak: key {} \n iv {}",
+                                        aead_key_iv2.key.bytes().as_hex(),
+                                        aead_key_iv2.iv.as_hex()
+                                    );
+                                    println!("exp: {}", ms.as_hex());
                                 }
                             }
                         }
@@ -583,83 +570,83 @@ d8 7f 38 f8 03 38 ac 98 fc 46 de b3 84 bd 1c ae ac ab 68 67 d7
                 }
             }
         }
-        assert!(b);
     }
+    assert!(b);
+}
 
-    /* #[test]
-       fn test_ecdh() {
-           let x = Bytes::from_hex(client_x25519_priv);
-           let gx = Bytes::from_hex(client_x25519_pub);
-           let y = Bytes::from_hex(server_x25519_priv);
-           let gy = Bytes::from_hex(server_x25519_pub);
-           let gxy = Bytes::from_hex(shared_secret);
+/* #[test]
+   fn test_ecdh() {
+       let x = Bytes::from_hex(client_x25519_priv);
+       let gx = Bytes::from_hex(client_x25519_pub);
+       let y = Bytes::from_hex(server_x25519_priv);
+       let gy = Bytes::from_hex(server_x25519_pub);
+       let gxy = Bytes::from_hex(shared_secret);
 
-           let my_gx = kem_keygen(&KemSchemep::X25519, &x);
-           let my_gy = kem_keygen(&KemScheme::X25519, &x);
-           let (my_ss1, = ecdh(&KemScheme::X25519, &x, &gy);
-           let my_ss2 = ecdh(&KemScheme::X25519, &y, &gx);
+       let my_gx = kem_keygen(&KemSchemep::X25519, &x);
+       let my_gy = kem_keygen(&KemScheme::X25519, &x);
+       let (my_ss1, = ecdh(&KemScheme::X25519, &x, &gy);
+       let my_ss2 = ecdh(&KemScheme::X25519, &y, &gx);
 
-           let mut b = true;
-           match (my_gx, my_gy, my_ss1, my_ss2) {
-               (Ok(gx_), Ok(gy_), Ok(ss1), Ok(ss2)) => {
-                   println!("expected gx {}", gx.to_hex());
-                   println!("computed gx {}", gx_.to_hex());
-                   println!("expected gy {}", gy.to_hex());
-                   println!("computed gy {}", gy_.to_hex());
-                   println!("expected ss {}", gxy.to_hex());
-                   println!("computed xy {}", ss1.to_hex());
-                   println!("computed yx {}", ss2.to_hex());
-               }
-               _ => {
-                   b = false;
-               }
+       let mut b = true;
+       match (my_gx, my_gy, my_ss1, my_ss2) {
+           (Ok(gx_), Ok(gy_), Ok(ss1), Ok(ss2)) => {
+               println!("expected gx {}", gx.to_hex());
+               println!("computed gx {}", gx_.to_hex());
+               println!("expected gy {}", gy.to_hex());
+               println!("computed gy {}", gy_.to_hex());
+               println!("expected ss {}", gxy.to_hex());
+               println!("computed xy {}", ss1.to_hex());
+               println!("computed yx {}", ss2.to_hex());
            }
-           assert!(b);
+           _ => {
+               b = false;
+           }
        }
-    */
-    const cfk_str: &str = "b80ad01015fb2f0bd65ff7d4da5d6bf83f84821d1f87fdc7d3c75b5a7b42d9c4";
-    const sfk_str: &str = "008d3b66f816ea559f96b537e885c31fc068bf492c652f01f288a1d8cdc19fc8";
+       assert!(b);
+   }
+*/
+const cfk_str: &str = "b80ad01015fb2f0bd65ff7d4da5d6bf83f84821d1f87fdc7d3c75b5a7b42d9c4";
+const sfk_str: &str = "008d3b66f816ea559f96b537e885c31fc068bf492c652f01f288a1d8cdc19fc8";
 
-    #[test]
-    fn test_finished() {
-        let cfk = Bytes::from_hex(cfk_str);
-        let sfk = Bytes::from_hex(sfk_str);
+#[test]
+fn test_finished() {
+    let cfk = Bytes::from_hex(cfk_str);
+    let sfk = Bytes::from_hex(sfk_str);
 
-        let ch: Bytes = Bytes::from_hex(client_hello);
-        let sh: Bytes = Bytes::from_hex(server_hello);
-        let ee: Bytes = Bytes::from_hex(encrypted_extensions);
-        let sc: Bytes = Bytes::from_hex(server_certificate);
-        let cv: Bytes = Bytes::from_hex(server_certificate_verify);
-        let sf: Bytes = Bytes::from_hex(server_finished);
-        let Algorithms {
-            hash: ha,
-            aead: ae,
-            signature: sa,
-            kem: gn,
-            psk_mode,
-            zero_rtt,
-        } = TLS_AES_128_GCM_SHA256_X25519_RSA;
-        let tx1 = ch.concat(&sh).concat(&ee).concat(&sc).concat(&cv);
-        let tx_hash1 = ha.hash(&tx1);
-        let tx2 = tx1.concat(&sf);
-        let tx_hash2 = ha.hash(&tx2);
-        let mut b = true;
-        match (tx_hash1, tx_hash2) {
-            (Ok(h1), Ok(h2)) => {
-                let m1 = hmac_tag(&ha, &sfk, &h1);
-                let m2 = hmac_tag(&ha, &cfk, &h2);
-                match (m1, m2) {
-                    (Ok(m1), Ok(m2)) => {
-                        println!("computed sfin vd {}", m1.as_hex());
-                        println!("computed cfin vd {}", m2.as_hex());
-                    }
-                    _ => {
-                        b = false;
-                    }
+    let ch: Bytes = Bytes::from_hex(client_hello);
+    let sh: Bytes = Bytes::from_hex(server_hello);
+    let ee: Bytes = Bytes::from_hex(encrypted_extensions);
+    let sc: Bytes = Bytes::from_hex(server_certificate);
+    let cv: Bytes = Bytes::from_hex(server_certificate_verify);
+    let sf: Bytes = Bytes::from_hex(server_finished);
+    let Algorithms {
+        hash: ha,
+        aead: ae,
+        signature: sa,
+        kem: gn,
+        psk_mode,
+        zero_rtt,
+    } = TLS_AES_128_GCM_SHA256_X25519_RSA;
+    let tx1 = ch.concat(&sh).concat(&ee).concat(&sc).concat(&cv);
+    let tx_hash1 = ha.hash(&tx1);
+    let tx2 = tx1.concat(&sf);
+    let tx_hash2 = ha.hash(&tx2);
+    let mut b = true;
+    match (tx_hash1, tx_hash2) {
+        (Ok(h1), Ok(h2)) => {
+            let m1 = hmac_tag(&ha, &sfk, &h1);
+            let m2 = hmac_tag(&ha, &cfk, &h2);
+            match (m1, m2) {
+                (Ok(m1), Ok(m2)) => {
+                    println!("computed sfin vd {}", m1.as_hex());
+                    println!("computed cfin vd {}", m2.as_hex());
+                }
+                _ => {
+                    b = false;
                 }
             }
-            _ => b = false,
         }
-        assert!(b);
+        _ => b = false,
     }
+    assert!(b);
 }

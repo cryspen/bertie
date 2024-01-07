@@ -343,6 +343,8 @@ pub(crate) fn rsa_public_key(
 }
 
 /// Debug print a slice.
+#[cfg(test)]
+#[allow(dead_code)]
 fn debug_print(tag: &str, bytes: &Bytes, offset: usize) {
     eprintln!(
         "{}: {}",
@@ -370,14 +372,10 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
     offset = skip_integer(key, offset)?; // version
     offset = skip_sequence(key, offset)?;
     offset = read_octet_header(key, offset)?;
-    // debug_print("key 1", key, offset);
     offset = read_sequence_header(key, offset)?;
-    // debug_print("key 2", key, offset);
     offset = skip_integer(key, offset)?; // version
     offset = skip_integer(key, offset)?; // private key algorithm
-                                         // debug_print("key 3", key, offset);
     offset = skip_integer(key, offset)?; // public exponent 65537
-                                         // debug_print("key 4", key, offset);
 
     // now we have reached the private exponent d
     read_integer(key, offset)

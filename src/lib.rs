@@ -22,13 +22,11 @@
 //! [tls13server]: ../tls13server/index.html
 
 #![allow(non_upper_case_globals)]
-#![allow(dead_code)]
 #![allow(unused_variables)]
 // FIXME(performance)
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::zero_prefixed_literal)]
 
-mod test_tls13traces_internal;
 mod tls13formats;
 mod tls13handshake;
 mod tls13record;
@@ -41,9 +39,10 @@ pub mod tls13utils;
 
 pub use tls13api::{Client, Server};
 // Debug exports only
-pub use tls13formats::{
-    get_alert_level, handshake_data::get_hs_type, AlertDescription, ContentType,
-};
+pub use tls13formats::{handshake_data::get_hs_type, AlertDescription, AlertLevel, ContentType};
+
+#[cfg(test)]
+mod test_tls13traces_internal;
 
 // === Public API that is NOT in hacspec
 

@@ -76,11 +76,6 @@ let v_LABEL_EXP_MASTER: t_Array u8 (sz 10) =
   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 10);
   Rust_primitives.Hax.array_of_list list
 
-let v_LABEL_EXT_BINDER: t_Array u8 (sz 10) =
-  let list = [101uy; 120uy; 116uy; 32uy; 98uy; 105uy; 110uy; 100uy; 101uy; 114uy] in
-  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 10);
-  Rust_primitives.Hax.array_of_list list
-
 let v_LABEL_E_EXP_MASTER: t_Array u8 (sz 12) =
   let list = [101uy; 32uy; 101uy; 120uy; 112uy; 32uy; 109uy; 97uy; 115uy; 116uy; 101uy; 114uy] in
   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 12);
@@ -141,11 +136,6 @@ let v_PREFIX_SERVER_SIGNATURE: t_Array u8 (sz 98) =
   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 98);
   Rust_primitives.Hax.array_of_list list
 
-let alert_level (t: t_AlertLevel) : u8 =
-  match t with
-  | AlertLevel_Warning  -> 1uy
-  | AlertLevel_Fatal  -> 2uy
-
 let application_data_instead_of_handshake (_: Prims.unit) : Core.Result.t_Result Prims.unit u8 =
   Core.Result.Result_Err Bertie.Tls13utils.v_APPLICATION_DATA_INSTEAD_OF_HANDSHAKE
   <:
@@ -170,7 +160,26 @@ let check_r_len (rlen: usize) : Core.Result.t_Result Prims.unit u8 =
   else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_2: Core.Convert.t_TryFrom t_AlertDescription u8 =
+let impl_1: Core.Convert.t_TryFrom t_AlertLevel u8 =
+  {
+    f_Error = u8;
+    f_try_from
+    =
+    fun (value: u8) ->
+      match value with
+      | 1uy ->
+        Core.Result.Result_Ok (AlertLevel_Warning <: t_AlertLevel)
+        <:
+        Core.Result.t_Result t_AlertLevel u8
+      | 2uy ->
+        Core.Result.Result_Ok (AlertLevel_Fatal <: t_AlertLevel)
+        <:
+        Core.Result.t_Result t_AlertLevel u8
+      | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+  }
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+let impl_3: Core.Convert.t_TryFrom t_AlertDescription u8 =
   {
     f_Error = u8;
     f_try_from
@@ -307,16 +316,6 @@ let impl__ContentType__try_from_u8 (t: u8) : Core.Result.t_Result t_ContentType 
     Core.Result.Result_Ok (ContentType_ApplicationData <: t_ContentType)
     <:
     Core.Result.t_Result t_ContentType u8
-  | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
-
-let get_alert_level (t: u8) : Core.Result.t_Result t_AlertLevel u8 =
-  match t with
-  | 1uy ->
-    Core.Result.Result_Ok (AlertLevel_Warning <: t_AlertLevel)
-    <:
-    Core.Result.t_Result t_AlertLevel u8
-  | 2uy ->
-    Core.Result.Result_Ok (AlertLevel_Fatal <: t_AlertLevel) <: Core.Result.t_Result t_AlertLevel u8
   | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
 
 let invalid_compression_method_alert (_: Prims.unit) : Core.Result.t_Result Prims.unit u8 =

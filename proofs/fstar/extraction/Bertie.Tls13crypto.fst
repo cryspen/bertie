@@ -125,27 +125,6 @@ let impl__SignatureScheme__libcrux_scheme (self: t_SignatureScheme)
     <:
     Core.Result.t_Result Libcrux.Signature.t_Algorithm u8
 
-let impl__KemScheme__kem_priv_len (self: t_KemScheme) : usize =
-  match self with
-  | KemScheme_X25519  -> sz 32
-  | KemScheme_Secp256r1  -> sz 32
-  | _ ->
-    Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize
-                  (let list = ["not implemented: Only x25519 and P256 are supported right now"] in
-                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-                    Rust_primitives.Hax.array_of_list list)
-                <:
-                t_Slice string)
-              (Rust_primitives.unsize (Core.Fmt.Rt.impl_1__none ()
-                    <:
-                    t_Array Core.Fmt.Rt.t_Argument (sz 0))
-                <:
-                t_Slice Core.Fmt.Rt.t_Argument)
-            <:
-            Core.Fmt.t_Arguments)
-        <:
-        Rust_primitives.Hax.t_Never)
-
 let impl__KemScheme__libcrux_algorithm (self: t_KemScheme)
     : Core.Result.t_Result Libcrux.Kem.t_Algorithm u8 =
   match self with
@@ -938,72 +917,6 @@ let impl_7: Core.Convert.t_TryFrom t_Algorithms string =
         Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
   }
 
-let impl__Algorithms__ciphersuite (self: t_Algorithms)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  match self.f_hash, self.f_aead <: (t_HashAlgorithm & t_AeadAlgorithm) with
-  | HashAlgorithm_SHA256 , AeadAlgorithm_Aes128Gcm  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [19uy; 1uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | HashAlgorithm_SHA384 , AeadAlgorithm_Aes256Gcm  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [19uy; 2uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | HashAlgorithm_SHA256 , AeadAlgorithm_Chacha20Poly1305  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [19uy; 3uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
-
-let impl__Algorithms__signature_algorithm (self: t_Algorithms)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  match impl__Algorithms__signature self with
-  | SignatureScheme_RsaPssRsaSha256  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [8uy; 4uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | SignatureScheme_EcdsaSecp256r1Sha256  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [4uy; 3uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | SignatureScheme_ED25519  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
-
-let impl__Algorithms__supported_group (self: t_Algorithms)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  match impl__Algorithms__kem self with
-  | KemScheme_X25519  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [0uy; 29uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | KemScheme_Secp256r1  ->
-    Core.Result.Result_Ok
-    (Core.Convert.f_into (let list = [0uy; 23uy] in
-          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-          Rust_primitives.Hax.array_of_list list))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | KemScheme_X448  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
-  | KemScheme_Secp384r1  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
-  | KemScheme_Secp521r1  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
-
 unfold
 let t_AeadIV = Bertie.Tls13utils.t_Bytes
 
@@ -1206,6 +1119,72 @@ let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let impl__Algorithms__ciphersuite (self: t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  match self.f_hash, self.f_aead <: (t_HashAlgorithm & t_AeadAlgorithm) with
+  | HashAlgorithm_SHA256 , AeadAlgorithm_Aes128Gcm  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [19uy; 1uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | HashAlgorithm_SHA384 , AeadAlgorithm_Aes256Gcm  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [19uy; 2uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | HashAlgorithm_SHA256 , AeadAlgorithm_Chacha20Poly1305  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [19uy; 3uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | _ -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+
+let impl__Algorithms__signature_algorithm (self: t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  match impl__Algorithms__signature self with
+  | SignatureScheme_RsaPssRsaSha256  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [8uy; 4uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | SignatureScheme_EcdsaSecp256r1Sha256  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [4uy; 3uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | SignatureScheme_ED25519  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+
+let impl__Algorithms__supported_group (self: t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  match impl__Algorithms__kem self with
+  | KemScheme_X25519  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [0uy; 29uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | KemScheme_Secp256r1  ->
+    Core.Result.Result_Ok
+    (Core.Convert.f_into (let list = [0uy; 23uy] in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | KemScheme_X448  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+  | KemScheme_Secp384r1  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+  | KemScheme_Secp521r1  -> Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
 
 let sign
       (#impl_916461611_: Type)
@@ -2196,8 +2175,6 @@ let impl__AeadKey__as_libcrux_key (self: t_AeadKey) : Core.Result.t_Result Libcr
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
           (Core.Result.t_Result Libcrux.Aead.t_Key u8))
-
-let impl__AeadKey__bytes (self: t_AeadKey) : Bertie.Tls13utils.t_Bytes = self.f_bytes
 
 let impl__AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (alg: t_AeadAlgorithm) : t_AeadKey =
   { f_bytes = bytes; f_alg = alg } <: t_AeadKey

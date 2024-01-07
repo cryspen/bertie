@@ -67,6 +67,7 @@ impl AeadKey {
     }
 
     /// Get the raw bytes of the key.
+    #[cfg(test)]
     pub(crate) fn bytes(&self) -> &Bytes {
         &self.bytes
     }
@@ -476,15 +477,6 @@ pub enum KemScheme {
 }
 
 impl KemScheme {
-    /// Get the length of the private key for a given [`KemScheme`].
-    pub(crate) fn kem_priv_len(&self) -> usize {
-        match self {
-            KemScheme::X25519 => 32,
-            KemScheme::Secp256r1 => 32,
-            _ => unimplemented!("Only x25519 and P256 are supported right now"),
-        }
-    }
-
     /// Get the libcrux algorithm for this [`KemScheme`].
     fn libcrux_algorithm(self) -> Result<kem::Algorithm, TLSError> {
         match self {

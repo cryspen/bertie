@@ -149,6 +149,8 @@ fn decrypt_record_payload(
 /* Record Encryption/Decryption API */
 
 /// Encrypt 0-RTT `payload`.
+/// TODO: Implement 0-RTT
+#[allow(dead_code)]
 fn encrypt_zerortt(
     payload: AppData,
     pad: usize,
@@ -159,6 +161,9 @@ fn encrypt_zerortt(
     Ok((rec, ClientCipherState0(ae, kiv, n + 1, exp)))
 }
 
+/// Decrypt 0-RTT `ciphertext`.
+/// TODO: Implement 0-RTT
+#[allow(dead_code)]
 pub fn decrypt_zerortt(
     ciphertext: &Bytes,
     state: ServerCipherState0,
