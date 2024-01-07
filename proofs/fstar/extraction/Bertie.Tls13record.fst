@@ -230,7 +230,7 @@ let encrypt_record_payload
       in
       let inner_plaintext:Bertie.Tls13utils.t_Bytes =
         Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat payload
-              (Bertie.Tls13utils.bytes1 (Bertie.Tls13formats.impl__ContentType__as_u8 ct <: u8)
+              (Bertie.Tls13utils.bytes1 (cast (ct <: Bertie.Tls13formats.t_ContentType) <: u8)
                 <:
                 Bertie.Tls13utils.t_Bytes)
             <:

@@ -1158,15 +1158,14 @@ type t_ServerPostClientFinished =
       Bertie.Tls13formats.t_Transcript
     -> t_ServerPostClientFinished
 
-type t_ServerPostClientHello =
-  | ServerPostClientHello :
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13crypto.t_Algorithms ->
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Server.t_ServerInfo ->
-      Bertie.Tls13formats.t_Transcript
-    -> t_ServerPostClientHello
+type t_ServerPostClientHello = {
+  f_client_randomness:Bertie.Tls13utils.t_Bytes;
+  f_ciphersuite:Bertie.Tls13crypto.t_Algorithms;
+  f_session_id:Bertie.Tls13utils.t_Bytes;
+  f_gx:Bertie.Tls13utils.t_Bytes;
+  f_server:Bertie.Server.t_ServerInfo;
+  f_transcript:Bertie.Tls13formats.t_Transcript
+}
 
 type t_ServerPostServerFinished =
   | ServerPostServerFinished :
@@ -1178,17 +1177,16 @@ type t_ServerPostServerFinished =
       Bertie.Tls13formats.t_Transcript
     -> t_ServerPostServerFinished
 
-type t_ServerPostServerHello =
-  | ServerPostServerHello :
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13crypto.t_Algorithms ->
-      Bertie.Server.t_ServerInfo ->
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13utils.t_Bytes ->
-      Bertie.Tls13formats.t_Transcript
-    -> t_ServerPostServerHello
+type t_ServerPostServerHello = {
+  f_client_random:Bertie.Tls13utils.t_Bytes;
+  f_server_random:Bertie.Tls13utils.t_Bytes;
+  f_ciphersuite:Bertie.Tls13crypto.t_Algorithms;
+  f_server:Bertie.Server.t_ServerInfo;
+  f_master_secret:Bertie.Tls13utils.t_Bytes;
+  f_cfk:Bertie.Tls13utils.t_Bytes;
+  f_sfk:Bertie.Tls13utils.t_Bytes;
+  f_transcript:Bertie.Tls13formats.t_Transcript
+}
 
 let algs_post_client_finished (st: t_ClientPostClientFinished) : Bertie.Tls13crypto.t_Algorithms =
   st._2
@@ -1212,7 +1210,8 @@ let get_client_finished (handshake_state: t_ClientPostServerFinished)
       in
       let* transcript_hash:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash transcript
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -1300,11 +1299,12 @@ let get_client_finished (handshake_state: t_ClientPostServerFinished)
             ) Bertie.Tls13formats.Handshake_data.t_HandshakeData
       in
       let transcript:Bertie.Tls13formats.t_Transcript =
-        Bertie.Tls13formats.transcript_add1 transcript client_finished
+        Bertie.Tls13formats.impl__Transcript__add transcript client_finished
       in
       let* transcript_hash:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash transcript
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -1390,7 +1390,7 @@ let get_server_signature
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Core.Marker.t_Sized impl_916461611_)
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng impl_916461611_)
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore impl_916461611_)
-      (st: t_ServerPostServerHello)
+      (state: t_ServerPostServerHello)
       (rng: impl_916461611_)
     : (impl_916461611_ &
       Core.Result.t_Result
@@ -1398,13 +1398,10 @@ let get_server_signature
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           t_ServerPostCertificateVerify) u8) =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let
-      ServerPostServerHello cr sr algs server ms cfk sfk tx:t_ServerPostServerHello =
-        st
-      in
-      let* ee:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* ee:Bertie.Tls13formats.Handshake_data.t_HandshakeData
+      =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.encrypted_extensions algs
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.encrypted_extensions state.f_ciphersuite
               <:
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         with
@@ -1448,19 +1445,22 @@ let get_server_signature
                   t_ServerPostCertificateVerify) u8)
             Bertie.Tls13formats.Handshake_data.t_HandshakeData
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx ee in
+      let transcript:Bertie.Tls13formats.t_Transcript =
+        Bertie.Tls13formats.impl__Transcript__add state.f_transcript ee
+      in
       let* rng, hax_temp_output:(impl_916461611_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             t_ServerPostCertificateVerify) u8) =
-        if ~.(Bertie.Tls13crypto.impl__Algorithms__psk_mode algs <: bool)
+        if ~.(Bertie.Tls13crypto.impl__Algorithms__psk_mode state.f_ciphersuite <: bool)
         then
           let* sc:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
             match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.server_certificate algs
-                    server.Bertie.Server.f_cert
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.server_certificate state
+                      .f_ciphersuite
+                    state.f_server.Bertie.Server.f_cert
                   <:
                   Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             with
@@ -1504,10 +1504,13 @@ let get_server_signature
                       t_ServerPostCertificateVerify) u8)
                 Bertie.Tls13formats.Handshake_data.t_HandshakeData
           in
-          let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx sc in
-          let* th:Bertie.Tls13utils.t_Bytes =
+          let transcript:Bertie.Tls13formats.t_Transcript =
+            Bertie.Tls13formats.impl__Transcript__add transcript sc
+          in
+          let* transcript_hash:Bertie.Tls13utils.t_Bytes =
             match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             with
@@ -1556,16 +1559,17 @@ let get_server_signature
                     t_Slice u8)
                 <:
                 Bertie.Tls13utils.t_Bytes)
-              th
+              transcript_hash
           in
           let* rng, sig:(impl_916461611_ & Bertie.Tls13utils.t_Bytes) =
-            match Bertie.Tls13crypto.impl__Algorithms__signature algs with
+            match Bertie.Tls13crypto.impl__Algorithms__signature state.f_ciphersuite with
             | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
               let tmp0, out:(impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
-                Bertie.Tls13crypto.sign (Bertie.Tls13crypto.impl__Algorithms__signature algs
+                Bertie.Tls13crypto.sign (Bertie.Tls13crypto.impl__Algorithms__signature state
+                        .f_ciphersuite
                     <:
                     Bertie.Tls13crypto.t_SignatureScheme)
-                  server.Bertie.Server.f_sk
+                  state.f_server.Bertie.Server.f_sk
                   sigval
                   rng
               in
@@ -1623,7 +1627,8 @@ let get_server_signature
               let* cert_scheme, cert_slice:(Bertie.Tls13crypto.t_SignatureScheme &
                 Bertie.Tls13cert.t_CertificateKey) =
                 match
-                  Core.Ops.Try_trait.f_branch (Bertie.Tls13cert.verification_key_from_cert server
+                  Core.Ops.Try_trait.f_branch (Bertie.Tls13cert.verification_key_from_cert state
+                          .f_server
                           .Bertie.Server.f_cert
                       <:
                       Core.Result.t_Result
@@ -1673,7 +1678,7 @@ let get_server_signature
               in
               let* pk:Bertie.Tls13crypto.t_RsaVerificationKey =
                 match
-                  Core.Ops.Try_trait.f_branch (Bertie.Tls13cert.rsa_public_key server
+                  Core.Ops.Try_trait.f_branch (Bertie.Tls13cert.rsa_public_key state.f_server
                           .Bertie.Server.f_cert
                         cert_slice
                       <:
@@ -1719,7 +1724,7 @@ let get_server_signature
                           t_ServerPostCertificateVerify) u8) Bertie.Tls13crypto.t_RsaVerificationKey
               in
               let tmp0, out:(impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
-                Bertie.Tls13crypto.sign_rsa server.Bertie.Server.f_sk
+                Bertie.Tls13crypto.sign_rsa state.f_server.Bertie.Server.f_sk
                   pk.Bertie.Tls13crypto.f_modulus
                   pk.Bertie.Tls13crypto.f_exponent
                   cert_scheme
@@ -1796,7 +1801,9 @@ let get_server_signature
           in
           let* scv:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
             match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.certificate_verify algs sig
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.certificate_verify state
+                      .f_ciphersuite
+                    sig
                   <:
                   Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             with
@@ -1841,13 +1848,21 @@ let get_server_signature
                 Bertie.Tls13formats.Handshake_data.t_HandshakeData
           in
           Core.Ops.Control_flow.ControlFlow_Continue
-          (let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx scv in
+          (let transcript:Bertie.Tls13formats.t_Transcript =
+              Bertie.Tls13formats.impl__Transcript__add transcript scv
+            in
             rng,
             (Core.Result.Result_Ok
               (ee,
                 sc,
                 scv,
-                (ServerPostCertificateVerify cr sr algs ms cfk sfk tx
+                (ServerPostCertificateVerify state.f_client_random
+                    state.f_server_random
+                    state.f_ciphersuite
+                    state.f_master_secret
+                    state.f_cfk
+                    state.f_sfk
+                    transcript
                   <:
                   t_ServerPostCertificateVerify)
                 <:
@@ -1942,7 +1957,14 @@ let get_skip_server_signature (st: t_ServerPostServerHello)
     : Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let
-      ServerPostServerHello cr sr algs server ms cfk sfk tx:t_ServerPostServerHello =
+      { f_client_random = cr ;
+        f_server_random = sr ;
+        f_ciphersuite = algs ;
+        f_server = server ;
+        f_master_secret = ms ;
+        f_cfk = cfk ;
+        f_sfk = sfk ;
+        f_transcript = tx }:t_ServerPostServerHello =
         st
       in
       if Bertie.Tls13crypto.impl__Algorithms__psk_mode algs
@@ -1978,7 +2000,9 @@ let get_skip_server_signature (st: t_ServerPostServerHello)
               Bertie.Tls13formats.Handshake_data.t_HandshakeData
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx ee in
+        (let tx:Bertie.Tls13formats.t_Transcript =
+            Bertie.Tls13formats.impl__Transcript__add tx ee
+          in
           Core.Result.Result_Ok
           (ee,
             (ServerPostCertificateVerify cr sr algs ms cfk sfk tx <: t_ServerPostCertificateVerify)
@@ -2020,7 +2044,7 @@ let put_client_finished
       in
       let* th:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash tx
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2090,10 +2114,10 @@ let put_client_finished
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_ServerPostClientFinished u8)
             Prims.unit
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx cfin in
+      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.impl__Transcript__add tx cfin in
       let* th:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash tx
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2190,7 +2214,7 @@ let put_psk_skip_server_signature
         in
         Core.Ops.Control_flow.ControlFlow_Continue
         (let transcript:Bertie.Tls13formats.t_Transcript =
-            Bertie.Tls13formats.transcript_add1 transcript encrypted_extensions
+            Bertie.Tls13formats.impl__Transcript__add transcript encrypted_extensions
           in
           Core.Result.Result_Ok
           (ClientPostCertificateVerify client_random
@@ -2258,7 +2282,7 @@ let put_server_signature
               (Core.Result.t_Result t_ClientPostCertificateVerify u8) Prims.unit
         in
         let transcript:Bertie.Tls13formats.t_Transcript =
-          Bertie.Tls13formats.transcript_add1 transcript encrypted_extensions
+          Bertie.Tls13formats.impl__Transcript__add transcript encrypted_extensions
         in
         let* certificate:Bertie.Tls13utils.t_Bytes =
           match
@@ -2284,11 +2308,12 @@ let put_server_signature
               (Core.Result.t_Result t_ClientPostCertificateVerify u8) Bertie.Tls13utils.t_Bytes
         in
         let transcript:Bertie.Tls13formats.t_Transcript =
-          Bertie.Tls13formats.transcript_add1 transcript server_certificate
+          Bertie.Tls13formats.impl__Transcript__add transcript server_certificate
         in
         let* transcript_hash_server_certificate:Bertie.Tls13utils.t_Bytes =
           match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash transcript
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           with
@@ -2419,7 +2444,7 @@ let put_server_signature
         in
         Core.Ops.Control_flow.ControlFlow_Continue
         (let transcript:Bertie.Tls13formats.t_Transcript =
-            Bertie.Tls13formats.transcript_add1 transcript server_certificate_verify
+            Bertie.Tls13formats.impl__Transcript__add transcript server_certificate_verify
           in
           Core.Result.Result_Ok
           (ClientPostCertificateVerify client_random
@@ -2455,34 +2480,25 @@ let get_server_hello
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Core.Marker.t_Sized impl_916461611_)
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng impl_916461611_)
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore impl_916461611_)
-      (st: t_ServerPostClientHello)
+      (state: t_ServerPostClientHello)
       (rng: impl_916461611_)
     : (impl_916461611_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8) =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let
-      ServerPostClientHello cr algs sid gx server tx:t_ServerPostClientHello =
-        st
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let server_random:t_Array u8 (sz 32) =
+        Rust_primitives.Hax.repeat 0uy (sz 32)
       in
-      let
-      { Bertie.Tls13crypto.f_hash = ha ;
-        Bertie.Tls13crypto.f_aead = ae ;
-        Bertie.Tls13crypto.f_signature = v__sa ;
-        Bertie.Tls13crypto.f_kem = ks ;
-        Bertie.Tls13crypto.f_psk_mode = v__psk_mode ;
-        Bertie.Tls13crypto.f_zero_rtt = v__zero_rtt }:Bertie.Tls13crypto.t_Algorithms =
-        algs
+      let tmp0, tmp1:(impl_916461611_ & t_Array u8 (sz 32)) =
+        Rand_core.f_fill_bytes rng server_random
       in
-      let sr:t_Array u8 (sz 32) = Rust_primitives.Hax.repeat 0uy (sz 32) in
-      let tmp0, tmp1:(impl_916461611_ & t_Array u8 (sz 32)) = Rand_core.f_fill_bytes rng sr in
       let rng:impl_916461611_ = tmp0 in
-      let sr:t_Array u8 (sz 32) = tmp1 in
+      let server_random:t_Array u8 (sz 32) = tmp1 in
       let _:Prims.unit = () in
       let tmp0, out:(impl_916461611_ &
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-        Bertie.Tls13crypto.kem_encap ks gx rng
+        Bertie.Tls13crypto.kem_encap state.f_ciphersuite.Bertie.Tls13crypto.f_kem state.f_gx rng
       in
       let rng:impl_916461611_ = tmp0 in
       let hoist486:Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 =
@@ -2533,9 +2549,9 @@ let get_server_hello
       in
       let* sh:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.server_hello algs
-                (Core.Convert.f_into sr <: Bertie.Tls13utils.t_Bytes)
-                sid
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.server_hello state.f_ciphersuite
+                (Core.Convert.f_into server_random <: Bertie.Tls13utils.t_Bytes)
+                state.f_session_id
                 gy
               <:
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -2574,10 +2590,13 @@ let get_server_hello
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   t_ServerPostServerHello) u8) Bertie.Tls13formats.Handshake_data.t_HandshakeData
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx sh in
+      let transcript:Bertie.Tls13formats.t_Transcript =
+        Bertie.Tls13formats.impl__Transcript__add state.f_transcript sh
+      in
       let* transcript_hash:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2620,10 +2639,10 @@ let get_server_hello
         Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes) =
         match
-          Core.Ops.Try_trait.f_branch (derive_hk_ms ha
-                ae
+          Core.Ops.Try_trait.f_branch (derive_hk_ms state.f_ciphersuite.Bertie.Tls13crypto.f_hash
+                state.f_ciphersuite.Bertie.Tls13crypto.f_aead
                 shared_secret
-                server.Bertie.Server.f_psk_opt
+                state.f_server.Bertie.Server.f_psk_opt
                 transcript_hash
               <:
               Core.Result.t_Result
@@ -2682,7 +2701,16 @@ let get_server_hello
           Core.Result.Result_Ok
           (sh,
             Bertie.Tls13record.impl__DuplexCipherStateH__new shk 0uL chk 0uL,
-            (ServerPostServerHello cr (Core.Convert.f_into sr) algs server ms cfk sfk tx
+            ({
+                f_client_random = state.f_client_randomness;
+                f_server_random = Core.Convert.f_into server_random;
+                f_ciphersuite = state.f_ciphersuite;
+                f_server = state.f_server;
+                f_master_secret = ms;
+                f_cfk = cfk;
+                f_sfk = sfk;
+                f_transcript = transcript
+              }
               <:
               t_ServerPostServerHello)
             <:
@@ -2750,7 +2778,9 @@ let put_server_hello
                 (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
             (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx handshake in
+      let tx:Bertie.Tls13formats.t_Transcript =
+        Bertie.Tls13formats.impl__Transcript__add tx handshake
+      in
       let* shared_secret:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.kem_decap ciphersuite
@@ -2783,7 +2813,7 @@ let put_server_hello
       in
       let* th:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash tx
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2902,7 +2932,7 @@ let compute_psk_binder_zero_rtt
       | true, Core.Option.Option_Some k, _ ->
         let* th_trunc:Bertie.Tls13utils.t_Bytes =
           match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash_truncated_client_hello
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash_without_client_hello
                   tx
                   ch
                   trunc_len
@@ -3032,12 +3062,15 @@ let compute_psk_binder_zero_rtt
                     Bertie.Tls13formats.t_Transcript) u8)
               Bertie.Tls13formats.Handshake_data.t_HandshakeData
         in
-        let tx_ch:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx nch in
+        let tx_ch:Bertie.Tls13formats.t_Transcript =
+          Bertie.Tls13formats.impl__Transcript__add tx nch
+        in
         if zero_rtt
         then
           let* th:Bertie.Tls13utils.t_Bytes =
             match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx_ch
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash tx_ch
+
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             with
@@ -3158,7 +3191,9 @@ let compute_psk_binder_zero_rtt
                   Bertie.Tls13formats.t_Transcript) u8)
       | false, Core.Option.Option_None , 0uy ->
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let tx_ch:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx ch in
+        (let tx_ch:Bertie.Tls13formats.t_Transcript =
+            Bertie.Tls13formats.impl__Transcript__add tx ch
+          in
           Core.Result.Result_Ok
           (ch,
             (Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0
@@ -3217,7 +3252,8 @@ let build_client_hello
           Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           t_ClientPostClientHello) u8) =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let tx:Bertie.Tls13formats.t_Transcript =
-        Bertie.Tls13formats.transcript_empty (Bertie.Tls13crypto.impl__Algorithms__hash ciphersuite
+        Bertie.Tls13formats.impl__Transcript__new (Bertie.Tls13crypto.impl__Algorithms__hash ciphersuite
+
             <:
             Bertie.Tls13crypto.t_HashAlgorithm)
       in
@@ -3479,7 +3515,7 @@ let get_server_finished (st: t_ServerPostCertificateVerify)
       in
       let* th_scv:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash tx
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -3570,10 +3606,10 @@ let get_server_finished (st: t_ServerPostCertificateVerify)
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8) Bertie.Tls13formats.Handshake_data.t_HandshakeData
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx sfin in
+      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.impl__Transcript__add tx sfin in
       let* th_sfin:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash tx
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -3694,7 +3730,8 @@ let put_server_finished
       in
       let* transcript_hash:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash transcript
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -3777,11 +3814,12 @@ let put_server_finished
             Prims.unit
       in
       let transcript:Bertie.Tls13formats.t_Transcript =
-        Bertie.Tls13formats.transcript_add1 transcript server_finished
+        Bertie.Tls13formats.impl__Transcript__add transcript server_finished
       in
       let* transcript_hash_server_finished:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash transcript
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -4368,13 +4406,13 @@ let process_psk_binder_zero_rtt
           (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
 
 let put_client_hello
-      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
     : Core.Result.t_Result
       (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let*
-      cr, sid, sni, gx, tkto, bindero, trunc_len:(Bertie.Tls13utils.t_Bytes &
+      client_randomness, session_id, sni, gx, tkto, bindero, trunc_len:(Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes &
@@ -4382,7 +4420,7 @@ let put_client_hello
         Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
         usize) =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.parse_client_hello algs ch
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.parse_client_hello ciphersuite ch
               <:
               Core.Result.t_Result
                 (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
@@ -4424,13 +4462,14 @@ let put_client_hello
               usize)
       in
       let tx:Bertie.Tls13formats.t_Transcript =
-        Bertie.Tls13formats.transcript_empty (Bertie.Tls13crypto.impl__Algorithms__hash algs
+        Bertie.Tls13formats.impl__Transcript__new (Bertie.Tls13crypto.impl__Algorithms__hash ciphersuite
+
             <:
             Bertie.Tls13crypto.t_HashAlgorithm)
       in
       let* th_trunc:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash_truncated_client_hello
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash_without_client_hello
                 tx
                 ch
                 trunc_len
@@ -4459,10 +4498,13 @@ let put_client_hello
                 (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   t_ServerPostClientHello) u8) Bertie.Tls13utils.t_Bytes
       in
-      let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.transcript_add1 tx ch in
+      let transcript:Bertie.Tls13formats.t_Transcript =
+        Bertie.Tls13formats.impl__Transcript__add tx ch
+      in
       let* th:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.get_transcript_hash tx
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -4490,7 +4532,7 @@ let put_client_hello
       in
       let* server:Bertie.Server.t_ServerInfo =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Server.lookup_db algs db sni tkto
+          Core.Ops.Try_trait.f_branch (Bertie.Server.lookup_db ciphersuite db sni tkto
               <:
               Core.Result.t_Result Bertie.Server.t_ServerInfo u8)
         with
@@ -4518,7 +4560,7 @@ let put_client_hello
       in
       let* cipher0:Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 =
         match
-          Core.Ops.Try_trait.f_branch (process_psk_binder_zero_rtt algs
+          Core.Ops.Try_trait.f_branch (process_psk_binder_zero_rtt ciphersuite
                 th
                 th_trunc
                 server.Bertie.Server.f_psk_opt
@@ -4553,7 +4595,17 @@ let put_client_hello
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (Core.Result.Result_Ok
-        (cipher0, (ServerPostClientHello cr algs sid gx server tx <: t_ServerPostClientHello)
+        (cipher0,
+          ({
+              f_client_randomness = client_randomness;
+              f_ciphersuite = ciphersuite;
+              f_session_id = session_id;
+              f_gx = gx;
+              f_server = server;
+              f_transcript = transcript
+            }
+            <:
+            t_ServerPostClientHello)
           <:
           (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello))
         <:

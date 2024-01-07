@@ -99,7 +99,7 @@ pub(crate) fn encrypt_record_payload(
 ) -> Result<Bytes, TLSError> {
     let iv_ctr = derive_iv_ctr(&key_iv.iv, n);
     let inner_plaintext = payload
-        .concat(&bytes1(ct.as_u8()))
+        .concat(&bytes1(ct as u8))
         .concat(&Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
     if clen <= 65536 {

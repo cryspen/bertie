@@ -903,30 +903,19 @@ pub(crate) fn parse_finished(finished: &HandshakeData) -> Result<Bytes, TLSError
 /// } ContentType;
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[repr(u8)]
 pub enum ContentType {
-    Invalid,
-    ChangeCipherSpec,
-    Alert,
-    Handshake,
-    ApplicationData,
+    Invalid = 0,
+    ChangeCipherSpec = 20,
+    Alert = 21,
+    Handshake = 22,
+    ApplicationData = 23,
 }
 
 impl ContentType {
-    /// Get the `u8` representation of this [`ContentType`].
-    pub(crate) fn as_u8(self) -> u8 {
-        match self {
-            ContentType::Invalid => 0,
-            ContentType::ChangeCipherSpec => 20,
-            ContentType::Alert => 21,
-            ContentType::Handshake => 22,
-            ContentType::ApplicationData => 23,
-        }
-    }
-
     /// Get the [`ContentType`] from the `u8` representation.
     pub fn try_from_u8(t: u8) -> Result<Self, TLSError> {
         match t {
-            0 => tlserr(parse_failed()),
             20 => Ok(ContentType::ChangeCipherSpec),
             21 => Ok(ContentType::Alert),
             22 => Ok(ContentType::Handshake),
@@ -938,7 +927,7 @@ impl ContentType {
 
 pub(crate) fn handshake_record(p: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(p) = p;
-    let ty = bytes1(ContentType::Handshake.as_u8());
+    let ty = bytes1(ContentType::Handshake as u8);
     let ver = bytes2(3, 3);
     Ok(ty.concat(&ver).concat(&encode_length_u16(p)?))
 }
@@ -955,7 +944,7 @@ pub(crate) fn check_handshake_record(p: &Bytes) -> Result<(HandshakeData, usize)
     if p.len() < 5 {
         tlserr(parse_failed())
     } else {
-        let ty = bytes1(ContentType::Handshake.as_u8());
+        let ty = bytes1(ContentType::Handshake as u8);
         let ver = bytes2(3, 3);
         match check_eq(&ty, &p.slice_range(0..1)) {
             Ok(_) => (),
@@ -979,32 +968,46 @@ pub(crate) fn get_handshake_record(p: &Bytes) -> Result<HandshakeData, TLSError>
     }
 }
 
-/* Incremental Transcript Construction
-For simplicity, we store the full transcript, but an internal Digest state would suffice. */
-
-pub struct Transcript(HashAlgorithm, HandshakeData);
-
-pub(crate) fn transcript_empty(ha: HashAlgorithm) -> Transcript {
-    Transcript(ha, HandshakeData(Bytes::new()))
+/// Incremental Transcript Construction
+/// For simplicity, we store the full transcript, but an internal Digest state would suffice.
+pub(crate) struct Transcript {
+    hash_algorithm: HashAlgorithm,
+    transcript: HandshakeData,
 }
 
-pub(crate) fn transcript_add1(tx: Transcript, msg: &HandshakeData) -> Transcript {
-    let Transcript(ha, tx) = tx;
-    Transcript(ha, tx.concat(msg))
-}
+impl Transcript {
+    pub(crate) fn new(hash_algorithm: HashAlgorithm) -> Self {
+        Self {
+            hash_algorithm,
+            transcript: HandshakeData(Bytes::new()),
+        }
+    }
 
-pub(crate) fn get_transcript_hash(tx: &Transcript) -> Result<Digest, TLSError> {
-    let Transcript(ha, HandshakeData(txby)) = tx;
-    let th = ha.hash(txby)?;
-    Ok(th)
-}
+    /// Add the [`HandshakeData`] `msg` to this transcript.
+    pub(crate) fn add(mut self, msg: &HandshakeData) -> Self {
+        self.transcript = self.transcript.concat(msg);
+        self
+    }
 
-pub(crate) fn get_transcript_hash_truncated_client_hello(
-    tx: &Transcript,
-    ch: &HandshakeData,
-    trunc_len: usize,
-) -> Result<Digest, TLSError> {
-    let Transcript(ha, HandshakeData(tx)) = tx;
-    let HandshakeData(ch) = ch;
-    ha.hash(&tx.concat(&ch.slice_range(0..trunc_len)))
+    /// Get the hash of this transcript
+    pub(crate) fn transcript_hash(&self) -> Result<Digest, TLSError> {
+        let th = self.hash_algorithm.hash(&self.transcript.0)?;
+        Ok(th)
+    }
+
+    /// Get the hash of this transcript without the client hello
+    pub(crate) fn transcript_hash_without_client_hello(
+        &self,
+        client_hello: &HandshakeData,
+        trunc_len: usize,
+    ) -> Result<Digest, TLSError> {
+        // let Transcript(ha, HandshakeData(tx)) = tx;
+        let HandshakeData(ch) = client_hello;
+        self.hash_algorithm.hash(
+            &self
+                .transcript
+                .0
+                .concat(&client_hello.0.slice_range(0..trunc_len)),
+        )
+    }
 }
