@@ -1,17 +1,22 @@
 use std::time::{Duration, Instant};
 
 use bertie::{
-    server::ServerDB,
     stream::init_db,
     tls13crypto::{
-        Algorithms, SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
-        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
-        SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
+        Algorithms,
+        // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
+        // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
+        // SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
+        // SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
+        // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
+        // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
+        // SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
+        // SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
+        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
-        SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519, SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
-        SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
-        SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, SignatureScheme,
+        SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
+        SignatureScheme,
     },
     tls13utils::Bytes,
     Client, Server,
@@ -32,7 +37,7 @@ fn mb_per_second(d: Duration) -> f64 {
     (NUM_PAYLOAD_BYTES as f64 / 1024.0 / 1024.0) / iteration
 }
 
-const ITERATIONS: usize = 50;
+const ITERATIONS: usize = 500;
 const NUM_PAYLOAD_BYTES: usize = 0x4000;
 const CIPHERSUITES: [Algorithms; 4] = [
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
