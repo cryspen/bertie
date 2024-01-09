@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::time::{Duration, Instant};
 
 use bertie::{
@@ -54,7 +56,33 @@ const CIPHERSUITES: [Algorithms; 4] = [
     // SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
 ];
 
-fn main() {
+#[cfg(bench)]
+fn client_hello() {
+    const CLIENT_X25519_PUB: &str = "99 38 1d e5 60 e4 bd 43 d2 3d 8e 43 5a 7d
+    ba fe b3 c0 6e 51 c1 3c ae 4d 54 13 69 1e 52 9a af 2c";
+    const ITERATIONS: usize = 1000000;
+
+    let cr = Bytes::from(vec![]);
+    let gx = Bytes::from_hex(CLIENT_X25519_PUB);
+    let sn = Bytes::from(vec![23; 0]);
+    let start = Instant::now();
+    for _ in 0..ITERATIONS {
+        let _ch = bertie::bench_client_hello(
+            &bertie::tls13crypto::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
+            &cr,
+            &gx,
+            &sn,
+            &None,
+        );
+    }
+    let end = Instant::now();
+    println!(
+        "Build client handshake: {} μs",
+        end.duration_since(start).as_micros() as f64 / ITERATIONS as f64
+    );
+}
+
+fn protocol() {
     println!("Client");
 
     for ciphersuite in CIPHERSUITES {
@@ -119,5 +147,14 @@ fn main() {
             application_time.as_micros() / (ITERATIONS as u128),
             mb_per_second(application_time),
         );
+    }
+}
+
+fn main() {
+    // protocol();
+
+    #[cfg(bench)]
+    {
+        client_hello();
     }
 }
