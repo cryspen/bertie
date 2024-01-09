@@ -24,7 +24,7 @@ fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
 fn hkdf_expand_label(
     hash_algorithm: &HashAlgorithm,
     key: &Key,
-    label: &Bytes,
+    label: Bytes,
     context: &Bytes,
     len: usize,
 ) -> Result<Key, TLSError> {
@@ -34,8 +34,8 @@ fn hkdf_expand_label(
         let lenb = U16::from(len as u16).as_be_bytes();
         let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
         let info = lenb
-            .concat(&encode_length_u8(&tls13_label)?)
-            .concat(&encode_length_u8(context)?);
+            .concat(encode_length_u8(&tls13_label)?)
+            .concat(encode_length_u8(context)?);
         hkdf_expand(hash_algorithm, key, &info, len)
     }
 }
@@ -43,7 +43,7 @@ fn hkdf_expand_label(
 pub fn derive_secret(
     hash_algorithm: &HashAlgorithm,
     key: &Key,
-    label: &Bytes,
+    label: Bytes,
     transcript_hash: &Digest,
 ) -> Result<Key, TLSError> {
     hkdf_expand_label(
@@ -60,7 +60,7 @@ pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError
     derive_secret(
         ha,
         &early_secret,
-        &bytes(&LABEL_RES_BINDER),
+        bytes(&LABEL_RES_BINDER),
         &hash_empty(ha)?,
     )
 }
@@ -74,14 +74,14 @@ pub(crate) fn derive_aead_key_iv(
     let sender_write_key = hkdf_expand_label(
         hash_algorithm,
         key,
-        &bytes(&LABEL_KEY),
+        bytes(&LABEL_KEY),
         &Bytes::new(),
         aead_algorithm.key_len(),
     )?;
     let sender_write_iv = hkdf_expand_label(
         hash_algorithm,
         key,
-        &bytes(&LABEL_IV),
+        bytes(&LABEL_IV),
         &Bytes::new(),
         aead_algorithm.iv_len(),
     )?;
@@ -99,16 +99,12 @@ pub(crate) fn derive_0rtt_keys(
     tx: &Digest,
 ) -> Result<(AeadKeyIV, Key), TLSError> {
     let early_secret = hkdf_extract(hash_algorithm, key, &zero_key(hash_algorithm))?;
-    let client_early_traffic_secret = derive_secret(
-        hash_algorithm,
-        &early_secret,
-        &bytes(&LABEL_C_E_TRAFFIC),
-        tx,
-    )?;
+    let client_early_traffic_secret =
+        derive_secret(hash_algorithm, &early_secret, bytes(&LABEL_C_E_TRAFFIC), tx)?;
     let early_exporter_master_secret = derive_secret(
         hash_algorithm,
         &early_secret,
-        &bytes(&LABEL_E_EXP_MASTER),
+        bytes(&LABEL_E_EXP_MASTER),
         tx,
     )?;
     let sender_write_key_iv = derive_aead_key_iv(
@@ -123,7 +119,7 @@ pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSErr
     hkdf_expand_label(
         ha,
         k,
-        &bytes(&LABEL_FINISHED),
+        bytes(&LABEL_FINISHED),
         &Bytes::new(),
         ha.hmac_tag_len(),
     )
@@ -144,25 +140,25 @@ pub(crate) fn derive_hk_ms(
     };
     let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
     let digest_emp = hash_empty(ha)?;
-    let derived_secret = derive_secret(ha, &early_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
+    let derived_secret = derive_secret(ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
     let handshake_secret = hkdf_extract(ha, shared_secret, &derived_secret)?;
     let client_handshake_traffic_secret = derive_secret(
         ha,
         &handshake_secret,
-        &bytes(&LABEL_C_HS_TRAFFIC),
+        bytes(&LABEL_C_HS_TRAFFIC),
         transcript_hash,
     )?;
     let server_handshake_traffic_secret = derive_secret(
         ha,
         &handshake_secret,
-        &bytes(&LABEL_S_HS_TRAFFIC),
+        bytes(&LABEL_S_HS_TRAFFIC),
         transcript_hash,
     )?;
     let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret)?;
     let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
-    let master_secret_ = derive_secret(ha, &handshake_secret, &bytes(&LABEL_DERIVED), &digest_emp)?;
+    let master_secret_ = derive_secret(ha, &handshake_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
     let master_secret = hkdf_extract(ha, &zero_key(ha), &master_secret_)?;
     Ok((
         client_write_key_iv,
@@ -181,12 +177,12 @@ pub(crate) fn derive_app_keys(
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, Key), TLSError> {
     let client_application_traffic_secret_0 =
-        derive_secret(ha, master_secret, &bytes(&LABEL_C_AP_TRAFFIC), tx)?;
+        derive_secret(ha, master_secret, bytes(&LABEL_C_AP_TRAFFIC), tx)?;
     let server_application_traffic_secret_0 =
-        derive_secret(ha, master_secret, &bytes(&LABEL_S_AP_TRAFFIC), tx)?;
+        derive_secret(ha, master_secret, bytes(&LABEL_S_AP_TRAFFIC), tx)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0)?;
-    let exporter_master_secret = derive_secret(ha, master_secret, &bytes(&LABEL_EXP_MASTER), tx)?;
+    let exporter_master_secret = derive_secret(ha, master_secret, bytes(&LABEL_EXP_MASTER), tx)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
@@ -199,7 +195,7 @@ pub(crate) fn derive_rms(
     master_secret: &Key,
     tx: &Digest,
 ) -> Result<Key, TLSError> {
-    derive_secret(ha, master_secret, &bytes(&LABEL_RES_MASTER), tx)
+    derive_secret(ha, master_secret, bytes(&LABEL_RES_MASTER), tx)
 }
 
 /* Handshake State Machine */
@@ -275,7 +271,7 @@ fn build_client_hello(
     rng.fill_bytes(&mut client_random);
     let (kem_sk, kem_pk) = kem_keygen(ciphersuite.kem(), rng)?;
     let (client_hello, trunc_len) =
-        client_hello(&ciphersuite, &client_random.into(), &kem_pk, sn, &tkt)?;
+        client_hello(&ciphersuite, client_random.into(), &kem_pk, sn, &tkt)?;
     let (nch, cipher0, tx_ch) =
         compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx)?;
     Ok((
@@ -373,7 +369,7 @@ fn put_server_signature(
         let cert_pk = cert_public_key(&certificate, &spki)?;
         let cert_signature = parse_certificate_verify(&algorithms, server_certificate_verify)?;
         let sigval = (Bytes::from_slice(&PREFIX_SERVER_SIGNATURE))
-            .concat(&transcript_hash_server_certificate);
+            .concat(transcript_hash_server_certificate);
         verify(&algorithms.signature(), &cert_pk, &sigval, &cert_signature)?;
         let transcript = transcript.add(server_certificate_verify);
         Ok(ClientPostCertificateVerify(
@@ -626,7 +622,7 @@ fn get_server_hello(
     let (shared_secret, gy) = kem_encap(state.ciphersuite.kem, &state.gx, rng)?;
     let sh = server_hello(
         &state.ciphersuite,
-        &server_random.into(),
+        server_random.into(),
         &state.session_id,
         &gy,
     )?;
@@ -673,7 +669,7 @@ fn get_server_signature(
         let sc = server_certificate(&state.ciphersuite, &state.server.cert)?;
         let transcript = transcript.add(&sc);
         let transcript_hash = transcript.transcript_hash()?;
-        let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&transcript_hash);
+        let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(transcript_hash);
         let sig = match state.ciphersuite.signature() {
             SignatureScheme::EcdsaSecp256r1Sha256 => sign(
                 &state.ciphersuite.signature(),

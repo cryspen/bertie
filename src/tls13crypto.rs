@@ -255,7 +255,7 @@ pub(crate) fn aead_encrypt(
         Ok((tag, cip)) => {
             let cipby: Bytes = cip.into();
             let tagby: Bytes = tag.as_ref().into();
-            Ok(cipby.concat(&tagby))
+            Ok(cipby.concat(tagby))
         }
         Err(_) => tlserr(CRYPTO_ERROR),
     }
@@ -370,7 +370,7 @@ pub(crate) fn sign(
         Ok(signature::Signature::Ed25519(sig)) => Ok(sig.as_bytes().into()),
         Ok(signature::Signature::EcDsaP256(sig)) => {
             let (r, s) = sig.as_bytes();
-            Ok(Bytes::from(r).concat(&Bytes::from(s)))
+            Ok(Bytes::from(r).concat(Bytes::from(s)))
         }
         Ok(signature::Signature::RsaPss(sig)) => panic!("wrong function, use sign_rsa"),
         Err(_) => tlserr(CRYPTO_ERROR),
@@ -502,7 +502,7 @@ pub(crate) fn kem_keygen(
             // );
             Ok((
                 Bytes::from(sk.encode()),
-                encoding_prefix(alg).concat(&Bytes::from(pk.encode())),
+                encoding_prefix(alg).concat(Bytes::from(pk.encode())),
             ))
         }
         Err(_) => tlserr(CRYPTO_ERROR),
@@ -544,7 +544,7 @@ pub(crate) fn kem_encap(
     let res = kem::encapsulate(&pk, rng);
     match res {
         Ok((shared_secret, ct)) => {
-            let ct = encoding_prefix(alg).concat(&Bytes::from(ct.encode()));
+            let ct = encoding_prefix(alg).concat(Bytes::from(ct.encode()));
             let shared_secret = to_shared_secret(alg, Bytes::from(shared_secret.encode()));
             // event!(Level::TRACE, "  output ciphertext: {}", ct.as_hex());
             Ok((shared_secret, ct))

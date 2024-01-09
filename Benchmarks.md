@@ -2,9 +2,21 @@
 
 Raw numbers for Bertie and instructions.
 
+Some benchmarks are behind the `bench` cfg flag, using internal functions.
+
 ```bash
-cargo bench
+CARGO_PROFILE_BENCH_DEBUG=true RUSTFLAGS='--cfg bench' cargo bench --bench client --no-default-features
 ```
+
+Or run individual benchmarks, e.g.
+
+```bash
+CARGO_PROFILE_BENCH_DEBUG=true RUSTFLAGS='--cfg bench' cargo bench --bench client --no-default-features
+```
+
+## Profiling
+
+Use `perf`, `instruments`, or `samply` for recording performance data.
 
 ## M1 Pro
 

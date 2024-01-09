@@ -101,12 +101,12 @@ const TLS_CHACHA20_POLY1305_SHA256_X25519: Algorithms = Algorithms::new(
 fn test_full_round_trip() {
     let cr = random_bytes(32);
     let x = load_hex(client_x25519_priv);
-    let ent_c = cr.concat(&x);
+    let ent_c = cr.concat(x);
     let mut rng = TestRng::new(ent_c.declassify());
     let server_name = load_hex("6c 6f 63 61 6c 68 6f 73 74");
     let sr = random_bytes(64);
     let y = load_hex(server_x25519_priv);
-    let ent_s = sr.concat(&y);
+    let ent_s = sr.concat(y);
     let mut server_rng = bertie::test_utils::TestRng::new(ent_s.declassify());
 
     let db = ServerDB::new(
