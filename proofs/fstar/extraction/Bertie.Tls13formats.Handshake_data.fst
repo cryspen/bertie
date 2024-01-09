@@ -517,7 +517,7 @@ let impl__HandshakeData__find_handshake_message
     | Core.Result.Result_Ok len ->
       if
         Bertie.Tls13utils.eq1 (self._0.[ start ] <: Bertie.Tls13utils.t_U8)
-          (Core.Convert.f_from (cast (handshake_type <: t_HandshakeType) <: u8)
+          (Bertie.Tls13utils.U8 (cast (handshake_type <: t_HandshakeType) <: u8)
             <:
             Bertie.Tls13utils.t_U8)
       then true
