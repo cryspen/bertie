@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::tls13handshake::*;
 use crate::tls13utils::*;
 use crate::{
