@@ -463,6 +463,23 @@ impl TryFrom<u8> for AlertDescription {
     }
 }
 
+#[cfg(bench)]
+pub fn bench_client_hello(
+    algorithms: &Algorithms,
+    client_random: &Random,
+    kem_pk: &KemPk,
+    server_name: &Bytes,
+    session_ticket: &Option<Bytes>,
+) -> Result<(HandshakeData, usize), TLSError> {
+    client_hello(
+        algorithms,
+        client_random,
+        kem_pk,
+        server_name,
+        session_ticket,
+    )
+}
+
 /// Build a ClientHello message.
 pub(crate) fn client_hello(
     algorithms: &Algorithms,

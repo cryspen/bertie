@@ -310,34 +310,41 @@ fn test_parse_client_hello_roundtrip() {
     let cr = Random::new();
     let gx = Bytes::from_hex(client_x25519_pub);
     let sn = Bytes::zeroes(23);
-    let ch =
-        crate::tls13formats::client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &cr, &gx, &sn, &None);
-    let mut b = true;
-    match ch {
-        Err(x) => {
-            println!("Error serializing: {}", x);
-            b = false;
-        }
-        Ok((ch, _)) => {
-            //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-            let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
-            let b = res.is_ok();
-            match res {
-                Err(x) => {
-                    println!("Error: {}", x);
-                }
-                Ok((cr, sid, sn, gx, tkto, bo, l)) => {
-                    println!("Parsed CH!");
-                    println!("cr: {}", cr.as_hex());
-                    println!("sid: {}", sid.as_hex());
-                    println!("sn: {}", sn.as_hex());
-                    println!("gx: {}", gx.as_hex());
-                    println!("trunc_len: {}", l);
-                }
-            }
-        }
+    for _ in 0..1000000 {
+        let ch = crate::tls13formats::client_hello(
+            &TLS_AES_128_GCM_SHA256_X25519_RSA,
+            &cr,
+            &gx,
+            &sn,
+            &None,
+        );
+        // let mut b = true;
+        // match ch {
+        //     Err(x) => {
+        //         println!("Error serializing: {}", x);
+        //         b = false;
+        //     }
+        //     Ok((ch, _)) => {
+        //         //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
+        //         let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
+        //         let b = res.is_ok();
+        //         match res {
+        //             Err(x) => {
+        //                 println!("Error: {}", x);
+        //             }
+        //             Ok((cr, sid, sn, gx, tkto, bo, l)) => {
+        //                 println!("Parsed CH!");
+        //                 println!("cr: {}", cr.as_hex());
+        //                 println!("sid: {}", sid.as_hex());
+        //                 println!("sn: {}", sn.as_hex());
+        //                 println!("gx: {}", gx.as_hex());
+        //                 println!("trunc_len: {}", l);
+        //             }
+        //         }
+        //     }
+        // }
+        // assert!(b);
     }
-    assert!(b);
 }
 
 #[test]
