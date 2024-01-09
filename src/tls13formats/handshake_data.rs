@@ -62,7 +62,7 @@ impl HandshakeData {
         handshake_bytes: &Bytes,
     ) -> Result<HandshakeData, TLSError> {
         Ok(HandshakeData::from(
-            bytes1(handshake_type as u8).concat(&encode_length_u24(handshake_bytes)?),
+            bytes1(handshake_type as u8).concat(encode_length_u24(handshake_bytes)?),
         ))
     }
 
@@ -175,7 +175,7 @@ impl HandshakeData {
             match length_u24_encoded(&self.0.slice_range(start + 1..self.0.len())) {
                 Err(_) => false,
                 Ok(len) => {
-                    if eq1(self.0[start], U8::from(handshake_type as u8)) {
+                    if eq1(self.0[start], U8(handshake_type as u8)) {
                         true
                     } else {
                         self.find_handshake_message(handshake_type, start + 4 + len)

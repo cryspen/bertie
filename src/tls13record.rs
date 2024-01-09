@@ -94,19 +94,17 @@ pub(crate) fn encrypt_record_payload(
     key_iv: &AeadKeyIV,
     n: u64,
     ct: ContentType,
-    payload: &Bytes,
+    payload: Bytes,
     pad: usize,
 ) -> Result<Bytes, TLSError> {
     let iv_ctr = derive_iv_ctr(&key_iv.iv, n);
-    let inner_plaintext = payload
-        .concat(&bytes1(ct as u8))
-        .concat(&Bytes::zeroes(pad));
+    let inner_plaintext = payload.concat(bytes1(ct as u8)).concat(Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
     if clen <= 65536 {
         let clenb = (clen as u16).to_be_bytes();
         let ad = [23, 3, 3, clenb[0], clenb[1]].into();
         let cip = aead_encrypt(&key_iv.key, &iv_ctr, &inner_plaintext, &ad)?;
-        let rec = ad.concat(&cip);
+        let rec = ad.concat(cip);
         Ok(rec)
     } else {
         Err(PAYLOAD_TOO_LONG)
@@ -157,7 +155,13 @@ fn encrypt_zerortt(
     st: ClientCipherState0,
 ) -> Result<(Bytes, ClientCipherState0), TLSError> {
     let ClientCipherState0(ae, kiv, n, exp) = st;
-    let rec = encrypt_record_payload(&kiv, n, ContentType::ApplicationData, payload.as_raw(), pad)?;
+    let rec = encrypt_record_payload(
+        &kiv,
+        n,
+        ContentType::ApplicationData,
+        payload.into_raw(),
+        pad,
+    )?;
     Ok((rec, ClientCipherState0(ae, kiv, n + 1, exp)))
 }
 
@@ -195,7 +199,7 @@ pub(crate) fn encrypt_handshake(
         &state.sender_key_iv,
         state.sender_counter,
         ContentType::Handshake,
-        &payload,
+        payload,
         pad,
     )?;
 
@@ -227,7 +231,13 @@ pub fn encrypt_data(
     st: DuplexCipherState1,
 ) -> Result<(Bytes, DuplexCipherState1), TLSError> {
     let DuplexCipherState1(ae, kiv, n, x, y, exp) = st;
-    let rec = encrypt_record_payload(&kiv, n, ContentType::ApplicationData, payload.as_raw(), pad)?;
+    let rec = encrypt_record_payload(
+        &kiv,
+        n,
+        ContentType::ApplicationData,
+        payload.into_raw(),
+        pad,
+    )?;
     Ok((rec, DuplexCipherState1(ae, kiv, n + 1, x, y, exp)))
 }
 

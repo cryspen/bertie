@@ -72,7 +72,7 @@ impl Client {
         let (client_hello, cipherstate0, client_state) =
             client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
         let mut client_hello_record = handshake_record(&client_hello)?;
-        client_hello_record[2] = U8::from(0x01);
+        client_hello_record[2] = U8(0x01);
         Ok((
             client_hello_record,
             Self::Client0(client_state, cipherstate0),
@@ -204,7 +204,7 @@ impl Server {
         rng: &mut (impl CryptoRng + RngCore),
     ) -> Result<(Bytes, Bytes, Self), TLSError> {
         let mut ch_rec = client_hello.clone();
-        ch_rec[2] = U8::from(0x03);
+        ch_rec[2] = U8(0x03);
         let ch = get_handshake_record(&ch_rec)?;
         let (server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate) =
             server_init(ciphersuite, &ch, db, rng)?;
