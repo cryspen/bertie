@@ -310,41 +310,34 @@ fn test_parse_client_hello_roundtrip() {
     let cr = Random::new();
     let gx = Bytes::from_hex(client_x25519_pub);
     let sn = Bytes::zeroes(23);
-    for _ in 0..1000000 {
-        let ch = crate::tls13formats::client_hello(
-            &TLS_AES_128_GCM_SHA256_X25519_RSA,
-            &cr,
-            &gx,
-            &sn,
-            &None,
-        );
-        // let mut b = true;
-        // match ch {
-        //     Err(x) => {
-        //         println!("Error serializing: {}", x);
-        //         b = false;
-        //     }
-        //     Ok((ch, _)) => {
-        //         //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
-        //         let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
-        //         let b = res.is_ok();
-        //         match res {
-        //             Err(x) => {
-        //                 println!("Error: {}", x);
-        //             }
-        //             Ok((cr, sid, sn, gx, tkto, bo, l)) => {
-        //                 println!("Parsed CH!");
-        //                 println!("cr: {}", cr.as_hex());
-        //                 println!("sid: {}", sid.as_hex());
-        //                 println!("sn: {}", sn.as_hex());
-        //                 println!("gx: {}", gx.as_hex());
-        //                 println!("trunc_len: {}", l);
-        //             }
-        //         }
-        //     }
-        // }
-        // assert!(b);
+    let ch =
+        crate::tls13formats::client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, cr, &gx, &sn, &None);
+    let mut b = true;
+    match ch {
+        Err(x) => {
+            println!("Error serializing: {}", x);
+            b = false;
+        }
+        Ok((ch, _)) => {
+            //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
+            let res = parse_client_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &ch);
+            let b = res.is_ok();
+            match res {
+                Err(x) => {
+                    println!("Error: {}", x);
+                }
+                Ok((cr, sid, sn, gx, tkto, bo, l)) => {
+                    println!("Parsed CH!");
+                    println!("cr: {}", cr.as_hex());
+                    println!("sid: {}", sid.as_hex());
+                    println!("sn: {}", sn.as_hex());
+                    println!("gx: {}", gx.as_hex());
+                    println!("trunc_len: {}", l);
+                }
+            }
+        }
     }
+    assert!(b);
 }
 
 #[test]
@@ -379,7 +372,7 @@ fn test_parse_server_hello_roundtrip() {
     let mut sid = Bytes::zeroes(24);
     sid[0] = 255.into();
     let gy = Bytes::from_hex(server_x25519_pub);
-    let sh = crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sr, &sid, &gy);
+    let sh = crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, sr, &sid, &gy);
     let mut b = true;
     match sh {
         Err(x) => {
@@ -513,7 +506,7 @@ fn test_key_schedule() {
         psk_mode,
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
-    let transcript = client_hello_bytes.concat(&server_hello_bytes);
+    let transcript = client_hello_bytes.concat(server_hello_bytes);
     let tx_hash = ha.hash(&transcript);
     let mut b = true;
     match tx_hash {
@@ -543,10 +536,10 @@ fn test_key_schedule() {
                     println!("sfk: {}", sfk.as_hex());
                     println!("ms: {}", ms.as_hex());
                     let transcript = transcript
-                        .concat(&encrypted_extensions_bytes)
-                        .concat(&server_certificate_bytes)
-                        .concat(&server_cert_verify_bytes)
-                        .concat(&server_finished_bytes);
+                        .concat(encrypted_extensions_bytes)
+                        .concat(server_certificate_bytes)
+                        .concat(server_cert_verify_bytes)
+                        .concat(server_finished_bytes);
                     let tx_hash = ha.hash(&transcript);
                     match tx_hash {
                         Err(x) => {
@@ -636,9 +629,9 @@ fn test_finished() {
         psk_mode,
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
-    let tx1 = ch.concat(&sh).concat(&ee).concat(&sc).concat(&cv);
+    let tx1 = ch.concat(sh).concat(ee).concat(sc).concat(cv);
     let tx_hash1 = ha.hash(&tx1);
-    let tx2 = tx1.concat(&sf);
+    let tx2 = tx1.concat(sf);
     let tx_hash2 = ha.hash(&tx2);
     let mut b = true;
     match (tx_hash1, tx_hash2) {

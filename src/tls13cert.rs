@@ -17,6 +17,8 @@
 //! }
 //! ```
 
+#[cfg(not(feature = "secret_integers"))]
+use crate::tls13utils::Declassify;
 use crate::{
     tls13crypto::{PublicVerificationKey, RsaVerificationKey, SignatureScheme, VerificationKey},
     tls13utils::{Bytes, U32},

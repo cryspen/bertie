@@ -69,7 +69,7 @@ fn client_hello() {
     for _ in 0..ITERATIONS {
         let _ch = bertie::bench_client_hello(
             &bertie::tls13crypto::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
-            &cr,
+            cr.clone(),
             &gx,
             &sn,
             &None,
@@ -151,7 +151,7 @@ fn protocol() {
 }
 
 fn main() {
-    // protocol();
+    protocol();
 
     #[cfg(bench)]
     {

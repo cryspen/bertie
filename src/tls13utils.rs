@@ -56,7 +56,7 @@ pub(crate) fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
 
 #[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct U8(u8);
+pub struct U8(pub(crate) u8);
 #[cfg(feature = "secret_integers")]
 impl core::ops::BitXor for U8 {
     type Output = U8;
@@ -70,27 +70,34 @@ impl From<u8> for U8 {
         U8(x)
     }
 }
+
 #[cfg(feature = "secret_integers")]
 impl U8 {
-    pub(crate) fn declassify(&self) -> u8 {
+    pub(crate) fn declassify(self) -> u8 {
         self.0
+    }
+}
+
+pub(crate) trait Declassify {
+    fn declassify(self) -> u8;
+}
+
+#[cfg(not(feature = "secret_integers"))]
+impl Declassify for u8 {
+    fn declassify(self) -> u8 {
+        self
     }
 }
 
 #[cfg(not(feature = "secret_integers"))]
 type U8 = u8;
 #[cfg(not(feature = "secret_integers"))]
+#[allow(non_snake_case)]
 pub(crate) fn U8(x: u8) -> U8 {
     x
 }
-#[cfg(not(feature = "secret_integers"))]
-impl Declassify for U8 {
-    type t = u8;
-    fn declassify(&self) -> u8 {
-        *self
-    }
-}
 
+#[cfg(feature = "secret_integers")]
 impl From<&u8> for U8 {
     fn from(x: &u8) -> U8 {
         U8(*x)
@@ -126,9 +133,17 @@ impl core::ops::Add for U32 {
 #[derive(Clone, PartialEq, Debug, Default)]
 pub struct Bytes(Vec<U8>);
 
+#[cfg(feature = "secret_integers")]
 impl From<Vec<u8>> for Bytes {
     fn from(x: Vec<u8>) -> Bytes {
         Bytes(x.iter().map(|x| x.into()).collect())
+    }
+}
+
+#[cfg(not(feature = "secret_integers"))]
+impl From<Vec<u8>> for Bytes {
+    fn from(x: Vec<u8>) -> Bytes {
+        Bytes(x)
     }
 }
 
@@ -165,6 +180,7 @@ impl From<&[u8]> for Bytes {
     }
 }
 
+#[cfg(feature = "secret_integers")]
 impl From<&[U8]> for Bytes {
     fn from(x: &[U8]) -> Bytes {
         Bytes(x.to_vec())
@@ -257,6 +273,11 @@ impl Bytes {
         Bytes(Vec::new())
     }
 
+    /// Create new [`Bytes`].
+    pub(crate) fn new_alloc(len: usize) -> Bytes {
+        Bytes(Vec::with_capacity(len))
+    }
+
     /// Generate `len` bytes of `0`.
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
@@ -317,11 +338,11 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    pub fn concat(&self, other: &Bytes) -> Bytes {
-        let mut res = Vec::new();
-        res.extend_from_slice(&self.0);
-        res.extend_from_slice(&other.0);
-        Bytes(res)
+    pub fn concat(mut self, mut other: Bytes) -> Bytes {
+        // let mut res = Vec::new();
+        // res.extend_from_slice(&self.0);
+        self.0.append(&mut other.0);
+        self
     }
 
     /// Update the slice `self[start..start+len] = other[beg..beg+len]` and return
@@ -439,7 +460,7 @@ pub(crate) fn encode_length_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let mut lenb = Bytes::new();
+        let mut lenb = Bytes::new_alloc(1 + bytes.len());
         lenb.push((len as u8).into());
         lenb.extend_from_slice(bytes);
         Ok(lenb)
@@ -457,7 +478,7 @@ pub(crate) fn encode_length_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let len = (U16(len as u16)).as_be_bytes();
-        let mut lenb = Bytes::new();
+        let mut lenb = Bytes::new_alloc(2 + bytes.len());
         lenb.push(len[0]);
         lenb.push(len[1]);
         lenb.extend_from_slice(bytes);
@@ -476,7 +497,7 @@ pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let len = U32(len as u32).as_be_bytes();
-        let mut lenb = Bytes::new();
+        let mut lenb = Bytes::new_alloc(3 + bytes.len());
         lenb.push(len[1]);
         lenb.push(len[2]);
         lenb.push(len[3]);
