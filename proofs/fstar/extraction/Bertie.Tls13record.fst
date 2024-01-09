@@ -670,7 +670,7 @@ let encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
                 (Bertie.Tls13formats.ContentType_ApplicationData
                   <:
                   Bertie.Tls13formats.t_ContentType)
-                (Bertie.Tls13utils.impl__AppData__as_raw payload <: Bertie.Tls13utils.t_Bytes)
+                (Bertie.Tls13utils.impl__AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
                 pad
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -766,7 +766,7 @@ let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_C
                 (Bertie.Tls13formats.ContentType_ApplicationData
                   <:
                   Bertie.Tls13formats.t_ContentType)
-                (Bertie.Tls13utils.impl__AppData__as_raw payload <: Bertie.Tls13utils.t_Bytes)
+                (Bertie.Tls13utils.impl__AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
                 pad
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)

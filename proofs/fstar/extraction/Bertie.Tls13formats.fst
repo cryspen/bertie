@@ -897,7 +897,12 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
             (Bertie.Tls13utils.impl__U8__declassify (r.[ sz 0 ] <: Bertie.Tls13utils.t_U8) <: u8) >=.
             128uy
           then
-            let r:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat b0 r in
+            let r:Bertie.Tls13utils.t_Bytes =
+              Bertie.Tls13utils.impl__Bytes__concat (Core.Clone.f_clone b0
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+                r
+            in
             r
           else r
         in
@@ -933,7 +938,8 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
               Bertie.Tls13utils.t_Bytes
         in
         let hoist160:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat b2 hoist159
+          Bertie.Tls13utils.impl__Bytes__concat (Core.Clone.f_clone b2 <: Bertie.Tls13utils.t_Bytes)
+            hoist159
         in
         let hoist163:Bertie.Tls13utils.t_Bytes =
           Bertie.Tls13utils.impl__Bytes__concat hoist160 b2
@@ -1108,6 +1114,7 @@ let pre_shared_key
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
       in
+      let binders_len:usize = Bertie.Tls13utils.impl__Bytes__len binders in
       let* hoist181:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.impl__Bytes__concat
@@ -1141,8 +1148,7 @@ let pre_shared_key
               Bertie.Tls13utils.t_Bytes)
             hoist181
         in
-        Core.Result.Result_Ok
-        (ext, Bertie.Tls13utils.impl__Bytes__len binders <: (Bertie.Tls13utils.t_Bytes & usize))
+        Core.Result.Result_Ok (ext, binders_len <: (Bertie.Tls13utils.t_Bytes & usize))
         <:
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
       <:
@@ -5035,7 +5041,10 @@ let impl__Transcript__transcript_hash_without_client_hello
     client_hello
   in
   Bertie.Tls13crypto.impl__HashAlgorithm__hash self.f_hash_algorithm
-    (Bertie.Tls13utils.impl__Bytes__concat self.f_transcript.Bertie.Tls13formats.Handshake_data._0
+    (Bertie.Tls13utils.impl__Bytes__concat (Core.Clone.f_clone self.f_transcript
+              .Bertie.Tls13formats.Handshake_data._0
+          <:
+          Bertie.Tls13utils.t_Bytes)
         (Bertie.Tls13utils.impl__Bytes__slice_range client_hello
               .Bertie.Tls13formats.Handshake_data._0
             ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = trunc_len }
