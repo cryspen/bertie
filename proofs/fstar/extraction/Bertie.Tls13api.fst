@@ -136,7 +136,7 @@ let impl__Client__connect
       (let client_hello_record:Bertie.Tls13utils.t_Bytes =
           Rust_primitives.Hax.Monomorphized_update_at.update_at_usize client_hello_record
             (sz 2)
-            (Core.Convert.f_from 1uy <: Bertie.Tls13utils.t_U8)
+            (Bertie.Tls13utils.U8 1uy <: Bertie.Tls13utils.t_U8)
         in
         let hax_temp_output:Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8 =
           Core.Result.Result_Ok
@@ -697,7 +697,7 @@ let impl__Server__accept
       let ch_rec:Bertie.Tls13utils.t_Bytes =
         Rust_primitives.Hax.Monomorphized_update_at.update_at_usize ch_rec
           (sz 2)
-          (Core.Convert.f_from 3uy <: Bertie.Tls13utils.t_U8)
+          (Bertie.Tls13utils.U8 3uy <: Bertie.Tls13utils.t_U8)
       in
       let* ch:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
         match
