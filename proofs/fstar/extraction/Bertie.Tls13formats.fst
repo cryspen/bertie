@@ -335,340 +335,558 @@ let merge_opts
 let unsupported_cipher_alert (_: Prims.unit) : Core.Result.t_Result Prims.unit u8 =
   Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
 
-let build_server_name (name: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist102:Bertie.Tls13utils.t_Bytes =
+let psk_key_exchange_modes__PSK_MODE_PREFIX: t_Array Bertie.Tls13utils.t_U8 (sz 2) =
+  let list =
+    [
+      Bertie.Tls13utils.U8 0uy <: Bertie.Tls13utils.t_U8;
+      Bertie.Tls13utils.U8 45uy <: Bertie.Tls13utils.t_U8
+    ]
+  in
+  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+  Rust_primitives.Hax.array_of_list list
+
+let server_supported_version__SUPPORTED_VERSION_PREFIX: t_Array Bertie.Tls13utils.t_U8 (sz 2) =
+  let list =
+    [
+      Bertie.Tls13utils.U8 0uy <: Bertie.Tls13utils.t_U8;
+      Bertie.Tls13utils.U8 43uy <: Bertie.Tls13utils.t_U8
+    ]
+  in
+  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+  Rust_primitives.Hax.array_of_list list
+
+let supported_groups__SUPPORTED_GROUPS_PREFIX: t_Array Bertie.Tls13utils.t_U8 (sz 2) =
+  let list =
+    [
+      Bertie.Tls13utils.U8 0uy <: Bertie.Tls13utils.t_U8;
+      Bertie.Tls13utils.U8 10uy <: Bertie.Tls13utils.t_U8
+    ]
+  in
+  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+  Rust_primitives.Hax.array_of_list list
+
+let check_psk_key_exchange_modes (client_hello: t_Slice Bertie.Tls13utils.t_U8)
+    : Core.Result.t_Result Prims.unit u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 name
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8_slice client_hello
               <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist101:Rust_primitives.Hax.t_Never =
+          let* hoist9:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                Core.Result.t_Result Prims.unit u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist101)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist9)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
       in
-      let hoist103:Bertie.Tls13utils.t_Bytes =
-        Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from (let list = [0uy] in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (Bertie.Tls13utils.check_eq_slice (Rust_primitives.unsize (let list =
+                  [Bertie.Tls13utils.U8 1uy <: Bertie.Tls13utils.t_U8]
+                in
                 FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
                 Rust_primitives.Hax.array_of_list list)
             <:
+            t_Slice Bertie.Tls13utils.t_U8)
+          (client_hello.[ { Core.Ops.Range.f_start = sz 1; Core.Ops.Range.f_end = sz 2 }
+              <:
+              Core.Ops.Range.t_Range usize ]
+            <:
+            t_Slice Bertie.Tls13utils.t_U8))
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+        (Core.Result.t_Result Prims.unit u8))
+
+let check_psk_shared_key
+      (v__algs: Bertie.Tls13crypto.t_Algorithms)
+      (ch: t_Slice Bertie.Tls13utils.t_U8)
+    : Core.Result.t_Result Prims.unit u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* len_id:usize =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded ch
+              <:
+              Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist10:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist10)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
+      in
+      let* len_tkt:usize =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (ch.[ {
+                      Core.Ops.Range.f_start = sz 2;
+                      Core.Ops.Range.f_end = sz 2 +! len_id <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
+                  <:
+                  t_Slice Bertie.Tls13utils.t_U8)
+              <:
+              Core.Result.t_Result usize u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist11:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist11)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
+      in
+      if len_id =. (len_tkt +! sz 6 <: usize)
+      then
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16_slice (ch.[ {
+                        Core.Ops.Range.f_start = sz 2 +! len_id <: usize;
+                        Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice Bertie.Tls13utils.t_U8)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist12:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Prims.unit u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist12)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+        in
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8_slice (ch.[ {
+                        Core.Ops.Range.f_start = sz 4 +! len_id <: usize;
+                        Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice Bertie.Tls13utils.t_U8)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist13:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Prims.unit u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist13)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+        in
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (if (((Core.Slice.impl__len ch <: usize) -! sz 6 <: usize) -! len_id <: usize) <>. sz 32
+          then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+          else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+          (Core.Result.t_Result Prims.unit u8)
+      else
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8))
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+          (Core.Result.t_Result Prims.unit u8))
+
+let check_supported_versions (client_hello: t_Slice Bertie.Tls13utils.t_U8)
+    : Core.Result.t_Result Prims.unit u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8_slice client_hello
+              <:
+              Core.Result.t_Result Prims.unit u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist14:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist14)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (Bertie.Tls13utils.check_mem (Rust_primitives.unsize (let list =
+                  [
+                    Bertie.Tls13utils.U8 3uy <: Bertie.Tls13utils.t_U8;
+                    Bertie.Tls13utils.U8 4uy <: Bertie.Tls13utils.t_U8
+                  ]
+                in
+                FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+                Rust_primitives.Hax.array_of_list list)
+            <:
+            t_Slice Bertie.Tls13utils.t_U8)
+          (client_hello.[ {
+                Core.Ops.Range.f_start = sz 1;
+                Core.Ops.Range.f_end = Core.Slice.impl__len client_hello <: usize
+              }
+              <:
+              Core.Ops.Range.t_Range usize ]
+            <:
+            t_Slice Bertie.Tls13utils.t_U8))
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+        (Core.Result.t_Result Prims.unit u8))
+
+let check_server_supported_version
+      (v__algs: Bertie.Tls13crypto.t_Algorithms)
+      (b: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Prims.unit u8 =
+  Bertie.Tls13utils.check_eq_slice (Rust_primitives.unsize (let list =
+            [
+              Bertie.Tls13utils.U8 3uy <: Bertie.Tls13utils.t_U8;
+              Bertie.Tls13utils.U8 4uy <: Bertie.Tls13utils.t_U8
+            ]
+          in
+          FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+          Rust_primitives.Hax.array_of_list list)
+      <:
+      t_Slice Bertie.Tls13utils.t_U8)
+    (Bertie.Tls13utils.impl__Bytes__as_raw b <: t_Slice Bertie.Tls13utils.t_U8)
+
+let check_server_name (extension: t_Slice Bertie.Tls13utils.t_U8)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16_slice extension
+              <:
+              Core.Result.t_Result Prims.unit u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist30:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist30)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Prims.unit
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Prims.unit
+      in
+      let* _:Prims.unit =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq_slice (Rust_primitives.unsize (let
+                      list =
+                        [Bertie.Tls13utils.U8 0uy <: Bertie.Tls13utils.t_U8]
+                      in
+                      FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                      Rust_primitives.Hax.array_of_list list)
+                  <:
+                  t_Slice Bertie.Tls13utils.t_U8)
+                (extension.[ { Core.Ops.Range.f_start = sz 2; Core.Ops.Range.f_end = sz 3 }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
+                  <:
+                  t_Slice Bertie.Tls13utils.t_U8)
+              <:
+              Core.Result.t_Result Prims.unit u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist31:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist31)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Prims.unit
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Prims.unit
+      in
+      let* _:Prims.unit =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16_slice (extension.[
+                    {
+                      Core.Ops.Range.f_start = sz 3;
+                      Core.Ops.Range.f_end = Core.Slice.impl__len extension <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
+                  <:
+                  t_Slice Bertie.Tls13utils.t_U8)
+              <:
+              Core.Result.t_Result Prims.unit u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist32:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist32)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Prims.unit
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Prims.unit
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (Core.Result.Result_Ok
+        (Core.Convert.f_into (extension.[ {
+                  Core.Ops.Range.f_start = sz 5;
+                  Core.Ops.Range.f_end = Core.Slice.impl__len extension <: usize
+                }
+                <:
+                Core.Ops.Range.t_Range usize ]
+              <:
+              t_Slice Bertie.Tls13utils.t_U8))
+        <:
+        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let check_signature_algorithms
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (ch: t_Slice Bertie.Tls13utils.t_U8)
+    : Core.Result.t_Result Prims.unit u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16_slice ch
+              <:
+              Core.Result.t_Result Prims.unit u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist36:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist36)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+      in
+      let* hoist38:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist37:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist37)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist39:t_Slice Bertie.Tls13utils.t_U8 = Bertie.Tls13utils.impl__Bytes__as_raw hoist38 in
+        Bertie.Tls13utils.check_mem hoist39
+          (ch.[ {
+                Core.Ops.Range.f_start = sz 2;
+                Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+              }
+              <:
+              Core.Ops.Range.t_Range usize ]
+            <:
+            t_Slice Bertie.Tls13utils.t_U8))
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+        (Core.Result.t_Result Prims.unit u8))
+
+let check_supported_groups
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (ch: t_Slice Bertie.Tls13utils.t_U8)
+    : Core.Result.t_Result Prims.unit u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16_slice ch
+              <:
+              Core.Result.t_Result Prims.unit u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist40:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist40)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
+      in
+      let* hoist42:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist41:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist41)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist43:t_Slice Bertie.Tls13utils.t_U8 = Bertie.Tls13utils.impl__Bytes__as_raw hoist42 in
+        Bertie.Tls13utils.check_mem hoist43
+          (ch.[ {
+                Core.Ops.Range.f_start = sz 2;
+                Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+              }
+              <:
+              Core.Ops.Range.t_Range usize ]
+            <:
+            t_Slice Bertie.Tls13utils.t_U8))
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
+        (Core.Result.t_Result Prims.unit u8))
+
+let check_server_psk_shared_key
+      (v__algs: Bertie.Tls13crypto.t_Algorithms)
+      (b: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Prims.unit u8 =
+  Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes2 0uy 0uy <: Bertie.Tls13utils.t_Bytes) b
+
+let check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist129:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist128:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist128)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist130:Core.Result.t_Result Prims.unit u8 =
+        Bertie.Tls13utils.check_eq hoist129
+          (Bertie.Tls13utils.impl__Bytes__slice_range b
+              ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
+                <:
+                Core.Ops.Range.t_Range usize)
+            <:
             Bertie.Tls13utils.t_Bytes)
-          hoist102
       in
-      let hoist104:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist103
+      let hoist131:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Prims.unit =
+        Core.Ops.Try_trait.f_branch hoist130
       in
-      let hoist105:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist104
-      in
-      let* hoist106:Bertie.Tls13utils.t_Bytes =
-        match hoist105 with
+      let* _:Prims.unit =
+        match hoist131 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist100:Rust_primitives.Hax.t_Never =
+          let* hoist127:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist100)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist127)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+            Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+            Prims.unit
       in
-      let hoist107:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist106
-      in
-      let hoist108:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist107
-      in
-      let* hoist109:Bertie.Tls13utils.t_Bytes =
-        match hoist108 with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist99:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist99)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist110:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from (let list = [0uy; 0uy] in
-                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                  Rust_primitives.Hax.array_of_list list)
-              <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist109
-        in
-        Core.Result.Result_Ok hoist110 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist114:Bertie.Tls13utils.t_Bytes =
+      let* _:Prims.unit =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist111:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist111)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let* hoist113:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 gx
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist112:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist112)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let ks:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat hoist114 hoist113 in
-      let* hoist117:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 ks
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist116:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist116)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let hoist118:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist117
-      in
-      let hoist119:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist118
-      in
-      let* hoist120:Bertie.Tls13utils.t_Bytes =
-        match hoist119 with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist115:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist115)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist121:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 51uy
-              <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist120
-        in
-        Core.Result.Result_Ok hoist121 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let server_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist125:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist122:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist122)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let* hoist124:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 gx
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist123:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist123)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let ks:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat hoist125 hoist124 in
-      let* hoist127:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 ks
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist126:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist126)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist128:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 51uy
-              <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist127
-        in
-        Core.Result.Result_Ok hoist128 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let server_pre_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist130:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.bytes2
-                    0uy
-                    0uy
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
+                    b
+                    ({
+                        Core.Ops.Range.f_start = sz 2;
+                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize)
                   <:
                   Bertie.Tls13utils.t_Bytes)
               <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist129:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist129)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist131:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 41uy
-              <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist130
-        in
-        Core.Result.Result_Ok hoist131 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let server_supported_version (v__algorithms: Bertie.Tls13crypto.t_Algorithms)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist133:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.bytes2
-                    3uy
-                    4uy
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist132:Rust_primitives.Hax.t_Never =
@@ -679,169 +897,458 @@ let server_supported_version (v__algorithms: Bertie.Tls13crypto.t_Algorithms)
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist132)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+            Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+            Prims.unit
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist134:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 43uy
+      (Core.Result.Result_Ok
+        (Bertie.Tls13utils.impl__Bytes__slice_range b
+            ({
+                Core.Ops.Range.f_start = sz 4;
+                Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
+              }
               <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist133
-        in
-        Core.Result.Result_Ok hoist134 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Core.Ops.Range.t_Range usize))
+        <:
+        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
-let signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist138:Bertie.Tls13utils.t_Bytes =
+let check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let l0:usize =
+        cast (Bertie.Tls13utils.impl__U8__declassify (b.[ sz 0 ] <: Bertie.Tls13utils.t_U8) <: u8)
+        <:
+        usize
+      in
+      let l1:usize =
+        cast (Bertie.Tls13utils.impl__U8__declassify (b.[ sz 1 ] <: Bertie.Tls13utils.t_U8) <: u8)
+        <:
+        usize
+      in
+      let* len:usize =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (b.[ {
+                      Core.Ops.Range.f_start = sz 2;
+                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
+                  <:
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist137:Rust_primitives.Hax.t_Never =
+          let* hoist133:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist137)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist133)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8) usize
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8) usize
       in
-      let hoist139:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist138
+      let out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+        Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
       in
-      let hoist140:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist139
-      in
-      let* hoist141:Bertie.Tls13utils.t_Bytes =
-        match hoist140 with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist136:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      let* out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+        match (cast (l0 <: usize) <: u8), (cast (l1 <: usize) <: u8) <: (u8 & u8) with
+        | 0uy, 43uy ->
+          (match
+              Core.Ops.Try_trait.f_branch (check_server_supported_version algs
+                    (Bertie.Tls13utils.impl__Bytes__slice_range b
+                        ({
+                            Core.Ops.Range.f_start = sz 4;
+                            Core.Ops.Range.f_end = sz 4 +! len <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Core.Result.t_Result Prims.unit u8)
+            with
+            | Core.Ops.Control_flow.ControlFlow_Break residual ->
+              let* hoist134:Rust_primitives.Hax.t_Never =
+                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+
+                    <:
+                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+                  )
+              in
+              Core.Ops.Control_flow.ControlFlow_Continue out
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+              Core.Ops.Control_flow.ControlFlow_Continue out
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+        | 0uy, 51uy ->
+          let* gx:Bertie.Tls13utils.t_Bytes =
+            match
+              Core.Ops.Try_trait.f_branch (check_server_key_share algs
+                    (Bertie.Tls13utils.impl__Bytes__slice_range b
+                        ({
+                            Core.Ops.Range.f_start = sz 4;
+                            Core.Ops.Range.f_end = sz 4 +! len <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            with
+            | Core.Ops.Control_flow.ControlFlow_Break residual ->
+              let* hoist135:Rust_primitives.Hax.t_Never =
+                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+
+                    <:
+                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+                  )
+              in
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist135)
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+                Bertie.Tls13utils.t_Bytes
+            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+              Core.Ops.Control_flow.ControlFlow_Continue v_val
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+                Bertie.Tls13utils.t_Bytes
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist136)
+          Core.Ops.Control_flow.ControlFlow_Continue
+          (Core.Option.Option_Some gx <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+        | 0uy, 41uy ->
+          (match
+              Core.Ops.Try_trait.f_branch (check_server_psk_shared_key algs
+                    (Bertie.Tls13utils.impl__Bytes__slice_range b
+                        ({
+                            Core.Ops.Range.f_start = sz 4;
+                            Core.Ops.Range.f_end = sz 4 +! len <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Core.Result.t_Result Prims.unit u8)
+            with
+            | Core.Ops.Control_flow.ControlFlow_Break residual ->
+              let* hoist136:Rust_primitives.Hax.t_Never =
+                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+
+                    <:
+                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+                  )
+              in
+              Core.Ops.Control_flow.ControlFlow_Continue out
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+              Core.Ops.Control_flow.ControlFlow_Continue out
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+        | _ ->
+          Core.Ops.Control_flow.ControlFlow_Continue out
           <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let hoist142:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist141
-      in
-      let hoist143:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist142
-      in
-      let* hoist144:Bertie.Tls13utils.t_Bytes =
-        match hoist143 with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist135:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist135)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist145:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 13uy
-              <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist144
-        in
-        Core.Result.Result_Ok hoist145 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      (Core.Result.Result_Ok
+        (sz 4 +! len, out <: (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+        <:
+        Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+      Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+        (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8))
 
-let supported_groups (algs: Bertie.Tls13crypto.t_Algorithms)
+let parse_ecdsa_signature (sig: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist149:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
+        (Bertie.Tls13utils.impl__Bytes__len sig <: usize) <. sz 4 <: bool
+      then
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+          <:
+          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      else
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 48uy
+                    <:
+                    Bertie.Tls13utils.t_Bytes)
+                  (Bertie.Tls13utils.impl__Bytes__slice_range sig
+                      ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 1 }
+                        <:
+                        Core.Ops.Range.t_Range usize)
+                    <:
+                    Bertie.Tls13utils.t_Bytes)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist137:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist137)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+        in
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 (Bertie.Tls13utils.impl__Bytes__slice_range
+                      sig
+                      ({
+                          Core.Ops.Range.f_start = sz 1;
+                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sig <: usize
+                        }
+                        <:
+                        Core.Ops.Range.t_Range usize)
+                    <:
+                    Bertie.Tls13utils.t_Bytes)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist138:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist138)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+        in
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 2uy
+                    <:
+                    Bertie.Tls13utils.t_Bytes)
+                  (Bertie.Tls13utils.impl__Bytes__slice_range sig
+                      ({ Core.Ops.Range.f_start = sz 2; Core.Ops.Range.f_end = sz 3 }
+                        <:
+                        Core.Ops.Range.t_Range usize)
+                    <:
+                    Bertie.Tls13utils.t_Bytes)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist139:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist139)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+        in
+        let* rlen:usize =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (sig.[ {
+                        Core.Ops.Range.f_start = sz 3;
+                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sig <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice Bertie.Tls13utils.t_U8)
+                <:
+                Core.Result.t_Result usize u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist140:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist140)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              usize
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              usize
+        in
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (check_r_len rlen <: Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist141:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist141)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              Prims.unit
+        in
+        let r:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__slice sig
+            ((sz 4 +! rlen <: usize) -! sz 32 <: usize)
+            (sz 32)
+        in
+        if
+          (Bertie.Tls13utils.impl__Bytes__len sig <: usize) <.
+          ((sz 6 +! rlen <: usize) +! sz 32 <: usize)
+        then
+          Core.Ops.Control_flow.ControlFlow_Continue
+          (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_INVALID_SIGNATURE)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        else
+          let* _:Prims.unit =
+            match
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 2uy
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                    (Bertie.Tls13utils.impl__Bytes__slice_range sig
+                        ({
+                            Core.Ops.Range.f_start = sz 4 +! rlen <: usize;
+                            Core.Ops.Range.f_end = sz 5 +! rlen <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Core.Result.t_Result Prims.unit u8)
+            with
+            | Core.Ops.Control_flow.ControlFlow_Break residual ->
+              let* hoist142:Rust_primitives.Hax.t_Never =
+                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+
+                    <:
+                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              in
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist142)
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
+            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+              Core.Ops.Control_flow.ControlFlow_Continue v_val
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
+          in
+          let* _:Prims.unit =
+            match
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 (Bertie.Tls13utils.impl__Bytes__slice_range
+                        sig
+                        ({
+                            Core.Ops.Range.f_start = sz 5 +! rlen <: usize;
+                            Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sig <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Core.Result.t_Result Prims.unit u8)
+            with
+            | Core.Ops.Control_flow.ControlFlow_Break residual ->
+              let* hoist143:Rust_primitives.Hax.t_Never =
+                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+
+                    <:
+                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              in
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist143)
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
+            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+              Core.Ops.Control_flow.ControlFlow_Continue v_val
+              <:
+              Core.Ops.Control_flow.t_ControlFlow
+                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue
+          (let s:Bertie.Tls13utils.t_Bytes =
+              Bertie.Tls13utils.impl__Bytes__slice sig
+                ((Bertie.Tls13utils.impl__Bytes__len sig <: usize) -! sz 32 <: usize)
+                (sz 32)
+            in
+            Core.Result.Result_Ok (Bertie.Tls13utils.impl__Bytes__concat r s)
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let build_server_name (name: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist147:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Core.Clone.f_clone name
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist148:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist148)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let hoist150:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist149
-      in
-      let hoist151:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist150
-      in
-      let* hoist152:Bertie.Tls13utils.t_Bytes =
-        match hoist151 with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist147:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist147)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let hoist153:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist152
-      in
-      let hoist154:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist153
-      in
-      let* hoist155:Bertie.Tls13utils.t_Bytes =
-        match hoist154 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist146:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
@@ -858,14 +1365,513 @@ let supported_groups (algs: Bertie.Tls13crypto.t_Algorithms)
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
       in
+      let hoist148:Bertie.Tls13utils.t_Bytes =
+        Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from (let list = [0uy] in
+                FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                Rust_primitives.Hax.array_of_list list)
+            <:
+            Bertie.Tls13utils.t_Bytes)
+          hoist147
+      in
+      let hoist149:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist148
+      in
+      let hoist150:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist149
+      in
+      let* hoist151:Bertie.Tls13utils.t_Bytes =
+        match hoist150 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist145:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist145)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist152:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist151
+      in
+      let hoist153:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist152
+      in
+      let* hoist154:Bertie.Tls13utils.t_Bytes =
+        match hoist153 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist144:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist144)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist156:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 10uy
+      (let hoist155:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from (let list = [0uy; 0uy] in
+                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+                  Rust_primitives.Hax.array_of_list list)
               <:
               Bertie.Tls13utils.t_Bytes)
-            hoist155
+            hoist154
         in
-        Core.Result.Result_Ok hoist156 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        Core.Result.Result_Ok hoist155 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist159:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist156:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist156)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let* hoist158:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 gx
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist157:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist157)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let ks:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat hoist159 hoist158 in
+      let* hoist162:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 ks
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist161:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist161)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist163:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist162
+      in
+      let hoist164:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist163
+      in
+      let* hoist165:Bertie.Tls13utils.t_Bytes =
+        match hoist164 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist160:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist160)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist166:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 51uy
+              <:
+              Bertie.Tls13utils.t_Bytes)
+            hoist165
+        in
+        Core.Result.Result_Ok hoist166 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let server_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist170:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist167:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist167)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let* hoist169:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 gx
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist168:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist168)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let ks:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat hoist170 hoist169 in
+      let* hoist172:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 ks
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist171:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist171)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist173:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 51uy
+              <:
+              Bertie.Tls13utils.t_Bytes)
+            hoist172
+        in
+        Core.Result.Result_Ok hoist173 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let server_pre_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist175:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.bytes2
+                    0uy
+                    0uy
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist174:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist174)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist176:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 41uy
+              <:
+              Bertie.Tls13utils.t_Bytes)
+            hoist175
+        in
+        Core.Result.Result_Ok hoist176 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let server_supported_version (v__algorithms: Bertie.Tls13crypto.t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist178:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.bytes2
+                    3uy
+                    4uy
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist177:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist177)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist179:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__prefix hoist178
+            (Rust_primitives.unsize server_supported_version__SUPPORTED_VERSION_PREFIX
+              <:
+              t_Slice Bertie.Tls13utils.t_U8)
+        in
+        Core.Result.Result_Ok hoist179 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist183:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist182:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist182)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist184:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist183
+      in
+      let hoist185:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist184
+      in
+      let* hoist186:Bertie.Tls13utils.t_Bytes =
+        match hoist185 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist181:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist181)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist187:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist186
+      in
+      let hoist188:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist187
+      in
+      let* hoist189:Bertie.Tls13utils.t_Bytes =
+        match hoist188 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist180:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist180)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist190:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 13uy
+              <:
+              Bertie.Tls13utils.t_Bytes)
+            hoist189
+        in
+        Core.Result.Result_Ok hoist190 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let supported_groups (algs: Bertie.Tls13crypto.t_Algorithms)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist194:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist193:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist193)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist195:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist194
+      in
+      let hoist196:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist195
+      in
+      let* hoist197:Bertie.Tls13utils.t_Bytes =
+        match hoist196 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist192:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist192)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist198:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist197
+      in
+      let hoist199:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist198
+      in
+      let* hoist200:Bertie.Tls13utils.t_Bytes =
+        match hoist199 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist191:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist191)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist201:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__prefix hoist200
+            (Rust_primitives.unsize supported_groups__SUPPORTED_GROUPS_PREFIX
+              <:
+              t_Slice Bertie.Tls13utils.t_U8)
+        in
+        Core.Result.Result_Ok hoist201 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
@@ -915,19 +1921,19 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
             s
           else s
         in
-        let* hoist159:Bertie.Tls13utils.t_Bytes =
+        let* hoist204:Bertie.Tls13utils.t_Bytes =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u8 r
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist158:Rust_primitives.Hax.t_Never =
+            let* hoist203:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist158)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist203)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               Bertie.Tls13utils.t_Bytes
@@ -937,26 +1943,26 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               Bertie.Tls13utils.t_Bytes
         in
-        let hoist160:Bertie.Tls13utils.t_Bytes =
+        let hoist205:Bertie.Tls13utils.t_Bytes =
           Bertie.Tls13utils.impl__Bytes__concat (Core.Clone.f_clone b2 <: Bertie.Tls13utils.t_Bytes)
-            hoist159
+            hoist204
         in
-        let hoist163:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat hoist160 b2
+        let hoist208:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat hoist205 b2
         in
-        let* hoist162:Bertie.Tls13utils.t_Bytes =
+        let* hoist207:Bertie.Tls13utils.t_Bytes =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u8 s
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist161:Rust_primitives.Hax.t_Never =
+            let* hoist206:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist161)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist206)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               Bertie.Tls13utils.t_Bytes
@@ -966,25 +1972,25 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               Bertie.Tls13utils.t_Bytes
         in
-        let hoist164:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat hoist163 hoist162
+        let hoist209:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat hoist208 hoist207
         in
-        let hoist165:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-          Bertie.Tls13utils.encode_length_u8 hoist164
+        let hoist210:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+          Bertie.Tls13utils.encode_length_u8 hoist209
         in
-        let hoist166:Core.Ops.Control_flow.t_ControlFlow
+        let hoist211:Core.Ops.Control_flow.t_ControlFlow
           (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-          Core.Ops.Try_trait.f_branch hoist165
+          Core.Ops.Try_trait.f_branch hoist210
         in
-        let* hoist167:Bertie.Tls13utils.t_Bytes =
-          match hoist166 with
+        let* hoist212:Bertie.Tls13utils.t_Bytes =
+          match hoist211 with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist157:Rust_primitives.Hax.t_Never =
+            let* hoist202:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist157)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist202)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               Bertie.Tls13utils.t_Bytes
@@ -995,10 +2001,10 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
               Bertie.Tls13utils.t_Bytes
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist168:Bertie.Tls13utils.t_Bytes =
-            Bertie.Tls13utils.impl__Bytes__concat b1 hoist167
+        (let hoist213:Bertie.Tls13utils.t_Bytes =
+            Bertie.Tls13utils.impl__Bytes__concat b1 hoist212
           in
-          Core.Result.Result_Ok hoist168 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          Core.Result.Result_Ok hoist213 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
@@ -1007,19 +2013,22 @@ let pre_shared_key
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (session_ticket: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist171:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist216:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 session_ticket
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Core.Clone.f_clone session_ticket
+
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist170:Rust_primitives.Hax.t_Never =
+          let* hoist215:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist170)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist215)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
@@ -1029,30 +2038,30 @@ let pre_shared_key
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
       in
-      let hoist172:Bertie.Tls13utils.t_Bytes =
-        Bertie.Tls13utils.impl__Bytes__concat hoist171
+      let hoist217:Bertie.Tls13utils.t_Bytes =
+        Bertie.Tls13utils.impl__Bytes__concat hoist216
           (Bertie.Tls13utils.impl__U32__as_be_bytes (Core.Convert.f_from 4294967295ul
                 <:
                 Bertie.Tls13utils.t_U32)
             <:
             Bertie.Tls13utils.t_Bytes)
       in
-      let hoist173:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist172
+      let hoist218:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist217
       in
-      let hoist174:Core.Ops.Control_flow.t_ControlFlow
+      let hoist219:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist173
+        Core.Ops.Try_trait.f_branch hoist218
       in
       let* identities:Bertie.Tls13utils.t_Bytes =
-        match hoist174 with
+        match hoist219 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist169:Rust_primitives.Hax.t_Never =
+          let* hoist214:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist169)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist214)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
@@ -1062,7 +2071,7 @@ let pre_shared_key
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
       in
-      let* hoist177:Bertie.Tls13utils.t_Bytes =
+      let* hoist222:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13crypto.zero_key
                     (Bertie.Tls13crypto.impl__Algorithms__hash algs
@@ -1074,12 +2083,12 @@ let pre_shared_key
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist176:Rust_primitives.Hax.t_Never =
+          let* hoist221:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist176)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist221)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
@@ -1089,22 +2098,22 @@ let pre_shared_key
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
       in
-      let hoist178:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist177
+      let hoist223:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist222
       in
-      let hoist179:Core.Ops.Control_flow.t_ControlFlow
+      let hoist224:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist178
+        Core.Ops.Try_trait.f_branch hoist223
       in
       let* binders:Bertie.Tls13utils.t_Bytes =
-        match hoist179 with
+        match hoist224 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist175:Rust_primitives.Hax.t_Never =
+          let* hoist220:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist175)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist220)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
@@ -1115,7 +2124,7 @@ let pre_shared_key
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
       in
       let binders_len:usize = Bertie.Tls13utils.impl__Bytes__len binders in
-      let* hoist181:Bertie.Tls13utils.t_Bytes =
+      let* hoist226:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.impl__Bytes__concat
                     identities
@@ -1126,12 +2135,12 @@ let pre_shared_key
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist180:Rust_primitives.Hax.t_Never =
+          let* hoist225:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist180)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist225)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8) Bertie.Tls13utils.t_Bytes
@@ -1146,7 +2155,7 @@ let pre_shared_key
           Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 41uy
               <:
               Bertie.Tls13utils.t_Bytes)
-            hoist181
+            hoist226
         in
         Core.Result.Result_Ok (ext, binders_len <: (Bertie.Tls13utils.t_Bytes & usize))
         <:
@@ -1157,7 +2166,7 @@ let pre_shared_key
         (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8))
 
 let psk_key_exchange_modes (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist184:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist229:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.bytes1 1uy
 
@@ -1167,12 +2176,12 @@ let psk_key_exchange_modes (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13ut
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist183:Rust_primitives.Hax.t_Never =
+          let* hoist228:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist183)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist228)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -1182,22 +2191,22 @@ let psk_key_exchange_modes (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13ut
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist185:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist184
+      let hoist230:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist229
       in
-      let hoist186:Core.Ops.Control_flow.t_ControlFlow
+      let hoist231:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist185
+        Core.Ops.Try_trait.f_branch hoist230
       in
-      let* hoist187:Bertie.Tls13utils.t_Bytes =
-        match hoist186 with
+      let* hoist232:Bertie.Tls13utils.t_Bytes =
+        match hoist231 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist182:Rust_primitives.Hax.t_Never =
+          let* hoist227:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist182)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist227)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -1208,19 +2217,19 @@ let psk_key_exchange_modes (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13ut
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist188:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.bytes2 0uy 45uy
+      (let hoist233:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__prefix hoist232
+            (Rust_primitives.unsize psk_key_exchange_modes__PSK_MODE_PREFIX
               <:
-              Bertie.Tls13utils.t_Bytes)
-            hoist187
+              t_Slice Bertie.Tls13utils.t_U8)
         in
-        Core.Result.Result_Ok hoist188 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        Core.Result.Result_Ok hoist233 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
 let supported_versions (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist191:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist236:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u8 (Core.Convert.f_from (let
                       list =
@@ -1234,12 +2243,12 @@ let supported_versions (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13utils.
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist190:Rust_primitives.Hax.t_Never =
+          let* hoist235:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist190)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist235)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -1249,22 +2258,22 @@ let supported_versions (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13utils.
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist192:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist191
+      let hoist237:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist236
       in
-      let hoist193:Core.Ops.Control_flow.t_ControlFlow
+      let hoist238:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist192
+        Core.Ops.Try_trait.f_branch hoist237
       in
-      let* hoist194:Bertie.Tls13utils.t_Bytes =
-        match hoist193 with
+      let* hoist239:Bertie.Tls13utils.t_Bytes =
+        match hoist238 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist189:Rust_primitives.Hax.t_Never =
+          let* hoist234:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist189)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist234)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -1275,977 +2284,18 @@ let supported_versions (_: Prims.unit) : Core.Result.t_Result Bertie.Tls13utils.
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist195:Bertie.Tls13utils.t_Bytes =
+      (let hoist240:Bertie.Tls13utils.t_Bytes =
           Bertie.Tls13utils.impl__Bytes__concat (Core.Convert.f_from (let list = [0uy; 43uy] in
                   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
                   Rust_primitives.Hax.array_of_list list)
               <:
               Bertie.Tls13utils.t_Bytes)
-            hoist194
+            hoist239
         in
-        Core.Result.Result_Ok hoist195 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        Core.Result.Result_Ok hoist240 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let check_server_psk_shared_key
-      (v__algs: Bertie.Tls13crypto.t_Algorithms)
-      (b: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes2 0uy 0uy <: Bertie.Tls13utils.t_Bytes) b
-
-let check_server_supported_version
-      (v__algs: Bertie.Tls13crypto.t_Algorithms)
-      (b: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes2 3uy 4uy <: Bertie.Tls13utils.t_Bytes) b
-
-let check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist216:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist215:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist215)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let hoist217:Core.Result.t_Result Prims.unit u8 =
-        Bertie.Tls13utils.check_eq hoist216
-          (Bertie.Tls13utils.impl__Bytes__slice_range b
-              ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
-                <:
-                Core.Ops.Range.t_Range usize)
-            <:
-            Bertie.Tls13utils.t_Bytes)
-      in
-      let hoist218:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Prims.unit =
-        Core.Ops.Try_trait.f_branch hoist217
-      in
-      let* _:Prims.unit =
-        match hoist218 with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist214:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist214)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-      in
-      let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
-                    b
-                    ({
-                        Core.Ops.Range.f_start = sz 2;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist219:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist219)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Core.Result.Result_Ok
-        (Bertie.Tls13utils.impl__Bytes__slice_range b
-            ({
-                Core.Ops.Range.f_start = sz 4;
-                Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
-              }
-              <:
-              Core.Ops.Range.t_Range usize))
-        <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let l0:usize =
-        cast (Bertie.Tls13utils.impl__U8__declassify (b.[ sz 0 ] <: Bertie.Tls13utils.t_U8) <: u8)
-        <:
-        usize
-      in
-      let l1:usize =
-        cast (Bertie.Tls13utils.impl__U8__declassify (b.[ sz 1 ] <: Bertie.Tls13utils.t_U8) <: u8)
-        <:
-        usize
-      in
-      let* len:usize =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    b
-                    ({
-                        Core.Ops.Range.f_start = sz 2;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-              <:
-              Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist220:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist220)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8) usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8) usize
-      in
-      let out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-        Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
-      in
-      let* out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-        match (cast (l0 <: usize) <: u8), (cast (l1 <: usize) <: u8) <: (u8 & u8) with
-        | 0uy, 43uy ->
-          (match
-              Core.Ops.Try_trait.f_branch (check_server_supported_version algs
-                    (Bertie.Tls13utils.impl__Bytes__slice_range b
-                        ({
-                            Core.Ops.Range.f_start = sz 4;
-                            Core.Ops.Range.f_end = sz 4 +! len <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
-                  <:
-                  Core.Result.t_Result Prims.unit u8)
-            with
-            | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist221:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
-                    <:
-                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
-                  )
-              in
-              Core.Ops.Control_flow.ControlFlow_Continue out
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-              Core.Ops.Control_flow.ControlFlow_Continue out
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
-        | 0uy, 51uy ->
-          let* gx:Bertie.Tls13utils.t_Bytes =
-            match
-              Core.Ops.Try_trait.f_branch (check_server_key_share algs
-                    (Bertie.Tls13utils.impl__Bytes__slice_range b
-                        ({
-                            Core.Ops.Range.f_start = sz 4;
-                            Core.Ops.Range.f_end = sz 4 +! len <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            with
-            | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist222:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
-                    <:
-                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
-                  )
-              in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist222)
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-                Bertie.Tls13utils.t_Bytes
-            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-              Core.Ops.Control_flow.ControlFlow_Continue v_val
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-                Bertie.Tls13utils.t_Bytes
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue
-          (Core.Option.Option_Some gx <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-        | 0uy, 41uy ->
-          (match
-              Core.Ops.Try_trait.f_branch (check_server_psk_shared_key algs
-                    (Bertie.Tls13utils.impl__Bytes__slice_range b
-                        ({
-                            Core.Ops.Range.f_start = sz 4;
-                            Core.Ops.Range.f_end = sz 4 +! len <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
-                  <:
-                  Core.Result.t_Result Prims.unit u8)
-            with
-            | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist223:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
-                    <:
-                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
-                  )
-              in
-              Core.Ops.Control_flow.ControlFlow_Continue out
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-              Core.Ops.Control_flow.ControlFlow_Continue out
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
-        | _ ->
-          Core.Ops.Control_flow.ControlFlow_Continue out
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Core.Result.Result_Ok
-        (sz 4 +! len, out <: (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
-        <:
-        Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-        (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8))
-
-let check_server_name (extension: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 extension
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist224:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist224)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-      in
-      let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 0uy
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-                (Bertie.Tls13utils.impl__Bytes__slice_range extension
-                    ({ Core.Ops.Range.f_start = sz 2; Core.Ops.Range.f_end = sz 3 }
-                      <:
-                      Core.Ops.Range.t_Range usize)
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist225:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist225)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-      in
-      let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
-                    extension
-                    ({
-                        Core.Ops.Range.f_start = sz 3;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len extension <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist226:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist226)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Prims.unit
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Core.Result.Result_Ok
-        (Bertie.Tls13utils.impl__Bytes__slice_range extension
-            ({
-                Core.Ops.Range.f_start = sz 5;
-                Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len extension <: usize
-              }
-              <:
-              Core.Ops.Range.t_Range usize))
-        <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let check_signature_algorithms
-      (algs: Bertie.Tls13crypto.t_Algorithms)
-      (ch: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 ch
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist227:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist227)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-      in
-      let* hoist229:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist228:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist228)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Bertie.Tls13utils.check_mem hoist229
-          (Bertie.Tls13utils.impl__Bytes__slice_range ch
-              ({
-                  Core.Ops.Range.f_start = sz 2;
-                  Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                }
-                <:
-                Core.Ops.Range.t_Range usize)
-            <:
-            Bertie.Tls13utils.t_Bytes))
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-        (Core.Result.t_Result Prims.unit u8))
-
-let check_supported_groups (algs: Bertie.Tls13crypto.t_Algorithms) (ch: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 ch
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist230:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist230)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-      in
-      let* hoist232:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist231:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist231)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Bertie.Tls13utils.check_mem hoist232
-          (Bertie.Tls13utils.impl__Bytes__slice_range ch
-              ({
-                  Core.Ops.Range.f_start = sz 2;
-                  Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                }
-                <:
-                Core.Ops.Range.t_Range usize)
-            <:
-            Bertie.Tls13utils.t_Bytes))
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-        (Core.Result.t_Result Prims.unit u8))
-
-let check_psk_key_exchange_modes (client_hello: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 client_hello
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist241:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist241)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 1uy <: Bertie.Tls13utils.t_Bytes)
-          (Bertie.Tls13utils.impl__Bytes__slice_range client_hello
-              ({ Core.Ops.Range.f_start = sz 1; Core.Ops.Range.f_end = sz 2 }
-                <:
-                Core.Ops.Range.t_Range usize)
-            <:
-            Bertie.Tls13utils.t_Bytes))
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-        (Core.Result.t_Result Prims.unit u8))
-
-let check_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (ch: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* len_id:usize =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded ch
-              <:
-              Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist242:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist242)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
-      in
-      let* len_tkt:usize =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    ch
-                    ({
-                        Core.Ops.Range.f_start = sz 2;
-                        Core.Ops.Range.f_end = sz 2 +! len_id <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
-                  <:
-                  Bertie.Tls13utils.t_Bytes)
-              <:
-              Core.Result.t_Result usize u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist243:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist243)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) usize
-      in
-      if len_id =. (len_tkt +! sz 6 <: usize)
-      then
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
-                      ch
-                      ({
-                          Core.Ops.Range.f_start = sz 2 +! len_id <: usize;
-                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist244:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Prims.unit u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist244)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-        in
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 (Bertie.Tls13utils.impl__Bytes__slice_range
-                      ch
-                      ({
-                          Core.Ops.Range.f_start = sz 4 +! len_id <: usize;
-                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist245:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Prims.unit u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist245)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-        in
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (if
-            (((Bertie.Tls13utils.impl__Bytes__len ch <: usize) -! sz 6 <: usize) -! len_id <: usize) <>.
-            sz 32
-          then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
-          else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8)
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-          (Core.Result.t_Result Prims.unit u8)
-      else
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8))
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-          (Core.Result.t_Result Prims.unit u8))
-
-let check_supported_versions (client_hello: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 client_hello
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist246:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist246)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (Bertie.Tls13utils.check_mem (Core.Convert.f_into (let list = [3uy; 4uy] in
-                FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                Rust_primitives.Hax.array_of_list list)
-            <:
-            Bertie.Tls13utils.t_Bytes)
-          (Bertie.Tls13utils.impl__Bytes__slice_range client_hello
-              ({
-                  Core.Ops.Range.f_start = sz 1;
-                  Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len client_hello <: usize
-                }
-                <:
-                Core.Ops.Range.t_Range usize)
-            <:
-            Bertie.Tls13utils.t_Bytes))
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
-        (Core.Result.t_Result Prims.unit u8))
-
-let parse_ecdsa_signature (sig: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
-        (Bertie.Tls13utils.impl__Bytes__len sig <: usize) <. sz 4 <: bool
-      then
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
-          <:
-          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      else
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 48uy
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                  (Bertie.Tls13utils.impl__Bytes__slice_range sig
-                      ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 1 }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist247:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist247)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-        in
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 (Bertie.Tls13utils.impl__Bytes__slice_range
-                      sig
-                      ({
-                          Core.Ops.Range.f_start = sz 1;
-                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sig <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist248:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist248)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-        in
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 2uy
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                  (Bertie.Tls13utils.impl__Bytes__slice_range sig
-                      ({ Core.Ops.Range.f_start = sz 2; Core.Ops.Range.f_end = sz 3 }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist249:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist249)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-        in
-        let* rlen:usize =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                      sig
-                      ({
-                          Core.Ops.Range.f_start = sz 3;
-                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sig <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result usize u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist250:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist250)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              usize
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              usize
-        in
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (check_r_len rlen <: Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist251:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist251)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Prims.unit
-        in
-        let r:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__slice sig
-            ((sz 4 +! rlen <: usize) -! sz 32 <: usize)
-            (sz 32)
-        in
-        if
-          (Bertie.Tls13utils.impl__Bytes__len sig <: usize) <.
-          ((sz 6 +! rlen <: usize) +! sz 32 <: usize)
-        then
-          Core.Ops.Control_flow.ControlFlow_Continue
-          (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_INVALID_SIGNATURE)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        else
-          let* _:Prims.unit =
-            match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq (Bertie.Tls13utils.bytes1 2uy
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
-                    (Bertie.Tls13utils.impl__Bytes__slice_range sig
-                        ({
-                            Core.Ops.Range.f_start = sz 4 +! rlen <: usize;
-                            Core.Ops.Range.f_end = sz 5 +! rlen <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
-                  <:
-                  Core.Result.t_Result Prims.unit u8)
-            with
-            | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist252:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
-                    <:
-                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist252)
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
-            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-              Core.Ops.Control_flow.ControlFlow_Continue v_val
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
-          in
-          let* _:Prims.unit =
-            match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u8 (Bertie.Tls13utils.impl__Bytes__slice_range
-                        sig
-                        ({
-                            Core.Ops.Range.f_start = sz 5 +! rlen <: usize;
-                            Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sig <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
-                      <:
-                      Bertie.Tls13utils.t_Bytes)
-                  <:
-                  Core.Result.t_Result Prims.unit u8)
-            with
-            | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist253:Rust_primitives.Hax.t_Never =
-                Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-
-                    <:
-                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist253)
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
-            | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-              Core.Ops.Control_flow.ControlFlow_Continue v_val
-              <:
-              Core.Ops.Control_flow.t_ControlFlow
-                (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue
-          (let s:Bertie.Tls13utils.t_Bytes =
-              Bertie.Tls13utils.impl__Bytes__slice sig
-                ((Bertie.Tls13utils.impl__Bytes__len sig <: usize) -! sz 32 <: usize)
-                (sz 32)
-            in
-            Core.Result.Result_Ok (Bertie.Tls13utils.impl__Bytes__concat r s)
-            <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
 type t_Extensions = {
   f_sni:Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
@@ -2255,54 +2305,10 @@ type t_Extensions = {
 }
 
 let impl__Extensions__merge (self e2: t_Extensions) : Core.Result.t_Result t_Extensions u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist303:Core.Option.t_Option
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist305:Core.Option.t_Option
       Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (merge_opts self.f_sni e2.f_sni
-              <:
-              Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist296:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result t_Extensions u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist296)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
-            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
-            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      in
-      let* hoist302:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (merge_opts self.f_key_share e2.f_key_share
-              <:
-              Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist297:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result t_Extensions u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist297)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
-            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
-            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      in
-      let* hoist301:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (merge_opts self.f_ticket e2.f_ticket
               <:
               Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
         with
@@ -2322,9 +2328,9 @@ let impl__Extensions__merge (self e2: t_Extensions) : Core.Result.t_Result t_Ext
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
             (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
       in
-      let* hoist300:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+      let* hoist304:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (merge_opts self.f_binder e2.f_binder
+          Core.Ops.Try_trait.f_branch (merge_opts self.f_key_share e2.f_key_share
               <:
               Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
         with
@@ -2344,13 +2350,57 @@ let impl__Extensions__merge (self e2: t_Extensions) : Core.Result.t_Result t_Ext
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
             (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
       in
+      let* hoist303:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (merge_opts self.f_ticket e2.f_ticket
+              <:
+              Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist300:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result t_Extensions u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist300)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      in
+      let* hoist302:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (merge_opts self.f_binder e2.f_binder
+              <:
+              Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist301:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result t_Extensions u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist301)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+            (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist304:t_Extensions =
-          { f_sni = hoist303; f_key_share = hoist302; f_ticket = hoist301; f_binder = hoist300 }
+      (let hoist306:t_Extensions =
+          { f_sni = hoist305; f_key_share = hoist304; f_ticket = hoist303; f_binder = hoist302 }
           <:
           t_Extensions
         in
-        Core.Result.Result_Ok hoist304 <: Core.Result.t_Result t_Extensions u8)
+        Core.Result.Result_Ok hoist306 <: Core.Result.t_Result t_Extensions u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
         (Core.Result.t_Result t_Extensions u8))
@@ -2368,7 +2418,7 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
         | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
           if (Bertie.Tls13utils.impl__Bytes__len cv <: usize) <>. sz 64
           then
-            let* hoist319:Rust_primitives.Hax.t_Never =
+            let* hoist321:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed
                         ()
                       <:
@@ -2376,7 +2426,7 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
                   <:
                   Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist319)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist321)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -2388,14 +2438,14 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
                     Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               with
               | Core.Ops.Control_flow.ControlFlow_Break residual ->
-                let* hoist320:Rust_primitives.Hax.t_Never =
+                let* hoist322:Rust_primitives.Hax.t_Never =
                   Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                       <:
                       Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
                 in
                 Core.Ops.Control_flow.ControlFlow_Continue
-                (Rust_primitives.Hax.never_to_any hoist320)
+                (Rust_primitives.Hax.never_to_any hoist322)
                 <:
                 Core.Ops.Control_flow.t_ControlFlow
                   (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -2416,19 +2466,19 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let* hoist324:Bertie.Tls13utils.t_Bytes =
+      let* hoist326:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist321:Rust_primitives.Hax.t_Never =
+          let* hoist323:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist321)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist323)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -2440,19 +2490,19 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let* hoist323:Bertie.Tls13utils.t_Bytes =
+      let* hoist325:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 sv
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist322:Rust_primitives.Hax.t_Never =
+          let* hoist324:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist322)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist324)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -2466,7 +2516,7 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
       in
       Core.Ops.Control_flow.ControlFlow_Continue
       (let sig:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat hoist324 hoist323
+          Bertie.Tls13utils.impl__Bytes__concat hoist326 hoist325
         in
         Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_CertificateVerify
             <:
@@ -2523,14 +2573,14 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
                   Core.Result.t_Result Prims.unit u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist325:Rust_primitives.Hax.t_Never =
+              let* hoist327:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist325)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist327)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize)
@@ -2565,14 +2615,14 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
                   Core.Result.t_Result Prims.unit u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist326:Rust_primitives.Hax.t_Never =
+              let* hoist328:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist326)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist328)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize)
@@ -2586,27 +2636,25 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
         in
         let* len:usize =
           match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                      p
-                      ({
-                          Core.Ops.Range.f_start = sz 3;
-                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len p <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (p.[ {
+                        Core.Ops.Range.f_start = sz 3;
+                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len p <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
                     <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result usize u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist327:Rust_primitives.Hax.t_Never =
+            let* hoist329:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize)
                     u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist327)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist329)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
@@ -2647,12 +2695,12 @@ let check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.T
               Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist328:Rust_primitives.Hax.t_Never =
+          let* hoist330:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist328)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist330)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
@@ -2691,12 +2739,12 @@ let check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.T
                 Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist329:Rust_primitives.Hax.t_Never =
+            let* hoist331:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist329)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist331)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
@@ -2732,31 +2780,6 @@ let client_hello
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist330:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
-              )
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist330)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let* hoist333:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__ciphersuite algorithms
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist332:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
@@ -2775,23 +2798,48 @@ let client_hello
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist334:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u16 hoist333
-      in
-      let hoist335:Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist334
-      in
-      let* cipher_suites:Bertie.Tls13utils.t_Bytes =
-        match hoist335 with
+      let* hoist335:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__ciphersuite algorithms
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist331:Rust_primitives.Hax.t_Never =
+          let* hoist334:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
               )
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist331)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist334)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let hoist336:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u16 hoist335
+      in
+      let hoist337:Core.Ops.Control_flow.t_ControlFlow
+        (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
+        Core.Ops.Try_trait.f_branch hoist336
+      in
+      let* cipher_suites:Bertie.Tls13utils.t_Bytes =
+        match hoist337 with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist333:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
+              )
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist333)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
@@ -2807,56 +2855,6 @@ let client_hello
       let* server_name:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (build_server_name server_name
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist336:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
-              )
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist336)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let* supported_versions:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (supported_versions ()
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist337:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
-              )
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist337)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let* supported_groups:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (supported_groups algorithms
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2879,9 +2877,9 @@ let client_hello
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let* signature_algorithms:Bertie.Tls13utils.t_Bytes =
+      let* supported_versions:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (signature_algorithms algorithms
+          Core.Ops.Try_trait.f_branch (supported_versions ()
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2904,9 +2902,9 @@ let client_hello
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let* key_shares:Bertie.Tls13utils.t_Bytes =
+      let* supported_groups:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (key_shares algorithms kem_pk
+          Core.Ops.Try_trait.f_branch (supported_groups algorithms
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -2918,6 +2916,57 @@ let client_hello
               )
           in
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist340)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let* signature_algorithms:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (signature_algorithms algorithms
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist341:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
+              )
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist341)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let* key_shares:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (key_shares algorithms
+                (Core.Clone.f_clone kem_pk <: Bertie.Tls13utils.t_Bytes)
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist342:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
+              )
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist342)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
@@ -2957,14 +3006,14 @@ let client_hello
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist341:Rust_primitives.Hax.t_Never =
+              let* hoist343:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist341)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist343)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize)
@@ -2983,14 +3032,14 @@ let client_hello
                   Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist342:Rust_primitives.Hax.t_Never =
+              let* hoist344:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist342)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist344)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize)
@@ -3031,7 +3080,7 @@ let client_hello
                 Core.Result.t_Result Prims.unit u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist343:Rust_primitives.Hax.t_Never =
+            let* hoist345:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize)
@@ -3051,20 +3100,20 @@ let client_hello
               (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
               (Bertie.Tls13utils.t_Bytes & usize)
       in
-      let* hoist346:Bertie.Tls13utils.t_Bytes =
+      let* hoist348:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 extensions
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist345:Rust_primitives.Hax.t_Never =
+          let* hoist347:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
               )
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist345)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist347)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
@@ -3076,7 +3125,7 @@ let client_hello
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist347:Bertie.Tls13utils.t_Bytes =
+      let hoist349:Bertie.Tls13utils.t_Bytes =
         Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat
                   (Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat version
                           client_random
@@ -3091,29 +3140,29 @@ let client_hello
               compression_methods
             <:
             Bertie.Tls13utils.t_Bytes)
-          hoist346
+          hoist348
       in
-      let hoist348:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+      let hoist350:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
         Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_ClientHello
             <:
             Bertie.Tls13formats.Handshake_data.t_HandshakeType)
-          hoist347
+          hoist349
       in
-      let hoist349:Core.Ops.Control_flow.t_ControlFlow
+      let hoist351:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8)
         Bertie.Tls13formats.Handshake_data.t_HandshakeData =
-        Core.Ops.Try_trait.f_branch hoist348
+        Core.Ops.Try_trait.f_branch hoist350
       in
       let* client_hello:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
-        match hoist349 with
+        match hoist351 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist344:Rust_primitives.Hax.t_Never =
+          let* hoist346:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
               )
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist344)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist346)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
@@ -3146,7 +3195,7 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
             <:
             u8)
       in
-      let* hoist352:Bertie.Tls13utils.t_Bytes =
+      let* hoist354:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.impl__Bytes__new
                     ()
@@ -3156,12 +3205,12 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist351:Rust_primitives.Hax.t_Never =
+          let* hoist353:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist351)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist353)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -3173,22 +3222,22 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist353:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-        Bertie.Tls13utils.encode_length_u24 hoist352
+      let hoist355:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+        Bertie.Tls13utils.encode_length_u24 hoist354
       in
-      let hoist354:Core.Ops.Control_flow.t_ControlFlow
+      let hoist356:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8) Bertie.Tls13utils.t_Bytes =
-        Core.Ops.Try_trait.f_branch hoist353
+        Core.Ops.Try_trait.f_branch hoist355
       in
-      let* hoist355:Bertie.Tls13utils.t_Bytes =
-        match hoist354 with
+      let* hoist357:Bertie.Tls13utils.t_Bytes =
+        match hoist356 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist350:Rust_primitives.Hax.t_Never =
+          let* hoist352:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist350)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist352)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -3201,15 +3250,15 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist356:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__concat handshake_type hoist355
+      (let hoist358:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__concat handshake_type hoist357
         in
-        let hoist357:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
-          Bertie.Tls13formats.Handshake_data.HandshakeData hoist356
+        let hoist359:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
+          Bertie.Tls13formats.Handshake_data.HandshakeData hoist358
           <:
           Bertie.Tls13formats.Handshake_data.t_HandshakeData
         in
-        Core.Result.Result_Ok hoist357
+        Core.Result.Result_Ok hoist359
         <:
         Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       <:
@@ -3217,10 +3266,10 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
         (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8))
 
-let find_key_share (g ch: Bertie.Tls13utils.t_Bytes)
+let find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice Bertie.Tls13utils.t_U8)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
-        (Bertie.Tls13utils.impl__Bytes__len ch <: usize) <. sz 4 <: bool
+        (Core.Slice.impl__len ch <: usize) <. sz 4 <: bool
       then
         Core.Ops.Control_flow.ControlFlow_Continue
         (Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
@@ -3231,39 +3280,38 @@ let find_key_share (g ch: Bertie.Tls13utils.t_Bytes)
           (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       else
         if
-          Bertie.Tls13utils.eq g
-            (Bertie.Tls13utils.impl__Bytes__slice_range ch
-                ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
-                  <:
-                  Core.Ops.Range.t_Range usize)
+          Bertie.Tls13utils.eq_slice (Bertie.Tls13utils.impl__Bytes__as_raw g
               <:
-              Bertie.Tls13utils.t_Bytes)
+              t_Slice Bertie.Tls13utils.t_U8)
+            (ch.[ { Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
+                <:
+                Core.Ops.Range.t_Range usize ]
+              <:
+              t_Slice Bertie.Tls13utils.t_U8)
           <:
           bool
         then
           let* len:usize =
             match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                        ch
-                        ({
-                            Core.Ops.Range.f_start = sz 2;
-                            Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded_slice (ch.[ {
+                          Core.Ops.Range.f_start = sz 2;
+                          Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+                        }
+                        <:
+                        Core.Ops.Range.t_Range usize ]
                       <:
-                      Bertie.Tls13utils.t_Bytes)
+                      t_Slice Bertie.Tls13utils.t_U8)
                   <:
                   Core.Result.t_Result usize u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist358:Rust_primitives.Hax.t_Never =
+              let* hoist360:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist358)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist360)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) usize
@@ -3275,10 +3323,14 @@ let find_key_share (g ch: Bertie.Tls13utils.t_Bytes)
           in
           Core.Ops.Control_flow.ControlFlow_Continue
           (Core.Result.Result_Ok
-            (Bertie.Tls13utils.impl__Bytes__slice_range ch
-                ({ Core.Ops.Range.f_start = sz 4; Core.Ops.Range.f_end = sz 4 +! len <: usize }
+            (Core.Convert.f_into (ch.[ {
+                      Core.Ops.Range.f_start = sz 4;
+                      Core.Ops.Range.f_end = sz 4 +! len <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
                   <:
-                  Core.Ops.Range.t_Range usize))
+                  t_Slice Bertie.Tls13utils.t_U8))
             <:
             Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           <:
@@ -3287,27 +3339,25 @@ let find_key_share (g ch: Bertie.Tls13utils.t_Bytes)
         else
           let* len:usize =
             match
-              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                        ch
-                        ({
-                            Core.Ops.Range.f_start = sz 2;
-                            Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize)
+              Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded_slice (ch.[ {
+                          Core.Ops.Range.f_start = sz 2;
+                          Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+                        }
+                        <:
+                        Core.Ops.Range.t_Range usize ]
                       <:
-                      Bertie.Tls13utils.t_Bytes)
+                      t_Slice Bertie.Tls13utils.t_U8)
                   <:
                   Core.Result.t_Result usize u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist359:Rust_primitives.Hax.t_Never =
+              let* hoist361:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist359)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist361)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) usize
@@ -3319,34 +3369,33 @@ let find_key_share (g ch: Bertie.Tls13utils.t_Bytes)
           in
           Core.Ops.Control_flow.ControlFlow_Continue
           (find_key_share g
-              (Bertie.Tls13utils.impl__Bytes__slice_range ch
-                  ({
-                      Core.Ops.Range.f_start = sz 4 +! len <: usize;
-                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                    }
-                    <:
-                    Core.Ops.Range.t_Range usize)
+              (ch.[ {
+                    Core.Ops.Range.f_start = sz 4 +! len <: usize;
+                    Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+                  }
+                  <:
+                  Core.Ops.Range.t_Range usize ]
                 <:
-                Bertie.Tls13utils.t_Bytes))
+                t_Slice Bertie.Tls13utils.t_U8))
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
-let check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: Bertie.Tls13utils.t_Bytes)
+let check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice Bertie.Tls13utils.t_U8)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* _:Prims.unit =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16 ch
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_length_encoding_u16_slice ch
               <:
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist360:Rust_primitives.Hax.t_Never =
+          let* hoist362:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist360)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist362)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit
@@ -3356,19 +3405,19 @@ let check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: Bertie.Tls13ut
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit
       in
-      let* hoist362:Bertie.Tls13utils.t_Bytes =
+      let* hoist364:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__supported_group algs
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist361:Rust_primitives.Hax.t_Never =
+          let* hoist363:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist361)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist363)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -3379,21 +3428,20 @@ let check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: Bertie.Tls13ut
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (find_key_share hoist362
-          (Bertie.Tls13utils.impl__Bytes__slice_range ch
-              ({
-                  Core.Ops.Range.f_start = sz 2;
-                  Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                }
-                <:
-                Core.Ops.Range.t_Range usize)
+      (find_key_share hoist364
+          (ch.[ {
+                Core.Ops.Range.f_start = sz 2;
+                Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
+              }
+              <:
+              Core.Ops.Range.t_Range usize ]
             <:
-            Bertie.Tls13utils.t_Bytes))
+            t_Slice Bertie.Tls13utils.t_U8))
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
 
-let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13utils.t_Bytes)
+let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice Bertie.Tls13utils.t_U8)
     : Core.Result.t_Result (usize & t_Extensions) u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let l0:usize =
         cast (Bertie.Tls13utils.impl__U8__declassify (bytes.[ sz 0 ] <: Bertie.Tls13utils.t_U8)
@@ -3411,26 +3459,24 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
       in
       let* len:usize =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    bytes
-                    ({
-                        Core.Ops.Range.f_start = sz 2;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len bytes <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded_slice (bytes.[ {
+                      Core.Ops.Range.f_start = sz 2;
+                      Core.Ops.Range.f_end = Core.Slice.impl__len bytes <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
                   <:
-                  Bertie.Tls13utils.t_Bytes)
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist363:Rust_primitives.Hax.t_Never =
+          let* hoist365:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (usize & t_Extensions) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist363)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist365)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8) usize
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -3450,28 +3496,26 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
       in
       match (cast (l0 <: usize) <: u8), (cast (l1 <: usize) <: u8) <: (u8 & u8) with
       | 0uy, 0uy ->
-        let* hoist365:Bertie.Tls13utils.t_Bytes =
+        let* hoist367:Bertie.Tls13utils.t_Bytes =
           match
-            Core.Ops.Try_trait.f_branch (check_server_name (Bertie.Tls13utils.impl__Bytes__slice_range
-                      bytes
-                      ({
-                          Core.Ops.Range.f_start = sz 4;
-                          Core.Ops.Range.f_end = sz 4 +! len <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
+            Core.Ops.Try_trait.f_branch (check_server_name (bytes.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = sz 4 +! len <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
                     <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist364:Rust_primitives.Hax.t_Never =
+            let* hoist366:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (usize & t_Extensions) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist364)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist366)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
               Bertie.Tls13utils.t_Bytes
@@ -3482,12 +3526,12 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
               Bertie.Tls13utils.t_Bytes
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist366:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-            Core.Option.Option_Some hoist365 <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+        (let hoist368:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+            Core.Option.Option_Some hoist367 <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
           in
-          let hoist367:t_Extensions =
+          let hoist369:t_Extensions =
             {
-              f_sni = hoist366;
+              f_sni = hoist368;
               f_key_share
               =
               Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
@@ -3497,102 +3541,22 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
             <:
             t_Extensions
           in
-          let hoist368:(usize & t_Extensions) = sz 4 +! len, hoist367 <: (usize & t_Extensions) in
-          Core.Result.Result_Ok hoist368 <: Core.Result.t_Result (usize & t_Extensions) u8)
+          let hoist370:(usize & t_Extensions) = sz 4 +! len, hoist369 <: (usize & t_Extensions) in
+          Core.Result.Result_Ok hoist370 <: Core.Result.t_Result (usize & t_Extensions) u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
           (Core.Result.t_Result (usize & t_Extensions) u8)
       | 0uy, 45uy ->
         let* _:Prims.unit =
           match
-            Core.Ops.Try_trait.f_branch (check_psk_key_exchange_modes (Bertie.Tls13utils.impl__Bytes__slice_range
-                      bytes
-                      ({
-                          Core.Ops.Range.f_start = sz 4;
-                          Core.Ops.Range.f_end = sz 4 +! len <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
+            Core.Ops.Try_trait.f_branch (check_psk_key_exchange_modes (bytes.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = sz 4 +! len <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
                     <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist369:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result (usize & t_Extensions) u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist369)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
-              Prims.unit
-        in
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result_Ok (sz 4 +! len, out <: (usize & t_Extensions))
-          <:
-          Core.Result.t_Result (usize & t_Extensions) u8)
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
-          (Core.Result.t_Result (usize & t_Extensions) u8)
-      | 0uy, 43uy ->
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (check_supported_versions (Bertie.Tls13utils.impl__Bytes__slice_range
-                      bytes
-                      ({
-                          Core.Ops.Range.f_start = sz 4;
-                          Core.Ops.Range.f_end = sz 4 +! len <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist370:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result (usize & t_Extensions) u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist370)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
-              Prims.unit
-        in
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result_Ok (sz 4 +! len, out <: (usize & t_Extensions))
-          <:
-          Core.Result.t_Result (usize & t_Extensions) u8)
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
-          (Core.Result.t_Result (usize & t_Extensions) u8)
-      | 0uy, 10uy ->
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (check_supported_groups algs
-                  (Bertie.Tls13utils.impl__Bytes__slice_range bytes
-                      ({
-                          Core.Ops.Range.f_start = sz 4;
-                          Core.Ops.Range.f_end = sz 4 +! len <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result Prims.unit u8)
           with
@@ -3619,19 +3583,17 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
           (Core.Result.t_Result (usize & t_Extensions) u8)
-      | 0uy, 13uy ->
+      | 0uy, 43uy ->
         let* _:Prims.unit =
           match
-            Core.Ops.Try_trait.f_branch (check_signature_algorithms algs
-                  (Bertie.Tls13utils.impl__Bytes__slice_range bytes
-                      ({
-                          Core.Ops.Range.f_start = sz 4;
-                          Core.Ops.Range.f_end = sz 4 +! len <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
+            Core.Ops.Try_trait.f_branch (check_supported_versions (bytes.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = sz 4 +! len <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
                     <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result Prims.unit u8)
           with
@@ -3658,16 +3620,94 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
           (Core.Result.t_Result (usize & t_Extensions) u8)
+      | 0uy, 10uy ->
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (check_supported_groups algs
+                  (bytes.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = sz 4 +! len <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice Bertie.Tls13utils.t_U8)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist373:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (usize & t_Extensions) u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist373)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
+              Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
+              Prims.unit
+        in
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (Core.Result.Result_Ok (sz 4 +! len, out <: (usize & t_Extensions))
+          <:
+          Core.Result.t_Result (usize & t_Extensions) u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
+          (Core.Result.t_Result (usize & t_Extensions) u8)
+      | 0uy, 13uy ->
+        let* _:Prims.unit =
+          match
+            Core.Ops.Try_trait.f_branch (check_signature_algorithms algs
+                  (bytes.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = sz 4 +! len <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice Bertie.Tls13utils.t_U8)
+                <:
+                Core.Result.t_Result Prims.unit u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist374:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result (usize & t_Extensions) u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist374)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
+              Prims.unit
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
+              Prims.unit
+        in
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (Core.Result.Result_Ok (sz 4 +! len, out <: (usize & t_Extensions))
+          <:
+          Core.Result.t_Result (usize & t_Extensions) u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
+          (Core.Result.t_Result (usize & t_Extensions) u8)
       | 0uy, 51uy ->
         Core.Ops.Control_flow.ControlFlow_Continue
         (match
             check_key_shares algs
-              (Bertie.Tls13utils.impl__Bytes__slice_range bytes
-                  ({ Core.Ops.Range.f_start = sz 4; Core.Ops.Range.f_end = sz 4 +! len <: usize }
-                    <:
-                    Core.Ops.Range.t_Range usize)
+              (bytes.[ {
+                    Core.Ops.Range.f_start = sz 4;
+                    Core.Ops.Range.f_end = sz 4 +! len <: usize
+                  }
+                  <:
+                  Core.Ops.Range.t_Range usize ]
                 <:
-                Bertie.Tls13utils.t_Bytes)
+                t_Slice Bertie.Tls13utils.t_U8)
           with
           | Core.Result.Result_Ok gx ->
             Core.Result.Result_Ok
@@ -3699,25 +3739,24 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: Bertie.Tls13
         let* _:Prims.unit =
           match
             Core.Ops.Try_trait.f_branch (check_psk_shared_key algs
-                  (Bertie.Tls13utils.impl__Bytes__slice_range bytes
-                      ({
-                          Core.Ops.Range.f_start = sz 4;
-                          Core.Ops.Range.f_end = sz 4 +! len <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
+                  (bytes.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = sz 4 +! len <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
                     <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result Prims.unit u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist373:Rust_primitives.Hax.t_Never =
+            let* hoist375:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (usize & t_Extensions) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist373)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist375)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result (usize & t_Extensions) u8)
               Prims.unit
@@ -3760,12 +3799,12 @@ let get_handshake_record (p: Bertie.Tls13utils.t_Bytes)
               Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist374:Rust_primitives.Hax.t_Never =
+          let* hoist376:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist374)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist376)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -3791,12 +3830,7 @@ let get_handshake_record (p: Bertie.Tls13utils.t_Bytes)
 
 let handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let
-      Bertie.Tls13formats.Handshake_data.HandshakeData p:Bertie.Tls13formats.Handshake_data.t_HandshakeData
-      =
-        p
-      in
-      let ty:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let ty:Bertie.Tls13utils.t_Bytes =
         Bertie.Tls13utils.bytes1 (cast (Bertie.Tls13formats.ContentType.Handshake.anon_const +! 0uy
                 <:
                 u8)
@@ -3804,19 +3838,20 @@ let handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
             u8)
       in
       let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
-      let* hoist376:Bertie.Tls13utils.t_Bytes =
+      let* hoist378:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 p
+                  .Bertie.Tls13formats.Handshake_data._0
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist375:Rust_primitives.Hax.t_Never =
+          let* hoist377:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist375)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist377)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -3827,13 +3862,13 @@ let handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist377:Bertie.Tls13utils.t_Bytes =
+      (let hoist379:Bertie.Tls13utils.t_Bytes =
           Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat ty ver
               <:
               Bertie.Tls13utils.t_Bytes)
-            hoist376
+            hoist378
         in
-        Core.Result.Result_Ok hoist377 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        Core.Result.Result_Ok hoist379 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
@@ -3855,12 +3890,12 @@ let parse_certificate_verify
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist378:Rust_primitives.Hax.t_Never =
+          let* hoist380:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist378)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist380)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13formats.Handshake_data.t_HandshakeData
@@ -3873,19 +3908,19 @@ let parse_certificate_verify
       let sa:Bertie.Tls13crypto.t_SignatureScheme =
         Bertie.Tls13crypto.impl__Algorithms__signature algs
       in
-      let* hoist381:Bertie.Tls13utils.t_Bytes =
+      let* hoist383:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist380:Rust_primitives.Hax.t_Never =
+          let* hoist382:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist380)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist382)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -3895,8 +3930,8 @@ let parse_certificate_verify
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist382:Core.Result.t_Result Prims.unit u8 =
-        Bertie.Tls13utils.check_eq hoist381
+      let hoist384:Core.Result.t_Result Prims.unit u8 =
+        Bertie.Tls13utils.check_eq hoist383
           (Bertie.Tls13utils.impl__Bytes__slice_range cv
               ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
                 <:
@@ -3904,19 +3939,19 @@ let parse_certificate_verify
             <:
             Bertie.Tls13utils.t_Bytes)
       in
-      let hoist383:Core.Ops.Control_flow.t_ControlFlow
+      let hoist385:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8) Prims.unit =
-        Core.Ops.Try_trait.f_branch hoist382
+        Core.Ops.Try_trait.f_branch hoist384
       in
       let* _:Prims.unit =
-        match hoist383 with
+        match hoist385 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist379:Rust_primitives.Hax.t_Never =
+          let* hoist381:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist379)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist381)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit
@@ -3942,12 +3977,12 @@ let parse_certificate_verify
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist384:Rust_primitives.Hax.t_Never =
+          let* hoist386:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist384)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist386)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit
@@ -4028,12 +4063,12 @@ let parse_encrypted_extensions
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist385:Rust_primitives.Hax.t_Never =
+          let* hoist387:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Prims.unit u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist385)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist387)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -4072,12 +4107,12 @@ let parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist386:Rust_primitives.Hax.t_Never =
+          let* hoist388:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist386)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist388)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13formats.Handshake_data.t_HandshakeData
@@ -4110,12 +4145,12 @@ let parse_server_certificate
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist387:Rust_primitives.Hax.t_Never =
+          let* hoist389:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist387)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist389)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13formats.Handshake_data.t_HandshakeData
@@ -4128,26 +4163,24 @@ let parse_server_certificate
       let next:usize = sz 0 in
       let* creqlen:usize =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    sc
-                    ({
-                        Core.Ops.Range.f_start = sz 4;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (sc.[ {
+                      Core.Ops.Range.f_start = sz 4;
+                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
                   <:
-                  Bertie.Tls13utils.t_Bytes)
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist388:Rust_primitives.Hax.t_Never =
+          let* hoist390:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist388)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist390)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             usize
@@ -4174,12 +4207,12 @@ let parse_server_certificate
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist389:Rust_primitives.Hax.t_Never =
+          let* hoist391:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist389)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist391)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Prims.unit
@@ -4206,12 +4239,12 @@ let parse_server_certificate
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist390:Rust_primitives.Hax.t_Never =
+          let* hoist392:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist390)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist392)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             usize
@@ -4231,26 +4264,24 @@ let parse_server_certificate
       let next:usize = next +! crtlen in
       let* v__extlen:usize =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    sc
-                    ({
-                        Core.Ops.Range.f_start = next;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u16_encoded (sc.[ {
+                      Core.Ops.Range.f_start = next;
+                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
                   <:
-                  Bertie.Tls13utils.t_Bytes)
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist391:Rust_primitives.Hax.t_Never =
+          let* hoist393:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist391)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist393)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             usize
@@ -4283,12 +4314,12 @@ let parse_server_hello
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist392:Rust_primitives.Hax.t_Never =
+          let* hoist394:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist392)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist394)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4308,12 +4339,12 @@ let parse_server_hello
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist393:Rust_primitives.Hax.t_Never =
+          let* hoist395:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist393)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist395)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4350,12 +4381,12 @@ let parse_server_hello
                 Core.Result.t_Result Prims.unit u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist394:Rust_primitives.Hax.t_Never =
+            let* hoist396:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist394)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist396)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4377,28 +4408,26 @@ let parse_server_hello
       let next:usize = next +! sz 32 in
       let* sidlen:usize =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    server_hello
-                    ({
-                        Core.Ops.Range.f_start = next;
-                        Core.Ops.Range.f_end
-                        =
-                        Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (server_hello.[ {
+                      Core.Ops.Range.f_start = next;
+                      Core.Ops.Range.f_end
+                      =
+                      Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
                   <:
-                  Bertie.Tls13utils.t_Bytes)
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist395:Rust_primitives.Hax.t_Never =
+          let* hoist397:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist395)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist397)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) usize
@@ -4432,12 +4461,12 @@ let parse_server_hello
                 Core.Result.t_Result Prims.unit u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist396:Rust_primitives.Hax.t_Never =
+            let* hoist398:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist396)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist398)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4473,12 +4502,12 @@ let parse_server_hello
                 Core.Result.t_Result Prims.unit u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist397:Rust_primitives.Hax.t_Never =
+            let* hoist399:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist397)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist399)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4509,12 +4538,12 @@ let parse_server_hello
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist398:Rust_primitives.Hax.t_Never =
+          let* hoist400:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist398)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist400)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4545,12 +4574,12 @@ let parse_server_hello
               Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist399:Rust_primitives.Hax.t_Never =
+          let* hoist401:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist399)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist401)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
@@ -4590,12 +4619,12 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist400:Rust_primitives.Hax.t_Never =
+          let* hoist402:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist400)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist402)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4614,12 +4643,12 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist401:Rust_primitives.Hax.t_Never =
+          let* hoist403:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist401)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist403)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4641,12 +4670,12 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist402:Rust_primitives.Hax.t_Never =
+          let* hoist404:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist402)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist404)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4669,12 +4698,12 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist403:Rust_primitives.Hax.t_Never =
+          let* hoist405:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist403)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist405)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4708,55 +4737,6 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist404:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist404)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let* cip:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__ciphersuite algs
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist405:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist405)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-            Bertie.Tls13utils.t_Bytes
-      in
-      let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 0uy in
-      let* ks:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (server_key_shares algs gy
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist406:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
@@ -4774,9 +4754,9 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let* sv:Bertie.Tls13utils.t_Bytes =
+      let* cip:Bertie.Tls13utils.t_Bytes =
         match
-          Core.Ops.Try_trait.f_branch (server_supported_version algs
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__ciphersuite algs
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
@@ -4798,24 +4778,74 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
+      let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 0uy in
+      let* ks:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (server_key_shares algs
+                (Core.Clone.f_clone gy <: Bertie.Tls13utils.t_Bytes)
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist408:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist408)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+            Bertie.Tls13utils.t_Bytes
+      in
+      let* sv:Bertie.Tls13utils.t_Bytes =
+        match
+          Core.Ops.Try_trait.f_branch (server_supported_version algs
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist409:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist409)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+            Bertie.Tls13utils.t_Bytes
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow
+            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+            Bertie.Tls13utils.t_Bytes
+      in
       let exts:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat ks sv in
       let* exts:Bertie.Tls13utils.t_Bytes =
         match Bertie.Tls13crypto.impl__Algorithms__psk_mode algs with
         | true ->
-          let* hoist409:Bertie.Tls13utils.t_Bytes =
+          let* hoist411:Bertie.Tls13utils.t_Bytes =
             match
               Core.Ops.Try_trait.f_branch (server_pre_shared_key algs
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist408:Rust_primitives.Hax.t_Never =
+              let* hoist410:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist408)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist410)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4828,10 +4858,10 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
                 Bertie.Tls13utils.t_Bytes
           in
           Core.Ops.Control_flow.ControlFlow_Continue
-          (let hoist410:Bertie.Tls13utils.t_Bytes =
-              Bertie.Tls13utils.impl__Bytes__concat exts hoist409
+          (let hoist412:Bertie.Tls13utils.t_Bytes =
+              Bertie.Tls13utils.impl__Bytes__concat exts hoist411
             in
-            hoist410)
+            hoist412)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4843,19 +4873,19 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let* hoist413:Bertie.Tls13utils.t_Bytes =
+      let* hoist415:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u16 exts
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist412:Rust_primitives.Hax.t_Never =
+          let* hoist414:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist412)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist414)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -4867,7 +4897,7 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
       in
-      let hoist414:Bertie.Tls13utils.t_Bytes =
+      let hoist416:Bertie.Tls13utils.t_Bytes =
         Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat
                   (Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat ver
                           sr
@@ -4882,28 +4912,28 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
               comp
             <:
             Bertie.Tls13utils.t_Bytes)
-          hoist413
+          hoist415
       in
-      let hoist415:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+      let hoist417:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
         Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_ServerHello
             <:
             Bertie.Tls13formats.Handshake_data.t_HandshakeType)
-          hoist414
+          hoist416
       in
-      let hoist416:Core.Ops.Control_flow.t_ControlFlow
+      let hoist418:Core.Ops.Control_flow.t_ControlFlow
         (Core.Result.t_Result Core.Convert.t_Infallible u8)
         Bertie.Tls13formats.Handshake_data.t_HandshakeData =
-        Core.Ops.Try_trait.f_branch hoist415
+        Core.Ops.Try_trait.f_branch hoist417
       in
       let* sh:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
-        match hoist416 with
+        match hoist418 with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist411:Rust_primitives.Hax.t_Never =
+          let* hoist413:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist411)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist413)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -5010,12 +5040,12 @@ let impl__Transcript__transcript_hash (self: t_Transcript)
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist417:Rust_primitives.Hax.t_Never =
+          let* hoist419:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist417)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist419)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Bertie.Tls13utils.t_Bytes
@@ -5055,7 +5085,9 @@ let impl__Transcript__transcript_hash_without_client_hello
       <:
       Bertie.Tls13utils.t_Bytes)
 
-let check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
+let check_extensions_slice
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (b: t_Slice Bertie.Tls13utils.t_U8)
     : Core.Result.t_Result t_Extensions u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* len, out:(usize & t_Extensions) =
         match
@@ -5064,12 +5096,78 @@ let check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13uti
               Core.Result.t_Result (usize & t_Extensions) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist418:Rust_primitives.Hax.t_Never =
+          let* hoist420:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_Extensions u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist418)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist420)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+            (usize & t_Extensions)
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+            (usize & t_Extensions)
+      in
+      if len =. (Core.Slice.impl__len b <: usize)
+      then
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (Core.Result.Result_Ok out <: Core.Result.t_Result t_Extensions u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+          (Core.Result.t_Result t_Extensions u8)
+      else
+        let* out_rest:t_Extensions =
+          match
+            Core.Ops.Try_trait.f_branch (check_extensions_slice algs
+                  (b.[ {
+                        Core.Ops.Range.f_start = len;
+                        Core.Ops.Range.f_end = Core.Slice.impl__len b <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice Bertie.Tls13utils.t_U8)
+                <:
+                Core.Result.t_Result t_Extensions u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist421:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result t_Extensions u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist421)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8) t_Extensions
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8) t_Extensions
+        in
+        Core.Ops.Control_flow.ControlFlow_Continue (impl__Extensions__merge out out_rest)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
+          (Core.Result.t_Result t_Extensions u8))
+
+let check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result t_Extensions u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* len, out:(usize & t_Extensions) =
+        match
+          Core.Ops.Try_trait.f_branch (check_extension algs
+                (Bertie.Tls13utils.impl__Bytes__as_raw b <: t_Slice Bertie.Tls13utils.t_U8)
+              <:
+              Core.Result.t_Result (usize & t_Extensions) u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist422:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result t_Extensions u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist422)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8)
             (usize & t_Extensions)
@@ -5089,8 +5187,8 @@ let check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13uti
       else
         let* out_rest:t_Extensions =
           match
-            Core.Ops.Try_trait.f_branch (check_extensions algs
-                  (Bertie.Tls13utils.impl__Bytes__slice_range b
+            Core.Ops.Try_trait.f_branch (check_extensions_slice algs
+                  (Bertie.Tls13utils.impl__Bytes__raw_slice b
                       ({
                           Core.Ops.Range.f_start = len;
                           Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len b <: usize
@@ -5098,17 +5196,17 @@ let check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13uti
                         <:
                         Core.Ops.Range.t_Range usize)
                     <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result t_Extensions u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist419:Rust_primitives.Hax.t_Never =
+            let* hoist423:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result t_Extensions u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist419)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist423)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_Extensions u8) t_Extensions
           | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -5143,7 +5241,7 @@ let parse_client_hello
               Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist420:Rust_primitives.Hax.t_Never =
+          let* hoist424:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
@@ -5153,7 +5251,7 @@ let parse_client_hello
                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                     usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist420)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist424)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -5189,7 +5287,7 @@ let parse_client_hello
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist421:Rust_primitives.Hax.t_Never =
+          let* hoist425:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
@@ -5199,7 +5297,7 @@ let parse_client_hello
                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                     usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist421)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist425)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -5229,21 +5327,19 @@ let parse_client_hello
       let next:usize = next +! sz 32 in
       let* sidlen:usize =
         match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
-                    ch
-                    ({
-                        Core.Ops.Range.f_start = next;
-                        Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
+          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u8_encoded (ch.[ {
+                      Core.Ops.Range.f_start = next;
+                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
                   <:
-                  Bertie.Tls13utils.t_Bytes)
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist422:Rust_primitives.Hax.t_Never =
+          let* hoist426:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
@@ -5253,7 +5349,7 @@ let parse_client_hello
                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                     usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist422)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist426)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -5286,7 +5382,7 @@ let parse_client_hello
       let* cslen:usize =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.impl__Algorithms__check ciphersuite
-                (Bertie.Tls13utils.impl__Bytes__slice_range ch
+                (Bertie.Tls13utils.impl__Bytes__raw_slice ch
                     ({
                         Core.Ops.Range.f_start = next;
                         Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len ch <: usize
@@ -5294,12 +5390,12 @@ let parse_client_hello
                       <:
                       Core.Ops.Range.t_Range usize)
                   <:
-                  Bertie.Tls13utils.t_Bytes)
+                  t_Slice Bertie.Tls13utils.t_U8)
               <:
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist423:Rust_primitives.Hax.t_Never =
+          let* hoist427:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
@@ -5309,7 +5405,7 @@ let parse_client_hello
                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                     usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist423)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist427)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -5357,7 +5453,7 @@ let parse_client_hello
                 Core.Result.t_Result Prims.unit u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist424:Rust_primitives.Hax.t_Never =
+            let* hoist428:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result
@@ -5368,7 +5464,7 @@ let parse_client_hello
                       Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                       usize) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist424)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist428)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result
@@ -5405,7 +5501,7 @@ let parse_client_hello
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist425:Rust_primitives.Hax.t_Never =
+          let* hoist429:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
@@ -5415,7 +5511,7 @@ let parse_client_hello
                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                     usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist425)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist429)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -5452,7 +5548,7 @@ let parse_client_hello
               Core.Result.t_Result t_Extensions u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist426:Rust_primitives.Hax.t_Never =
+          let* hoist430:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
@@ -5462,7 +5558,7 @@ let parse_client_hello
                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
                     usize) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist426)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist430)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
