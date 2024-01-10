@@ -339,8 +339,6 @@ impl Bytes {
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
-        // let mut res = Vec::new();
-        // res.extend_from_slice(&self.0);
         self.0.append(&mut other.0);
         self
     }
