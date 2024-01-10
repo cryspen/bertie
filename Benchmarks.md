@@ -85,6 +85,21 @@ The protocol code in Bertie has no measurable impact on the performance.
 | 2.7%   | 1.97 Gc     | Hacl_Bignum_bn_add_mod_n_u64                              |
 | 0.9%   | 702.17 Mc   | Hacl_Bignum_Karatsuba_bn_karatsuba_sqr_uint64             |
 
+#### Protocol Performance Analysis
+
+To avoid the large overhead of the cryptography, we look at individual steps of
+the protocol.
+This allows us to see where the protocol implementation itself may be slower than
+necessary.
+
+##### Client Hello Generation
+
+This measures the performance of generating a client hello (`tls13formats::client_hello`).
+
+Looking at the traces, most time is spent in `Bytes::concat` and `encode_length_uXX` functions, and the resulting memory management.
+To reduce the time needed here, we pre-allocate memory in `encode_length_uXX`
+and make `Bytes::concat` owning, such that it does not need to allocate new memory.
+
 ## Comparison
 
 We compare with [Rustls](https://github.com/rustls/rustls) as it is the most popular
