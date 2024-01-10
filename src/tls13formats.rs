@@ -11,7 +11,7 @@ use crate::{
         bytes1, bytes2, check_eq, check_eq_slice, check_length_encoding_u16,
         check_length_encoding_u16_slice, check_length_encoding_u24, check_length_encoding_u8,
         check_length_encoding_u8_slice, check_mem, encode_length_u16, encode_length_u24,
-        encode_length_u8,  eq_slice, length_u16_encoded, length_u16_encoded_slice,
+        encode_length_u8, eq_slice, length_u16_encoded, length_u16_encoded_slice,
         length_u24_encoded, length_u8_encoded, parse_failed, tlserr, Bytes, TLSError,
         APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
         INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
