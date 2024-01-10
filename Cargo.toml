@@ -33,6 +33,14 @@ serde = { version = "1.0", features = ["derive"] }
 rayon = "1.3.0"
 criterion = "0.5"
 
+[[bench]]
+name = "client"
+harness = false
+
+[[bench]]
+name = "server"
+harness = false
+
 [workspace]
 members = [
     ".",
@@ -52,5 +60,5 @@ default-members = [
     "integration_tests",
 ]
 
-# [patch.'https://github.com/cryspen/libcrux']
+# [patch.crates-io]
 # libcrux = { path = "../libcrux" }

@@ -124,7 +124,7 @@ fn main() {
     let mut args: Vec<_> = env::args().collect();
     args.remove(0);
 
-    if let Some(arg) = args.get(0) {
+    if let Some(arg) = args.first() {
         if arg == "-is-handshaker-supported" {
             println!("No");
             process::exit(0);

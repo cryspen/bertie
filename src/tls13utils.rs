@@ -37,6 +37,7 @@ pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub const DECODE_ERROR: TLSError = 142u8;
 
+#[allow(dead_code)]
 pub(crate) fn error_string(c: u8) -> String {
     format!("{}", c)
 }
@@ -121,6 +122,7 @@ impl core::ops::Add for U32 {
     }
 }
 
+/// Bytes used in Bertie.
 #[derive(Clone, PartialEq, Debug, Default)]
 pub struct Bytes(Vec<U8>);
 
@@ -131,16 +133,19 @@ impl From<Vec<u8>> for Bytes {
 }
 
 impl Bytes {
+    /// Declassify these bytes and return a copy of [`u8`].
     pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
     }
 
     /// Convert the bytes into raw bytes
+    #[allow(dead_code)]
     pub(crate) fn into_raw(self) -> Vec<U8> {
         self.0
     }
 
     /// Get a reference to the raw bytes.
+    #[allow(dead_code)]
     pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }
@@ -191,12 +196,16 @@ impl U32 {
 }
 
 impl U16 {
+    #[allow(dead_code)]
     pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U16, TLSError> {
         Ok(U16(u16::from_be_bytes(x.declassify_array()?)))
     }
+
     pub(crate) fn as_be_bytes(&self) -> Bytes {
         (self.0.to_be_bytes().to_vec()).into()
     }
+
+    #[allow(dead_code)]
     pub(crate) fn declassify(&self) -> u16 {
         self.0
     }
@@ -243,28 +252,37 @@ impl core::ops::Index<Range<usize>> for Bytes {
 }
 
 impl Bytes {
+    /// Create new [`Bytes`].
     pub(crate) fn new() -> Bytes {
         Bytes(Vec::new())
     }
+
+    /// Generate `len` bytes of `0`.
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
-    pub(crate) fn with_capacity(len: usize) -> Bytes {
-        Bytes(Vec::with_capacity(len))
-    }
+
+    /// Get the length of these [`Bytes`].
     pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Returns true if this is empty.
     pub(crate) fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    /// Push `x` into these [`Bytes`].
     pub(crate) fn push(&mut self, x: U8) {
         self.0.push(x)
     }
+
+    /// Extend `self` with the slice `x`.
     pub(crate) fn extend_from_slice(&mut self, x: &Bytes) {
         self.0.extend_from_slice(&x.0)
     }
 
+    /// Generate a new [`Bytes`] struct from slice `s`.
     pub(crate) fn from_slice(s: &[u8]) -> Bytes {
         s.into()
     }
@@ -286,16 +304,6 @@ impl Bytes {
         } else {
             unreachable!("Not a hex string2")
         }
-    }
-
-    /// Get a hex representation of self as [`String`].
-    pub(crate) fn as_hex(&self) -> String {
-        let strs: Vec<String> = self
-            .0
-            .iter()
-            .map(|b| format!("{:02x}", b.declassify()))
-            .collect();
-        strs.join("")
     }
 
     /// Get a new copy of the given `range` as [`Bytes`].
@@ -333,6 +341,19 @@ impl Bytes {
     }
 }
 
+#[cfg(test)]
+impl Bytes {
+    /// Get a hex representation of self as [`String`].
+    pub(crate) fn as_hex(&self) -> String {
+        let strs: Vec<String> = self
+            .0
+            .iter()
+            .map(|b| format!("{:02x}", b.declassify()))
+            .collect();
+        strs.join("")
+    }
+}
+
 /// Convert the bool `b` into a Result.
 pub(crate) fn check(b: bool) -> Result<(), TLSError> {
     if b {
@@ -349,6 +370,7 @@ pub(crate) fn eq1(b1: U8, b2: U8) -> bool {
 
 /// Parser function to check if [Bytes] `b1` and `b2` have the same value,
 /// returning a [TLSError] otherwise.
+#[allow(dead_code)]
 pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     if eq1(b1, b2) {
         Ok(())
@@ -563,37 +585,6 @@ pub(crate) fn check_length_encoding_u24(bytes: &Bytes) -> Result<(), TLSError> {
     }
 }
 
-// Handshake Data
-pub struct HandshakeData(pub Bytes);
-
-impl HandshakeData {
-    /// Returns the length, in bytes.
-    pub(crate) fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    /// Returns the handshake data bytes.
-    pub(crate) fn to_bytes(&self) -> Bytes {
-        self.0.clone()
-    }
-
-    /// Returns a new [`HandshakeData`] that contains the bytes of
-    /// `other` appended to the bytes of `self`.
-    pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
-        let mut message1 = self.to_bytes();
-        let message2 = other.to_bytes();
-
-        message1.0.extend_from_slice(&message2.0);
-        HandshakeData::from(message1)
-    }
-}
-
-impl From<Bytes> for HandshakeData {
-    fn from(value: Bytes) -> Self {
-        HandshakeData(value)
-    }
-}
-
 // Application Data
 #[derive(PartialEq)]
 pub struct AppData(Bytes);
@@ -612,6 +603,30 @@ impl AppData {
     /// Get a reference to the raw bytes.
     pub fn as_raw(&self) -> &Bytes {
         &self.0
+    }
+}
+
+impl From<&[u8]> for AppData {
+    fn from(value: &[u8]) -> Self {
+        Self(value.into())
+    }
+}
+
+impl<const N: usize> From<&[u8; N]> for AppData {
+    fn from(value: &[u8; N]) -> Self {
+        Self(value.into())
+    }
+}
+
+impl From<Vec<u8>> for AppData {
+    fn from(value: Vec<u8>) -> Self {
+        Self(value.into())
+    }
+}
+
+impl From<Bytes> for AppData {
+    fn from(value: Bytes) -> Self {
+        Self(value)
     }
 }
 

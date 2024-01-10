@@ -84,7 +84,7 @@ fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
         Ok((offset + 1, len))
     } else {
         let len = length_length(b, offset);
-        offset = offset + 1;
+        offset += 1;
         let end = long_length(b, offset, len)?;
         Ok((offset + len, end))
     }
@@ -95,7 +95,7 @@ fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
 /// Returns the new offset into the bytes.
 fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x30)?;
-    offset = offset + 1;
+    offset += 1;
 
     let length_length = length_length(b, offset);
     offset = offset + length_length + 1; // 1 byte is always used for length
@@ -108,7 +108,7 @@ fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error
 /// Returns the new offset into the bytes.
 fn read_octet_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x04)?;
-    offset = offset + 1;
+    offset += 1;
 
     let length_length = length_length(b, offset);
     offset = offset + length_length + 1; // 1 byte is always used for length
@@ -132,7 +132,7 @@ fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
 /// Returns the new offset into the bytes.
 fn skip_sequence(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x30u8)?;
-    offset = offset + 1;
+    offset += 1;
 
     let (offset, length) = length(b, offset)?;
 
@@ -147,7 +147,7 @@ fn skip_sequence(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
 fn read_version_number(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     match check_tag(b, offset, 0xA0u8) {
         Ok(_) => {
-            offset = offset + 1;
+            offset += 1;
 
             let length = short_length(b, offset)?;
             Ok(offset + 1 + length)
@@ -161,7 +161,7 @@ fn read_version_number(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error>
 /// offset moving.
 fn skip_integer(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x02u8)?;
-    offset = offset + 1;
+    offset += 1;
 
     let (offset, length) = length(b, offset)?;
     Ok(offset + length)
@@ -170,7 +170,7 @@ fn skip_integer(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
 /// Read an integer and return a copy of the actual bytes.
 fn read_integer(b: &Bytes, mut offset: usize) -> Result<Bytes, Asn1Error> {
     check_tag(b, offset, 0x02u8)?;
-    offset = offset + 1;
+    offset += 1;
 
     let (offset, length) = length(b, offset)?;
     Ok(b.slice(offset, length))
@@ -201,13 +201,13 @@ fn check_success(val: bool) -> Result<(), Asn1Error> {
 /// Returns an error or the [`Spki`].
 fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
     check_tag(cert, offset, 0x30u8)?;
-    offset = offset + 1;
+    offset += 1;
 
     let (mut offset, _seq_len) = length(cert, offset)?;
 
     // The algorithm name is another sequence
     check_tag(cert, offset, 0x30u8)?;
-    offset = offset + 1;
+    offset += 1;
     let (mut offset, seq_len) = length(cert, offset)?;
     // OID Tag
     check_tag(cert, offset, 0x06u8)?;
@@ -224,9 +224,9 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
             ec_pk_oid = ec_pk_oid && oid_byte_equal;
         }
         if ec_pk_oid {
-            oid_offset = oid_offset + oid_len;
+            oid_offset += oid_len;
             check_tag(cert, oid_offset, 0x06u8)?;
-            oid_offset = oid_offset + 1;
+            oid_offset += 1;
             let (oid_offset, _oid_len) = length(cert, oid_offset)?;
             ecdsa_p256 = true;
             // In this case we also need to read the curve OID.
@@ -249,15 +249,15 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 
     // Skip all the way to the end of the sequence.
     // RSA has a NULL element in there as well. We don't care.
-    offset = offset + seq_len;
+    offset += seq_len;
 
     // The public key is now a bit string. Let's find the start of the actual
     // DER structure in there.
     check_tag(cert, offset, 0x03u8)?;
-    offset = offset + 1;
+    offset += 1;
     let (mut offset, bit_string_len) = length(cert, offset)?;
     if cert[offset].declassify() == 0x00 {
-        offset = offset + 1; // There's a 0x00 at the end of the length
+        offset += 1; // There's a 0x00 at the end of the length
     }
 
     if ec_pk_oid && ecdsa_p256 {
@@ -320,19 +320,19 @@ pub(crate) fn rsa_public_key(
     // An RSA PK is a sequence of modulus N and public exponent e,
     // each encoded as integer.
     check_tag(cert, offset, 0x30u8)?;
-    offset = offset + 1;
+    offset += 1;
     let (mut offset, _seq_len) = length(cert, offset)?;
 
     // Integer: N
     check_tag(cert, offset, 0x02u8)?;
-    offset = offset + 1;
+    offset += 1;
     let (mut offset, int_len) = length(cert, offset)?;
     let n = cert.slice(offset, int_len);
-    offset = offset + int_len;
+    offset += int_len;
 
     // Integer: e
     check_tag(cert, offset, 0x02u8)?;
-    offset = offset + 1;
+    offset += 1;
     let (offset, int_len) = length(cert, offset)?;
     let e = cert.slice(offset, int_len);
 
@@ -343,6 +343,8 @@ pub(crate) fn rsa_public_key(
 }
 
 /// Debug print a slice.
+#[cfg(test)]
+#[allow(dead_code)]
 fn debug_print(tag: &str, bytes: &Bytes, offset: usize) {
     eprintln!(
         "{}: {}",
@@ -370,14 +372,10 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
     offset = skip_integer(key, offset)?; // version
     offset = skip_sequence(key, offset)?;
     offset = read_octet_header(key, offset)?;
-    // debug_print("key 1", key, offset);
     offset = read_sequence_header(key, offset)?;
-    // debug_print("key 2", key, offset);
     offset = skip_integer(key, offset)?; // version
     offset = skip_integer(key, offset)?; // private key algorithm
-                                         // debug_print("key 3", key, offset);
     offset = skip_integer(key, offset)?; // public exponent 65537
-                                         // debug_print("key 4", key, offset);
 
     // now we have reached the private exponent d
     read_integer(key, offset)
@@ -411,7 +409,7 @@ mod unit_test {
     use super::*;
 
     fn test(cert: &Bytes) {
-        let spki = verification_key_from_cert(&cert);
+        let spki = verification_key_from_cert(cert);
         match spki {
             Ok(spki) => {
                 let pk = cert_public_key(cert, &spki).expect("Error reading public key from cert");
@@ -419,7 +417,7 @@ mod unit_test {
             }
             Err(e) => {
                 println!("verif key extraction error {}", e);
-                None.unwrap()
+                panic!()
             }
         }
     }
@@ -443,10 +441,10 @@ mod unit_test {
         for file in files {
             let file = file.expect("Error reading file ...").path();
             let mut f = fs::File::open(file.clone())
-                .expect(&format!("Didn't find the file {}.", file.display()));
+                .unwrap_or_else(|_| panic!("Didn't find the file {}.", file.display()));
             let mut bytes = Vec::new();
             f.read_to_end(&mut bytes)
-                .expect(&format!("Error reading file {}", file.display()));
+                .unwrap_or_else(|_| panic!("Error reading file {}", file.display()));
             test(&bytes.into());
         }
     }

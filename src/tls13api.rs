@@ -10,7 +10,11 @@
 use rand::{CryptoRng, RngCore};
 
 use crate::{
-    server::ServerDB, tls13crypto::*, tls13formats::*, tls13handshake::*, tls13record::*,
+    server::ServerDB,
+    tls13crypto::*,
+    tls13formats::{handshake_data::HandshakeType, *},
+    tls13handshake::*,
+    tls13record::*,
     tls13utils::*,
 };
 
@@ -24,7 +28,7 @@ pub enum Client {
         ClientPostServerHello,
         Option<ClientCipherState0>,
         DuplexCipherStateH,
-        HandshakeData,
+        handshake_data::HandshakeData,
     ),
 
     /// The client handshake state after finishing the handshake.
@@ -96,13 +100,13 @@ impl Client {
             Self::Client0(state, cipher_state) => {
                 let sf = get_handshake_record(handshake_bytes)?;
                 let (cipher1, cstate) = client_set_params(&sf, state)?;
-                let buf = HandshakeData::from(Bytes::new());
+                let buf = handshake_data::HandshakeData::from(Bytes::new());
                 Ok((None, Self::ClientH(cstate, cipher_state, cipher1, buf)))
             }
             Self::ClientH(cstate, cipher0, cipher_hs, buf) => {
                 let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
                 let buf = buf.concat(&hd);
-                if find_handshake_message(HandshakeType::Finished, &buf, 0) {
+                if buf.find_handshake_message(HandshakeType::Finished, 0) {
                     let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
                     let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
                     Ok((Some(cf_rec), Self::Client1(cstate, cipher1)))

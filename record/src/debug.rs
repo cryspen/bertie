@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use bertie::{get_alert_description, get_alert_level, get_hs_type, ContentType};
+use bertie::{get_hs_type, AlertDescription, AlertLevel, ContentType};
 use tracing::{error, info};
 
 /// For debugging only.
@@ -19,8 +19,8 @@ pub fn info_record(record: &[u8]) {
             }
             Ok(ContentType::Alert) => {
                 if record.len() >= 7 {
-                    let alert_type = get_alert_level(record[5]);
-                    let alert_description = get_alert_description(record[6]);
+                    let alert_type = AlertLevel::try_from(record[5]);
+                    let alert_description = AlertDescription::try_from(record[6]);
                     info!(
                         ?content_type,
                         ?alert_type,

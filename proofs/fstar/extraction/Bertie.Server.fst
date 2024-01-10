@@ -29,7 +29,8 @@ let lookup_db
       (tkt: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result t_ServerInfo u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
-        (Bertie.Tls13utils.eq sni (Bertie.Tls13utils.impl__Bytes__new <: Bertie.Tls13utils.t_Bytes)
+        (Bertie.Tls13utils.eq sni
+            (Bertie.Tls13utils.impl__Bytes__new () <: Bertie.Tls13utils.t_Bytes)
           <:
           bool) ||
         (Bertie.Tls13utils.eq sni db.f_server_name <: bool)
@@ -107,7 +108,7 @@ let lookup_db
             (Core.Result.t_Result t_ServerInfo u8)
       else
         Core.Ops.Control_flow.ControlFlow_Continue
-        (Core.Result.Result_Err (Bertie.Tls13utils.parse_failed <: u8)
+        (Core.Result.Result_Err (Bertie.Tls13utils.parse_failed () <: u8)
           <:
           Core.Result.t_Result t_ServerInfo u8)
         <:

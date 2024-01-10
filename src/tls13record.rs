@@ -99,7 +99,7 @@ pub(crate) fn encrypt_record_payload(
 ) -> Result<Bytes, TLSError> {
     let iv_ctr = derive_iv_ctr(&key_iv.iv, n);
     let inner_plaintext = payload
-        .concat(&bytes1(ct.as_u8()))
+        .concat(&bytes1(ct as u8))
         .concat(&Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
     if clen <= 65536 {
@@ -149,6 +149,8 @@ fn decrypt_record_payload(
 /* Record Encryption/Decryption API */
 
 /// Encrypt 0-RTT `payload`.
+/// TODO: Implement 0-RTT
+#[allow(dead_code)]
 fn encrypt_zerortt(
     payload: AppData,
     pad: usize,
@@ -159,6 +161,9 @@ fn encrypt_zerortt(
     Ok((rec, ClientCipherState0(ae, kiv, n + 1, exp)))
 }
 
+/// Decrypt 0-RTT `ciphertext`.
+/// TODO: Implement 0-RTT
+#[allow(dead_code)]
 pub fn decrypt_zerortt(
     ciphertext: &Bytes,
     state: ServerCipherState0,
@@ -180,7 +185,7 @@ pub fn decrypt_zerortt(
 /// Returns the ciphertext, new [`DuplexCipherStateH`] if successful, or a
 /// [`TLSError`] otherwise.
 pub(crate) fn encrypt_handshake(
-    payload: HandshakeData,
+    payload: handshake_data::HandshakeData,
     pad: usize,
     mut state: DuplexCipherStateH,
 ) -> Result<(Bytes, DuplexCipherStateH), TLSError> {
@@ -202,15 +207,17 @@ pub(crate) fn encrypt_handshake(
 pub(crate) fn decrypt_handshake(
     ciphertext: &Bytes,
     mut state: DuplexCipherStateH,
-) -> Result<(HandshakeData, DuplexCipherStateH), TLSError> {
+) -> Result<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError> {
     let (ct, payload) =
         decrypt_record_payload(&state.receiver_key_iv, state.receiver_counter, ciphertext)?;
     if ct == ContentType::Alert {
-        Result::<(HandshakeData, DuplexCipherStateH), TLSError>::Err(GOT_HANDSHAKE_FAILURE_ALERT)
+        Result::<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError>::Err(
+            GOT_HANDSHAKE_FAILURE_ALERT,
+        )
     } else {
         check(ct == ContentType::Handshake)?;
         state.receiver_counter += 1;
-        Ok((HandshakeData::from(payload), state))
+        Ok((handshake_data::HandshakeData::from(payload), state))
     }
 }
 

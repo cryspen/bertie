@@ -28,16 +28,6 @@ jobs:
           repository: google/boringssl
           path: boringssl
 
-      - name: Setup Ubuntu
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get -y update
-          sudo apt-get -y install ninja-build
-
-      - name: Setup macOS
-        if: matrix.os == 'macos-latest'
-        run: brew install ninja
-
       - name: Build code
         if: matrix.os != 'windows-latest'
         run: cargo build --workspace
@@ -81,6 +71,20 @@ jobs:
 
       - name: Check for common mistakes and missed improvements
         run: cargo clippy -- -D warnings
+
+  benchmark:
+    needs: test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Benchmark
+        run: cargo bench
 
   # interop:
   #   needs: test

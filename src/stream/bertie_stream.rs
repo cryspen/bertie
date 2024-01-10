@@ -39,7 +39,6 @@ pub trait TlsStream<T: Write + Read> {
 pub struct BertieStream<State> {
     pub(super) state: State,
     pub(super) host: String,
-    pub(super) port: u16,
     pub(super) ciphersuite: Algorithms,
 }
 

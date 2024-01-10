@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use libcrux::{
     kem::{Ct, PrivateKey, PublicKey},
     signature::rsa_pss::{RsaPssKeySize, RsaPssPrivateKey, RsaPssPublicKey},
@@ -5,14 +7,12 @@ use libcrux::{
 };
 use rand::{CryptoRng, RngCore};
 
-// use tracing::{event, Level};
-
 use crate::tls13utils::{
     check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
     INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
 };
 
-pub(crate) type Random = Bytes; //was [U8;32]
+pub(crate) type Random = Bytes;
 pub type SignatureKey = Bytes;
 pub(crate) type Psk = Bytes;
 pub(crate) type Key = Bytes;
@@ -67,6 +67,7 @@ impl AeadKey {
     }
 
     /// Get the raw bytes of the key.
+    #[cfg(test)]
     pub(crate) fn bytes(&self) -> &Bytes {
         &self.bytes
     }
@@ -476,15 +477,6 @@ pub enum KemScheme {
 }
 
 impl KemScheme {
-    /// Get the length of the private key for a given [`KemScheme`].
-    pub(crate) fn kem_priv_len(&self) -> usize {
-        match self {
-            KemScheme::X25519 => 32,
-            KemScheme::Secp256r1 => 32,
-            _ => unimplemented!("Only x25519 and P256 are supported right now"),
-        }
-    }
-
     /// Get the libcrux algorithm for this [`KemScheme`].
     fn libcrux_algorithm(self) -> Result<kem::Algorithm, TLSError> {
         match self {
@@ -743,6 +735,16 @@ impl TryFrom<&str> for Algorithms {
                 s
             ))),
         }
+    }
+}
+
+impl Display for Algorithms {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TLS_{:?}_{:?} w/ {:?} | {:?}",
+            self.aead, self.hash, self.signature, self.kem
+        )
     }
 }
 

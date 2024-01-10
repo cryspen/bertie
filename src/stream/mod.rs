@@ -10,6 +10,7 @@ mod client;
 mod server;
 
 pub use bertie_stream::{BertieError, BertieStream, TlsStream};
+pub use server::init_db;
 
 /// A Bertie Client stream.
 pub type BertieClient<Stream> = BertieStream<ClientState<Stream>>;

@@ -8,7 +8,7 @@ use crate::{
         sign_rsa, verify, zero_key, AeadAlgorithm, AeadKey, AeadKeyIV, Algorithms, Digest,
         HashAlgorithm, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
-    tls13formats::*,
+    tls13formats::{handshake_data::HandshakeData, *},
     tls13record::*,
     tls13utils::*,
 };
@@ -225,17 +225,28 @@ pub fn algs_post_client_finished(st: &ClientPostClientFinished) -> Algorithms {
     st.2
 }
 
-pub struct ServerPostClientHello(Random, Algorithms, Bytes, Bytes, ServerInfo, Transcript);
-pub struct ServerPostServerHello(
-    Random,
-    Random,
-    Algorithms,
-    ServerInfo,
-    Key,
-    MacKey,
-    MacKey,
-    Transcript,
-);
+/// Server state after processing the client hello.
+pub struct ServerPostClientHello {
+    client_randomness: Random,
+    ciphersuite: Algorithms,
+    session_id: Bytes,
+    gx: Bytes,
+    server: ServerInfo,
+    transcript: Transcript,
+}
+
+/// Server state after generating the server hello.
+pub struct ServerPostServerHello {
+    client_random: Random,
+    server_random: Random,
+    ciphersuite: Algorithms,
+    server: ServerInfo,
+    master_secret: Key,
+    cfk: MacKey,
+    sfk: MacKey,
+    transcript: Transcript,
+}
+
 pub struct ServerPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ServerPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
 pub struct ServerPostClientFinished(Random, Random, Algorithms, Key, Transcript);
@@ -259,7 +270,7 @@ fn build_client_hello(
     ),
     TLSError,
 > {
-    let tx = transcript_empty(ciphersuite.hash());
+    let tx = Transcript::new(ciphersuite.hash());
     let mut client_random = [0u8; 32];
     rng.fill_bytes(&mut client_random);
     let (kem_sk, kem_pk) = kem_keygen(ciphersuite.kem(), rng)?;
@@ -291,13 +302,13 @@ fn compute_psk_binder_zero_rtt(
     } = algs0;
     match (psk_mode, psk, trunc_len as u8) {
         (true, Some(k), _) => {
-            let th_trunc = get_transcript_hash_truncated_client_hello(&tx, &ch, trunc_len)?;
+            let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
             let mk = derive_binder_key(&ha, k)?;
             let binder = hmac_tag(&ha, &mk, &th_trunc)?;
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
-            let tx_ch = transcript_add1(tx, &nch);
+            let tx_ch = tx.add(&nch);
             if zero_rtt {
-                let th = get_transcript_hash(&tx_ch)?;
+                let th = tx_ch.transcript_hash()?;
                 let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
@@ -306,7 +317,7 @@ fn compute_psk_binder_zero_rtt(
             }
         }
         (false, None, 0) => {
-            let tx_ch = transcript_add1(tx, &ch);
+            let tx_ch = tx.add(&ch);
             Ok((ch, None, tx_ch))
         }
         _ => Err(PSK_MODE_MISMATCH),
@@ -320,9 +331,9 @@ fn put_server_hello(
     let ClientPostClientHello(client_random, ciphersuite, sk, psk, tx) = state;
 
     let (sr, ct) = parse_server_hello(&ciphersuite, handshake)?;
-    let tx = transcript_add1(tx, handshake);
+    let tx = tx.add(handshake);
     let shared_secret = kem_decap(ciphersuite.kem, &ct, &sk)?;
-    let th = get_transcript_hash(&tx)?;
+    let th = tx.transcript_hash()?;
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
         &ciphersuite.hash,
         &ciphersuite.aead,
@@ -354,17 +365,17 @@ fn put_server_signature(
     ) = handshake_state;
     if !algorithms.psk_mode() {
         parse_encrypted_extensions(&algorithms, encrypted_extensions)?;
-        let transcript = transcript_add1(transcript, encrypted_extensions);
+        let transcript = transcript.add(encrypted_extensions);
         let certificate = parse_server_certificate(&algorithms, server_certificate)?;
-        let transcript = transcript_add1(transcript, server_certificate);
-        let transcript_hash_server_certificate = get_transcript_hash(&transcript)?;
+        let transcript = transcript.add(server_certificate);
+        let transcript_hash_server_certificate = transcript.transcript_hash()?;
         let spki = verification_key_from_cert(&certificate)?;
         let cert_pk = cert_public_key(&certificate, &spki)?;
         let cert_signature = parse_certificate_verify(&algorithms, server_certificate_verify)?;
         let sigval = (Bytes::from_slice(&PREFIX_SERVER_SIGNATURE))
             .concat(&transcript_hash_server_certificate);
         verify(&algorithms.signature(), &cert_pk, &sigval, &cert_signature)?;
-        let transcript = transcript_add1(transcript, server_certificate_verify);
+        let transcript = transcript.add(server_certificate_verify);
         Ok(ClientPostCertificateVerify(
             client_random,
             server_random,
@@ -394,7 +405,7 @@ fn put_psk_skip_server_signature(
     ) = handshake_state;
     if algorithms.psk_mode() {
         parse_encrypted_extensions(&algorithms, encrypted_extensions)?;
-        let transcript = transcript_add1(transcript, encrypted_extensions);
+        let transcript = transcript.add(encrypted_extensions);
         Ok(ClientPostCertificateVerify(
             client_random,
             server_random,
@@ -430,11 +441,11 @@ fn put_server_finished(
         psk_mode,
         zero_rtt,
     } = algorithms;
-    let transcript_hash = get_transcript_hash(&transcript)?;
-    let verify_data = parse_finished(&algorithms, server_finished)?;
+    let transcript_hash = transcript.transcript_hash()?;
+    let verify_data = parse_finished(server_finished)?;
     hmac_verify(&hash, &server_finished_key, &transcript_hash, &verify_data)?;
-    let transcript = transcript_add1(transcript, server_finished);
-    let transcript_hash_server_finished = get_transcript_hash(&transcript)?;
+    let transcript = transcript.add(server_finished);
+    let transcript_hash_server_finished = transcript.transcript_hash()?;
     let (cak, sak, exp) = derive_app_keys(
         &hash,
         &aead,
@@ -466,11 +477,11 @@ fn get_client_finished(
         client_finished_key,
         transcript,
     ) = handshake_state;
-    let transcript_hash = get_transcript_hash(&transcript)?;
+    let transcript_hash = transcript.transcript_hash()?;
     let verify_data = hmac_tag(&algorithms.hash(), &client_finished_key, &transcript_hash)?;
-    let client_finished = finished(&algorithms, &verify_data)?;
-    let transcript = transcript_add1(transcript, &client_finished);
-    let transcript_hash = get_transcript_hash(&transcript)?;
+    let client_finished = finished(&verify_data)?;
+    let transcript = transcript.add(&client_finished);
+    let transcript_hash = transcript.transcript_hash()?;
     let resumption_master_secret =
         derive_rms(&algorithms.hash(), &master_secret, &transcript_hash)?;
     Ok((
@@ -526,7 +537,7 @@ pub fn client_finish(
                 server_certificate,
                 server_certificate_verify,
                 server_finished,
-            ) = get_handshake_messages4(payload)?;
+            ) = payload.to_four()?;
             let client_state_certificate_verify = put_server_signature(
                 &encrypted_extensions,
                 &server_certificate,
@@ -540,7 +551,7 @@ pub fn client_finish(
             Ok((client_finished, cipher, client_state))
         }
         true => {
-            let (encrypted_extensions, server_finished) = get_handshake_messages2(payload)?;
+            let (encrypted_extensions, server_finished) = payload.to_two()?;
             let client_state_certificate_verify =
                 put_psk_skip_server_signature(&encrypted_extensions, handshake_state)?;
             let (cipher, client_state_server_finished) =
@@ -555,21 +566,28 @@ pub fn client_finish(
 /* TLS 1.3 Server Side Handshake Functions */
 
 fn put_client_hello(
-    algs: Algorithms,
+    ciphersuite: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
-    let (cr, sid, sni, gx, tkto, bindero, trunc_len) = parse_client_hello(&algs, ch)?;
-    //println!("parse_client_hello");
-    let tx = transcript_empty(algs.hash());
-    let th_trunc = get_transcript_hash_truncated_client_hello(&tx, ch, trunc_len)?;
-    let tx = transcript_add1(tx, ch);
-    let th = get_transcript_hash(&tx)?;
-    let server = lookup_db(algs, &db, &sni, &tkto)?;
-    let cipher0 = process_psk_binder_zero_rtt(algs, th, th_trunc, &server.psk_opt, bindero)?;
+    let (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) =
+        parse_client_hello(&ciphersuite, ch)?;
+    let tx = Transcript::new(ciphersuite.hash());
+    let th_trunc = tx.transcript_hash_without_client_hello(ch, trunc_len)?;
+    let transcript = tx.add(ch);
+    let th = transcript.transcript_hash()?;
+    let server = lookup_db(ciphersuite, &db, &sni, &tkto)?;
+    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th, th_trunc, &server.psk_opt, bindero)?;
     Ok((
         cipher0,
-        ServerPostClientHello(cr, algs, sid, gx, server, tx),
+        ServerPostClientHello {
+            client_randomness,
+            ciphersuite,
+            session_id,
+            gx,
+            server,
+            transcript,
+        },
     ))
 }
 
@@ -600,36 +618,45 @@ fn process_psk_binder_zero_rtt(
 }
 
 fn get_server_hello(
-    st: ServerPostClientHello,
+    state: ServerPostClientHello,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
-    let ServerPostClientHello(cr, algs, sid, gx, server, tx) = st;
-    let Algorithms {
-        hash: ha,
-        aead: ae,
-        signature: _sa,
-        kem: ks,
-        psk_mode: _psk_mode,
-        zero_rtt: _zero_rtt,
-    } = algs;
-
-    let mut sr = [0u8; 32];
-    rng.fill_bytes(&mut sr);
-    let (shared_secret, gy) = kem_encap(ks, &gx, rng)?;
-    let sh = server_hello(&algs, &sr.into(), &sid, &gy)?;
-    let tx = transcript_add1(tx, &sh);
-    let transcript_hash = get_transcript_hash(&tx)?;
-    let (chk, shk, cfk, sfk, ms) =
-        derive_hk_ms(&ha, &ae, &shared_secret, &server.psk_opt, &transcript_hash)?;
+    let mut server_random = [0u8; 32];
+    rng.fill_bytes(&mut server_random);
+    let (shared_secret, gy) = kem_encap(state.ciphersuite.kem, &state.gx, rng)?;
+    let sh = server_hello(
+        &state.ciphersuite,
+        &server_random.into(),
+        &state.session_id,
+        &gy,
+    )?;
+    let transcript = state.transcript.add(&sh);
+    let transcript_hash = transcript.transcript_hash()?;
+    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
+        &state.ciphersuite.hash,
+        &state.ciphersuite.aead,
+        &shared_secret,
+        &state.server.psk_opt,
+        &transcript_hash,
+    )?;
     Ok((
         sh,
         DuplexCipherStateH::new(shk, 0, chk, 0),
-        ServerPostServerHello(cr, sr.into(), algs, server, ms, cfk, sfk, tx),
+        ServerPostServerHello {
+            client_random: state.client_randomness,
+            server_random: server_random.into(),
+            ciphersuite: state.ciphersuite,
+            server: state.server,
+            master_secret: ms,
+            cfk,
+            sfk,
+            transcript,
+        },
     ))
 }
 
 fn get_server_signature(
-    st: ServerPostServerHello,
+    state: ServerPostServerHello,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
     (
@@ -640,26 +667,28 @@ fn get_server_signature(
     ),
     TLSError,
 > {
-    let ServerPostServerHello(cr, sr, algs, server, ms, cfk, sfk, tx) = st;
-    let ee = encrypted_extensions(&algs)?;
-    let tx = transcript_add1(tx, &ee);
-    if !algs.psk_mode() {
-        let sc = server_certificate(&algs, &server.cert)?;
-        let tx = transcript_add1(tx, &sc);
-        let th = get_transcript_hash(&tx)?;
-        let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&th);
-        let sig = match algs.signature() {
-            SignatureScheme::EcdsaSecp256r1Sha256 => {
-                sign(&algs.signature(), &server.sk, &sigval, rng)?
-            }
+    let ee = encrypted_extensions(&state.ciphersuite)?;
+    let transcript = state.transcript.add(&ee);
+    if !state.ciphersuite.psk_mode() {
+        let sc = server_certificate(&state.ciphersuite, &state.server.cert)?;
+        let transcript = transcript.add(&sc);
+        let transcript_hash = transcript.transcript_hash()?;
+        let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(&transcript_hash);
+        let sig = match state.ciphersuite.signature() {
+            SignatureScheme::EcdsaSecp256r1Sha256 => sign(
+                &state.ciphersuite.signature(),
+                &state.server.sk,
+                &sigval,
+                rng,
+            )?,
             SignatureScheme::RsaPssRsaSha256 => {
                 // To avoid cyclic dependencies between the modules we pull out
                 // the values from the RSA certificate here.
                 // We could really read this from the key as well.
-                let (cert_scheme, cert_slice) = verification_key_from_cert(&server.cert)?;
-                let pk = rsa_public_key(&server.cert, cert_slice)?;
+                let (cert_scheme, cert_slice) = verification_key_from_cert(&state.server.cert)?;
+                let pk = rsa_public_key(&state.server.cert, cert_slice)?;
                 sign_rsa(
-                    &server.sk,
+                    &state.server.sk,
                     &pk.modulus,
                     &pk.exponent,
                     cert_scheme,
@@ -669,13 +698,21 @@ fn get_server_signature(
             }
             SignatureScheme::ED25519 => unimplemented!(),
         };
-        let scv = certificate_verify(&algs, &sig)?;
-        let tx = transcript_add1(tx, &scv);
+        let scv = certificate_verify(&state.ciphersuite, &sig)?;
+        let transcript = transcript.add(&scv);
         Ok((
             ee,
             sc,
             scv,
-            ServerPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx),
+            ServerPostCertificateVerify(
+                state.client_random,
+                state.server_random,
+                state.ciphersuite,
+                state.master_secret,
+                state.cfk,
+                state.sfk,
+                transcript,
+            ),
         ))
     } else {
         Err(PSK_MODE_MISMATCH)
@@ -685,10 +722,19 @@ fn get_server_signature(
 fn get_skip_server_signature(
     st: ServerPostServerHello,
 ) -> Result<(HandshakeData, ServerPostCertificateVerify), TLSError> {
-    let ServerPostServerHello(cr, sr, algs, server, ms, cfk, sfk, tx) = st;
+    let ServerPostServerHello {
+        client_random: cr,
+        server_random: sr,
+        ciphersuite: algs,
+        server,
+        master_secret: ms,
+        cfk,
+        sfk,
+        transcript: tx,
+    } = st;
     if algs.psk_mode() {
         let ee = encrypted_extensions(&algs)?;
-        let tx = transcript_add1(tx, &ee);
+        let tx = tx.add(&ee);
         Ok((
             ee,
             ServerPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx),
@@ -710,11 +756,11 @@ fn get_server_finished(
         psk_mode: _psk_mode,
         zero_rtt: _zero_rtt,
     } = algs;
-    let th_scv = get_transcript_hash(&tx)?;
+    let th_scv = tx.transcript_hash()?;
     let vd = hmac_tag(&ha, &sfk, &th_scv)?;
-    let sfin = finished(&algs, &vd)?;
-    let tx = transcript_add1(tx, &sfin);
-    let th_sfin = get_transcript_hash(&tx)?;
+    let sfin = finished(&vd)?;
+    let tx = tx.add(&sfin);
+    let th_sfin = tx.transcript_hash()?;
     let (cak, sak, exp) = derive_app_keys(&ha, &ae, &ms, &th_sfin)?;
     let cipher1 = duplex_cipher_state1(ae, sak, 0, cak, 0, exp);
     Ok((
@@ -729,11 +775,11 @@ fn put_client_finished(
     st: ServerPostServerFinished,
 ) -> Result<ServerPostClientFinished, TLSError> {
     let ServerPostServerFinished(cr, sr, algs, ms, cfk, tx) = st;
-    let th = get_transcript_hash(&tx)?;
-    let vd = parse_finished(&algs, cfin)?;
+    let th = tx.transcript_hash()?;
+    let vd = parse_finished(cfin)?;
     hmac_verify(&algs.hash(), &cfk, &th, &vd)?;
-    let tx = transcript_add1(tx, cfin);
-    let th = get_transcript_hash(&tx)?;
+    let tx = tx.add(cfin);
+    let th = tx.transcript_hash()?;
     let rms = derive_rms(&algs.hash(), &ms, &th)?;
     Ok(ServerPostClientFinished(cr, sr, algs, rms, tx))
 }

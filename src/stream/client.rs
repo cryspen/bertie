@@ -80,7 +80,6 @@ impl<Stream: Read + Write> BertieStream<ClientState<Stream>> {
             state: ClientState::new(stream),
             ciphersuite,
             host: host.to_string(),
-            port: 0,
         })
     }
 }
@@ -111,7 +110,6 @@ impl BertieStream<ClientState<TcpStream>> {
             state: ClientState::new(stream),
             ciphersuite,
             host: host.to_string(),
-            port,
         })
     }
 
