@@ -56,6 +56,7 @@ const CIPHERSUITES: [Algorithms; 4] = [
     // SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
 ];
 
+/// Benchmark the generation of the client hello.
 #[cfg(bench)]
 fn client_hello() {
     const CLIENT_X25519_PUB: &str = "99 38 1d e5 60 e4 bd 43 d2 3d 8e 43 5a 7d
@@ -77,11 +78,12 @@ fn client_hello() {
     }
     let end = Instant::now();
     println!(
-        "Build client handshake: {} μs",
+        "Build client hello: {} μs",
         end.duration_since(start).as_micros() as f64 / ITERATIONS as f64
     );
 }
 
+/// Benchmark the TLS protocol from the view of the client.
 fn protocol() {
     println!("Client");
 
