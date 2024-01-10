@@ -524,7 +524,7 @@ fn encoding_prefix(alg: KemScheme) -> Bytes {
 /// concatenation of bytes. We have to work with uncompressed NIST points here.
 fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
     if alg == KemScheme::Secp256r1 || alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
-        point.slice_range(1..point.len()).into()
+        point.slice_range(1..point.len())
     } else {
         point
     }
@@ -556,7 +556,7 @@ pub(crate) fn kem_encap(
 /// We only want the X coordinate for points on NIST curves.
 fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
     if alg == KemScheme::Secp256r1 {
-        shared_secret.slice_range(0..32).into()
+        shared_secret.slice_range(0..32)
     } else if alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
         unimplemented!("not supported yet");
     } else {
