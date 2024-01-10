@@ -71,7 +71,7 @@ impl Client {
     ) -> Result<(Bytes, Self), TLSError> {
         let (client_hello, cipherstate0, client_state) =
             client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
-        let mut client_hello_record = handshake_record(&client_hello)?;
+        let mut client_hello_record = handshake_record(client_hello)?;
         client_hello_record[2] = U8(0x01);
         Ok((
             client_hello_record,
@@ -208,7 +208,7 @@ impl Server {
         let ch = get_handshake_record(&ch_rec)?;
         let (server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate) =
             server_init(ciphersuite, &ch, db, rng)?;
-        let sh_rec = handshake_record(&server_hello)?;
+        let sh_rec = handshake_record(server_hello)?;
         let (sf_rec, cipher_hs) = encrypt_handshake(server_finished, 0, cipher_hs)?;
         Ok((
             sh_rec,

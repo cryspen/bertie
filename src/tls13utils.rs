@@ -148,6 +148,16 @@ impl From<Vec<u8>> for Bytes {
 }
 
 impl Bytes {
+    /// Add a prefix to these bytes and return it.
+    pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
+        let mut out = Vec::with_capacity(prefix.len() + self.len());
+
+        out.extend_from_slice(prefix);
+        out.append(&mut self.0);
+
+        Self(out)
+    }
+
     /// Declassify these bytes and return a copy of [`u8`].
     pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
@@ -288,11 +298,6 @@ impl Bytes {
         self.0.len()
     }
 
-    /// Returns true if this is empty.
-    pub(crate) fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
     /// Push `x` into these [`Bytes`].
     pub(crate) fn push(&mut self, x: U8) {
         self.0.push(x)
@@ -325,6 +330,11 @@ impl Bytes {
         } else {
             unreachable!("Not a hex string2")
         }
+    }
+
+    /// Get a slice of the given `range`.
+    pub(crate) fn raw_slice(&self, range: Range<usize>) -> &[U8] {
+        &self.0[range]
     }
 
     /// Get a new copy of the given `range` as [`Bytes`].
@@ -399,9 +409,9 @@ pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
 }
 
 // TODO: This function should short-circuit once hax supports returns within loops
-/// Check if [Bytes] slices `b1` and `b2` are of the same
+/// Check if [U8] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
-pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
+pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
     if b1.len() != b2.len() {
         false
     } else {
@@ -415,10 +425,18 @@ pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     }
 }
 
-/// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
+// TODO: This function should short-circuit once hax supports returns within loops
+/// Check if [Bytes] slices `b1` and `b2` are of the same
+/// length and agree on all positions.
+pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
+    eq_slice(&b1.0, &b2.0)
+}
+
+/// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
-pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
-    let b = eq(b1, b2);
+#[inline(always)]
+pub(crate) fn check_eq_slice(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
+    let b = eq_slice(b1, b2);
     if b {
         Ok(())
     } else {
@@ -426,17 +444,24 @@ pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     }
 }
 
+/// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
+/// length and agree on all positions, returning a [TLSError] otherwise.
+#[inline(always)]
+pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
+    check_eq_slice(b1.as_raw(), b2.as_raw())
+}
+
 // TODO: This function should short-circuit once hax supports returns within loops
 /// Compare the two provided byte slices.
 ///
 /// Returns `Ok(())` when they are equal, and a [`TLSError`] otherwise.
-pub(crate) fn check_mem(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
+pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
     if b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {
         let mut b = false;
         for i in 0..(b2.len() / b1.len()) {
-            if eq(b1, &b2.slice_range(i * b1.len()..(i + 1) * b1.len())) {
+            if eq_slice(b1, &b2[i * b1.len()..(i + 1) * b1.len()]) {
                 b = true;
             }
         }
@@ -470,7 +495,7 @@ pub(crate) fn encode_length_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first two bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in two bytes.
-pub(crate) fn encode_length_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_length_u16(mut bytes: Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
@@ -479,7 +504,7 @@ pub(crate) fn encode_length_u16(bytes: &Bytes) -> Result<Bytes, TLSError> {
         let mut lenb = Bytes::new_alloc(2 + bytes.len());
         lenb.push(len[0]);
         lenb.push(len[1]);
-        lenb.extend_from_slice(bytes);
+        lenb.0.append(&mut bytes.0);
         Ok(lenb)
     }
 }
@@ -510,7 +535,7 @@ pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is
 /// empty or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
-pub(crate) fn length_u8_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn length_u8_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.is_empty() {
         Err(parse_failed())
     } else {
@@ -529,7 +554,8 @@ pub(crate) fn length_u8_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 2
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
-pub(crate) fn length_u16_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
+#[inline(always)]
+pub(crate) fn length_u16_encoded_slice(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.len() < 2 {
         Err(parse_failed())
     } else {
@@ -542,6 +568,17 @@ pub(crate) fn length_u16_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
             Ok(l)
         }
     }
+}
+
+/// Check if `bytes[2..]` is at least as long as the length encoded by `bytes[0..2]`
+/// in big-endian order.
+///
+/// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 2
+/// bytes long or if the encoded length exceeds the length of the remainder of
+/// `bytes`.
+#[inline(always)]
+pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
+    length_u16_encoded_slice(bytes)
 }
 
 /// Check if `bytes[3..]` is at least as long as the length encoded by `bytes[0..3]`
@@ -566,12 +603,25 @@ pub(crate) fn length_u24_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
     }
 }
 
+pub(crate) fn check_length_encoding_u8_slice(bytes: &[U8]) -> Result<(), TLSError> {
+    if length_u8_encoded(bytes)? + 1 != bytes.len() {
+        Err(parse_failed())
+    } else {
+        Ok(())
+    }
+}
+
 /// Check if `bytes` contains exactly the TLS `u8` length encoded content.
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
 pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
-    if length_u8_encoded(bytes)? + 1 != bytes.len() {
+    check_length_encoding_u8_slice(bytes.as_raw())
+}
+
+#[inline(always)]
+pub(crate) fn check_length_encoding_u16_slice(bytes: &[U8]) -> Result<(), TLSError> {
+    if length_u16_encoded(bytes)? + 2 != bytes.len() {
         Err(parse_failed())
     } else {
         Ok(())
@@ -584,11 +634,7 @@ pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
 pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
-    if length_u16_encoded(bytes)? + 2 != bytes.len() {
-        Err(parse_failed())
-    } else {
-        Ok(())
-    }
+    check_length_encoding_u16_slice(bytes.as_raw())
 }
 
 /// Check if `bytes` contains exactly as many bytes of content as encoded by its

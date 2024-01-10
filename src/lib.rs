@@ -42,7 +42,7 @@ pub use tls13api::{Client, Server};
 pub use tls13formats::{handshake_data::get_hs_type, AlertDescription, AlertLevel, ContentType};
 
 #[cfg(bench)]
-pub use tls13formats::bench_client_hello;
+pub use tls13formats::{bench_client_hello, bench_parse_client_hello, HandshakeData};
 
 #[cfg(test)]
 mod test_tls13traces_internal;
