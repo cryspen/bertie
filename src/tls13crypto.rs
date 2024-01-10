@@ -9,7 +9,7 @@ use rand::{CryptoRng, RngCore};
 
 use crate::tls13utils::{
     check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
-    INVALID_SIGNATURE, UNSUPPORTED_ALGORITHM,
+    INVALID_SIGNATURE, U8, UNSUPPORTED_ALGORITHM,
 };
 
 pub(crate) type Random = Bytes;
@@ -524,7 +524,7 @@ fn encoding_prefix(alg: KemScheme) -> Bytes {
 /// concatenation of bytes. We have to work with uncompressed NIST points here.
 fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
     if alg == KemScheme::Secp256r1 || alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
-        point.slice_range(1..point.len())
+        point.slice_range(1..point.len()).into()
     } else {
         point
     }
@@ -556,7 +556,7 @@ pub(crate) fn kem_encap(
 /// We only want the X coordinate for points on NIST curves.
 fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
     if alg == KemScheme::Secp256r1 {
-        shared_secret.slice_range(0..32)
+        shared_secret.slice_range(0..32).into()
     } else if alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
         unimplemented!("not supported yet");
     } else {
@@ -662,6 +662,7 @@ impl Algorithms {
 
     /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
     /// otherwise.
+    #[inline(always)]
     pub(crate) fn supported_group(&self) -> Result<Bytes, TLSError> {
         match self.kem() {
             KemScheme::X25519 => Ok([0x00, 0x1D].into()),
@@ -683,11 +684,11 @@ impl Algorithms {
     }
 
     /// Check the ciphersuite in `bytes` against this ciphersuite.
-    pub(crate) fn check(&self, bytes: &Bytes) -> Result<usize, TLSError> {
+    pub(crate) fn check(&self, bytes: &[U8]) -> Result<usize, TLSError> {
         let len = length_u16_encoded(bytes)?;
         let cs = self.ciphersuite()?;
-        let csl = bytes.slice_range(2..2 + len);
-        check_mem(&cs, &csl)?;
+        let csl = &bytes[2..2 + len];
+        check_mem(cs.as_raw(), csl)?;
         Ok(len + 2)
     }
 }

@@ -100,6 +100,11 @@ Looking at the traces, most time is spent in `Bytes::concat` and `encode_length_
 To reduce the time needed here, we pre-allocate memory in `encode_length_uXX`
 and make `Bytes::concat` owning, such that it does not need to allocate new memory.
 
+##### Parsing Client Hello
+
+Changing the way extensions are checked to perform fewer copies brought down
+the time spend in `check_extensions` from 74% to 41% of the client hello parsing time.
+
 ## Comparison
 
 We compare with [Rustls](https://github.com/rustls/rustls) as it is the most popular
