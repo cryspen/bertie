@@ -90,10 +90,11 @@ impl Declassify for u8 {
 }
 
 #[cfg(not(feature = "secret_integers"))]
-type U8 = u8;
+pub(crate) type U8 = u8;
+
 #[cfg(not(feature = "secret_integers"))]
 #[allow(non_snake_case)]
-pub(crate) fn U8(x: u8) -> U8 {
+pub(crate) const fn U8(x: u8) -> U8 {
     x
 }
 
@@ -104,9 +105,20 @@ impl From<&u8> for U8 {
     }
 }
 
+#[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct U16(u16);
+pub struct U16(pub(crate) u16);
 
+#[cfg(not(feature = "secret_integers"))]
+pub(crate) type U16 = u16;
+
+#[cfg(not(feature = "secret_integers"))]
+#[allow(non_snake_case)]
+pub(crate) const fn U16(x: u16) -> U16 {
+    x
+}
+
+#[cfg(feature = "secret_integers")]
 impl From<u16> for U16 {
     fn from(x: u16) -> U16 {
         U16(x)
@@ -137,6 +149,13 @@ pub struct Bytes(Vec<U8>);
 impl From<Vec<u8>> for Bytes {
     fn from(x: Vec<u8>) -> Bytes {
         Bytes(x.iter().map(|x| x.into()).collect())
+    }
+}
+
+#[cfg(feature = "secret_integers")]
+impl From<Vec<U8>> for Bytes {
+    fn from(x: Vec<U8>) -> Bytes {
+        Bytes(x)
     }
 }
 
@@ -221,20 +240,12 @@ impl U32 {
     }
 }
 
-impl U16 {
-    #[allow(dead_code)]
-    pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U16, TLSError> {
-        Ok(U16(u16::from_be_bytes(x.declassify_array()?)))
-    }
-
-    pub(crate) fn as_be_bytes(&self) -> Bytes {
-        (self.0.to_be_bytes().to_vec()).into()
-    }
-
-    #[allow(dead_code)]
-    pub(crate) fn declassify(&self) -> u16 {
-        self.0
-    }
+pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
+    #[cfg(not(feature = "secret_integers"))]
+    let val = val.to_be_bytes();
+    #[cfg(feature = "secret_integers")]
+    let val = val.0.to_be_bytes();
+    [U8(val[0]), U8(val[1])]
 }
 
 pub(crate) fn bytes(x: &[u8]) -> Bytes {
@@ -308,6 +319,11 @@ impl Bytes {
         self.0.extend_from_slice(&x.0)
     }
 
+    /// Extend `self` with the bytes `x`.
+    pub(crate) fn append(&mut self, mut x: Bytes) {
+        self.0.append(&mut x.0)
+    }
+
     /// Generate a new [`Bytes`] struct from slice `s`.
     pub(crate) fn from_slice(s: &[u8]) -> Bytes {
         s.into()
@@ -369,6 +385,25 @@ impl Bytes {
         res
     }
 }
+
+macro_rules! bytes_concat {
+    ($bytes1:expr, $bytes2:expr $(, $bytes:expr)*) => {
+        {
+            let mut len = $bytes1.len() + $bytes2.len();
+            $(
+                len += $bytes.len();
+            )*
+            let mut out = Bytes::new_alloc(len);
+            out.append($bytes1);
+            out.append($bytes2);
+            $(
+                out.append($bytes);
+            )*
+            out
+        }
+    };
+}
+pub(crate) use bytes_concat;
 
 #[cfg(test)]
 impl Bytes {
@@ -478,14 +513,14 @@ pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// On success, return a new [Bytes] slice such that its first byte encodes the
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
-pub(crate) fn encode_length_u8(bytes: &Bytes) -> Result<Bytes, TLSError> {
+pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let mut lenb = Bytes::new_alloc(1 + bytes.len());
         lenb.push((len as u8).into());
-        lenb.extend_from_slice(bytes);
+        lenb.0.extend_from_slice(bytes);
         Ok(lenb)
     }
 }
@@ -500,7 +535,7 @@ pub(crate) fn encode_length_u16(mut bytes: Bytes) -> Result<Bytes, TLSError> {
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len = (U16(len as u16)).as_be_bytes();
+        let len = u16_as_be_bytes(U16(len as u16));
         let mut lenb = Bytes::new_alloc(2 + bytes.len());
         lenb.push(len[0]);
         lenb.push(len[1]);

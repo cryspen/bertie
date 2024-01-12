@@ -5,13 +5,13 @@ Raw numbers for Bertie and instructions.
 Some benchmarks are behind the `bench` cfg flag, using internal functions.
 
 ```bash
-CARGO_PROFILE_BENCH_DEBUG=true RUSTFLAGS='--cfg bench' cargo bench --bench client --no-default-features
+CARGO_PROFILE_BENCH_DEBUG=true RUSTFLAGS='--cfg bench' cargo bench
 ```
 
 Or run individual benchmarks, e.g.
 
 ```bash
-CARGO_PROFILE_BENCH_DEBUG=true RUSTFLAGS='--cfg bench' cargo bench --bench client --no-default-features
+CARGO_PROFILE_BENCH_DEBUG=true RUSTFLAGS='--cfg bench' cargo bench --bench client
 ```
 
 ## Profiling
@@ -91,6 +91,17 @@ To avoid the large overhead of the cryptography, we look at individual steps of
 the protocol.
 This allows us to see where the protocol implementation itself may be slower than
 necessary.
+
+##### Heap allocations
+
+Because we used a style where `Bytes` and `&Bytes` were used everywhere, everything,
+even individual bytes, needed to be allocated on the heap.
+While this makes the code look nice, it incurs a huge amount of memory operations,
+both for allocating and for freeing.
+
+Using pre-allocation when possible, i.e. allocation all required memory at once,
+instead of allocating when, for example, concatenating, and using byte slices `&[U8]`
+instead of owning references `&Bytes`, significantly sped up the protocol code.
 
 ##### Client Hello Generation
 

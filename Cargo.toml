@@ -20,10 +20,10 @@ tracing = "0.1"
 libcrux = { version = "0.0.2-pre.2", features = ["rand"] }
 
 [features]
-default = ["secret_integers", "api"]
+default = ["api"]
 test_utils = []
 secret_integers = []
-api = []                             # The streaming Rust API that everyone should use but is not hacspec.
+api = []             # The streaming Rust API that everyone should use but is not hacspec.
 
 [dev-dependencies]
 bertie = { path = ".", features = ["test_utils"] }

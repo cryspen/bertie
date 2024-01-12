@@ -31,11 +31,11 @@ fn hkdf_expand_label(
     if len >= 65536 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let lenb = U16::from(len as u16).as_be_bytes();
+        let lenb = u16_as_be_bytes(U16(len as u16));
         let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
-        let info = lenb
-            .concat(encode_length_u8(&tls13_label)?)
-            .concat(encode_length_u8(context)?);
+        let info = encode_length_u8(tls13_label.as_raw())?
+            .concat(encode_length_u8(context.as_raw())?)
+            .prefix(&lenb);
         hkdf_expand(hash_algorithm, key, &info, len)
     }
 }
