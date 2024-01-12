@@ -519,7 +519,7 @@ pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let mut lenb = Bytes::new_alloc(1 + bytes.len());
-        lenb.push((len as u8).into());
+        lenb.push(U8(len as u8));
         lenb.0.extend_from_slice(bytes);
         Ok(lenb)
     }
