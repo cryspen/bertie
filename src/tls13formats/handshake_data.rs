@@ -62,7 +62,7 @@ impl HandshakeData {
         handshake_bytes: &Bytes,
     ) -> Result<HandshakeData, TLSError> {
         Ok(HandshakeData::from(
-            bytes1(handshake_type as u8).concat(encode_length_u24(handshake_bytes)?),
+            encode_length_u24(handshake_bytes)?.prefix(&[U8(handshake_type as u8)]),
         ))
     }
 

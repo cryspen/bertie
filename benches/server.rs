@@ -86,7 +86,7 @@ af 2c 00 2b 00 03 02 03 04 00 0d 00 20 00 1e 04 03 05 03 06 03
 }
 
 fn main() {
-    protocol();
+    // protocol();
 
     #[cfg(bench)]
     {

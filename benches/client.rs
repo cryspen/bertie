@@ -39,17 +39,17 @@ fn mb_per_second(d: Duration) -> f64 {
     (NUM_PAYLOAD_BYTES as f64 / 1024.0 / 1024.0) / iteration
 }
 
-const ITERATIONS: usize = 500;
+const ITERATIONS: usize = 1000;
 const NUM_PAYLOAD_BYTES: usize = 0x4000;
-const CIPHERSUITES: [Algorithms; 4] = [
+const CIPHERSUITES: [Algorithms; 1] = [
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
     // SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
     // SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
-    SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
+    // SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
     SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
-    SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
-    SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
+    // SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
+    // SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
     // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
     // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
     // SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
@@ -69,7 +69,7 @@ fn client_hello() {
     let start = Instant::now();
     for _ in 0..ITERATIONS {
         let _ch = bertie::bench_client_hello(
-            &bertie::tls13crypto::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
+            &bertie::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
             cr.clone(),
             &gx,
             &sn,
