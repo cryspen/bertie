@@ -58,7 +58,17 @@ typecheck_parser.add_argument(
 
 options = parser.parse_args()
 
-cargo_hax_into = ["cargo", "hax", "-C", "-p", "bertie", ";", "into"]
+cargo_hax_into = [
+    "cargo",
+    "hax",
+    "-C",
+    "-p",
+    "bertie",
+    "--features",
+    "secret_integers",
+    ";",
+    "into",
+]
 hax_env = {}
 
 if options.sub == "extract":
