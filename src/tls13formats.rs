@@ -12,8 +12,8 @@ use crate::{
         check_length_encoding_u16_slice, check_length_encoding_u24, check_length_encoding_u8,
         check_length_encoding_u8_slice, check_mem, encode_length_u16, encode_length_u24,
         encode_length_u8, eq_slice, length_u16_encoded, length_u16_encoded_slice,
-        length_u24_encoded, length_u8_encoded, parse_failed, tlserr, Bytes, TLSError,
-        APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
+        length_u24_encoded, length_u8_encoded, parse_failed, tlserr, u32_as_be_bytes, Bytes,
+        TLSError, APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
         INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
         UNSUPPORTED_ALGORITHM,
     },
@@ -169,7 +169,7 @@ fn check_server_key_share(algs: &Algorithms, b: &Bytes) -> Result<Bytes, TLSErro
 
 fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, usize), TLSError> {
     let identities = encode_length_u16(
-        encode_length_u16(session_ticket.clone())?.concat(U32::from(0xffffffff).as_be_bytes()),
+        encode_length_u16(session_ticket.clone())?.concat_array(u32_as_be_bytes(U32(0xffffffff))),
     )?;
     let binders = encode_length_u16(encode_length_u8(zero_key(&algs.hash()).as_raw())?)?;
     let binders_len = binders.len();
