@@ -85,7 +85,7 @@ let impl__HandshakeData__next_handshake_message (self: t_HandshakeData)
       else
         let* len:usize =
           match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__slice_range
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__raw_slice
                       self._0
                       ({
                           Core.Ops.Range.f_start = sz 1;
@@ -94,17 +94,17 @@ let impl__HandshakeData__next_handshake_message (self: t_HandshakeData)
                         <:
                         Core.Ops.Range.t_Range usize)
                     <:
-                    Bertie.Tls13utils.t_Bytes)
+                    t_Slice Bertie.Tls13utils.t_U8)
                 <:
                 Core.Result.t_Result usize u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist304:Rust_primitives.Hax.t_Never =
+            let* hoist296:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist304)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist296)
             <:
             Core.Ops.Control_flow.t_ControlFlow
               (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8) usize
@@ -153,12 +153,12 @@ let impl__HandshakeData__as_handshake_message
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist305:Rust_primitives.Hax.t_Never =
+          let* hoist297:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist305)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist297)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_HandshakeData u8)
             (t_HandshakeData & t_HandshakeData)
@@ -179,12 +179,12 @@ let impl__HandshakeData__as_handshake_message
               else Core.Result.Result_Ok message <: Core.Result.t_Result t_HandshakeData u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist306:Rust_primitives.Hax.t_Never =
+          let* hoist298:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist306)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist298)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_HandshakeData u8)
             t_HandshakeData
@@ -210,12 +210,12 @@ let impl__HandshakeData__as_handshake_message
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist307:Rust_primitives.Hax.t_Never =
+          let* hoist299:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist307)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist299)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_HandshakeData u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -257,13 +257,13 @@ let impl__HandshakeData__to_four (self: t_HandshakeData)
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist308:Rust_primitives.Hax.t_Never =
+          let* hoist300:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
                   (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist308)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist300)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -284,13 +284,13 @@ let impl__HandshakeData__to_four (self: t_HandshakeData)
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist309:Rust_primitives.Hax.t_Never =
+          let* hoist301:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
                   (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist309)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist301)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -311,13 +311,13 @@ let impl__HandshakeData__to_four (self: t_HandshakeData)
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist310:Rust_primitives.Hax.t_Never =
+          let* hoist302:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
                   (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist310)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist302)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -338,13 +338,13 @@ let impl__HandshakeData__to_four (self: t_HandshakeData)
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist311:Rust_primitives.Hax.t_Never =
+          let* hoist303:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result
                   (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist311)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist303)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result
@@ -386,12 +386,12 @@ let impl__HandshakeData__to_two (self: t_HandshakeData)
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist312:Rust_primitives.Hax.t_Never =
+          let* hoist304:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist312)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist304)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
@@ -410,12 +410,12 @@ let impl__HandshakeData__to_two (self: t_HandshakeData)
               Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist313:Rust_primitives.Hax.t_Never =
+          let* hoist305:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist313)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist305)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
@@ -455,19 +455,19 @@ let impl__HandshakeData__from_bytes
       (handshake_type: t_HandshakeType)
       (handshake_bytes: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result t_HandshakeData u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist315:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist307:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.encode_length_u24 handshake_bytes
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist314:Rust_primitives.Hax.t_Never =
+          let* hoist306:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result t_HandshakeData u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist314)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist306)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_HandshakeData u8)
             Bertie.Tls13utils.t_Bytes
@@ -478,8 +478,8 @@ let impl__HandshakeData__from_bytes
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist316:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl__Bytes__prefix hoist315
+      (let hoist308:Bertie.Tls13utils.t_Bytes =
+          Bertie.Tls13utils.impl__Bytes__prefix hoist307
             (Rust_primitives.unsize (let list =
                     [
                       Bertie.Tls13utils.U8 (cast (handshake_type <: t_HandshakeType) <: u8)
@@ -492,8 +492,8 @@ let impl__HandshakeData__from_bytes
               <:
               t_Slice Bertie.Tls13utils.t_U8)
         in
-        let hoist317:t_HandshakeData = Core.Convert.f_from hoist316 in
-        Core.Result.Result_Ok hoist317 <: Core.Result.t_Result t_HandshakeData u8)
+        let hoist309:t_HandshakeData = Core.Convert.f_from hoist308 in
+        Core.Result.Result_Ok hoist309 <: Core.Result.t_Result t_HandshakeData u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result t_HandshakeData u8)
         (Core.Result.t_Result t_HandshakeData u8))
@@ -507,7 +507,7 @@ let impl__HandshakeData__find_handshake_message
   then false
   else
     match
-      Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__slice_range self._0
+      Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__raw_slice self._0
             ({
                 Core.Ops.Range.f_start = start +! sz 1 <: usize;
                 Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len self._0 <: usize
@@ -515,7 +515,7 @@ let impl__HandshakeData__find_handshake_message
               <:
               Core.Ops.Range.t_Range usize)
           <:
-          Bertie.Tls13utils.t_Bytes)
+          t_Slice Bertie.Tls13utils.t_U8)
     with
     | Core.Result.Result_Err _ -> false
     | Core.Result.Result_Ok len ->

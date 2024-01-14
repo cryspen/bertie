@@ -952,50 +952,11 @@ let t_VerificationKey = Bertie.Tls13utils.t_Bytes
 
 let impl__HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist16:Libcrux.Digest.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist20:Libcrux.Digest.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (impl__HashAlgorithm__libcrux_algorithm self
               <:
               Core.Result.t_Result Libcrux.Digest.t_Algorithm u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist15:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist15)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Libcrux.Digest.t_Algorithm
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Libcrux.Digest.t_Algorithm
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist17:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-          Libcrux.Digest.hash hoist16
-            (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify data
-                  <:
-                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-              <:
-              t_Slice u8)
-        in
-        let hoist18:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist17 in
-        Core.Result.Result_Ok hoist18 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist20:Libcrux.Hkdf.t_Algorithm =
-        match
-          Core.Ops.Try_trait.f_branch (hkdf_algorithm alg
-              <:
-              Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist19:Rust_primitives.Hax.t_Never =
@@ -1006,6 +967,45 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist19)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Libcrux.Digest.t_Algorithm
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Libcrux.Digest.t_Algorithm
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist21:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Libcrux.Digest.hash hoist20
+            (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify data
+                  <:
+                  Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+              <:
+              t_Slice u8)
+        in
+        let hoist22:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist21 in
+        Core.Result.Result_Ok hoist22 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist24:Libcrux.Hkdf.t_Algorithm =
+        match
+          Core.Ops.Try_trait.f_branch (hkdf_algorithm alg
+              <:
+              Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist23:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist23)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Hkdf.t_Algorithm
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
@@ -1014,9 +1014,9 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
             Libcrux.Hkdf.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist21:Core.Result.t_Result (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+      (let hoist25:Core.Result.t_Result (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
           Libcrux.Hkdf.t_Error =
-          Libcrux.Hkdf.expand hoist20
+          Libcrux.Hkdf.expand hoist24
             (Bertie.Tls13utils.impl__Bytes__declassify prk
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1025,7 +1025,7 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
             len
         in
-        match hoist21 with
+        match hoist25 with
         | Core.Result.Result_Ok x ->
           Core.Result.Result_Ok (Core.Convert.f_into x)
           <:
@@ -1037,51 +1037,11 @@ let hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (le
 
 let hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist23:Libcrux.Hkdf.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist27:Libcrux.Hkdf.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (hkdf_algorithm alg
               <:
               Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist22:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist22)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Libcrux.Hkdf.t_Algorithm
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            Libcrux.Hkdf.t_Algorithm
-      in
-      Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist24:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-          Libcrux.Hkdf.extract hoist23
-            (Bertie.Tls13utils.impl__Bytes__declassify salt
-              <:
-              Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-            (Bertie.Tls13utils.impl__Bytes__declassify ikm
-              <:
-              Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-        in
-        let hoist25:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist24 in
-        Core.Result.Result_Ok hoist25 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      <:
-      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-
-let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
-    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist27:Libcrux.Hmac.t_Algorithm =
-        match
-          Core.Ops.Try_trait.f_branch (impl__HashAlgorithm__hmac_algorithm alg
-              <:
-              Core.Result.t_Result Libcrux.Hmac.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
           let* hoist26:Rust_primitives.Hax.t_Never =
@@ -1092,6 +1052,46 @@ let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
           Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist26)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Libcrux.Hkdf.t_Algorithm
+        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+          Core.Ops.Control_flow.ControlFlow_Continue v_val
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            Libcrux.Hkdf.t_Algorithm
+      in
+      Core.Ops.Control_flow.ControlFlow_Continue
+      (let hoist28:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Libcrux.Hkdf.extract hoist27
+            (Bertie.Tls13utils.impl__Bytes__declassify salt
+              <:
+              Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+            (Bertie.Tls13utils.impl__Bytes__declassify ikm
+              <:
+              Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+        in
+        let hoist29:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist28 in
+        Core.Result.Result_Ok hoist29 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      <:
+      Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+
+let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
+    : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist31:Libcrux.Hmac.t_Algorithm =
+        match
+          Core.Ops.Try_trait.f_branch (impl__HashAlgorithm__hmac_algorithm alg
+              <:
+              Core.Result.t_Result Libcrux.Hmac.t_Algorithm u8)
+        with
+        | Core.Ops.Control_flow.ControlFlow_Break residual ->
+          let* hoist30:Rust_primitives.Hax.t_Never =
+            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          in
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist30)
+          <:
+          Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Hmac.t_Algorithm
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
           Core.Ops.Control_flow.ControlFlow_Continue v_val
@@ -1100,8 +1100,8 @@ let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
             Libcrux.Hmac.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist28:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-          Libcrux.Hmac.hmac hoist27
+      (let hoist32:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+          Libcrux.Hmac.hmac hoist31
             (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify mk
                   <:
                   Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1114,8 +1114,8 @@ let hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
               t_Slice u8)
             (Core.Option.Option_None <: Core.Option.t_Option usize)
         in
-        let hoist29:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist28 in
-        Core.Result.Result_Ok hoist29 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        let hoist33:Bertie.Tls13utils.t_Bytes = Core.Convert.f_into hoist32 in
+        Core.Result.Result_Ok hoist33 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       <:
       Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
@@ -1155,12 +1155,12 @@ let impl__Algorithms__check (self: t_Algorithms) (bytes: t_Slice Bertie.Tls13uti
               Core.Result.t_Result usize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist33:Rust_primitives.Hax.t_Never =
+          let* hoist37:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist33)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist37)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) usize
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -1175,12 +1175,12 @@ let impl__Algorithms__check (self: t_Algorithms) (bytes: t_Slice Bertie.Tls13uti
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist34:Rust_primitives.Hax.t_Never =
+          let* hoist38:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist34)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist38)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8)
             Bertie.Tls13utils.t_Bytes
@@ -1206,12 +1206,12 @@ let impl__Algorithms__check (self: t_Algorithms) (bytes: t_Slice Bertie.Tls13uti
               Core.Result.t_Result Prims.unit u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist35:Rust_primitives.Hax.t_Never =
+          let* hoist39:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result usize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist35)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist39)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result usize u8) Prims.unit
         | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
@@ -1278,14 +1278,14 @@ let sign
         Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
         match algorithm with
         | SignatureScheme_EcdsaSecp256r1Sha256  ->
-          let* hoist52:Libcrux.Signature.t_Algorithm =
+          let* hoist69:Libcrux.Signature.t_Algorithm =
             match
               Core.Ops.Try_trait.f_branch (impl__SignatureScheme__libcrux_scheme algorithm
                   <:
                   Core.Result.t_Result Libcrux.Signature.t_Algorithm u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist51:Rust_primitives.Hax.t_Never =
+              let* hoist68:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                     (Core.Ops.Try_trait.f_from_residual residual
                       <:
@@ -1293,7 +1293,7 @@ let sign
                     <:
                     (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist51)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist68)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1308,7 +1308,7 @@ let sign
           Core.Ops.Control_flow.ControlFlow_Continue
           (let tmp0, out:(impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
-              Libcrux.Signature.sign hoist52
+              Libcrux.Signature.sign hoist69
                 (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify input
                       <:
                       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1332,14 +1332,14 @@ let sign
             (impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error)
         | SignatureScheme_ED25519  ->
-          let* hoist54:Libcrux.Signature.t_Algorithm =
+          let* hoist71:Libcrux.Signature.t_Algorithm =
             match
               Core.Ops.Try_trait.f_branch (impl__SignatureScheme__libcrux_scheme algorithm
                   <:
                   Core.Result.t_Result Libcrux.Signature.t_Algorithm u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist53:Rust_primitives.Hax.t_Never =
+              let* hoist70:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                     (Core.Ops.Try_trait.f_from_residual residual
                       <:
@@ -1347,7 +1347,7 @@ let sign
                     <:
                     (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist53)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist70)
               <:
               Core.Ops.Control_flow.t_ControlFlow
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1362,7 +1362,7 @@ let sign
           Core.Ops.Control_flow.ControlFlow_Continue
           (let tmp0, out:(impl_916461611_ &
               Core.Result.t_Result Libcrux.Signature.t_Signature Libcrux.Signature.t_Error) =
-              Libcrux.Signature.sign hoist54
+              Libcrux.Signature.sign hoist71
                 (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify input
                       <:
                       Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -1500,13 +1500,13 @@ let supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
             (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
             Libcrux.Signature.Rsa_pss.t_RsaPssKeySize
         | _ ->
-          let* hoist55:Rust_primitives.Hax.t_Never =
+          let* hoist99:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
 
                 <:
                 Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist55)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist99)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
@@ -1544,7 +1544,7 @@ let sign_rsa
             | SignatureScheme_RsaPssRsaSha256  -> true
             | _ -> false)
         then
-          let* hoist56:Rust_primitives.Hax.t_Never =
+          let* hoist100:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR
                   <:
@@ -1552,7 +1552,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist56)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist100)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
@@ -1570,7 +1570,7 @@ let sign_rsa
             <:
             bool)
         then
-          let* hoist57:Rust_primitives.Hax.t_Never =
+          let* hoist101:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
                   <:
@@ -1578,7 +1578,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist57)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist101)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.unit
@@ -1595,7 +1595,7 @@ let sign_rsa
               Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist58:Rust_primitives.Hax.t_Never =
+          let* hoist102:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1603,7 +1603,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist58)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist102)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1636,7 +1636,7 @@ let sign_rsa
               Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist59:Rust_primitives.Hax.t_Never =
+          let* hoist103:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1644,7 +1644,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist59)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist103)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1675,7 +1675,7 @@ let sign_rsa
               Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssPrivateKey u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist60:Rust_primitives.Hax.t_Never =
+          let* hoist104:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1683,7 +1683,7 @@ let sign_rsa
                 <:
                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist60)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist104)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -1749,14 +1749,14 @@ let kem_keygen
       (rng: impl_916461611_)
     : (impl_916461611_ &
       Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist62:Libcrux.Kem.t_Algorithm =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist106:Libcrux.Kem.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
               <:
               Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist61:Rust_primitives.Hax.t_Never =
+          let* hoist105:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1765,7 +1765,7 @@ let kem_keygen
                 (impl_916461611_ &
                   Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist61)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist105)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ &
@@ -1783,7 +1783,7 @@ let kem_keygen
       (let tmp0, out:(impl_916461611_ &
           Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
             Libcrux.Kem.t_Error) =
-          Libcrux.Kem.key_gen hoist62 rng
+          Libcrux.Kem.key_gen hoist106 rng
         in
         let rng:impl_916461611_ = tmp0 in
         let res:Core.Result.t_Result (Libcrux.Kem.t_PrivateKey & Libcrux.Kem.t_PublicKey)
@@ -1875,12 +1875,12 @@ let kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
               Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist64:Rust_primitives.Hax.t_Never =
+          let* hoist125:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist64)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist125)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Kem.t_Algorithm
@@ -1943,14 +1943,14 @@ let kem_encap
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (let pk:Bertie.Tls13utils.t_Bytes =
         into_raw alg (Core.Clone.f_clone pk <: Bertie.Tls13utils.t_Bytes)
       in
-      let* hoist66:Libcrux.Kem.t_Algorithm =
+      let* hoist127:Libcrux.Kem.t_Algorithm =
         match
           Core.Ops.Try_trait.f_branch (impl__KemScheme__libcrux_algorithm alg
               <:
               Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist65:Rust_primitives.Hax.t_Never =
+          let* hoist126:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (rng,
                 (Core.Ops.Try_trait.f_from_residual residual
                   <:
@@ -1959,7 +1959,7 @@ let kem_encap
                 (impl_916461611_ &
                   Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist65)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist126)
           <:
           Core.Ops.Control_flow.t_ControlFlow
             (impl_916461611_ &
@@ -1974,15 +1974,15 @@ let kem_encap
             Libcrux.Kem.t_Algorithm
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist67:Core.Result.t_Result Libcrux.Kem.t_PublicKey Libcrux.Kem.t_Error =
-          Libcrux.Kem.impl__PublicKey__decode hoist66
+      (let hoist128:Core.Result.t_Result Libcrux.Kem.t_PublicKey Libcrux.Kem.t_Error =
+          Libcrux.Kem.impl__PublicKey__decode hoist127
             (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify pk
                   <:
                   Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
               <:
               t_Slice u8)
         in
-        let pk:Libcrux.Kem.t_PublicKey = Core.Result.impl__unwrap hoist67 in
+        let pk:Libcrux.Kem.t_PublicKey = Core.Result.impl__unwrap hoist128 in
         let tmp0, out:(impl_916461611_ &
           Core.Result.t_Result (Libcrux.Kem.t_Ss & Libcrux.Kem.t_Ct) Libcrux.Kem.t_Error) =
           Libcrux.Kem.encapsulate pk rng
@@ -2035,19 +2035,19 @@ let zero_key (alg: t_HashAlgorithm) : Bertie.Tls13utils.t_Bytes =
 
 let hmac_verify (alg: t_HashAlgorithm) (mk input tag: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Prims.unit u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist247:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist243:Bertie.Tls13utils.t_Bytes =
         match
           Core.Ops.Try_trait.f_branch (hmac_tag alg mk input
               <:
               Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist246:Rust_primitives.Hax.t_Never =
+          let* hoist242:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Prims.unit u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist246)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist242)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
             Bertie.Tls13utils.t_Bytes
@@ -2058,8 +2058,8 @@ let hmac_verify (alg: t_HashAlgorithm) (mk input tag: Bertie.Tls13utils.t_Bytes)
             Bertie.Tls13utils.t_Bytes
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist248:bool = Bertie.Tls13utils.eq hoist247 tag in
-        if hoist248
+      (let hoist244:bool = Bertie.Tls13utils.eq hoist243 tag in
+        if hoist244
         then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
         else Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_CRYPTO_ERROR)
       <:
@@ -2074,6 +2074,76 @@ type t_AeadKey = {
 let impl__AeadKey__as_libcrux_key (self: t_AeadKey) : Core.Result.t_Result Libcrux.Aead.t_Key u8 =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (match self.f_alg with
       | AeadAlgorithm_Chacha20Poly1305  ->
+        let* hoist247:t_Array u8 (sz 32) =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 32)
+                  self.f_bytes
+                <:
+                Core.Result.t_Result (t_Array u8 (sz 32)) u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist246:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Libcrux.Aead.t_Key u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist246)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+              (t_Array u8 (sz 32))
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+              (t_Array u8 (sz 32))
+        in
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (let hoist248:Libcrux.Aead.t_Chacha20Key =
+            Libcrux.Aead.Chacha20Key hoist247 <: Libcrux.Aead.t_Chacha20Key
+          in
+          let hoist249:Libcrux.Aead.t_Key =
+            Libcrux.Aead.Key_Chacha20Poly1305 hoist248 <: Libcrux.Aead.t_Key
+          in
+          Core.Result.Result_Ok hoist249 <: Core.Result.t_Result Libcrux.Aead.t_Key u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+          (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+      | AeadAlgorithm_Aes128Gcm  ->
+        let* hoist251:t_Array u8 (sz 16) =
+          match
+            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 16)
+                  self.f_bytes
+                <:
+                Core.Result.t_Result (t_Array u8 (sz 16)) u8)
+          with
+          | Core.Ops.Control_flow.ControlFlow_Break residual ->
+            let* hoist250:Rust_primitives.Hax.t_Never =
+              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  <:
+                  Core.Result.t_Result Libcrux.Aead.t_Key u8)
+            in
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist250)
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+              (t_Array u8 (sz 16))
+          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
+            Core.Ops.Control_flow.ControlFlow_Continue v_val
+            <:
+            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+              (t_Array u8 (sz 16))
+        in
+        Core.Ops.Control_flow.ControlFlow_Continue
+        (let hoist252:Libcrux.Aead.t_Aes128Key =
+            Libcrux.Aead.Aes128Key hoist251 <: Libcrux.Aead.t_Aes128Key
+          in
+          let hoist253:Libcrux.Aead.t_Key =
+            Libcrux.Aead.Key_Aes128 hoist252 <: Libcrux.Aead.t_Key
+          in
+          Core.Result.Result_Ok hoist253 <: Core.Result.t_Result Libcrux.Aead.t_Key u8)
+        <:
+        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+          (Core.Result.t_Result Libcrux.Aead.t_Key u8)
+      | AeadAlgorithm_Aes256Gcm  ->
         let* hoist255:t_Array u8 (sz 32) =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 32)
@@ -2098,83 +2168,13 @@ let impl__AeadKey__as_libcrux_key (self: t_AeadKey) : Core.Result.t_Result Libcr
               (t_Array u8 (sz 32))
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist256:Libcrux.Aead.t_Chacha20Key =
-            Libcrux.Aead.Chacha20Key hoist255 <: Libcrux.Aead.t_Chacha20Key
+        (let hoist256:Libcrux.Aead.t_Aes256Key =
+            Libcrux.Aead.Aes256Key hoist255 <: Libcrux.Aead.t_Aes256Key
           in
           let hoist257:Libcrux.Aead.t_Key =
-            Libcrux.Aead.Key_Chacha20Poly1305 hoist256 <: Libcrux.Aead.t_Key
+            Libcrux.Aead.Key_Aes256 hoist256 <: Libcrux.Aead.t_Key
           in
           Core.Result.Result_Ok hoist257 <: Core.Result.t_Result Libcrux.Aead.t_Key u8)
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-          (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-      | AeadAlgorithm_Aes128Gcm  ->
-        let* hoist259:t_Array u8 (sz 16) =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 16)
-                  self.f_bytes
-                <:
-                Core.Result.t_Result (t_Array u8 (sz 16)) u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist258:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Libcrux.Aead.t_Key u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist258)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-              (t_Array u8 (sz 16))
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-              (t_Array u8 (sz 16))
-        in
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist260:Libcrux.Aead.t_Aes128Key =
-            Libcrux.Aead.Aes128Key hoist259 <: Libcrux.Aead.t_Aes128Key
-          in
-          let hoist261:Libcrux.Aead.t_Key =
-            Libcrux.Aead.Key_Aes128 hoist260 <: Libcrux.Aead.t_Key
-          in
-          Core.Result.Result_Ok hoist261 <: Core.Result.t_Result Libcrux.Aead.t_Key u8)
-        <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-          (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-      | AeadAlgorithm_Aes256Gcm  ->
-        let* hoist263:t_Array u8 (sz 32) =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 32)
-                  self.f_bytes
-                <:
-                Core.Result.t_Result (t_Array u8 (sz 32)) u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist262:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Libcrux.Aead.t_Key u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist262)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-              (t_Array u8 (sz 32))
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
-              (t_Array u8 (sz 32))
-        in
-        Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist264:Libcrux.Aead.t_Aes256Key =
-            Libcrux.Aead.Aes256Key hoist263 <: Libcrux.Aead.t_Aes256Key
-          in
-          let hoist265:Libcrux.Aead.t_Key =
-            Libcrux.Aead.Key_Aes256 hoist264 <: Libcrux.Aead.t_Key
-          in
-          Core.Result.Result_Ok hoist265 <: Core.Result.t_Result Libcrux.Aead.t_Key u8)
         <:
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Libcrux.Aead.t_Key u8)
           (Core.Result.t_Result Libcrux.Aead.t_Key u8))
@@ -2210,12 +2210,12 @@ let aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
               Core.Result.t_Result (t_Array u8 (sz 16)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist274:Rust_primitives.Hax.t_Never =
+          let* hoist266:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist274)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist266)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             (t_Array u8 (sz 16))
@@ -2225,19 +2225,19 @@ let aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             (t_Array u8 (sz 16))
       in
-      let* hoist279:Libcrux.Aead.t_Key =
+      let* hoist271:Libcrux.Aead.t_Key =
         match
           Core.Ops.Try_trait.f_branch (impl__AeadKey__as_libcrux_key k
               <:
               Core.Result.t_Result Libcrux.Aead.t_Key u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist275:Rust_primitives.Hax.t_Never =
+          let* hoist267:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist275)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist267)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Aead.t_Key
@@ -2247,19 +2247,19 @@ let aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Aead.t_Key
       in
-      let* hoist277:t_Array u8 (sz 12) =
+      let* hoist269:t_Array u8 (sz 12) =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 12) iv
               <:
               Core.Result.t_Result (t_Array u8 (sz 12)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist276:Rust_primitives.Hax.t_Never =
+          let* hoist268:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist276)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist268)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             (t_Array u8 (sz 12))
@@ -2270,14 +2270,14 @@ let aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
             (t_Array u8 (sz 12))
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist278:Libcrux.Aead.t_Iv = Libcrux.Aead.Iv hoist277 <: Libcrux.Aead.t_Iv in
+      (let hoist270:Libcrux.Aead.t_Iv = Libcrux.Aead.Iv hoist269 <: Libcrux.Aead.t_Iv in
         let plain:Core.Result.t_Result (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
           Libcrux.Aead.t_Error =
-          Libcrux.Aead.decrypt_detached hoist279
+          Libcrux.Aead.decrypt_detached hoist271
             (Bertie.Tls13utils.impl__Bytes__declassify cip
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-            hoist278
+            hoist270
             (Bertie.Tls13utils.impl__Bytes__declassify aad
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -2295,19 +2295,19 @@ let aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
 
 let aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist284:Libcrux.Aead.t_Key =
+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* hoist276:Libcrux.Aead.t_Key =
         match
           Core.Ops.Try_trait.f_branch (impl__AeadKey__as_libcrux_key k
               <:
               Core.Result.t_Result Libcrux.Aead.t_Key u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist280:Rust_primitives.Hax.t_Never =
+          let* hoist272:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist280)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist272)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Aead.t_Key
@@ -2317,19 +2317,19 @@ let aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             Libcrux.Aead.t_Key
       in
-      let* hoist282:t_Array u8 (sz 12) =
+      let* hoist274:t_Array u8 (sz 12) =
         match
           Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 12) iv
               <:
               Core.Result.t_Result (t_Array u8 (sz 12)) u8)
         with
         | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist281:Rust_primitives.Hax.t_Never =
+          let* hoist273:Rust_primitives.Hax.t_Never =
             Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                 <:
                 Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist281)
+          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist273)
           <:
           Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             (t_Array u8 (sz 12))
@@ -2340,14 +2340,14 @@ let aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
             (t_Array u8 (sz 12))
       in
       Core.Ops.Control_flow.ControlFlow_Continue
-      (let hoist283:Libcrux.Aead.t_Iv = Libcrux.Aead.Iv hoist282 <: Libcrux.Aead.t_Iv in
+      (let hoist275:Libcrux.Aead.t_Iv = Libcrux.Aead.Iv hoist274 <: Libcrux.Aead.t_Iv in
         let res:Core.Result.t_Result (Libcrux.Aead.t_Tag & Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
           Libcrux.Aead.t_Error =
-          Libcrux.Aead.encrypt_detached hoist284
+          Libcrux.Aead.encrypt_detached hoist276
             (Bertie.Tls13utils.impl__Bytes__declassify plain
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-            hoist283
+            hoist275
             (Bertie.Tls13utils.impl__Bytes__declassify aad
               <:
               Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -2377,19 +2377,19 @@ let verify
         alg, pk <: (t_SignatureScheme & t_PublicVerificationKey)
       with
       | SignatureScheme_ED25519 , PublicVerificationKey_EcDsa pk ->
-        let* hoist286:t_Array u8 (sz 64) =
+        let* hoist278:t_Array u8 (sz 64) =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 64) sig
                 <:
                 Core.Result.t_Result (t_Array u8 (sz 64)) u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist285:Rust_primitives.Hax.t_Never =
+            let* hoist277:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Prims.unit u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist285)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist277)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
               (t_Array u8 (sz 64))
@@ -2400,11 +2400,11 @@ let verify
               (t_Array u8 (sz 64))
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist287:Libcrux.Signature.t_Ed25519Signature =
-            Libcrux.Signature.impl__Ed25519Signature__from_bytes hoist286
+        (let hoist279:Libcrux.Signature.t_Ed25519Signature =
+            Libcrux.Signature.impl__Ed25519Signature__from_bytes hoist278
           in
-          let hoist288:Libcrux.Signature.t_Signature =
-            Libcrux.Signature.Signature_Ed25519 hoist287 <: Libcrux.Signature.t_Signature
+          let hoist280:Libcrux.Signature.t_Signature =
+            Libcrux.Signature.Signature_Ed25519 hoist279 <: Libcrux.Signature.t_Signature
           in
           let res:Core.Result.t_Result Prims.unit Libcrux.Signature.t_Error =
             Libcrux.Signature.verify (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify
@@ -2413,7 +2413,7 @@ let verify
                     Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
                 <:
                 t_Slice u8)
-              hoist288
+              hoist280
               (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify pk
                     <:
                     Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -2429,19 +2429,19 @@ let verify
         Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
           (Core.Result.t_Result Prims.unit u8)
       | SignatureScheme_EcdsaSecp256r1Sha256 , PublicVerificationKey_EcDsa pk ->
-        let* hoist290:t_Array u8 (sz 64) =
+        let* hoist282:t_Array u8 (sz 64) =
           match
             Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.impl__Bytes__declassify_array (sz 64) sig
                 <:
                 Core.Result.t_Result (t_Array u8 (sz 64)) u8)
           with
           | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist289:Rust_primitives.Hax.t_Never =
+            let* hoist281:Rust_primitives.Hax.t_Never =
               Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
                   <:
                   Core.Result.t_Result Prims.unit u8)
             in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist289)
+            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist281)
             <:
             Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
               (t_Array u8 (sz 64))
@@ -2452,15 +2452,15 @@ let verify
               (t_Array u8 (sz 64))
         in
         Core.Ops.Control_flow.ControlFlow_Continue
-        (let hoist291:Libcrux.Signature.t_EcDsaP256Signature =
-            Libcrux.Signature.impl__EcDsaP256Signature__from_bytes hoist290
+        (let hoist283:Libcrux.Signature.t_EcDsaP256Signature =
+            Libcrux.Signature.impl__EcDsaP256Signature__from_bytes hoist282
               (Libcrux.Signature.Algorithm_EcDsaP256
                 (Libcrux.Signature.DigestAlgorithm_Sha256 <: Libcrux.Signature.t_DigestAlgorithm)
                 <:
                 Libcrux.Signature.t_Algorithm)
           in
-          let hoist292:Libcrux.Signature.t_Signature =
-            Libcrux.Signature.Signature_EcDsaP256 hoist291 <: Libcrux.Signature.t_Signature
+          let hoist284:Libcrux.Signature.t_Signature =
+            Libcrux.Signature.Signature_EcDsaP256 hoist283 <: Libcrux.Signature.t_Signature
           in
           let res:Core.Result.t_Result Prims.unit Libcrux.Signature.t_Error =
             Libcrux.Signature.verify (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify
@@ -2469,7 +2469,7 @@ let verify
                     Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
                 <:
                 t_Slice u8)
-              hoist292
+              hoist284
               (Core.Ops.Deref.f_deref (Bertie.Tls13utils.impl__Bytes__declassify pk
                     <:
                     Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -2510,13 +2510,13 @@ let verify
                   Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist293:Rust_primitives.Hax.t_Never =
+              let* hoist285:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result Prims.unit u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist293)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist285)
               <:
               Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
                 Libcrux.Signature.Rsa_pss.t_RsaPssKeySize
@@ -2549,13 +2549,13 @@ let verify
                   Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey u8)
             with
             | Core.Ops.Control_flow.ControlFlow_Break residual ->
-              let* hoist294:Rust_primitives.Hax.t_Never =
+              let* hoist286:Rust_primitives.Hax.t_Never =
                 Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
 
                     <:
                     Core.Result.t_Result Prims.unit u8)
               in
-              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist294)
+              Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist286)
               <:
               Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Prims.unit u8)
                 Libcrux.Signature.Rsa_pss.t_RsaPssPublicKey
