@@ -665,7 +665,7 @@ pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 3
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
-pub(crate) fn length_u24_encoded(bytes: &Bytes) -> Result<usize, TLSError> {
+pub(crate) fn length_u24_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.len() < 3 {
         Err(parse_failed())
     } else {
@@ -720,7 +720,7 @@ pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
-pub(crate) fn check_length_encoding_u24(bytes: &Bytes) -> Result<(), TLSError> {
+pub(crate) fn check_length_encoding_u24(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u24_encoded(bytes)? + 3 != bytes.len() {
         Err(parse_failed())
     } else {

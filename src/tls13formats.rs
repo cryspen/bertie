@@ -95,8 +95,8 @@ fn server_supported_version(_algorithms: &Algorithms) -> Result<Bytes, TLSError>
     Ok(encode_length_u16(bytes2(3, 4))?.prefix(SUPPORTED_VERSION_PREFIX))
 }
 
-fn check_server_supported_version(_algs: &Algorithms, b: &Bytes) -> Result<(), TLSError> {
-    check_eq_slice(&[U8(3), U8(4)], b.as_raw())
+fn check_server_supported_version(_algs: &Algorithms, b: &[U8]) -> Result<(), TLSError> {
+    check_eq_slice(&[U8(3), U8(4)], b)
 }
 
 fn supported_groups(algs: &Algorithms) -> Result<Bytes, TLSError> {
@@ -161,10 +161,11 @@ fn server_key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(bytes2(0, 0x33).concat(encode_length_u16(ks)?))
 }
 
-fn check_server_key_share(algs: &Algorithms, b: &Bytes) -> Result<Bytes, TLSError> {
-    check_eq(&algs.supported_group()?, &b.slice_range(0..2))?;
-    check_length_encoding_u16(&b.slice_range(2..b.len()))?;
-    Ok(b.slice_range(4..b.len()))
+fn check_server_key_share(algs: &Algorithms, b: &[U8]) -> Result<Bytes, TLSError> {
+    check_eq_slice(algs.supported_group()?.as_raw(), &b[0..2])?;
+    check_length_encoding_u16_slice(&b[2..b.len()])?;
+    // XXX Performance: These conversions aren't necessary. A slice would suffice.
+    Ok(Bytes::from(&b[4..b.len()]))
 }
 
 fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, usize), TLSError> {
@@ -197,8 +198,8 @@ fn server_pre_shared_key(_algs: &Algorithms) -> Result<Bytes, TLSError> {
     Ok(bytes2(0, 41).concat(encode_length_u16(bytes2(0, 0))?))
 }
 
-fn check_server_psk_shared_key(_algs: &Algorithms, b: &Bytes) -> Result<(), TLSError> {
-    check_eq(&bytes2(0, 0), b)
+fn check_server_psk_shared_key(_algs: &Algorithms, b: &[U8]) -> Result<(), TLSError> {
+    check_eq_slice(&[U8(0), U8(0)], b)
 }
 
 /// TLS Extensions
@@ -290,21 +291,18 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
     }
 }
 
-fn check_server_extension(
-    algs: &Algorithms,
-    b: &Bytes,
-) -> Result<(usize, Option<Bytes>), TLSError> {
+fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<Bytes>), TLSError> {
     let l0 = b[0].declassify() as usize;
     let l1 = b[1].declassify() as usize;
     let len = length_u16_encoded(&b[2..b.len()])?;
     let mut out = None;
     match (l0 as u8, l1 as u8) {
-        (0, 0x2b) => check_server_supported_version(algs, &b.slice_range(4..4 + len))?,
+        (0, 0x2b) => check_server_supported_version(algs, &b[4..4 + len])?,
         (0, 0x33) => {
-            let gx = check_server_key_share(algs, &b.slice_range(4..4 + len))?;
+            let gx = check_server_key_share(algs, &b[4..4 + len])?;
             out = Some(gx)
         }
-        (0, 41) => check_server_psk_shared_key(algs, &b.slice_range(4..4 + len))?,
+        (0, 41) => check_server_psk_shared_key(algs, &b[4..4 + len])?,
         _ => (),
     }
     Ok((4 + len, out))
@@ -331,12 +329,12 @@ fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError
     }
 }
 
-fn check_server_extensions(algs: &Algorithms, b: &Bytes) -> Result<Option<Bytes>, TLSError> {
+fn check_server_extensions(algs: &Algorithms, b: &[U8]) -> Result<Option<Bytes>, TLSError> {
     let (len, out) = check_server_extension(algs, b)?;
     if len == b.len() {
         Ok(out)
     } else {
-        let out_rest = check_server_extensions(algs, &b.slice_range(len..b.len()))?;
+        let out_rest = check_server_extensions(algs, &b[len..b.len()])?;
         merge_opts(out, out_rest)
     }
 }
@@ -722,6 +720,14 @@ fn invalid_compression_method_alert() -> Result<(), TLSError> {
     tlserr(DECODE_ERROR)
 }
 
+#[cfg(bench)]
+pub fn bench_parse_server_hello(
+    algs: &Algorithms,
+    server_hello: &HandshakeData,
+) -> Result<(Random, KemPk), TLSError> {
+    parse_server_hello(algs, server_hello)
+}
+
 pub(crate) fn parse_server_hello(
     algs: &Algorithms,
     server_hello: &HandshakeData,
@@ -753,7 +759,7 @@ pub(crate) fn parse_server_hello(
     next += 1;
     check_length_encoding_u16(&server_hello.slice_range(next..server_hello.len()))?;
     next += 2;
-    let gy = check_server_extensions(algs, &server_hello.slice_range(next..server_hello.len()))?;
+    let gy = check_server_extensions(algs, &server_hello[next..server_hello.len()])?;
     if let Some(gy) = gy {
         Ok((srand, gy))
     } else {
@@ -779,7 +785,7 @@ pub(crate) fn parse_encrypted_extensions(
         &encrypted_extension_bytes.slice_range(0..1),
     )?;
     check_length_encoding_u24(
-        &encrypted_extension_bytes.slice_range(1..encrypted_extension_bytes.len()),
+        encrypted_extension_bytes.raw_slice(1..encrypted_extension_bytes.len()),
     )
 }
 
@@ -794,17 +800,19 @@ pub(crate) fn server_certificate(
     HandshakeData::from_bytes(HandshakeType::Certificate, &creq.concat(crts))
 }
 
-pub(crate) fn parse_server_certificate(
-    _algs: &Algorithms,
-    certificate: &HandshakeData,
-) -> Result<Bytes, TLSError> {
+#[cfg(bench)]
+pub fn bench_parse_server_certificate(certificate: &HandshakeData) -> Result<Bytes, TLSError> {
+    parse_server_certificate(certificate)
+}
+
+pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(sc) = certificate.as_handshake_message(HandshakeType::Certificate)?;
     let mut next = 0;
     let creqlen = length_u8_encoded(&sc[4..sc.len()])?;
     next = next + 1 + creqlen;
-    check_length_encoding_u24(&sc.slice_range(next..sc.len()))?;
+    check_length_encoding_u24(sc.raw_slice(next..sc.len()))?;
     next += 3;
-    let crtlen = length_u24_encoded(&sc.slice_range(next..sc.len()))?;
+    let crtlen = length_u24_encoded(sc.raw_slice(next..sc.len()))?;
     next += 3;
     let crt = sc.slice_range(next..next + crtlen);
     next += crtlen;

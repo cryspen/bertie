@@ -116,6 +116,14 @@ and make `Bytes::concat` owning, such that it does not need to allocate new memo
 Changing the way extensions are checked to perform fewer copies brought down
 the time spend in `check_extensions` from 74% to 41% of the client hello parsing time.
 
+##### Parsing Server Hello
+
+Similarly to the improvements when parsing client hellos, parsing server hellos benefits from the same improvements when checking extension.
+
+##### Parsing Server Certificate
+
+Performance of parsing the server certificate can be improved by 50% by avoiding `slice_range` (copying memory into `Bytes`) and using raw slices instead.
+
 ## Comparison
 
 We compare with [Rustls](https://github.com/rustls/rustls) as it is the most popular

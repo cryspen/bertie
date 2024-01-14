@@ -119,7 +119,7 @@ impl HandshakeData {
         if (self.len()) < 4 {
             tlserr(parse_failed())
         } else {
-            let len = length_u24_encoded(&self.0.slice_range(1..self.0.len()))?;
+            let len = length_u24_encoded(self.0.raw_slice(1..self.0.len()))?;
             let message = self.0.slice_range(0..4 + len);
             let rest = self.0.slice_range(4 + len..self.0.len());
             Ok((HandshakeData(message), HandshakeData(rest)))
@@ -172,7 +172,7 @@ impl HandshakeData {
         if (self.len()) < start + 4 {
             false
         } else {
-            match length_u24_encoded(&self.0.slice_range(start + 1..self.0.len())) {
+            match length_u24_encoded(self.0.raw_slice(start + 1..self.0.len())) {
                 Err(_) => false,
                 Ok(len) => {
                     if eq1(self.0[start], U8(handshake_type as u8)) {
