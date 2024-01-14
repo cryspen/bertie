@@ -41,15 +41,15 @@ fn mb_per_second(d: Duration) -> f64 {
 
 const ITERATIONS: usize = 1000;
 const NUM_PAYLOAD_BYTES: usize = 0x4000;
-const CIPHERSUITES: [Algorithms; 1] = [
+const CIPHERSUITES: [Algorithms; 4] = [
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
     // SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
     // SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
-    // SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
+    SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
     SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
-    // SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
-    // SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
+    SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
+    SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
     // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
     // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,
     // SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
@@ -187,10 +187,8 @@ fn protocol() {
                 Server::accept(ciphersuite, db.clone(), &client_hello, &mut rng).unwrap();
 
             let start_time = Instant::now();
-            let (_client_msg, client) = client.read_handshake(&Bytes::from(server_hello)).unwrap();
-            let (client_msg, client) = client
-                .read_handshake(&Bytes::from(server_finished))
-                .unwrap();
+            let (_client_msg, client) = client.read_handshake(&server_hello).unwrap();
+            let (client_msg, client) = client.read_handshake(&server_finished).unwrap();
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
 
@@ -220,12 +218,12 @@ fn protocol() {
 }
 
 fn main() {
-    // protocol();
+    protocol();
 
     #[cfg(bench)]
     {
-        // client_hello();
-        // parse_server_hello();
+        client_hello();
+        parse_server_hello();
         parse_server_certificate();
     }
 }
