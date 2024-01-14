@@ -417,7 +417,7 @@ fn test_parse_encrypted_extensions() {
 #[test]
 fn test_parse_server_certificate() {
     let sc = HandshakeData::from(Bytes::from_hex(server_certificate));
-    let res = parse_server_certificate(&TLS_AES_128_GCM_SHA256_X25519_RSA, &sc);
+    let res = parse_server_certificate(&sc);
     let b = res.is_ok();
     match res {
         Err(x) => {

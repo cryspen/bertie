@@ -362,7 +362,7 @@ fn put_server_signature(
     if !algorithms.psk_mode() {
         parse_encrypted_extensions(&algorithms, encrypted_extensions)?;
         let transcript = transcript.add(encrypted_extensions);
-        let certificate = parse_server_certificate(&algorithms, server_certificate)?;
+        let certificate = parse_server_certificate(server_certificate)?;
         let transcript = transcript.add(server_certificate);
         let transcript_hash_server_certificate = transcript.transcript_hash()?;
         let spki = verification_key_from_cert(&certificate)?;
