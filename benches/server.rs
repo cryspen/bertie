@@ -86,7 +86,7 @@ af 2c 00 2b 00 03 02 03 04 00 0d 00 20 00 1e 04 03 05 03 06 03
 }
 
 fn main() {
-    // protocol();
+    protocol();
 
     #[cfg(bench)]
     {
@@ -130,10 +130,8 @@ fn protocol() {
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
 
-            let (_client_msg, client) = client.read_handshake(&Bytes::from(server_hello)).unwrap();
-            let (client_msg, client) = client
-                .read_handshake(&Bytes::from(server_finished))
-                .unwrap();
+            let (_client_msg, client) = client.read_handshake(&server_hello).unwrap();
+            let (client_msg, client) = client.read_handshake(&server_finished).unwrap();
 
             let start_time = Instant::now();
             let server = server.read_handshake(&client_msg.unwrap()).unwrap();

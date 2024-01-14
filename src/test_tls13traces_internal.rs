@@ -279,7 +279,7 @@ fn test_parse_client_hello() {
 #[test]
 fn test_parse_client_hello_record() {
     let mut ch: Bytes = Bytes::from_hex(client_hello_record);
-    ch[2] = 3.into();
+    ch[2] = U8(3);
     //   let default_algs = Algorithms(SHA256,CHACHA20_POLY1305,ECDSA_SECP256R1_SHA256,X25519,false,false);
     let mut b = true;
     match check_handshake_record(&ch) {
@@ -370,7 +370,7 @@ fn test_parse_server_hello_length_zero() {
 fn test_parse_server_hello_roundtrip() {
     let sr: Random = Random::new();
     let mut sid = Bytes::zeroes(24);
-    sid[0] = 255.into();
+    sid[0] = U8(255);
     let gy = Bytes::from_hex(server_x25519_pub);
     let sh = crate::tls13formats::server_hello(&TLS_AES_128_GCM_SHA256_X25519_RSA, sr, &sid, &gy);
     let mut b = true;
