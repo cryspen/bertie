@@ -21,7 +21,7 @@
 use crate::tls13utils::Declassify;
 use crate::{
     tls13crypto::{PublicVerificationKey, RsaVerificationKey, SignatureScheme, VerificationKey},
-    tls13utils::{Bytes, U32},
+    tls13utils::{u32_from_be_bytes, Bytes, U8},
 };
 
 /// Certificate key start and length within the certificate DER.
@@ -48,9 +48,9 @@ fn long_length(b: &Bytes, offset: usize, len: usize) -> Result<usize, Asn1Error>
     if len > 4 {
         asn1_error(ASN1_SEQUENCE_TOO_LONG)
     } else {
-        let mut u32word: Bytes = Bytes::zeroes(4);
+        let mut u32word = [U8(0); 4];
         u32word[0..len].copy_from_slice(&b[offset..offset + len]);
-        Ok(U32::from_be_bytes(&u32word)?.declassify() as usize >> ((4 - len) * 8))
+        Ok(u32_from_be_bytes(u32word).declassify() as usize >> ((4 - len) * 8))
     }
 }
 

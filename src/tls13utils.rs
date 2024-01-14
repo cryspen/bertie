@@ -78,12 +78,12 @@ impl U8 {
     }
 }
 
-pub(crate) trait Declassify {
-    fn declassify(self) -> u8;
+pub(crate) trait Declassify<T> {
+    fn declassify(self) -> T;
 }
 
 #[cfg(not(feature = "secret_integers"))]
-impl Declassify for u8 {
+impl Declassify<u8> for u8 {
     fn declassify(self) -> u8 {
         self
     }
@@ -125,19 +125,39 @@ impl From<u16> for U16 {
     }
 }
 
+#[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct U32(u32);
+pub struct U32(pub(crate) u32);
 
+#[cfg(feature = "secret_integers")]
 impl From<u32> for U32 {
     fn from(x: u32) -> U32 {
         U32(x)
     }
 }
 
+#[cfg(feature = "secret_integers")]
 impl core::ops::Add for U32 {
     type Output = U32;
     fn add(self, y: U32) -> U32 {
         U32(self.0 + y.0)
+    }
+}
+
+#[cfg(not(feature = "secret_integers"))]
+pub(crate) type U32 = u32;
+
+#[cfg(not(feature = "secret_integers"))]
+#[allow(non_snake_case)]
+pub(crate) const fn U32(x: u32) -> U32 {
+    x
+}
+
+#[cfg(not(feature = "secret_integers"))]
+impl Declassify<u32> for U32 {
+    #[inline(always)]
+    fn declassify(self) -> u32 {
+        self
     }
 }
 
@@ -228,13 +248,8 @@ impl<const C: usize> From<&[u8; C]> for Bytes {
     }
 }
 
+#[cfg(feature = "secret_integers")]
 impl U32 {
-    pub(crate) fn from_be_bytes(x: &Bytes) -> Result<U32, TLSError> {
-        Ok(U32(u32::from_be_bytes(x.declassify_array()?)))
-    }
-    pub(crate) fn as_be_bytes(&self) -> Bytes {
-        (self.0.to_be_bytes().to_vec()).into()
-    }
     pub(crate) fn declassify(&self) -> u32 {
         self.0
     }
@@ -246,6 +261,28 @@ pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
     #[cfg(feature = "secret_integers")]
     let val = val.0.to_be_bytes();
     [U8(val[0]), U8(val[1])]
+}
+
+pub(crate) fn u32_as_be_bytes(val: U32) -> [U8; 4] {
+    #[cfg(not(feature = "secret_integers"))]
+    let val = val.to_be_bytes();
+    #[cfg(feature = "secret_integers")]
+    let val = val.0.to_be_bytes();
+    [U8(val[0]), U8(val[1]), U8(val[2]), U8(val[3])]
+}
+
+pub(crate) fn u32_from_be_bytes(val: [U8; 4]) -> U32 {
+    #[cfg(not(feature = "secret_integers"))]
+    let val = u32::from_be_bytes(val);
+    #[cfg(feature = "secret_integers")]
+    let val = u32::from_be_bytes([
+        val[0].declassify(),
+        val[1].declassify(),
+        val[2].declassify(),
+        val[3].declassify(),
+    ]);
+
+    U32(val)
 }
 
 pub(crate) fn bytes(x: &[u8]) -> Bytes {
@@ -366,6 +403,12 @@ impl Bytes {
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
+        self
+    }
+
+    /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
+    pub fn concat_array<const N: usize>(mut self, other: [U8; N]) -> Bytes {
+        self.0.extend_from_slice(&other);
         self
     }
 
@@ -554,7 +597,7 @@ pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
     if len >= 16777216 {
         Err(PAYLOAD_TOO_LONG)
     } else {
-        let len = U32(len as u32).as_be_bytes();
+        let len = u32_as_be_bytes(U32(len as u32));
         let mut lenb = Bytes::new_alloc(3 + bytes.len());
         lenb.push(len[1]);
         lenb.push(len[2]);
