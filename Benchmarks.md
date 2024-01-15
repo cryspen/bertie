@@ -207,8 +207,6 @@ Performance of parsing the server certificate can be improved by 50% by avoiding
 We compare with [Rustls](https://github.com/rustls/rustls) as it is the most popular
 TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://www.memorysafety.org/blog/rustls-performance/).
 
-- [ ] Note that simd is currently disabled on arm in libcrux.
-
 ### M1 Pro
 
 #### Client
