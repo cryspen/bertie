@@ -20,6 +20,8 @@ Use `perf`, `instruments`, or `samply` for recording performance data.
 
 ## M1 Pro
 
+(Note: libcrux does not support AES-GCM on arm yet.)
+
 ```
 Client
  - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
@@ -137,33 +139,29 @@ The protocol code in Bertie has no measurable impact on the performance.
 
 #### TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1
 
-| Weight | Self weight | Symbol name                            |
-| ------ | ----------- | -------------------------------------- |
-| 20.8%  | 4.81 Gc     | FStar_UInt64_gte_mask                  |
-| 14.1%  | 3.27 Gc     | FStar_UInt64_eq_mask                   |
-| 14.1%  | 3.25 Gc     | bn_mul4                                |
-| 12.5%  | 2.88 Gc     | mont_reduction                         |
-| 10.1%  | 2.33 Gc     | bn_add_mod4                            |
-| 5.4%   | 1.27 Gc     | sha256_update                          |
-| 4.0%   | 934.49 Mc   | fsub0                                  |
-| 3.3%   | 768.91 Mc   | chacha20_encrypt_block                 |
-| 3.2%   | 754.40 Mc   | Hacl_Bignum_Addition_bn_add_eq_len_u64 |
-| 1.5%   | 361.09 Mc   | poly1305_padded_32                     |
-| 0.8%   | 203.45 Mc   | bn_sqr4                                |
+| Weight | Symbol name                            |
+| ------ | -------------------------------------- |
+| 25%    | mont_reduction                         |
+| 22%    | bn_mul4                                |
+| 13%    | sha256_update                          |
+| 3.5%   | bn_sqr4                                |
+| 3.4%   | chacha20_core			  |
+| 2.5%   | qmont_reduction                        |
+| 1.7%   | poly1305_padded_128                    |
+| 1.5%   | memory operations			  |
+
+
 
 #### TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | X25519
 
-| Weight | Self weight | Symbol name                                               |
-| ------ | ----------- | --------------------------------------------------------- |
-| 38.6%  | 27.83 Gc    | Hacl_Bignum_AlmostMontgomery_bn_almost_mont_reduction_u64 |
-| 15.3%  | 11.03 Gc    | FStar_UInt64_gte_mask                                     |
-| 13.2%  | 9.50 Gc     | FStar_UInt64_eq_mask                                      |
-| 9.7%   | 7.04 Gc     | Hacl_Bignum_Addition_bn_add_eq_len_u64                    |
-| 8.4%   | 6.05 Gc     | Hacl_Bignum_Multiplication_bn_sqr_u64                     |
-| 4.7%   | 3.40 Gc     | Hacl_Bignum_Addition_bn_sub_eq_len_u64                    |
-| 3.5%   | 2.52 Gc     | Hacl_Bignum_Karatsuba_bn_karatsuba_mul_uint64             |
-| 2.7%   | 1.97 Gc     | Hacl_Bignum_bn_add_mod_n_u64                              |
-| 0.9%   | 702.17 Mc   | Hacl_Bignum_Karatsuba_bn_karatsuba_sqr_uint64             |
+| Weight | Symbol name                                               |
+| ------ | --------------------------------------------------------- |
+| 64%    | Hacl_Bignum_AlmostMontgomery_bn_almost_mont_reduction_u64 |
+| 16%    | Hacl_Bignum_Multiplication_bn_sqr_u64                     |
+| 7%     | Hacl_Bignum_Karatsuba_bn_karatsuba_mul_uint64             |
+| 6%     | Hacl_Bignum_Karatsuba_bn_karatsuba_sqr_uint64             |
+| 3%     | Hacl_Bignum_bn_add_mod_n_u64                              |
+| 1.4%   | memory operations			  		     |
 
 #### Protocol Performance Analysis
 
