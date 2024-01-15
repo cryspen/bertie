@@ -23,31 +23,111 @@ Use `perf`, `instruments`, or `samply` for recording performance data.
 ```
 Client
  - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
-        Handshake: 1124 μs | 889.5279890515473 /s
-        Application: 57 μs | 271.88892941363173 MB/s
+	Handshake: 353 μs | 2828.1164436220784 /s 
+	Application: 23 μs | 676.7389679421062 MB/s
  - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | X25519:
-        Handshake: 662 μs | 1508.360146446083 /s
-        Application: 52 μs | 295.2477303244078 MB/s
+	Handshake: 248 μs | 4028.529416879753 /s 
+	Application: 22 μs | 686.0561427074053 MB/s
  - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | Secp256r1:
-        Handshake: 3325 μs | 300.72603444463067 /s
-        Application: 55 μs | 282.3881598304334 MB/s
+	Handshake: 801 μs | 1247.3822996381828 /s 
+	Application: 23 μs | 656.9715189707097 MB/s
  - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | X25519:
-        Handshake: 2858 μs | 349.87798320226005 /s
-        Application: 55 μs | 280.6845217351315 MB/s
+	Handshake: 700 μs | 1426.6392861489624 /s 
+	Application: 23 μs | 662.4049756215892 MB/s
 
 Server
  - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
-        Handshake: 848 μs | 1178.1233150627613 /s
-        Application: 50 μs | 309.3497063306116 MB/s
+	Handshake: 290 μs | 3447.9281444603002 /s 
+	Application: 23 μs | 655.63603619027 MB/s
  - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | X25519:
-        Handshake: 373 μs | 2676.785056943784 /s
-        Application: 50 μs | 311.51325062731297 MB/s
+	Handshake: 179 μs | 5570.4559061650025 /s 
+	Application: 23 μs | 663.2543345421753 MB/s
  - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | Secp256r1:
-        Handshake: 62523 μs | 15.994086881158827 /s
-        Application: 53 μs | 291.4021356932462 MB/s
+	Handshake: 30152 μs | 33.16487582007327 /s 
+	Application: 26 μs | 581.9549350486149 MB/s
  - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | X25519:
-        Handshake: 62086 μs | 16.106602504765714 /s
-        Application: 52 μs | 295.57390142038156 MB/s
+	Handshake: 29332 μs | 34.09151970644297 /s 
+	Application: 24 μs | 642.3299067242425 MB/s
+```
+
+## Intel AVX2 (Dell XPS13)
+
+```
+Client
+ - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
+	Handshake: 327 μs | 3057.340977293168 /s 
+	Application: 8 μs | 1777.9662137489759 MB/s
+ - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | X25519:
+	Handshake: 237 μs | 4208.894452093338 /s 
+	Application: 8 μs | 1770.4044351548725 MB/s
+ - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | Secp256r1:
+	Handshake: 572 μs | 1746.9959605208192 /s 
+	Application: 11 μs | 1418.959349289308 MB/s
+ - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | X25519:
+	Handshake: 482 μs | 2073.951111202577 /s 
+	Application: 10 μs | 1436.2282486104205 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
+	Handshake: 315 μs | 3174.048300578514 /s 
+	Application: 5 μs | 3028.1741321252935 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ EcdsaSecp256r1Sha256 | X25519:
+	Handshake: 226 μs | 4410.986795927165 /s 
+	Application: 5 μs | 3032.8846216930156 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ RsaPssRsaSha256 | Secp256r1:
+	Handshake: 558 μs | 1791.0607299260244 /s 
+	Application: 7 μs | 2051.4448539456607 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ RsaPssRsaSha256 | X25519:
+	Handshake: 483 μs | 2067.5939595383065 /s 
+	Application: 7 μs | 2135.2973604854787 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ EcdsaSecp256r1Sha256 | Secp256r1:
+	Handshake: 319 μs | 3125.0838694383465 /s 
+	Application: 5 μs | 2647.923155490623 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ EcdsaSecp256r1Sha256 | X25519:
+	Handshake: 232 μs | 4298.543694662268 /s 
+	Application: 5 μs | 2689.5912217250807 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ RsaPssRsaSha256 | Secp256r1:
+	Handshake: 547 μs | 1827.658636945311 /s 
+	Application: 8 μs | 1844.7886344490812 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ RsaPssRsaSha256 | X25519:
+	Handshake: 464 μs | 2152.925515862429 /s 
+	Application: 8 μs | 1885.4609900836215 MB/s
+
+Server
+ - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
+	Handshake: 255 μs | 3915.9550521353417 /s 
+	Application: 8 μs | 1789.1519110776042 MB/s
+ - TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | X25519:
+	Handshake: 166 μs | 5996.368023873411 /s 
+	Application: 8 μs | 1799.317951976578 MB/s
+ - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | Secp256r1:
+	Handshake: 25039 μs | 39.936335701305616 /s 
+	Application: 8 μs | 1749.0407980417012 MB/s
+ - TLS_Chacha20Poly1305_SHA256 w/ RsaPssRsaSha256 | X25519:
+	Handshake: 25271 μs | 39.5695875349339 /s 
+	Application: 8 μs | 1737.3882845433932 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1:
+	Handshake: 251 μs | 3974.1469658464907 /s 
+	Application: 4 μs | 3715.1660090723763 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ EcdsaSecp256r1Sha256 | X25519:
+	Handshake: 169 μs | 5906.747879409583 /s 
+	Application: 4 μs | 3682.732099329354 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ RsaPssRsaSha256 | Secp256r1:
+	Handshake: 24672 μs | 40.53054159896623 /s 
+	Application: 4 μs | 3284.6773637484303 MB/s
+ - TLS_Aes128Gcm_SHA256 w/ RsaPssRsaSha256 | X25519:
+	Handshake: 24530 μs | 40.76549603693159 /s 
+	Application: 4 μs | 3450.0392366062297 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ EcdsaSecp256r1Sha256 | Secp256r1:
+	Handshake: 255 μs | 3910.970449669381 /s 
+	Application: 4 μs | 3302.1023138174332 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ EcdsaSecp256r1Sha256 | X25519:
+	Handshake: 170 μs | 5867.885152578217 /s 
+	Application: 4 μs | 3324.9434812807276 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ RsaPssRsaSha256 | Secp256r1:
+	Handshake: 25596 μs | 39.06807119241344 /s 
+	Application: 4 μs | 3136.246580236729 MB/s
+ - TLS_Aes256Gcm_SHA384 w/ RsaPssRsaSha256 | X25519:
+	Handshake: 25740 μs | 38.84923817237172 /s 
+	Application: 5 μs | 3085.4385074573815 MB/s
 ```
 
 ### Analysis
@@ -137,33 +217,68 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 |                                          | Bertie hs/s | Rustls hs/s |
 | ---------------------------------------- | ----------- | ----------- |
-| P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 889.52      | 3856.48     |
-| X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 1508.36     | 4064.29     |
-| P-256 RSA TLS_Chacha20Poly1305_SHA256    | 300.72      | 4059.82     |
-| X25519 RSA TLS_Chacha20Poly1305_SHA256   | 349.87      | 4197.59     |
+| P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 2828        | 3856        |
+| X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 4029        | 4064        |
+| P-256 RSA TLS_Chacha20Poly1305_SHA256    | 1247        | 4060        |
+| X25519 RSA TLS_Chacha20Poly1305_SHA256   | 1426        | 4198        |
 
 #### Server
 
 |                                          | Bertie hs/s | Rustls hs/s |
 | ---------------------------------------- | ----------- | ----------- |
-| P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 1178.12     | 7941.33     |
-| X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 2676.78     | 8662.90     |
-| P-256 RSA TLS_Chacha20Poly1305_SHA256    | 15.99       | 1260.10     |
-| X25519 RSA TLS_Chacha20Poly1305_SHA256   | 16.10       | 1261.51     |
+| P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 3448        | 7941        |
+| X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 5570        | 8663        |
+| P-256 RSA TLS_Chacha20Poly1305_SHA256    | 33          | 1260        |
+| X25519 RSA TLS_Chacha20Poly1305_SHA256   | 34          | 1262        |
 
-#### Send (client)
-
-|                             | Bertie MB/s | Rustls MB/s |
-| --------------------------- | ----------- | ----------- |
-| TLS_Chacha20Poly1305_SHA256 | 271.88      | 1075.67     |
-| TLS_AESGCM128_SHA256        |             |             |
-
-#### Receive (server)
+#### Send Bulk Data
 
 |                             | Bertie MB/s | Rustls MB/s |
 | --------------------------- | ----------- | ----------- |
-| TLS_Chacha20Poly1305_SHA256 | 309.34      | 1011.69     |
-| TLS_AESGCM128_SHA256        |             |             |
+| TLS_Chacha20Poly1305_SHA256 | 686         | 1076        |
+| TLS_AESGCM128_SHA256        |             | 5926        |
+
+#### Receive Bulk Data
+
+|                             | Bertie MB/s | Rustls MB/s |
+| --------------------------- | ----------- | ----------- |
+| TLS_Chacha20Poly1305_SHA256 | 663         | 1012        |
+| TLS_AESGCM128_SHA256        |             | 5279        |
+
+
+### Intel AVX2 (Dell XPS13)
+
+#### Client
+
+|                                          | Bertie hs/s | Rustls hs/s |
+| ---------------------------------------- | ----------- | ----------- |
+| P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 3057        | 5051        |
+| X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 4208        | 5178        |
+| P-256 RSA TLS_Chacha20Poly1305_SHA256    | 1747        | 5070        |
+| X25519 RSA TLS_Chacha20Poly1305_SHA256   | 2074        | 5242	       |
+
+#### Server
+
+|                                          | Bertie hs/s | Rustls hs/s |
+| ---------------------------------------- | ----------- | ----------- |
+| P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 3916        | 10946       |
+| X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 5996        | 9474        |
+| P-256 RSA TLS_Chacha20Poly1305_SHA256    | 40          | 1810        |
+| X25519 RSA TLS_Chacha20Poly1305_SHA256   | 40          | 1760        |
+
+#### Send Bulk Data
+
+|                             | Bertie MB/s | Rustls MB/s |
+| --------------------------- | ----------- | ----------- |
+| TLS_Chacha20Poly1305_SHA256 | 1789        | 2253        |
+| TLS_AESGCM128_SHA256        | 3715        | 5776        |
+
+#### Receive Bulk Data
+
+|                             | Bertie MB/s | Rustls MB/s |
+| --------------------------- | ----------- | ----------- |
+| TLS_Chacha20Poly1305_SHA256 | 1770        | 2168        |
+| TLS_AESGCM128_SHA256        | 3028        | 5255        |
 
 # Rustls
 
