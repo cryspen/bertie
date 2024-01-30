@@ -541,7 +541,7 @@ pub(crate) fn kem_encap(
 
     let pk = into_raw(alg, pk.clone());
     let pk = PublicKey::decode(alg.libcrux_algorithm()?, &pk.declassify()).unwrap();
-    let res = kem::encapsulate(&pk, rng);
+    let res = pk.encapsulate(rng);
     match res {
         Ok((shared_secret, ct)) => {
             let ct = encoding_prefix(alg).concat(Bytes::from(ct.encode()));
@@ -573,7 +573,7 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).unwrap();
     let ct = into_raw(alg, ct.clone()).declassify();
     let ct = Ct::decode(librux_algorithm, &ct).unwrap();
-    let res = kem::decapsulate(&ct, &sk);
+    let res = ct.decapsulate(&sk);
     match res {
         Ok(shared_secret) => {
             let shared_secret: Bytes = shared_secret.encode().into();
