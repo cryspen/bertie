@@ -25,9 +25,7 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) : Bertie.Tls13utils.t
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize iv_ctr
-            i
-            (iv.[ i ] <: Bertie.Tls13utils.t_U8)
+          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize iv_ctr i (iv.[ i ] <: u8)
           <:
           Bertie.Tls13utils.t_Bytes)
   in
@@ -49,22 +47,17 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) : Bertie.Tls13utils.t
             ((iv.[ (i +! (Bertie.Tls13utils.impl__Bytes__len iv <: usize) <: usize) -! sz 8 <: usize
                 ]
                 <:
-                Bertie.Tls13utils.t_U8) ^.
-              (counter.[ i ] <: Bertie.Tls13utils.t_U8)
+                u8) ^.
+              (counter.[ i ] <: u8)
               <:
-              Bertie.Tls13utils.t_U8)
+              u8)
           <:
           Bertie.Tls13utils.t_Bytes)
   in
   iv_ctr
 
 let padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) : usize =
-  if
-    n >. sz 0 &&
-    (Bertie.Tls13utils.impl__U8__declassify (b.[ n -! sz 1 <: usize ] <: Bertie.Tls13utils.t_U8)
-      <:
-      u8) =.
-    0uy
+  if n >. sz 0 && (Bertie.Tls13utils.f_declassify (b.[ n -! sz 1 <: usize ] <: u8) <: u8) =. 0uy
   then sz 1 +! (padlen b (n -! sz 1 <: usize) <: usize)
   else sz 0
 
@@ -73,7 +66,7 @@ let decrypt_record_payload
       (n: u64)
       (ciphertext: Bertie.Tls13utils.t_Bytes)
     : Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let iv_ctr:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let iv_ctr:Bertie.Tls13utils.t_Bytes =
         derive_iv_ctr kiv.Bertie.Tls13crypto.f_iv n
       in
       let clen:usize = (Bertie.Tls13utils.impl__Bytes__len ciphertext <: usize) -! sz 5 in
@@ -89,36 +82,17 @@ let decrypt_record_payload
               FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 5);
               Rust_primitives.Hax.array_of_list list)
         in
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check_eq ad
-                  (Bertie.Tls13utils.impl__Bytes__slice_range ciphertext
-                      ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 5 }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    Bertie.Tls13utils.t_Bytes)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist438:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+        let| _:Prims.unit =
+          Core.Result.impl__map_err (Bertie.Tls13utils.check_eq ad
+                (Bertie.Tls13utils.impl__Bytes__slice_range ciphertext
+                    ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 5 }
+                      <:
+                      Core.Ops.Range.t_Range usize)
                   <:
-                  Core.Result.t_Result
-                    (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist438)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8) Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8) Prims.unit
+                  Bertie.Tls13utils.t_Bytes)
+              <:
+              Core.Result.t_Result Prims.unit u8)
+            (Core.Convert.f_from <: u8 -> u8)
         in
         let cip:Bertie.Tls13utils.t_Bytes =
           Bertie.Tls13utils.impl__Bytes__slice_range ciphertext
@@ -129,34 +103,14 @@ let decrypt_record_payload
               <:
               Core.Ops.Range.t_Range usize)
         in
-        let* plain:Bertie.Tls13utils.t_Bytes =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.aead_decrypt kiv
-                    .Bertie.Tls13crypto.f_key
-                  iv_ctr
-                  cip
-                  ad
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist439:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result
-                    (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist439)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8) Bertie.Tls13utils.t_Bytes
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8) Bertie.Tls13utils.t_Bytes
+        let| plain:Bertie.Tls13utils.t_Bytes =
+          Core.Result.impl__map_err (Bertie.Tls13crypto.aead_decrypt kiv.Bertie.Tls13crypto.f_key
+                iv_ctr
+                cip
+                ad
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (Core.Convert.f_from <: u8 -> u8)
         in
         let payload_len:usize =
           ((Bertie.Tls13utils.impl__Bytes__len plain <: usize) -!
@@ -165,35 +119,16 @@ let decrypt_record_payload
             usize) -!
           sz 1
         in
-        let* ct:Bertie.Tls13formats.t_ContentType =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13formats.impl__ContentType__try_from_u8 (Bertie.Tls13utils.impl__U8__declassify
-                      (plain.[ payload_len ] <: Bertie.Tls13utils.t_U8)
-                    <:
-                    u8)
-                <:
-                Core.Result.t_Result Bertie.Tls13formats.t_ContentType u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist440:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+        let| ct:Bertie.Tls13formats.t_ContentType =
+          Core.Result.impl__map_err (Bertie.Tls13formats.impl__ContentType__try_from_u8 (Bertie.Tls13utils.f_declassify
+                    (plain.[ payload_len ] <: u8)
                   <:
-                  Core.Result.t_Result
-                    (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist440)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8) Bertie.Tls13formats.t_ContentType
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8) Bertie.Tls13formats.t_ContentType
+                  u8)
+              <:
+              Core.Result.t_Result Bertie.Tls13formats.t_ContentType u8)
+            (Core.Convert.f_from <: u8 -> u8)
         in
-        Core.Ops.Control_flow.ControlFlow_Continue
+        Core.Result.Result_Ok
         (let payload:Bertie.Tls13utils.t_Bytes =
             Bertie.Tls13utils.impl__Bytes__slice_range plain
               ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = payload_len }
@@ -205,18 +140,18 @@ let decrypt_record_payload
           <:
           Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
         <:
-        Core.Ops.Control_flow.t_ControlFlow
+        Core.Result.t_Result
           (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-          (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+          u8
       else
-        Core.Ops.Control_flow.ControlFlow_Continue
+        Core.Result.Result_Ok
         (Core.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
           <:
           Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
         <:
-        Core.Ops.Control_flow.t_ControlFlow
+        Core.Result.t_Result
           (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-          (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8))
+          u8)
 
 let encrypt_record_payload
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
@@ -225,7 +160,7 @@ let encrypt_record_payload
       (payload: Bertie.Tls13utils.t_Bytes)
       (pad: usize)
     : Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let iv_ctr:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let iv_ctr:Bertie.Tls13utils.t_Bytes =
         derive_iv_ctr key_iv.Bertie.Tls13crypto.f_iv n
       in
       let inner_plaintext:Bertie.Tls13utils.t_Bytes =
@@ -250,46 +185,27 @@ let encrypt_record_payload
               FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 5);
               Rust_primitives.Hax.array_of_list list)
         in
-        let* cip:Bertie.Tls13utils.t_Bytes =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13crypto.aead_encrypt key_iv
-                    .Bertie.Tls13crypto.f_key
-                  iv_ctr
-                  inner_plaintext
-                  ad
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist441:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                  <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist441)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Bertie.Tls13utils.t_Bytes
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              Bertie.Tls13utils.t_Bytes
+        let| cip:Bertie.Tls13utils.t_Bytes =
+          Core.Result.impl__map_err (Bertie.Tls13crypto.aead_encrypt key_iv.Bertie.Tls13crypto.f_key
+                iv_ctr
+                inner_plaintext
+                ad
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            (Core.Convert.f_from <: u8 -> u8)
         in
-        Core.Ops.Control_flow.ControlFlow_Continue
+        Core.Result.Result_Ok
         (let v_rec:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat ad cip in
           Core.Result.Result_Ok v_rec <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        Core.Result.t_Result (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) u8
       else
-        Core.Ops.Control_flow.ControlFlow_Continue
+        Core.Result.Result_Ok
         (Core.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
           <:
           Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         <:
-        Core.Ops.Control_flow.t_ControlFlow (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+        Core.Result.t_Result (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) u8)
 
 type t_ClientCipherState0 =
   | ClientCipherState0 :
@@ -346,65 +262,28 @@ let client_cipher_state0
 
 let decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
     : Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1
       =
         st
       in
-      let* ct, payload:(Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) =
-        match
-          Core.Ops.Try_trait.f_branch (decrypt_record_payload kiv n ciphertext
-              <:
-              Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist498:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist498)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
+      let| ct, payload:(Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) =
+        Core.Result.impl__map_err (decrypt_record_payload kiv n ciphertext
+            <:
+            Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check (ct =.
-                  (Bertie.Tls13formats.ContentType_ApplicationData
-                    <:
-                    Bertie.Tls13formats.t_ContentType)
+      let| _:Prims.unit =
+        Core.Result.impl__map_err (Bertie.Tls13utils.check (ct =.
+                (Bertie.Tls13formats.ContentType_ApplicationData
                   <:
-                  bool)
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist499:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  Bertie.Tls13formats.t_ContentType)
                 <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist499)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-            Prims.unit
+                bool)
+            <:
+            Core.Result.t_Result Prims.unit u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      Core.Ops.Control_flow.ControlFlow_Continue
+      Core.Result.Result_Ok
       (Core.Result.Result_Ok
         (Bertie.Tls13utils.impl__AppData__new payload,
           (DuplexCipherState1 ae x y kiv (n +! 1uL) exp <: t_DuplexCipherState1)
@@ -413,49 +292,23 @@ let decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherStat
         <:
         Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8))
+      Core.Result.t_Result
+        (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8) u8)
 
 let decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
     : Core.Result.t_Result
       (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1
       =
         st
       in
-      let* ct, payload:(Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) =
-        match
-          Core.Ops.Try_trait.f_branch (decrypt_record_payload kiv n ciphertext
-              <:
-              Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist501:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result
-                  (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes &
-                    t_DuplexCipherState1) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist501)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result
-                (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes &
-                  t_DuplexCipherState1) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result
-                (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes &
-                  t_DuplexCipherState1) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
+      let| ct, payload:(Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) =
+        Core.Result.impl__map_err (decrypt_record_payload kiv n ciphertext
+            <:
+            Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      Core.Ops.Control_flow.ControlFlow_Continue
+      Core.Result.Result_Ok
       (Core.Result.Result_Ok
         (ct, payload, (DuplexCipherState1 ae x y kiv (n +! 1uL) exp <: t_DuplexCipherState1)
           <:
@@ -464,93 +317,45 @@ let decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCiph
         Core.Result.t_Result
           (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow
+      Core.Result.t_Result
         (Core.Result.t_Result
             (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1)
-            u8)
-        (Core.Result.t_Result
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1)
-            u8))
+            u8) u8)
 
 let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCipherStateH)
     : Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* ct, payload:(Bertie.Tls13formats.t_ContentType &
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let| ct, payload:(Bertie.Tls13formats.t_ContentType &
         Bertie.Tls13utils.t_Bytes) =
-        match
-          Core.Ops.Try_trait.f_branch (decrypt_record_payload state.f_receiver_key_iv
-                state.f_receiver_counter
-                ciphertext
-              <:
-              Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist503:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result
-                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist503)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result
-                (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result
-                (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
+        Core.Result.impl__map_err (decrypt_record_payload state.f_receiver_key_iv
+              state.f_receiver_counter
+              ciphertext
+            <:
+            Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
       if ct =. (Bertie.Tls13formats.ContentType_Alert <: Bertie.Tls13formats.t_ContentType)
       then
-        Core.Ops.Control_flow.ControlFlow_Continue
+        Core.Result.Result_Ok
         (Core.Result.Result_Err Bertie.Tls13utils.v_GOT_HANDSHAKE_FAILURE_ALERT
           <:
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
         <:
-        Core.Ops.Control_flow.t_ControlFlow
+        Core.Result.t_Result
           (Core.Result.t_Result
-              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-          (Core.Result.t_Result
-              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
+              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8) u8
       else
-        let* _:Prims.unit =
-          match
-            Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check (ct =.
-                    (Bertie.Tls13formats.ContentType_Handshake <: Bertie.Tls13formats.t_ContentType)
-                    <:
-                    bool)
-                <:
-                Core.Result.t_Result Prims.unit u8)
-          with
-          | Core.Ops.Control_flow.ControlFlow_Break residual ->
-            let* hoist504:Rust_primitives.Hax.t_Never =
-              Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+        let| _:Prims.unit =
+          Core.Result.impl__map_err (Bertie.Tls13utils.check (ct =.
+                  (Bertie.Tls13formats.ContentType_Handshake <: Bertie.Tls13formats.t_ContentType)
                   <:
-                  Core.Result.t_Result
-                    (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-            in
-            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist504)
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result
-                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-              Prims.unit
-          | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-            Core.Ops.Control_flow.ControlFlow_Continue v_val
-            <:
-            Core.Ops.Control_flow.t_ControlFlow
-              (Core.Result.t_Result
-                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-              Prims.unit
+                  bool)
+              <:
+              Core.Result.t_Result Prims.unit u8)
+            (Core.Convert.f_from <: u8 -> u8)
         in
-        Core.Ops.Control_flow.ControlFlow_Continue
+        Core.Result.Result_Ok
         (let state:t_DuplexCipherStateH =
             { state with f_receiver_counter = state.f_receiver_counter +! 1uL }
             <:
@@ -564,72 +369,31 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
         <:
-        Core.Ops.Control_flow.t_ControlFlow
+        Core.Result.t_Result
           (Core.Result.t_Result
-              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-          (Core.Result.t_Result
-              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8))
+              (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8) u8)
 
 let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0)
     : Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let* ct, payload:(Bertie.Tls13formats.t_ContentType &
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let| ct, payload:(Bertie.Tls13formats.t_ContentType &
         Bertie.Tls13utils.t_Bytes) =
-        match
-          Core.Ops.Try_trait.f_branch (decrypt_record_payload state.f_key_iv
-                state.f_counter
-                ciphertext
-              <:
-              Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist507:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist507)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-            (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
+        Core.Result.impl__map_err (decrypt_record_payload state.f_key_iv state.f_counter ciphertext
+            <:
+            Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      let* _:Prims.unit =
-        match
-          Core.Ops.Try_trait.f_branch (Bertie.Tls13utils.check (ct =.
-                  (Bertie.Tls13formats.ContentType_ApplicationData
-                    <:
-                    Bertie.Tls13formats.t_ContentType)
+      let| _:Prims.unit =
+        Core.Result.impl__map_err (Bertie.Tls13utils.check (ct =.
+                (Bertie.Tls13formats.ContentType_ApplicationData
                   <:
-                  bool)
-              <:
-              Core.Result.t_Result Prims.unit u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist508:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
+                  Bertie.Tls13formats.t_ContentType)
                 <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist508)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-            Prims.unit
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-            Prims.unit
+                bool)
+            <:
+            Core.Result.t_Result Prims.unit u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      Core.Ops.Control_flow.ControlFlow_Continue
+      Core.Result.Result_Ok
       (Core.Result.Result_Ok
         (Bertie.Tls13utils.impl__AppData__new payload,
           ({
@@ -644,9 +408,8 @@ let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCiph
         <:
         Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8))
+      Core.Result.t_Result
+        (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8) u8)
 
 let duplex_cipher_state1
       (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
@@ -659,41 +422,21 @@ let duplex_cipher_state1
 
 let encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1)
     : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let DuplexCipherState1 ae kiv n x y exp:t_DuplexCipherState1
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let DuplexCipherState1 ae kiv n x y exp:t_DuplexCipherState1
       =
         st
       in
-      let* v_rec:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (encrypt_record_payload kiv
-                n
-                (Bertie.Tls13formats.ContentType_ApplicationData
-                  <:
-                  Bertie.Tls13formats.t_ContentType)
-                (Bertie.Tls13utils.impl__AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
-                pad
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist527:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist527)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-            Bertie.Tls13utils.t_Bytes
+      let| v_rec:Bertie.Tls13utils.t_Bytes =
+        Core.Result.impl__map_err (encrypt_record_payload kiv
+              n
+              (Bertie.Tls13formats.ContentType_ApplicationData <: Bertie.Tls13formats.t_ContentType)
+              (Bertie.Tls13utils.impl__AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
+              pad
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      Core.Ops.Control_flow.ControlFlow_Continue
+      Core.Result.Result_Ok
       (Core.Result.Result_Ok
         (v_rec, (DuplexCipherState1 ae kiv (n +! 1uL) x y exp <: t_DuplexCipherState1)
           <:
@@ -701,47 +444,28 @@ let encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
         <:
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8))
+      Core.Result.t_Result
+        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8) u8)
 
 let encrypt_handshake
       (payload: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (pad: usize)
       (state: t_DuplexCipherStateH)
     : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let payload:Bertie.Tls13utils.t_Bytes =
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let payload:Bertie.Tls13utils.t_Bytes =
         Bertie.Tls13formats.Handshake_data.impl__HandshakeData__to_bytes payload
       in
-      let* v_rec:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (encrypt_record_payload state.f_sender_key_iv
-                state.f_sender_counter
-                (Bertie.Tls13formats.ContentType_Handshake <: Bertie.Tls13formats.t_ContentType)
-                payload
-                pad
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist530:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist530)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
-            Bertie.Tls13utils.t_Bytes
+      let| v_rec:Bertie.Tls13utils.t_Bytes =
+        Core.Result.impl__map_err (encrypt_record_payload state.f_sender_key_iv
+              state.f_sender_counter
+              (Bertie.Tls13formats.ContentType_Handshake <: Bertie.Tls13formats.t_ContentType)
+              payload
+              pad
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      Core.Ops.Control_flow.ControlFlow_Continue
+      Core.Result.Result_Ok
       (let state:t_DuplexCipherStateH =
           { state with f_sender_counter = state.f_sender_counter +! 1uL } <: t_DuplexCipherStateH
         in
@@ -749,47 +473,26 @@ let encrypt_handshake
         <:
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8))
+      Core.Result.t_Result
+        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8) u8)
 
 let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0)
     : Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8 =
-  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let ClientCipherState0 ae kiv n exp:t_ClientCipherState0
+  Rust_primitives.Hax.Control_flow_monad.Mresult.run (let ClientCipherState0 ae kiv n exp:t_ClientCipherState0
       =
         st
       in
-      let* v_rec:Bertie.Tls13utils.t_Bytes =
-        match
-          Core.Ops.Try_trait.f_branch (encrypt_record_payload kiv
-                n
-                (Bertie.Tls13formats.ContentType_ApplicationData
-                  <:
-                  Bertie.Tls13formats.t_ContentType)
-                (Bertie.Tls13utils.impl__AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
-                pad
-              <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-        with
-        | Core.Ops.Control_flow.ControlFlow_Break residual ->
-          let* hoist536:Rust_primitives.Hax.t_Never =
-            Core.Ops.Control_flow.ControlFlow.v_Break (Core.Ops.Try_trait.f_from_residual residual
-                <:
-                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
-          in
-          Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist536)
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
-            Bertie.Tls13utils.t_Bytes
-        | Core.Ops.Control_flow.ControlFlow_Continue v_val ->
-          Core.Ops.Control_flow.ControlFlow_Continue v_val
-          <:
-          Core.Ops.Control_flow.t_ControlFlow
-            (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
-            Bertie.Tls13utils.t_Bytes
+      let| v_rec:Bertie.Tls13utils.t_Bytes =
+        Core.Result.impl__map_err (encrypt_record_payload kiv
+              n
+              (Bertie.Tls13formats.ContentType_ApplicationData <: Bertie.Tls13formats.t_ContentType)
+              (Bertie.Tls13utils.impl__AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
+              pad
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          (Core.Convert.f_from <: u8 -> u8)
       in
-      Core.Ops.Control_flow.ControlFlow_Continue
+      Core.Result.Result_Ok
       (Core.Result.Result_Ok
         (v_rec, (ClientCipherState0 ae kiv (n +! 1uL) exp <: t_ClientCipherState0)
           <:
@@ -797,9 +500,8 @@ let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_C
         <:
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
       <:
-      Core.Ops.Control_flow.t_ControlFlow
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
-        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8))
+      Core.Result.t_Result
+        (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8) u8)
 
 let server_cipher_state0
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
