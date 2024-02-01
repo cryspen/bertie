@@ -64,8 +64,7 @@ cargo_hax_into = [
     "-C",
     "-p",
     "bertie",
-    "--features",
-    "secret_integers",
+    "--no-default-features",
     ";",
     "into",
 ]
