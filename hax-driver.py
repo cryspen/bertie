@@ -35,6 +35,7 @@ sub_parser = parser.add_subparsers(
     help="Extract and typecheck F* etc. from the Bertie Rust code.",
 )
 extract_parser = sub_parser.add_parser("extract")
+extract_parser = sub_parser.add_parser("extract-handshake")
 
 typecheck_parser = sub_parser.add_parser("typecheck")
 typecheck_parser.add_argument(
@@ -78,6 +79,22 @@ if options.sub == "extract":
             "-i",
             "-**::non_hax::** -bertie::stream::**",
             "fstar",
+            "--interfaces",
+            "+**"
+        ],
+        cwd=".",
+        env=hax_env,
+    )
+elif options.sub == "extract-handshake":
+    # The extract sub command.
+    shell(
+        cargo_hax_into
+        + [
+            "-i",
+            "-** +~bertie::tls13handshake::**",
+            "fstar",
+            "--interfaces",
+            "+!** +bertie::tls13handshake::**"
         ],
         cwd=".",
         env=hax_env,
