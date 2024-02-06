@@ -29,13 +29,18 @@
 # (setq fstar-subp-prover-args #'my-fstar-compute-prover-args-using-make)
 #
 
-HAX_HOME      ?= $(shell git rev-parse --show-toplevel)/../hax/proof-libs/fstar
-FSTAR_HOME    ?= $(HAX_HOME)../FStar
-HACL_HOME     ?= $(HAX_HOME)../hacl-star
+WORKSPACE_ROOT ?= $(shell git rev-parse --show-toplevel)/..
+
+HAX_HOME            ?= $(WORKSPACE_ROOT)/hax
+HAX_PROOF_LIBS_HOME ?= $(HAX_HOME)/proof-libs/fstar
+HAX_LIBS_HOME       ?= $(HAX_HOME)/hax-lib/proofs/fstar/extraction
+
+FSTAR_HOME    ?= $(WORKSPACE_ROOT)/FStar
+HACL_HOME     ?= $(WORKSPACE_ROOT)/hacl-star
 FSTAR_BIN     ?= $(shell command -v fstar.exe 1>&2 2> /dev/null && echo "fstar.exe" || echo "$(FSTAR_HOME)/bin/fstar.exe")
 
-CACHE_DIR     ?= $(HAX_HOME)proof-libs/fstar/.cache
-HINT_DIR      ?= $(HAX_HOME)proof-libs/fstar/.hints
+CACHE_DIR     ?= .cache
+HINT_DIR      ?= .hints
 
 .PHONY: all verify clean
 
@@ -47,8 +52,9 @@ all:
 # *extend* the set of relevant files with the tests.
 ROOTS = $(wildcard *.fst)
 
-FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_HOME)/proof-libs/fstar/rust_primitives \
-	$(HAX_HOME)/proof-libs/fstar/core $(HAX_HOME)/proof-libs/fstar/hax_lib
+
+
+FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME)
 
 FSTAR_FLAGS = --cmi \
   --warn_error -331 \
