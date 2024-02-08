@@ -116,7 +116,7 @@ elif options.sub == "typecheck":
 elif options.sub == "typecheck-proverif":
     # Typecheck subcommand.
     custom_env = {}
-    shell(["proverif", "proofs/proverif/extraction/output.pv"], env=custom_env)
+    shell(["proverif", "-lib", "proofs/proverif/extraction/lib", "proofs/proverif/extraction/output.pv"], env=custom_env)
     exit(0)
 else:
     parser.print_help()
