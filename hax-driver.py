@@ -92,6 +92,7 @@ elif options.sub == "extract-proverif":
             " ".join([
                 "-**",
                 "+**::tls13handshake::put_server_hello",
+                "-**::tls13handshake::hkdf_expand_label",
                 "-**::tls13utils::**",
                 "-**::tls13formats::**",
                 "-**::tls13crypto::**",
