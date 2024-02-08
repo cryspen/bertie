@@ -35,7 +35,7 @@ sub_parser = parser.add_subparsers(
     help="Extract and typecheck F* etc. from the Bertie Rust code.",
 )
 extract_parser = sub_parser.add_parser("extract")
-
+extract_proverif_parser = sub_parser.add_parser("extract-proverif")
 typecheck_parser = sub_parser.add_parser("typecheck")
 typecheck_parser.add_argument(
     "--lax",
@@ -78,6 +78,24 @@ if options.sub == "extract":
             "-i",
             "-**::non_hax::** -bertie::stream::**",
             "fstar",
+        ],
+        cwd=".",
+        env=hax_env,
+    )
+elif options.sub == "extract-proverif":
+    # The extract sub command.
+    shell(
+        cargo_hax_into
+        + [
+            "-i",
+            " ".join([
+                "-**",
+                "+**::tls13handshake::put_server_hello",
+                "-**::tls13utils::**",
+                "-**::tls13formats::**",
+                "-**::tls13crypto::**",
+                      "-**::tls13cert::**"]),
+            "pro-verif",
         ],
         cwd=".",
         env=hax_env,
