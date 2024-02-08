@@ -37,6 +37,7 @@ sub_parser = parser.add_subparsers(
 extract_parser = sub_parser.add_parser("extract")
 extract_proverif_parser = sub_parser.add_parser("extract-proverif")
 typecheck_parser = sub_parser.add_parser("typecheck")
+typecheck_proverif_parser = sub_parser.add_parser("typecheck-proverif")
 typecheck_parser.add_argument(
     "--lax",
     action="store_true",
@@ -110,6 +111,11 @@ elif options.sub == "typecheck":
     if options.clean:
         shell(["make", "-C", "proofs/fstar/extraction/", "clean"])
     shell(["make", "-C", "proofs/fstar/extraction/"], env=custom_env)
+    exit(0)
+elif options.sub == "typecheck-proverif":
+    # Typecheck subcommand.
+    custom_env = {}
+    shell(["proverif", "proofs/proverif/extraction/output.pv"], env=custom_env)
     exit(0)
 else:
     parser.print_help()
