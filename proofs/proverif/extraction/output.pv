@@ -117,7 +117,7 @@ fun bertie__tls13handshake__ClientPostServerHello_c(
   bertie__tls13utils__t_Bytes,
   bertie__tls13utils__t_Bytes,
   bertie__tls13formats__t_Transcript
-): bertie__tls13handshake__t_ClientPostServerHello.
+): bertie__tls13handshake__t_ClientPostServerHello [data].
 reduc forall 
   bertie__tls13handshake__ClientPostServerHello_0: bertie__tls13utils__t_Bytes,
   bertie__tls13handshake__ClientPostServerHello_1: bertie__tls13utils__t_Bytes,
@@ -268,7 +268,7 @@ fun bertie__tls13record__DuplexCipherStateH_c(
   bitstring,
   bertie__tls13crypto__t_AeadKeyIV,
   bitstring
-): bertie__tls13record__t_DuplexCipherStateH.
+): bertie__tls13record__t_DuplexCipherStateH [data].
 reduc forall 
   bertie__tls13record__DuplexCipherStateH_f_sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
   bertie__tls13record__DuplexCipherStateH_f_sender_counter: bitstring,
@@ -503,7 +503,11 @@ letfun bertie__tls13handshake__derive_hk_ms(
          )
         in
        (
-         client_write_key_iv,server_write_key_iv,client_finished_key,server_finished_key,master_secret
+         client_write_key_iv,
+         server_write_key_iv,
+         client_finished_key,
+         server_finished_key,
+         master_secret
        ).
 
 letfun bertie__tls13record__impl__DuplexCipherStateH__new(
@@ -525,7 +529,7 @@ letfun bertie__tls13handshake__put_server_hello(
            client_random, ciphersuite, sk, psk, tx
          )
         = state in
-       let (sr: bertie__tls13utils__t_Bytes, ct :bertie__tls13utils__t_Bytes) =
+       let (sr: bertie__tls13utils__t_Bytes, ct: bertie__tls13utils__t_Bytes) =
          bertie__tls13formats__parse_server_hello(ciphersuite, handshake)
         in
        let tx =
@@ -537,7 +541,15 @@ letfun bertie__tls13handshake__put_server_hello(
          )
         in
        let th = bertie__tls13formats__impl__Transcript__transcript_hash(tx) in
-       let (chk: bertie__tls13utils__t_Bytes,shk: bertie__tls13utils__t_Bytes,cfk: bertie__tls13utils__t_Bytes,sfk: bertie__tls13utils__t_Bytes,ms: bertie__tls13utils__t_Bytes) =
+       let
+         (
+           chk: bertie__tls13crypto__t_AeadKeyIV,
+           shk: bertie__tls13crypto__t_AeadKeyIV,
+           cfk: bertie__tls13utils__t_Bytes,
+           sfk: bertie__tls13utils__t_Bytes,
+           ms: bertie__tls13utils__t_Bytes
+         )
+        =
          bertie__tls13handshake__derive_hk_ms(
            accessor_bertie__tls13crypto__Algorithms_f_hash(ciphersuite),
            accessor_bertie__tls13crypto__Algorithms_f_aead(ciphersuite),
@@ -549,7 +561,8 @@ letfun bertie__tls13handshake__put_server_hello(
        (
          accessor_bertie__tls13record__impl__DuplexCipherStateH__new(
            chk, 0, shk, 0
-         ),bertie__tls13handshake__ClientPostServerHello_c(
+         ),
+         bertie__tls13handshake__ClientPostServerHello_c(
            client_random, sr, ciphersuite, ms, cfk, sfk, tx
          )
        ).
