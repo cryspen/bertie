@@ -10,8 +10,8 @@ const bertie__tls13formats__v_LABEL_S_HS_TRAFFIC: bitstring.
 
 (* Bytes *)
 type bertie__tls13utils__t_Bytes.
-fun accessor_bertie__tls13utils__impl__Bytes__new(bitstring):  bertie__tls13utils__t_Bytes.
-fun accessor_bertie__tls13utils__bytes(bitstring):  bertie__tls13utils__t_Bytes.
+fun bertie__tls13utils__impl__Bytes__new(bitstring):  bertie__tls13utils__t_Bytes.
+fun bertie__tls13utils__bytes(bitstring):  bertie__tls13utils__t_Bytes.
 
 (* Option<Bytes> *)
 type core__option__t_Option_of_bertie__tls13utils__t_Bytes.
@@ -20,23 +20,23 @@ fun core__option__Option_Option_None_c(): core__option__t_Option_of_bertie__tls1
 
 (* Transcript *)
 type bertie__tls13formats__t_Transcript.
-fun accessor_bertie__tls13formats__impl__Transcript__add(bertie__tls13formats__t_Transcript, bertie__tls13formats__handshake_data__t_HandshakeData): bertie__tls13formats__t_Transcript.
+fun bertie__tls13formats__impl__Transcript__add(bertie__tls13formats__t_Transcript, bertie__tls13formats__handshake_data__t_HandshakeData): bertie__tls13formats__t_Transcript.
 fun bertie__tls13formats__impl__Transcript__transcript_hash(bertie__tls13formats__t_Transcript): bertie__tls13utils__t_Bytes.
 
 (* Hash Algorithm *)
 type bertie__tls13crypto__t_HashAlgorithm.
-fun accessor_bertie__tls13crypto__impl__HashAlgorithm__hash(bertie__tls13crypto__t_HashAlgorithm,  bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
-fun accessor_bertie__tls13crypto__impl__HashAlgorithm__hash_len(bertie__tls13crypto__t_HashAlgorithm): bitstring.
-fun accessor_bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(bertie__tls13crypto__t_HashAlgorithm): bitstring.
+fun bertie__tls13crypto__impl__HashAlgorithm__hash(bertie__tls13crypto__t_HashAlgorithm,  bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
+fun bertie__tls13crypto__impl__HashAlgorithm__hash_len(bertie__tls13crypto__t_HashAlgorithm): bitstring.
+fun bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(bertie__tls13crypto__t_HashAlgorithm): bitstring.
 
 (* AEAD Algorithm *)
 type bertie__tls13crypto__t_AeadAlgorithm.
-fun accessor_bertie__tls13crypto__impl__AeadAlgorithm__key_len(bertie__tls13crypto__t_AeadAlgorithm): bitstring.
-fun accessor_bertie__tls13crypto__impl__AeadAlgorithm__iv_len(bertie__tls13crypto__t_AeadAlgorithm):bitstring.
+fun bertie__tls13crypto__impl__AeadAlgorithm__key_len(bertie__tls13crypto__t_AeadAlgorithm): bitstring.
+fun bertie__tls13crypto__impl__AeadAlgorithm__iv_len(bertie__tls13crypto__t_AeadAlgorithm):bitstring.
 
 type bertie__tls13crypto__t_AeadKeyIV.
 fun bertie__tls13crypto__impl__AeadKeyIV__new(bitstring, bertie__tls13utils__t_Bytes): bitstring.
-fun accessor_bertie__tls13crypto__impl__AeadKey__new(bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_AeadAlgorithm): bitstring.
+fun bertie__tls13crypto__impl__AeadKey__new(bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_AeadAlgorithm): bitstring.
 
 (* Algorithms pack *)
 type bertie__tls13crypto__t_Algorithms.
@@ -52,16 +52,10 @@ fun bertie__tls13handshake__hkdf_expand_label(bertie__tls13crypto__t_HashAlgorit
 fun bertie__tls13crypto__hkdf_extract(bertie__tls13crypto__t_HashAlgorithm, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
 
 (* Other *)
-(* The following should not be generated as accessors. *)
-fun accessor_bertie__tls13handshake__hkdf_expand_label(bertie__tls13crypto__t_HashAlgorithm, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bitstring): bertie__tls13utils__t_Bytes.
-
-fun accessor_bertie__tls13record__impl__DuplexCipherStateH__new(bertie__tls13crypto__t_AeadKeyIV, nat, bertie__tls13crypto__t_AeadKeyIV, nat): bitstring.
 fun bertie__tls13crypto__kem_decap(bitstring, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
 
-
-
-fun accessor_bertie__tls13crypto__zero_key(bertie__tls13crypto__t_HashAlgorithm): bertie__tls13utils__t_Bytes.
+fun bertie__tls13crypto__zero_key(bertie__tls13crypto__t_HashAlgorithm): bertie__tls13utils__t_Bytes.
 
 (* this clone is too narrow of course; really want to treat as copy*)
-fun accessor_core__clone__Clone_f_clone(bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
-fun accessor_rust_primitives__unsize(bitstring): bitstring.
+fun core__clone__Clone_f_clone(bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
+fun rust_primitives__unsize(bitstring): bitstring.

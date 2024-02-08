@@ -264,16 +264,13 @@ fun bertie__tls13record__t_DuplexCipherStateH_to_bitstring(
   bertie__tls13record__t_DuplexCipherStateH
 ): bitstring [typeConverter].
 fun bertie__tls13record__DuplexCipherStateH_c(
-  bertie__tls13crypto__t_AeadKeyIV,
-  bitstring,
-  bertie__tls13crypto__t_AeadKeyIV,
-  bitstring
+  bertie__tls13crypto__t_AeadKeyIV, nat, bertie__tls13crypto__t_AeadKeyIV, nat
 ): bertie__tls13record__t_DuplexCipherStateH [data].
 reduc forall 
   bertie__tls13record__DuplexCipherStateH_f_sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_sender_counter: bitstring,
+  bertie__tls13record__DuplexCipherStateH_f_sender_counter: nat,
   bertie__tls13record__DuplexCipherStateH_f_receiver_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: bitstring
+  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: nat
 ;
     accessor_bertie__tls13record__DuplexCipherStateH_f_sender_key_iv(
       bertie__tls13record__DuplexCipherStateH_c(
@@ -285,9 +282,9 @@ reduc forall
     ) = bertie__tls13record__DuplexCipherStateH_f_sender_key_iv.
 reduc forall 
   bertie__tls13record__DuplexCipherStateH_f_sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_sender_counter: bitstring,
+  bertie__tls13record__DuplexCipherStateH_f_sender_counter: nat,
   bertie__tls13record__DuplexCipherStateH_f_receiver_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: bitstring
+  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: nat
 ;
     accessor_bertie__tls13record__DuplexCipherStateH_f_sender_counter(
       bertie__tls13record__DuplexCipherStateH_c(
@@ -299,9 +296,9 @@ reduc forall
     ) = bertie__tls13record__DuplexCipherStateH_f_sender_counter.
 reduc forall 
   bertie__tls13record__DuplexCipherStateH_f_sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_sender_counter: bitstring,
+  bertie__tls13record__DuplexCipherStateH_f_sender_counter: nat,
   bertie__tls13record__DuplexCipherStateH_f_receiver_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: bitstring
+  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: nat
 ;
     accessor_bertie__tls13record__DuplexCipherStateH_f_receiver_key_iv(
       bertie__tls13record__DuplexCipherStateH_c(
@@ -313,9 +310,9 @@ reduc forall
     ) = bertie__tls13record__DuplexCipherStateH_f_receiver_key_iv.
 reduc forall 
   bertie__tls13record__DuplexCipherStateH_f_sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_sender_counter: bitstring,
+  bertie__tls13record__DuplexCipherStateH_f_sender_counter: nat,
   bertie__tls13record__DuplexCipherStateH_f_receiver_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: bitstring
+  bertie__tls13record__DuplexCipherStateH_f_receiver_counter: nat
 ;
     accessor_bertie__tls13record__DuplexCipherStateH_f_receiver_counter(
       bertie__tls13record__DuplexCipherStateH_c(
@@ -336,21 +333,19 @@ letfun bertie__tls13handshake__derive_secret(
          label : bertie__tls13utils__t_Bytes,
          transcript_hash : bertie__tls13utils__t_Bytes
        ) =
-       accessor_bertie__tls13handshake__hkdf_expand_label(
+       bertie__tls13handshake__hkdf_expand_label(
          hash_algorithm,
          key,
          label,
          transcript_hash,
-         accessor_bertie__tls13crypto__impl__HashAlgorithm__hash_len(
-           hash_algorithm
-         )
+         bertie__tls13crypto__impl__HashAlgorithm__hash_len(hash_algorithm)
        ).
 
 letfun bertie__tls13handshake__hash_empty(
          algorithm : bertie__tls13crypto__t_HashAlgorithm
        ) =
-       accessor_bertie__tls13crypto__impl__HashAlgorithm__hash(
-         algorithm, accessor_bertie__tls13utils__impl__Bytes__new(())
+       bertie__tls13crypto__impl__HashAlgorithm__hash(
+         algorithm, bertie__tls13utils__impl__Bytes__new(())
        ).
 
 letfun bertie__tls13handshake__derive_aead_key_iv(
@@ -362,30 +357,26 @@ letfun bertie__tls13handshake__derive_aead_key_iv(
          bertie__tls13handshake__hkdf_expand_label(
            hash_algorithm,
            key,
-           accessor_bertie__tls13utils__bytes(
-             accessor_rust_primitives__unsize(bertie__tls13formats__v_LABEL_KEY)
+           bertie__tls13utils__bytes(
+             rust_primitives__unsize(bertie__tls13formats__v_LABEL_KEY)
            ),
-           accessor_bertie__tls13utils__impl__Bytes__new(()),
-           accessor_bertie__tls13crypto__impl__AeadAlgorithm__key_len(
-             aead_algorithm
-           )
+           bertie__tls13utils__impl__Bytes__new(()),
+           bertie__tls13crypto__impl__AeadAlgorithm__key_len(aead_algorithm)
          )
         in
        let sender_write_iv =
          bertie__tls13handshake__hkdf_expand_label(
            hash_algorithm,
            key,
-           accessor_bertie__tls13utils__bytes(
-             accessor_rust_primitives__unsize(bertie__tls13formats__v_LABEL_IV)
+           bertie__tls13utils__bytes(
+             rust_primitives__unsize(bertie__tls13formats__v_LABEL_IV)
            ),
-           accessor_bertie__tls13utils__impl__Bytes__new(()),
-           accessor_bertie__tls13crypto__impl__AeadAlgorithm__iv_len(
-             aead_algorithm
-           )
+           bertie__tls13utils__impl__Bytes__new(()),
+           bertie__tls13crypto__impl__AeadAlgorithm__iv_len(aead_algorithm)
          )
         in
        bertie__tls13crypto__impl__AeadKeyIV__new(
-         accessor_bertie__tls13crypto__impl__AeadKey__new(
+         bertie__tls13crypto__impl__AeadKey__new(
            sender_write_key, aead_algorithm
          ),
          sender_write_iv
@@ -395,16 +386,14 @@ letfun bertie__tls13handshake__derive_finished_key(
          ha : bertie__tls13crypto__t_HashAlgorithm,
          k : bertie__tls13utils__t_Bytes
        ) =
-       accessor_bertie__tls13handshake__hkdf_expand_label(
+       bertie__tls13handshake__hkdf_expand_label(
          ha,
          k,
-         accessor_bertie__tls13utils__bytes(
-           accessor_rust_primitives__unsize(
-             bertie__tls13formats__v_LABEL_FINISHED
-           )
+         bertie__tls13utils__bytes(
+           rust_primitives__unsize(bertie__tls13formats__v_LABEL_FINISHED)
          ),
-         accessor_bertie__tls13utils__impl__Bytes__new(()),
-         accessor_bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(ha)
+         bertie__tls13utils__impl__Bytes__new(()),
+         bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(ha)
        ).
 
 letfun bertie__tls13handshake__derive_hk_ms(
@@ -415,14 +404,14 @@ letfun bertie__tls13handshake__derive_hk_ms(
          transcript_hash : bertie__tls13utils__t_Bytes
        ) =
        let psk =
-         let core__option__Option_Option_Some_c(k) = psko in accessor_core__clone__Clone_f_clone(
+         let core__option__Option_Option_Some_c(k) = psko in core__clone__Clone_f_clone(
            k
          )
-         else accessor_bertie__tls13crypto__zero_key(ha)
+         else bertie__tls13crypto__zero_key(ha)
         in
        let early_secret =
          bertie__tls13crypto__hkdf_extract(
-           ha, psk, accessor_bertie__tls13crypto__zero_key(ha)
+           ha, psk, bertie__tls13crypto__zero_key(ha)
          )
         in
        let digest_emp = bertie__tls13handshake__hash_empty(ha) in
@@ -430,10 +419,8 @@ letfun bertie__tls13handshake__derive_hk_ms(
          bertie__tls13handshake__derive_secret(
            ha,
            early_secret,
-           accessor_bertie__tls13utils__bytes(
-             accessor_rust_primitives__unsize(
-               bertie__tls13formats__v_LABEL_DERIVED
-             )
+           bertie__tls13utils__bytes(
+             rust_primitives__unsize(bertie__tls13formats__v_LABEL_DERIVED)
            ),
            digest_emp
          )
@@ -445,10 +432,8 @@ letfun bertie__tls13handshake__derive_hk_ms(
          bertie__tls13handshake__derive_secret(
            ha,
            handshake_secret,
-           accessor_bertie__tls13utils__bytes(
-             accessor_rust_primitives__unsize(
-               bertie__tls13formats__v_LABEL_C_HS_TRAFFIC
-             )
+           bertie__tls13utils__bytes(
+             rust_primitives__unsize(bertie__tls13formats__v_LABEL_C_HS_TRAFFIC)
            ),
            transcript_hash
          )
@@ -457,10 +442,8 @@ letfun bertie__tls13handshake__derive_hk_ms(
          bertie__tls13handshake__derive_secret(
            ha,
            handshake_secret,
-           accessor_bertie__tls13utils__bytes(
-             accessor_rust_primitives__unsize(
-               bertie__tls13formats__v_LABEL_S_HS_TRAFFIC
-             )
+           bertie__tls13utils__bytes(
+             rust_primitives__unsize(bertie__tls13formats__v_LABEL_S_HS_TRAFFIC)
            ),
            transcript_hash
          )
@@ -489,17 +472,15 @@ letfun bertie__tls13handshake__derive_hk_ms(
          bertie__tls13handshake__derive_secret(
            ha,
            handshake_secret,
-           accessor_bertie__tls13utils__bytes(
-             accessor_rust_primitives__unsize(
-               bertie__tls13formats__v_LABEL_DERIVED
-             )
+           bertie__tls13utils__bytes(
+             rust_primitives__unsize(bertie__tls13formats__v_LABEL_DERIVED)
            ),
            digest_emp
          )
         in
        let master_secret =
          bertie__tls13crypto__hkdf_extract(
-           ha, accessor_bertie__tls13crypto__zero_key(ha), master_secret___
+           ha, bertie__tls13crypto__zero_key(ha), master_secret___
          )
         in
        (
@@ -512,9 +493,9 @@ letfun bertie__tls13handshake__derive_hk_ms(
 
 letfun bertie__tls13record__impl__DuplexCipherStateH__new(
          sender_key_iv : bertie__tls13crypto__t_AeadKeyIV,
-         sender_counter : bitstring,
+         sender_counter : nat,
          receiver_key_iv : bertie__tls13crypto__t_AeadKeyIV,
-         receiver_counter : bitstring
+         receiver_counter : nat
        ) =
        bertie__tls13record__DuplexCipherStateH_c(
          sender_key_iv,sender_counter,receiver_key_iv,receiver_counter
@@ -532,9 +513,7 @@ letfun bertie__tls13handshake__put_server_hello(
        let (sr: bertie__tls13utils__t_Bytes, ct: bertie__tls13utils__t_Bytes) =
          bertie__tls13formats__parse_server_hello(ciphersuite, handshake)
         in
-       let tx =
-         accessor_bertie__tls13formats__impl__Transcript__add(tx, handshake)
-        in
+       let tx = bertie__tls13formats__impl__Transcript__add(tx, handshake) in
        let shared_secret =
          bertie__tls13crypto__kem_decap(
            accessor_bertie__tls13crypto__Algorithms_f_kem(ciphersuite), ct, sk
@@ -559,9 +538,7 @@ letfun bertie__tls13handshake__put_server_hello(
          )
         in
        (
-         accessor_bertie__tls13record__impl__DuplexCipherStateH__new(
-           chk, 0, shk, 0
-         ),
+         bertie__tls13record__impl__DuplexCipherStateH__new(chk, 0, shk, 0),
          bertie__tls13handshake__ClientPostServerHello_c(
            client_random, sr, ciphersuite, ms, cfk, sfk, tx
          )
