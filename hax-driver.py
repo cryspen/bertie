@@ -91,13 +91,16 @@ elif options.sub == "extract-proverif":
             "-i",
             " ".join([
                 "-**",
-                "+**::tls13handshake::put_server_hello",
-                "-**::tls13handshake::hkdf_expand_label",
-                "-**::tls13utils::**",
-                "-**::tls13formats::**",
-                "-**::tls13crypto::**",
-                      "-**::tls13cert::**"]),
+                "+~**::tls13handshake::**"
+                ]),
             "pro-verif",
+            "--assume-items",
+            " ".join([
+                "+**::tls13formats::**",
+                "+**::tls13crypto::**",                
+                "+**::tls13utils::**",
+                "+**::tls13cert::**"
+            ])
         ],
         cwd=".",
         env=hax_env,
