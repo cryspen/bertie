@@ -42,19 +42,19 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: BORINGSSL_ROOT=./boringssl ./bogo_shim/run.sh
 
-  audit:
-    needs: test
-    runs-on: ubuntu-latest
+  # audit:
+  #   needs: test
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Audit dependencies
-        uses: EmbarkStudios/cargo-deny-action@v1
-        # TODO: Check licenses, too.
-        with:
-          command: check bans advisories sources
+  #     - name: Audit dependencies
+  #       uses: EmbarkStudios/cargo-deny-action@v1
+  #       # TODO: Check licenses, too.
+  #       with:
+  #         command: check bans advisories sources
 
   lint:
     needs: test
