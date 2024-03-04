@@ -38,9 +38,10 @@ jobs:
       - name: Test code w/ secret-integers
         run: cargo test --workspace --features secret_integers
 
-      - name: BoGo
-        if: matrix.os != 'windows-latest'
-        run: BORINGSSL_ROOT=./boringssl ./bogo_shim/run.sh
+      # FIXME: Pin and enable bogo again
+      # - name: BoGo
+      #   if: matrix.os != 'windows-latest'
+      #   run: BORINGSSL_ROOT=./boringssl ./bogo_shim/run.sh
 
   # audit:
   #   needs: test
