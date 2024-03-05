@@ -79,6 +79,22 @@ if options.sub == "extract":
             "-i",
             "-**::non_hax::** -bertie::stream::**",
             "fstar",
+            "--interfaces",
+            "+**"
+        ],
+        cwd=".",
+        env=hax_env,
+    )
+elif options.sub == "extract-handshake":
+    # The extract sub command.
+    shell(
+        cargo_hax_into
+        + [
+            "-i",
+            "-** +~bertie::tls13handshake::**",
+            "fstar",
+            "--interfaces",
+            "+!** +bertie::tls13handshake::**"
         ],
         cwd=".",
         env=hax_env,
