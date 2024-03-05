@@ -91,13 +91,14 @@ elif options.sub == "extract-proverif":
             "-i",
             " ".join([
                 "-**",
-                "+~**::tls13handshake::**"
+                "+~**::tls13handshake::**",
+                "+~**::server::lookup_db" #transitive dependency on tls13utils
                 ]),
             "pro-verif",
             "--assume-items",
             " ".join([
                 "+**::tls13formats::**",
-                "+**::tls13crypto::**",                
+                "+**::tls13crypto::**",
                 "+**::tls13utils::**",
                 "+**::tls13cert::**"
             ])
