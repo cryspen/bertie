@@ -35,9 +35,9 @@ sub_parser = parser.add_subparsers(
     help="Extract and typecheck F* etc. from the Bertie Rust code.",
 )
 extract_parser = sub_parser.add_parser("extract")
-extract_parser = sub_parser.add_parser("extract-handshake")
-
+extract_proverif_parser = sub_parser.add_parser("extract-proverif")
 typecheck_parser = sub_parser.add_parser("typecheck")
+typecheck_proverif_parser = sub_parser.add_parser("typecheck-proverif")
 typecheck_parser.add_argument(
     "--lax",
     action="store_true",
@@ -99,6 +99,29 @@ elif options.sub == "extract-handshake":
         cwd=".",
         env=hax_env,
     )
+elif options.sub == "extract-proverif":
+    # The extract sub command.
+    shell(
+        cargo_hax_into
+        + [
+            "-i",
+            " ".join([
+                "-**",
+                "+~**::tls13handshake::**",
+                "+~**::server::lookup_db" #transitive dependency on tls13utils
+                ]),
+            "pro-verif",
+            "--assume-items",
+            " ".join([
+                "+**::tls13formats::**",
+                "+**::tls13crypto::**",
+                "+**::tls13utils::**",
+                "+**::tls13cert::**"
+            ])
+        ],
+        cwd=".",
+        env=hax_env,
+    )
 elif options.sub == "typecheck":
     # Typecheck subcommand.
     custom_env = {}
@@ -109,6 +132,11 @@ elif options.sub == "typecheck":
     if options.clean:
         shell(["make", "-C", "proofs/fstar/extraction/", "clean"])
     shell(["make", "-C", "proofs/fstar/extraction/"], env=custom_env)
+    exit(0)
+elif options.sub == "typecheck-proverif":
+    # Typecheck subcommand.
+    custom_env = {}
+    shell(["proverif", "-lib", "proofs/proverif/extraction/handwritten_lib", "-lib", "proofs/proverif/extraction/lib", "proofs/proverif/extraction/analysis.pv"], env=custom_env)
     exit(0)
 else:
     parser.print_help()
