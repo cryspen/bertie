@@ -108,16 +108,11 @@ elif options.sub == "extract-proverif":
             " ".join([
                 "-**",
                 "+~**::tls13handshake::**",
-                "+~**::server::lookup_db" #transitive dependency on tls13utils
+                "+~**::server::lookup_db", # to include transitive dependency on tls13utils
+                "+~**::tls13utils::parse_failed", # transitive dependencies required
+                "+~**::tls13crypto::zero_key", # transitive dependencies required
                 ]),
             "pro-verif",
-            "--assume-items",
-            " ".join([
-                "+**::tls13formats::**",
-                "+**::tls13crypto::**",
-                "+**::tls13utils::**",
-                "+**::tls13cert::**"
-            ])
         ],
         cwd=".",
         env=hax_env,
