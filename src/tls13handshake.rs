@@ -825,3 +825,37 @@ pub fn server_finish(
 ) -> Result<ServerPostClientFinished, TLSError> {
     put_client_finished(cf, st)
 }
+
+fn simulate_handshake(
+    ciphersuite: Algorithms,
+    server_name: &Bytes,
+    session_ticket: Option<Bytes>,
+    psk: Option<Key>,
+    rng: &mut (impl CryptoRng + RngCore),
+    db: ServerDB,
+) -> Result<(), TLSError> {
+    let (client_hello, cipherstate0_client, client_state) =
+        client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
+
+    let (
+        server_hello,
+        server_finished,
+        cipherstate0_server,
+        cipherstateh_server,
+        cipherstate1_server,
+        server_state,
+    ) = server_init(ciphersuite, &client_hello, db, rng)?;
+
+    // skip record en/decryption
+
+    let (cipherstateh_client, client_state) = client_set_params(&server_hello, client_state)?;
+
+    let (client_finished, cipherstate1_client, client_state) =
+        client_finish(&server_finished, client_state)?;
+
+    // skip record en/decryption
+
+    let server_state = server_finish(&client_finished, server_state)?;
+
+    Ok(())
+}
