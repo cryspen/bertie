@@ -1070,7 +1070,7 @@ impl Transcript {
     }
 
     /// Get the hash of this transcript without the client hello
-    #[hax_lib_macros::pv_handwritten]
+    #[hax_lib_macros::pv_constructor]
     pub(crate) fn transcript_hash_without_client_hello(
         &self,
         client_hello: &HandshakeData,

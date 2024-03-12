@@ -255,7 +255,7 @@ impl U32 {
         self.0
     }
 }
-#[hax_lib_macros::pv_constructor]
+#[hax_lib_macros::pv_handwritten]
 pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
     #[cfg(not(feature = "secret_integers"))]
     let val = val.to_be_bytes();

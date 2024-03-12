@@ -302,6 +302,7 @@ pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error
 }
 
 /// Read the EC PK from the cert as uncompressed point.
+#[hax_lib_macros::pv_constructor]
 pub(crate) fn ecdsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
@@ -314,7 +315,7 @@ pub(crate) fn ecdsa_public_key(
     Ok(cert.slice(offset + 1, len - 1)) // Drop the 0x04 here.
 }
 
-#[hax_lib_macros::pv_handwritten]
+#[hax_lib_macros::pv_constructor]
 pub(crate) fn rsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
