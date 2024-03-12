@@ -2868,37 +2868,12 @@ fun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
     )
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_four.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__handshake_data__impl__HandshakeData__to_four(
-         self : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_four;
-       bitstring_default().
-
-event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_two.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__handshake_data__impl__HandshakeData__to_two(
-         self : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_two;
-       bitstring_default().
 
 (* marked as constructor *)
 fun bertie__tls13formats__certificate_verify(
       bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
     )
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-
-(* marked as constructor *)
-fun bertie__tls13formats__client_hello(
-      bertie__tls13crypto__t_Algorithms,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      Option
-    )
-    : bitstring [data].
 
 (* marked as constructor *)
 fun bertie__tls13formats__encrypted_extensions(bertie__tls13crypto__t_Algorithms
@@ -2909,57 +2884,6 @@ fun bertie__tls13formats__encrypted_extensions(bertie__tls13crypto__t_Algorithms
 fun bertie__tls13formats__finished(bertie__tls13utils__t_Bytes)
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-event Reached_bertie__tls13formats__parse_certificate_verify.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__parse_certificate_verify(
-         algs : bertie__tls13crypto__t_Algorithms,
-         certificate_verify : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__parse_certificate_verify;
-       bertie__tls13utils__t_Bytes_default().
-
-event Reached_bertie__tls13formats__parse_client_hello.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__parse_client_hello(
-         ciphersuite : bertie__tls13crypto__t_Algorithms,
-         client_hello : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__parse_client_hello;
-       bitstring_default().
-
-event Reached_bertie__tls13formats__parse_encrypted_extensions.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__parse_encrypted_extensions(
-         v__algs : bertie__tls13crypto__t_Algorithms,
-         encrypted_extensions : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__parse_encrypted_extensions;
-       bitstring_default().
-
-event Reached_bertie__tls13formats__parse_finished.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__parse_finished(
-         finished : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__parse_finished;
-       bertie__tls13utils__t_Bytes_default().
-
-event Reached_bertie__tls13formats__parse_server_certificate.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__parse_server_certificate(
-         certificate : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__parse_server_certificate;
-       bertie__tls13utils__t_Bytes_default().
-
-event Reached_bertie__tls13formats__parse_server_hello.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13formats__parse_server_hello(
-         algs : bertie__tls13crypto__t_Algorithms,
-         server_hello : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__parse_server_hello;
-       bitstring_default().
 
 (* marked as constructor *)
 fun bertie__tls13formats__server_certificate(
@@ -2975,9 +2899,90 @@ fun bertie__tls13formats__server_hello(
       bertie__tls13utils__t_Bytes
     )
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+(* MARKER: tls13formats models*)
+reduc forall hs1: bertie__tls13formats__handshake_data__t_HandshakeData,
+             hs2: bertie__tls13formats__handshake_data__t_HandshakeData;
+  bertie__tls13formats__handshake_data__impl__HandshakeData__to_two(
+    bertie__tls13formats__handshake_data__impl__HandshakeData__concat(hs1, hs2)
+    ) = (hs1, hs2).
+
+reduc forall hs1: bertie__tls13formats__handshake_data__t_HandshakeData,
+             hs2: bertie__tls13formats__handshake_data__t_HandshakeData,
+             hs3: bertie__tls13formats__handshake_data__t_HandshakeData,
+             hs4: bertie__tls13formats__handshake_data__t_HandshakeData;
+  bertie__tls13formats__handshake_data__impl__HandshakeData__to_four(
+    bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
+        bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
+           bertie__tls13formats__handshake_data__impl__HandshakeData__concat(hs1, hs2),
+           hs3),
+        hs4))
+     = (hs1, hs2, hs3, hs4).
+
+reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
+      bertie__tls13formats__parse_certificate_verify(
+        algs,
+        bertie__tls13formats__certificate_verify(algs, cert)
+      ) = cert.
+
+reduc forall   algs: bertie__tls13crypto__t_Algorithms, server_random: bertie__tls13utils__t_Bytes, sid: bertie__tls13utils__t_Bytes, gy: bertie__tls13utils__t_Bytes;
+   bertie__tls13formats__parse_server_hello(
+     algs,
+     bertie__tls13formats__server_hello(algs, server_random, sid, gy)
+) = (server_random, gy).
+
+reduc forall algs: bertie__tls13crypto__t_Algorithms;
+      bertie__tls13formats__parse_encrypted_extensions(
+        algs,
+        bertie__tls13formats__encrypted_extensions(algs)
+      ) = ().
+
+reduc forall vd: bertie__tls13utils__t_Bytes;
+   bertie__tls13formats__parse_finished(
+     bertie__tls13formats__finished(vd)
+) = vd.
+
+reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
+  bertie__tls13formats__parse_server_certificate(
+   bertie__tls13formats__server_certificate(algs, cert)
+  ) = cert.
+
+fun client_hello_no_binder(
+      bertie__tls13utils__t_Bytes, (* client_randomness *)
+      bertie__tls13utils__t_Bytes, (* session_id *)
+      bertie__tls13utils__t_Bytes, (*server name /sni*)
+      bertie__tls13utils__t_Bytes, (*kem_pk / gx*)
+      Option, (*tkto*)
+      Option, (*bindero*)
+      nat) (*trunc_len*)
+      : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+fun client_hello_with_binder(
+      bertie__tls13utils__t_Bytes, (* client_randomness *)
+      bertie__tls13utils__t_Bytes, (* session_id *)
+      bertie__tls13utils__t_Bytes, (*server name /sni*)
+      bertie__tls13utils__t_Bytes, (*kem_pk / gx*)
+      Option, (*tkto*)
+      Option, (*bindero*)
+      nat) (*trunc_len*)
+      : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+      
+letfun bertie__tls13formats__client_hello(
+      alg: bertie__tls13crypto__t_Algorithms,
+      client_random: bertie__tls13utils__t_Bytes,
+      kem_pk: bertie__tls13utils__t_Bytes,
+      server_name: bertie__tls13utils__t_Bytes,
+      session_ticket: Option
+    ) =
+    (client_hello_no_binder(client_random,
+                            bertie__tls13utils__t_Bytes_default(),
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            None(),
+                            0),
+     0).
 
 event Reached_bertie__tls13formats__set_client_hello_binder.
-(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__set_client_hello_binder(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          binder : Option,
@@ -2985,7 +2990,70 @@ letfun bertie__tls13formats__set_client_hello_binder(
          trunc_len : Option
        ) =
        event Reached_bertie__tls13formats__set_client_hello_binder;
-       bertie__tls13formats__handshake_data__t_HandshakeData_default().
+       let client_hello_no_binder(client_randomness,
+                                  session_id,
+                                  server_name,
+                                  kem_pk,
+                                  tkto,
+                                  None(),
+                                  trunc_len)
+        = client_hello in
+          client_hello_with_binder(client_randomness,
+                                  session_id,
+                                  server_name,
+                                  kem_pk,
+                                  tkto,
+                                  binder,
+                                  trunc_len).
+
+fun bertie__tls13formats__parse_client_hello(bertie__tls13crypto__t_Algorithms, bertie__tls13formats__handshake_data__t_HandshakeData): bitstring
+reduc forall
+      algs:bertie__tls13crypto__t_Algorithms,
+      client_random: bertie__tls13utils__t_Bytes,
+      server_name: bertie__tls13utils__t_Bytes,
+      kem_pk: bertie__tls13utils__t_Bytes,
+      session_ticket: Option;
+    bertie__tls13formats__parse_client_hello(
+    algs,
+        client_hello_no_binder(client_random,
+                            bertie__tls13utils__t_Bytes_default_value,
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            None(),
+                            0))
+    = (client_random,
+                            bertie__tls13utils__t_Bytes_default_value,
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            None(),
+                            0)
+otherwise
+  forall
+      algs:bertie__tls13crypto__t_Algorithms,
+      client_random: bertie__tls13utils__t_Bytes,
+      server_name: bertie__tls13utils__t_Bytes,
+      kem_pk: bertie__tls13utils__t_Bytes,
+      session_ticket: Option,
+      binder: Option;
+    bertie__tls13formats__parse_client_hello(
+        algs,
+        client_hello_with_binder(client_random,
+                            bertie__tls13utils__t_Bytes_default_value,
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            binder,
+                            0))
+           = (client_random,
+                            bertie__tls13utils__t_Bytes_default_value,
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            binder,
+                            0).
+(* MARKER: tls13formats models end*)
 
 event Reached_bertie__tls13crypto__impl__AeadKeyIV__new.
 letfun bertie__tls13crypto__impl__AeadKeyIV__new(
