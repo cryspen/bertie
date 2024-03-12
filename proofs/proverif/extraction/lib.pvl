@@ -2453,11 +2453,32 @@ letfun bertie__tls13utils__parse_failed(wildcard1 : bitstring) =
        event Reached_bertie__tls13utils__parse_failed;
        bertie__tls13utils__v_PARSE_FAILED.
 
-event Reached_bertie__tls13utils__u16_as_be_bytes.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13utils__u16_as_be_bytes(val : nat) =
-       event Reached_bertie__tls13utils__u16_as_be_bytes;
-       bitstring_default().
+(* MARKER: tls13utils models*)
+fun bertie__tls13utils__u16_as_be_bytes(nat)
+    : bertie__tls13utils__t_Bytes [data].
+
+event Reached_bertie__tls13utils__eq.
+letfun bertie__tls13utils__eq(
+         b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
+       ) =
+       event Reached_bertie__tls13utils__eq;
+       b1 = b2. (* This is term equality, which may not be what we want? *)
+
+event Reached_bertie__tls13utils__check_eq.
+letfun bertie__tls13utils__check_eq(
+         b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
+       ) =
+       event Reached_bertie__tls13utils__check_eq;
+       if bertie__tls13utils__eq(b1, b2) then () else construct_fail().
+
+fun bertie__tls13utils__impl__Bytes__concat(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes [data].
+
+event Reached_bertie__tls13utils__impl__Bytes__prefix.
+letfun bertie__tls13utils__impl__Bytes__prefix(self:bertie__tls13utils__t_Bytes, prefix:bertie__tls13utils__t_Bytes)
+=
+       event Reached_bertie__tls13utils__impl__Bytes__prefix;
+       bertie__tls13utils__impl__Bytes__concat(prefix, self).
+(* MARKER: tls13utils models end*)
 
 event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash_len.
 letfun bertie__tls13crypto__impl__HashAlgorithm__hash_len(
@@ -2576,22 +2597,6 @@ letfun bertie__tls13utils__impl__Bytes__as_raw(
        event Reached_bertie__tls13utils__impl__Bytes__as_raw;
        accessor_bertie__tls13utils__Bytes_0(self).
 
-event Reached_bertie__tls13utils__impl__Bytes__prefix.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13utils__impl__Bytes__prefix(
-         self : bertie__tls13utils__t_Bytes, prefix : bitstring
-       ) =
-       event Reached_bertie__tls13utils__impl__Bytes__prefix;
-       bertie__tls13utils__t_Bytes_default().
-
-event Reached_bertie__tls13utils__impl__Bytes__concat.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13utils__impl__Bytes__concat(
-         self : bertie__tls13utils__t_Bytes, other : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13utils__impl__Bytes__concat;
-       bertie__tls13utils__t_Bytes_default().
-
 (* marked as constructor *)
 fun bertie__tls13crypto__kem_encap(
       bertie__tls13crypto__t_KemScheme,
@@ -2652,14 +2657,6 @@ event Reached_bertie__tls13utils__bytes.
 letfun bertie__tls13utils__bytes(x : bitstring) =
        event Reached_bertie__tls13utils__bytes;
        bertie__tls13utils__t_Bytes_from_bitstring(x).
-
-event Reached_bertie__tls13utils__check_eq.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13utils__check_eq(
-         b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13utils__check_eq;
-       bitstring_default().
 
 (* marked as constructor *)
 fun bertie__tls13utils__encode_length_u8(bitstring)
@@ -2763,14 +2760,6 @@ letfun bertie__tls13handshake__derive_rms(
          bertie__tls13utils__bytes(bertie__tls13formats__v_LABEL_RES_MASTER),
          tx
        ).
-
-event Reached_bertie__tls13utils__eq.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13utils__eq(
-         b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13utils__eq;
-       bool_default().
 
 event Reached_bertie__tls13crypto__hmac_verify.
 (* REPLACE by handwritten model *)
