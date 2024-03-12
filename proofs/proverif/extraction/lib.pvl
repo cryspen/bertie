@@ -2530,13 +2530,6 @@ letfun bertie__tls13crypto__impl__Algorithms__signature(
        event Reached_bertie__tls13crypto__impl__Algorithms__signature;
        accessor_bertie__tls13crypto__Algorithms_f_signature(self).
 
-event Reached_bertie__tls13cert__verification_key_from_cert.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13cert__verification_key_from_cert(
-         cert : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13cert__verification_key_from_cert;
-       bitstring_default().
 
 (* marked as constructor *)
 fun bertie__tls13crypto__impl__HashAlgorithm__hash(
@@ -2787,13 +2780,43 @@ fun bertie__tls13cert__rsa_public_key(
     )
     : bertie__tls13crypto__t_RsaVerificationKey [data].
 
+(* MARKER: tls13cert models*)
+fun bertie__tls13cert__ecdsa_public_key(bertie__tls13utils__t_Bytes, bertie__tls13cert__t_CertificateKey): bertie__tls13utils__t_Bytes.
+
 event Reached_bertie__tls13cert__cert_public_key.
-(* REPLACE by handwritten model *)
 letfun bertie__tls13cert__cert_public_key(
          certificate : bertie__tls13utils__t_Bytes, spki : bitstring
        ) =
        event Reached_bertie__tls13cert__cert_public_key;
-       bertie__tls13crypto__t_PublicVerificationKey_default().
+       let (scheme: bertie__tls13crypto__t_SignatureScheme, pk: bertie__tls13cert__t_CertificateKey) = spki in
+       let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c() = scheme in
+       bertie__tls13crypto__t_PublicVerificationKey_err()
+       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+
+       ) = scheme in let pk = bertie__tls13cert__ecdsa_public_key(
+         certificate, pk
+       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
+         pk
+       )
+       else bertie__tls13crypto__t_PublicVerificationKey_err()
+       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
+
+       ) = scheme in let pk = bertie__tls13cert__rsa_public_key(
+         certificate, pk
+       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
+         pk
+       )
+       else bertie__tls13crypto__t_PublicVerificationKey_err().
+
+fun spki(bertie__tls13crypto__t_SignatureScheme,
+         bertie__tls13cert__t_CertificateKey):  bertie__tls13utils__t_Bytes [data].
+
+reduc forall alg: bertie__tls13crypto__t_SignatureScheme, cert_key: bertie__tls13cert__t_CertificateKey;
+  bertie__tls13cert__verification_key_from_cert(
+            spki(alg, cert_key)
+       ) =
+       (alg, cert_key).
+(* MARKER: tls13cert models end*)
 
 (* MARKER: tls13crypto models*)
 fun vk_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13crypto__t_PublicVerificationKey.
