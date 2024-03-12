@@ -2588,11 +2588,9 @@ letfun bertie__tls13handshake__hash_empty(
          algorithm, bertie__tls13utils__impl__Bytes__new(())
        ).
 
-event Reached_bertie__tls13utils__impl__Bytes__zeroes.
-(* REPLACE by handwritten model *)
-letfun bertie__tls13utils__impl__Bytes__zeroes(len : nat) =
-       event Reached_bertie__tls13utils__impl__Bytes__zeroes;
-       bertie__tls13utils__t_Bytes_default().
+(* marked as constructor *)
+fun bertie__tls13utils__impl__Bytes__zeroes(nat)
+    : bertie__tls13utils__t_Bytes [data].
 
 event Reached_bertie__tls13crypto__zero_key.
 letfun bertie__tls13crypto__zero_key(alg : bertie__tls13crypto__t_HashAlgorithm) =

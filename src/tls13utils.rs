@@ -339,7 +339,7 @@ impl Bytes {
     }
 
     /// Generate `len` bytes of `0`.
-    #[hax_lib_macros::pv_handwritten]
+    #[hax_lib_macros::pv_constructor]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
