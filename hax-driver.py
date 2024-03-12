@@ -65,6 +65,8 @@ cargo_hax_into = [
     "-C",
     "-p",
     "bertie",
+    "-p",
+    "rand_core",
     "--no-default-features",
     ";",
     "into",
@@ -80,7 +82,7 @@ if options.sub == "extract":
             "-**::non_hax::** -bertie::stream::**",
             "fstar",
             "--interfaces",
-            "+**"
+            "+** +!bertie::tls13crypto::**"
         ],
         cwd=".",
         env=hax_env,
@@ -91,7 +93,7 @@ elif options.sub == "extract-handshake":
         cargo_hax_into
         + [
             "-i",
-            "-** +~bertie::tls13handshake::**",
+            "-** +~bertie::tls13handshake::** +**::rand_core::**",
             "fstar",
             "--interfaces",
             "+!** +bertie::tls13handshake::**"

@@ -519,16 +519,16 @@ pub(crate) fn client_hello(
         key_shares
     );
     let mut trunc_len = 0;
-    match (algorithms.psk_mode(), session_ticket) {
-        (true, Some(session_ticket)) => {
-            let pskm = psk_key_exchange_modes()?;
-            let (psk, len) = pre_shared_key(algorithms, session_ticket)?;
-            extensions = extensions.concat(pskm).concat(psk);
-            trunc_len = len;
-        }
-        (false, None) => {}
-        _ => tlserr(PSK_MODE_MISMATCH)?,
-    }
+    // match (algorithms.psk_mode(), session_ticket) {
+    //     (true, Some(session_ticket)) => {
+    //         let pskm = psk_key_exchange_modes()?;
+    //         let (psk, len) = pre_shared_key(algorithms, session_ticket)?;
+    //         extensions = extensions.concat(pskm).concat(psk);
+    //         trunc_len = len;
+    //     }
+    //     (false, None) => {}
+    //     _ => tlserr(PSK_MODE_MISMATCH)?,
+    // }
 
     let encoded_extensions = encode_length_u16(extensions)?;
     let handshake_bytes = bytes_concat!(
@@ -637,7 +637,7 @@ pub(super) fn parse_client_hello(
                 ticket: _,
                 binder: _,
             },
-        ) => tlserr(MISSING_KEY_SHARE),
+        ) => Err(MISSING_KEY_SHARE),
         (
             true,
             Extensions {
@@ -682,7 +682,7 @@ pub(super) fn parse_client_hello(
                 binder: None,
             },
         ) => Ok((crand, sid, Bytes::new(), gx, None, None, 0)),
-        _ => tlserr(parse_failed()),
+        _ => Err(parse_failed()),
     }
 }
 
@@ -700,10 +700,10 @@ pub(crate) fn server_hello(
     let ks = server_key_shares(algs, gy.clone())?;
     let sv = server_supported_version(algs)?;
     let mut exts = ks.concat(sv);
-    match algs.psk_mode() {
-        true => exts = exts.concat(server_pre_shared_key(algs)?),
-        false => {}
-    }
+    // match algs.psk_mode() {
+    //     true => exts = exts.concat(server_pre_shared_key(algs)?),
+    //     false => {}
+    // }
     let encoded_extensions = encode_length_u16(exts)?;
     let sh = HandshakeData::from_bytes(
         HandshakeType::ServerHello,
@@ -713,11 +713,11 @@ pub(crate) fn server_hello(
 }
 
 fn unsupported_cipher_alert() -> Result<(), TLSError> {
-    tlserr(UNSUPPORTED_ALGORITHM)
+    Err(UNSUPPORTED_ALGORITHM)
 }
 
 fn invalid_compression_method_alert() -> Result<(), TLSError> {
-    tlserr(DECODE_ERROR)
+    Err(DECODE_ERROR)
 }
 
 #[cfg(bench)]
@@ -822,7 +822,7 @@ pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<By
 
 fn ecdsa_signature(sv: &Bytes) -> Result<Bytes, TLSError> {
     if sv.len() != 64 {
-        tlserr(parse_failed())
+        Err(parse_failed())
     } else {
         let b0 = bytes1(0x0);
         let b1 = bytes1(0x30);
@@ -855,7 +855,7 @@ fn check_r_len(rlen: usize) -> Result<(), TLSError> {
 
 fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
     if sig.len() < 4 {
-        tlserr(parse_failed())
+        Err(parse_failed())
     } else {
         check_eq(&bytes1(0x30), &sig.slice_range(0..1))?;
         check_length_encoding_u8(&sig.slice_range(1..sig.len()))?;
@@ -864,7 +864,7 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
         check_r_len(rlen)?;
         let r = sig.slice(4 + rlen - 32, 32);
         if sig.len() < 6 + rlen + 32 {
-            tlserr(INVALID_SIGNATURE)
+            Err(INVALID_SIGNATURE)
         } else {
             check_eq(&bytes1(0x02), &sig.slice_range(4 + rlen..5 + rlen))?;
             check_length_encoding_u8(&sig.slice_range(5 + rlen..sig.len()))?;
@@ -878,7 +878,7 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
         SignatureScheme::RsaPssRsaSha256 => cv.clone(),
         SignatureScheme::EcdsaSecp256r1Sha256 => {
             if cv.len() != 64 {
-                return tlserr(parse_failed());
+                return Err(parse_failed());
             } else {
                 ecdsa_signature(cv)?
             }
@@ -908,7 +908,7 @@ pub(crate) fn parse_certificate_verify(
             if cv.len() - 4 == 64 {
                 Ok(cv.slice_range(8..cv.len()))
             } else {
-                tlserr(INVALID_SIGNATURE)
+                Err(INVALID_SIGNATURE)
             }
         }
     }
@@ -982,7 +982,7 @@ impl ContentType {
             21 => Ok(ContentType::Alert),
             22 => Ok(ContentType::Handshake),
             23 => Ok(ContentType::ApplicationData),
-            _ => tlserr(parse_failed()),
+            _ => Err(parse_failed()),
         }
     }
 }
@@ -1001,9 +1001,13 @@ fn application_data_instead_of_handshake() -> Result<(), TLSError> {
     Result::<(), TLSError>::Err(APPLICATION_DATA_INSTEAD_OF_HANDSHAKE)
 }
 
+pub(crate) fn foofoooo() -> u8 {
+    ContentType::Handshake as u8
+}
+
 pub(crate) fn check_handshake_record(p: &Bytes) -> Result<(HandshakeData, usize), TLSError> {
     if p.len() < 5 {
-        tlserr(parse_failed())
+        Err(parse_failed())
     } else {
         let ty = bytes1(ContentType::Handshake as u8);
         let ver = bytes2(3, 3);
@@ -1025,7 +1029,7 @@ pub(crate) fn get_handshake_record(p: &Bytes) -> Result<HandshakeData, TLSError>
     if len == p.len() {
         Ok(hd)
     } else {
-        tlserr(parse_failed())
+        Err(parse_failed())
     }
 }
 

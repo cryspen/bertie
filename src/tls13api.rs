@@ -75,7 +75,7 @@ impl Client {
         client_hello_record[2] = U8(0x01);
         Ok((
             client_hello_record,
-            Self::Client0(client_state, cipherstate0),
+            Client::Client0(client_state, cipherstate0),
         ))
     }
 
@@ -97,21 +97,21 @@ impl Client {
         handshake_bytes: &Bytes,
     ) -> Result<(Option<Bytes>, Self), TLSError> {
         match self {
-            Self::Client0(state, cipher_state) => {
+            Client::Client0(state, cipher_state) => {
                 let sf = get_handshake_record(handshake_bytes)?;
                 let (cipher1, cstate) = client_set_params(&sf, state)?;
                 let buf = handshake_data::HandshakeData::from(Bytes::new());
-                Ok((None, Self::ClientH(cstate, cipher_state, cipher1, buf)))
+                Ok((None, Client::ClientH(cstate, cipher_state, cipher1, buf)))
             }
-            Self::ClientH(cstate, cipher0, cipher_hs, buf) => {
+            Client::ClientH(cstate, cipher0, cipher_hs, buf) => {
                 let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
                 let buf = buf.concat(&hd);
                 if buf.find_handshake_message(HandshakeType::Finished, 0) {
                     let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
                     let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
-                    Ok((Some(cf_rec), Self::Client1(cstate, cipher1)))
+                    Ok((Some(cf_rec), Client::Client1(cstate, cipher1)))
                 } else {
-                    Ok((None, Self::ClientH(cstate, cipher0, cipher_hs, buf)))
+                    Ok((None, Client::ClientH(cstate, cipher0, cipher_hs, buf)))
                 }
             }
             _ => Err(INCORRECT_STATE),
@@ -133,7 +133,7 @@ impl Client {
     /// If an error occurs, it returns a [`TLSError`].
     pub fn read(self, message_bytes: &Bytes) -> Result<(Option<AppData>, Self), TLSError> {
         match self {
-            Self::Client1(state, cipher1) => {
+            Client::Client1(state, cipher1) => {
                 let (ty, hd, cipher1) = decrypt_data_or_hs(message_bytes, cipher1)?;
                 match ty {
                     ContentType::ApplicationData => {

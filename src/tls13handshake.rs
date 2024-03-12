@@ -784,6 +784,40 @@ fn put_client_finished(
 // server_init -> (decrypt_zerortt)* | (encrypt_handshake | decrypt_handshake)* ->
 // server_finish -> (encrypt_data | decrypt_data)*
 
+fn hey(// ciphersuite: Algorithms,
+    // ch: &HandshakeData,
+    // db: ServerDB,
+) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
+    Err(0)
+}
+
+pub fn foobar(
+    algs: Algorithms,
+    ch: &HandshakeData,
+    db: ServerDB,
+    rng: &mut u8,
+    // rng: &mut (impl CryptoRng + RngCore),
+) -> Result<(), TLSError> {
+    // let (cipher0, st) = hey()?;
+    let (cipher0, st) = put_client_hello(algs, ch, db)?;
+    Err(0)
+    // let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
+    // match algs.psk_mode() {
+    //     false => {
+    //         let (ee, sc, scv, st) = get_server_signature(st, rng)?;
+    //         let (sfin, cipher1, st) = get_server_finished(st)?;
+    //         let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
+    //         Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+    //     }
+    //     true => {
+    //         let (ee, st) = get_skip_server_signature(st)?;
+    //         let (sfin, cipher1, st) = get_server_finished(st)?;
+    //         let flight = ee.concat(&sfin);
+    //         Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+    //     }
+    // }
+}
+
 #[allow(clippy::type_complexity)]
 pub fn server_init(
     algs: Algorithms,
@@ -802,21 +836,22 @@ pub fn server_init(
     TLSError,
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
-    let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
-    match algs.psk_mode() {
-        false => {
-            let (ee, sc, scv, st) = get_server_signature(st, rng)?;
-            let (sfin, cipher1, st) = get_server_finished(st)?;
-            let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
-            Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
-        }
-        true => {
-            let (ee, st) = get_skip_server_signature(st)?;
-            let (sfin, cipher1, st) = get_server_finished(st)?;
-            let flight = ee.concat(&sfin);
-            Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
-        }
-    }
+    Err(0)
+    // let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
+    // match algs.psk_mode() {
+    //     false => {
+    //         let (ee, sc, scv, st) = get_server_signature(st, rng)?;
+    //         let (sfin, cipher1, st) = get_server_finished(st)?;
+    //         let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
+    //         Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+    //     }
+    //     true => {
+    //         let (ee, st) = get_skip_server_signature(st)?;
+    //         let (sfin, cipher1, st) = get_server_finished(st)?;
+    //         let flight = ee.concat(&sfin);
+    //         Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+    //     }
+    // }
 }
 
 pub fn server_finish(

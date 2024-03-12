@@ -1,4 +1,5 @@
 use core::ops::Range;
+use hax_lib_macros as hax;
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
@@ -36,6 +37,10 @@ pub const MISSING_KEY_SHARE: TLSError = 139u8;
 pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub const DECODE_ERROR: TLSError = 142u8;
+
+pub fn dummy_fn() -> u8 {
+    PAYLOAD_TOO_LONG
+}
 
 #[allow(dead_code)]
 pub(crate) fn error_string(c: u8) -> String {
@@ -295,16 +300,17 @@ pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
+#[hax::attributes]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
+    #[requires(x < self.0.len())]
     fn index(&self, x: usize) -> &U8 {
         &self.0[x]
     }
 }
 
 mod non_hax {
-    use super::{Bytes, U8};
-
+    use super::*;
     impl core::ops::IndexMut<usize> for Bytes {
         fn index_mut(&mut self, i: usize) -> &mut U8 {
             &mut self.0[i]
@@ -318,8 +324,10 @@ mod non_hax {
     }
 }
 
+#[hax::attributes]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
+    #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
