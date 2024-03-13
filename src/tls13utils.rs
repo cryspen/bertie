@@ -188,7 +188,7 @@ impl From<Vec<u8>> for Bytes {
 
 impl Bytes {
     /// Add a prefix to these bytes and return it.
-    #[hax_lib_macros::pv_handwritten]
+    #[pv_handwritten]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -255,7 +255,7 @@ impl U32 {
         self.0
     }
 }
-#[hax_lib_macros::pv_handwritten]
+#[pv_handwritten]
 pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
     #[cfg(not(feature = "secret_integers"))]
     let val = val.to_be_bytes();
@@ -328,7 +328,7 @@ impl core::ops::Index<Range<usize>> for Bytes {
 
 impl Bytes {
     /// Create new [`Bytes`].
-    #[hax_lib_macros::pv_constructor]
+    #[pv_constructor]
     pub(crate) fn new() -> Bytes {
         Bytes(Vec::new())
     }
@@ -339,7 +339,7 @@ impl Bytes {
     }
 
     /// Generate `len` bytes of `0`.
-    #[hax_lib_macros::pv_constructor]
+    #[pv_constructor]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
@@ -404,7 +404,7 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[hax_lib_macros::pv_handwritten]
+    #[pv_handwritten]
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
         self
@@ -451,6 +451,7 @@ macro_rules! bytes_concat {
     };
 }
 pub(crate) use bytes_concat;
+use hax_lib_macros::{pv_constructor, pv_handwritten};
 
 #[cfg(test)]
 impl Bytes {
@@ -510,7 +511,7 @@ pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
 // TODO: This function should short-circuit once hax supports returns within loops
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
-#[hax_lib_macros::pv_handwritten]
+#[pv_handwritten]
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     eq_slice(&b1.0, &b2.0)
 }
@@ -530,7 +531,7 @@ pub(crate) fn check_eq_slice(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
-#[hax_lib_macros::pv_handwritten]
+#[pv_handwritten]
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_slice(b1.as_raw(), b2.as_raw())
 }
@@ -562,7 +563,7 @@ pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// On success, return a new [Bytes] slice such that its first byte encodes the
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
-#[hax_lib_macros::pv_constructor]
+#[pv_constructor]
 pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
