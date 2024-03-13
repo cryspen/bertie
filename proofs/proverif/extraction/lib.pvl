@@ -2912,7 +2912,6 @@ reduc
          ) = ().
 
 fun kem_pk_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
-fun kem_key_pair(bertie__tls13crypto__t_KemScheme,bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bitstring.
 
 event Reached_bertie__tls13crypto__kem_keygen.
 letfun bertie__tls13crypto__kem_keygen(
@@ -2921,7 +2920,7 @@ letfun bertie__tls13crypto__kem_keygen(
        event Reached_bertie__tls13crypto__kem_keygen;
        new kem_sk: bertie__tls13utils__t_Bytes;
        let kem_pk = kem_pk_from_sk(kem_sk) in
-       (rng, kem_key_pair(alg, kem_sk, kem_pk)).
+       (rng, (kem_sk, kem_pk)).
 
 fun kem_encapsulation(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
 
