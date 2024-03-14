@@ -25,9 +25,7 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize iv_ctr i (iv.[ i ] <: u8)
-          <:
-          Bertie.Tls13utils.t_Bytes)
+          Rust_primitives.Hax.update_at iv_ctr i (iv.[ i ] <: u8) <: Bertie.Tls13utils.t_Bytes)
   in
   let iv_ctr:Bertie.Tls13utils.t_Bytes =
     Core.Iter.Traits.Iterator.f_fold (Core.Iter.Traits.Collect.f_into_iter ({
@@ -42,7 +40,7 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.Monomorphized_update_at.update_at_usize iv_ctr
+          Rust_primitives.Hax.update_at iv_ctr
             ((i +! (Bertie.Tls13utils.impl__Bytes__len iv <: usize) <: usize) -! sz 8 <: usize)
             ((iv.[ (i +! (Bertie.Tls13utils.impl__Bytes__len iv <: usize) <: usize) -! sz 8 <: usize
                 ]
@@ -156,7 +154,7 @@ let encrypt_record_payload
   let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr key_iv.Bertie.Tls13crypto.f_iv n in
   let inner_plaintext:Bertie.Tls13utils.t_Bytes =
     Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat payload
-          (Bertie.Tls13utils.bytes1 (cast (ct <: Bertie.Tls13formats.t_ContentType) <: u8)
+          (Bertie.Tls13utils.bytes1 (Bertie.Tls13formats.t_ContentType_cast_to_repr ct <: u8)
             <:
             Bertie.Tls13utils.t_Bytes)
         <:

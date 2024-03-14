@@ -3,7 +3,51 @@ module Bertie.Tls13formats
 open Core
 open FStar.Mul
 
-let foofoooo (_: Prims.unit) = cast (22uy +! 0uy <: u8) <: u8
+let t_AlertDescription_cast_to_repr (x: t_AlertDescription) =
+  match x with
+  | AlertDescription_CloseNotify  -> discriminant_AlertDescription_CloseNotify
+  | AlertDescription_UnexpectedMessage  -> discriminant_AlertDescription_UnexpectedMessage
+  | AlertDescription_BadRecordMac  -> discriminant_AlertDescription_BadRecordMac
+  | AlertDescription_RecordOverflow  -> discriminant_AlertDescription_RecordOverflow
+  | AlertDescription_HandshakeFailure  -> discriminant_AlertDescription_HandshakeFailure
+  | AlertDescription_BadCertificate  -> discriminant_AlertDescription_BadCertificate
+  | AlertDescription_UnsupportedCertificate  -> discriminant_AlertDescription_UnsupportedCertificate
+  | AlertDescription_CertificateRevoked  -> discriminant_AlertDescription_CertificateRevoked
+  | AlertDescription_CertificateExpired  -> discriminant_AlertDescription_CertificateExpired
+  | AlertDescription_CertificateUnknown  -> discriminant_AlertDescription_CertificateUnknown
+  | AlertDescription_IllegalParameter  -> discriminant_AlertDescription_IllegalParameter
+  | AlertDescription_UnknownCa  -> discriminant_AlertDescription_UnknownCa
+  | AlertDescription_AccessDenied  -> discriminant_AlertDescription_AccessDenied
+  | AlertDescription_DecodeError  -> discriminant_AlertDescription_DecodeError
+  | AlertDescription_DecryptError  -> discriminant_AlertDescription_DecryptError
+  | AlertDescription_ProtocolVersion  -> discriminant_AlertDescription_ProtocolVersion
+  | AlertDescription_InsufficientSecurity  -> discriminant_AlertDescription_InsufficientSecurity
+  | AlertDescription_InternalError  -> discriminant_AlertDescription_InternalError
+  | AlertDescription_InappropriateFallback  -> discriminant_AlertDescription_InappropriateFallback
+  | AlertDescription_UserCanceled  -> discriminant_AlertDescription_UserCanceled
+  | AlertDescription_MissingExtension  -> discriminant_AlertDescription_MissingExtension
+  | AlertDescription_UnsupportedExtension  -> discriminant_AlertDescription_UnsupportedExtension
+  | AlertDescription_UnrecognizedName  -> discriminant_AlertDescription_UnrecognizedName
+  | AlertDescription_BadCertificateStatusResponse  ->
+    discriminant_AlertDescription_BadCertificateStatusResponse
+  | AlertDescription_UnknownPskIdentity  -> discriminant_AlertDescription_UnknownPskIdentity
+  | AlertDescription_CertificateRequired  -> discriminant_AlertDescription_CertificateRequired
+  | AlertDescription_NoApplicationProtocol  -> discriminant_AlertDescription_NoApplicationProtocol
+
+let t_AlertLevel_cast_to_repr (x: t_AlertLevel) =
+  match x with
+  | AlertLevel_Warning  -> discriminant_AlertLevel_Warning
+  | AlertLevel_Fatal  -> discriminant_AlertLevel_Fatal
+
+let t_ContentType_cast_to_repr (x: t_ContentType) =
+  match x with
+  | ContentType_Invalid  -> discriminant_ContentType_Invalid
+  | ContentType_ChangeCipherSpec  -> discriminant_ContentType_ChangeCipherSpec
+  | ContentType_Alert  -> discriminant_ContentType_Alert
+  | ContentType_Handshake  -> discriminant_ContentType_Handshake
+  | ContentType_ApplicationData  -> discriminant_ContentType_ApplicationData
+
+let foofoooo (_: Prims.unit) = cast (discriminant_ContentType_Handshake +! 0uy <: u8) <: u8
 
 let application_data_instead_of_handshake (_: Prims.unit) =
   Core.Result.Result_Err Bertie.Tls13utils.v_APPLICATION_DATA_INSTEAD_OF_HANDSHAKE
@@ -1039,7 +1083,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
       else
         let ty:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.bytes1 (cast (22uy +! 0uy <: u8) <: u8)
+          Bertie.Tls13utils.bytes1 (cast (discriminant_ContentType_Handshake +! 0uy <: u8) <: u8)
         in
         let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
         let! _:Prims.unit =
@@ -1146,7 +1190,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8))
 
-let check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+let rec check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   match check_server_extension algs b with
   | Core.Result.Result_Ok (len, out) ->
     if len =. (Core.Slice.impl__len b <: usize)
@@ -1365,7 +1409,12 @@ let client_hello
 
 let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms) =
   let handshake_type:Bertie.Tls13utils.t_Bytes =
-    Bertie.Tls13utils.bytes1 (cast (8uy +! 0uy <: u8) <: u8)
+    Bertie.Tls13utils.bytes1 (cast (Bertie.Tls13formats.Handshake_data.discriminant_HandshakeType_EncryptedExtensions +!
+            0uy
+            <:
+            u8)
+        <:
+        u8)
   in
   match
     Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.impl__Bytes__new ()
@@ -1391,7 +1440,7 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms) =
     <:
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
-let find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
+let rec find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
   if (Core.Slice.impl__len ch <: usize) <. sz 4
   then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
   else
@@ -1685,7 +1734,9 @@ let get_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
 let handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
-  let ty:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 (cast (22uy +! 0uy <: u8) <: u8) in
+  let ty:Bertie.Tls13utils.t_Bytes =
+    Bertie.Tls13utils.bytes1 (cast (discriminant_ContentType_Handshake +! 0uy <: u8) <: u8)
+  in
   let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
   match Bertie.Tls13utils.encode_length_u16 p.Bertie.Tls13formats.Handshake_data._0 with
   | Core.Result.Result_Ok hoist156 ->
@@ -1795,7 +1846,12 @@ let parse_encrypted_extensions
     encrypted_extensions
   in
   let expected_handshake_type:Bertie.Tls13utils.t_Bytes =
-    Bertie.Tls13utils.bytes1 (cast (8uy +! 0uy <: u8) <: u8)
+    Bertie.Tls13utils.bytes1 (cast (Bertie.Tls13formats.Handshake_data.discriminant_HandshakeType_EncryptedExtensions +!
+            0uy
+            <:
+            u8)
+        <:
+        u8)
   in
   match
     Bertie.Tls13utils.check_eq expected_handshake_type
@@ -2155,7 +2211,7 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
   match
     Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list = [] in
             FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 0);
-            Rust_primitives.Hax.array_of_list 0 list)
+            Rust_primitives.Hax.array_of_list #u32 0 list)
         <:
         t_Slice u8)
   with
@@ -2381,7 +2437,7 @@ let impl__Transcript__transcript_hash_without_client_hello
       <:
       Bertie.Tls13utils.t_Bytes)
 
-let check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+let rec check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   match check_extension algs b with
   | Core.Result.Result_Ok (len, out) ->
     if len =. (Core.Slice.impl__len b <: usize)

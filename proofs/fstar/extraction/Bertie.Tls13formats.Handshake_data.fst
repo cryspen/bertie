@@ -3,6 +3,20 @@ module Bertie.Tls13formats.Handshake_data
 open Core
 open FStar.Mul
 
+let t_HandshakeType_cast_to_repr (x: t_HandshakeType) =
+  match x with
+  | HandshakeType_ClientHello  -> discriminant_HandshakeType_ClientHello
+  | HandshakeType_ServerHello  -> discriminant_HandshakeType_ServerHello
+  | HandshakeType_NewSessionTicket  -> discriminant_HandshakeType_NewSessionTicket
+  | HandshakeType_EndOfEarlyData  -> discriminant_HandshakeType_EndOfEarlyData
+  | HandshakeType_EncryptedExtensions  -> discriminant_HandshakeType_EncryptedExtensions
+  | HandshakeType_Certificate  -> discriminant_HandshakeType_Certificate
+  | HandshakeType_CertificateRequest  -> discriminant_HandshakeType_CertificateRequest
+  | HandshakeType_CertificateVerify  -> discriminant_HandshakeType_CertificateVerify
+  | HandshakeType_Finished  -> discriminant_HandshakeType_Finished
+  | HandshakeType_KeyUpdate  -> discriminant_HandshakeType_KeyUpdate
+  | HandshakeType_MessageHash  -> discriminant_HandshakeType_MessageHash
+
 let get_hs_type (t: u8) =
   match t with
   | 1uy ->
@@ -106,7 +120,7 @@ let impl__HandshakeData__as_handshake_message
       with
       | Core.Result.Result_Ok (HandshakeData tagged_message_bytes) ->
         let expected_bytes:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.bytes1 (cast (expected_type <: t_HandshakeType) <: u8)
+          Bertie.Tls13utils.bytes1 (t_HandshakeType_cast_to_repr expected_type <: u8)
         in
         (match
             Bertie.Tls13utils.check_eq expected_bytes
@@ -214,7 +228,11 @@ let impl__HandshakeData__from_bytes
     Core.Result.Result_Ok
     (Core.Convert.f_from (Bertie.Tls13utils.impl__Bytes__prefix hoist138
             (Rust_primitives.unsize (let list =
-                    [Bertie.Tls13utils.v_U8 (cast (handshake_type <: t_HandshakeType) <: u8) <: u8]
+                    [
+                      Bertie.Tls13utils.v_U8 (t_HandshakeType_cast_to_repr handshake_type <: u8)
+                      <:
+                      u8
+                    ]
                   in
                   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
                   Rust_primitives.Hax.array_of_list 1 list)
@@ -227,7 +245,7 @@ let impl__HandshakeData__from_bytes
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
 
-let impl__HandshakeData__find_handshake_message
+let rec impl__HandshakeData__find_handshake_message
       (self: t_HandshakeData)
       (handshake_type: t_HandshakeType)
       (start: usize)
@@ -250,7 +268,7 @@ let impl__HandshakeData__find_handshake_message
     | Core.Result.Result_Ok len ->
       if
         Bertie.Tls13utils.eq1 (self._0.[ start ] <: u8)
-          (Bertie.Tls13utils.v_U8 (cast (handshake_type <: t_HandshakeType) <: u8) <: u8)
+          (Bertie.Tls13utils.v_U8 (t_HandshakeType_cast_to_repr handshake_type <: u8) <: u8)
       then true
       else
         impl__HandshakeData__find_handshake_message self

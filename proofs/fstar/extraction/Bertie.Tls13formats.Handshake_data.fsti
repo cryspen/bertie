@@ -3,6 +3,26 @@ module Bertie.Tls13formats.Handshake_data
 open Core
 open FStar.Mul
 
+let discriminant_HandshakeType_Certificate: u8 = 11uy
+
+let discriminant_HandshakeType_CertificateRequest: u8 = 13uy
+
+let discriminant_HandshakeType_CertificateVerify: u8 = 15uy
+
+let discriminant_HandshakeType_ClientHello: u8 = 1uy
+
+let discriminant_HandshakeType_EncryptedExtensions: u8 = 8uy
+
+let discriminant_HandshakeType_EndOfEarlyData: u8 = 5uy
+
+let discriminant_HandshakeType_Finished: u8 = 20uy
+
+let discriminant_HandshakeType_KeyUpdate: u8 = 24uy
+
+let discriminant_HandshakeType_MessageHash: u8 = 254uy
+
+let discriminant_HandshakeType_NewSessionTicket: u8 = 4uy
+
 type t_HandshakeType =
   | HandshakeType_ClientHello : t_HandshakeType
   | HandshakeType_ServerHello : t_HandshakeType
@@ -15,6 +35,11 @@ type t_HandshakeType =
   | HandshakeType_Finished : t_HandshakeType
   | HandshakeType_KeyUpdate : t_HandshakeType
   | HandshakeType_MessageHash : t_HandshakeType
+
+let discriminant_HandshakeType_ServerHello: u8 = 2uy
+
+val t_HandshakeType_cast_to_repr (x: t_HandshakeType)
+    : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
 val get_hs_type (t: u8)
     : Prims.Pure (Core.Result.t_Result t_HandshakeType u8) Prims.l_True (fun _ -> Prims.l_True)

@@ -14,10 +14,16 @@ val impl__AeadAlgorithm__iv_len (self: t_AeadAlgorithm)
 val impl__AeadAlgorithm__key_len (self: t_AeadAlgorithm)
     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
 
+val t_AeadAlgorithm_cast_to_repr (x: t_AeadAlgorithm)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
+
 type t_HashAlgorithm =
   | HashAlgorithm_SHA256 : t_HashAlgorithm
   | HashAlgorithm_SHA384 : t_HashAlgorithm
   | HashAlgorithm_SHA512 : t_HashAlgorithm
+
+val t_HashAlgorithm_cast_to_repr (x: t_HashAlgorithm)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 type t_KemScheme =
   | KemScheme_X25519 : t_KemScheme
@@ -26,10 +32,16 @@ type t_KemScheme =
   | KemScheme_Secp384r1 : t_KemScheme
   | KemScheme_Secp521r1 : t_KemScheme
 
+val t_KemScheme_cast_to_repr (x: t_KemScheme)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
+
 type t_SignatureScheme =
   | SignatureScheme_RsaPssRsaSha256 : t_SignatureScheme
   | SignatureScheme_EcdsaSecp256r1Sha256 : t_SignatureScheme
   | SignatureScheme_ED25519 : t_SignatureScheme
+
+val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
     : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)

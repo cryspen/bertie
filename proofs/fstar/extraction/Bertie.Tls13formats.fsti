@@ -3,6 +3,58 @@ module Bertie.Tls13formats
 open Core
 open FStar.Mul
 
+let discriminant_AlertDescription_AccessDenied: u8 = 49uy
+
+let discriminant_AlertDescription_BadCertificate: u8 = 42uy
+
+let discriminant_AlertDescription_BadCertificateStatusResponse: u8 = 113uy
+
+let discriminant_AlertDescription_BadRecordMac: u8 = 20uy
+
+let discriminant_AlertDescription_CertificateExpired: u8 = 45uy
+
+let discriminant_AlertDescription_CertificateRequired: u8 = 116uy
+
+let discriminant_AlertDescription_CertificateRevoked: u8 = 44uy
+
+let discriminant_AlertDescription_CertificateUnknown: u8 = 46uy
+
+let discriminant_AlertDescription_CloseNotify: u8 = 0uy
+
+let discriminant_AlertDescription_DecodeError: u8 = 50uy
+
+let discriminant_AlertDescription_DecryptError: u8 = 51uy
+
+let discriminant_AlertDescription_HandshakeFailure: u8 = 40uy
+
+let discriminant_AlertDescription_IllegalParameter: u8 = 47uy
+
+let discriminant_AlertDescription_InappropriateFallback: u8 = 86uy
+
+let discriminant_AlertDescription_InsufficientSecurity: u8 = 71uy
+
+let discriminant_AlertDescription_InternalError: u8 = 80uy
+
+let discriminant_AlertDescription_MissingExtension: u8 = 109uy
+
+let discriminant_AlertDescription_NoApplicationProtocol: u8 = 120uy
+
+let discriminant_AlertDescription_ProtocolVersion: u8 = 70uy
+
+let discriminant_AlertDescription_RecordOverflow: u8 = 22uy
+
+let discriminant_AlertDescription_UnexpectedMessage: u8 = 10uy
+
+let discriminant_AlertDescription_UnknownCa: u8 = 48uy
+
+let discriminant_AlertDescription_UnknownPskIdentity: u8 = 115uy
+
+let discriminant_AlertDescription_UnrecognizedName: u8 = 112uy
+
+let discriminant_AlertDescription_UnsupportedCertificate: u8 = 43uy
+
+let discriminant_AlertDescription_UnsupportedExtension: u8 = 110uy
+
 type t_AlertDescription =
   | AlertDescription_CloseNotify : t_AlertDescription
   | AlertDescription_UnexpectedMessage : t_AlertDescription
@@ -32,9 +84,28 @@ type t_AlertDescription =
   | AlertDescription_CertificateRequired : t_AlertDescription
   | AlertDescription_NoApplicationProtocol : t_AlertDescription
 
+let discriminant_AlertDescription_UserCanceled: u8 = 90uy
+
+val t_AlertDescription_cast_to_repr (x: t_AlertDescription)
+    : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
+
+let discriminant_AlertLevel_Fatal: u8 = 2uy
+
 type t_AlertLevel =
   | AlertLevel_Warning : t_AlertLevel
   | AlertLevel_Fatal : t_AlertLevel
+
+let discriminant_AlertLevel_Warning: u8 = 1uy
+
+val t_AlertLevel_cast_to_repr (x: t_AlertLevel) : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
+
+let discriminant_ContentType_Alert: u8 = 21uy
+
+let discriminant_ContentType_ApplicationData: u8 = 23uy
+
+let discriminant_ContentType_ChangeCipherSpec: u8 = 20uy
+
+let discriminant_ContentType_Handshake: u8 = 22uy
 
 type t_ContentType =
   | ContentType_Invalid : t_ContentType
@@ -42,6 +113,11 @@ type t_ContentType =
   | ContentType_Alert : t_ContentType
   | ContentType_Handshake : t_ContentType
   | ContentType_ApplicationData : t_ContentType
+
+let discriminant_ContentType_Invalid: u8 = 0uy
+
+val t_ContentType_cast_to_repr (x: t_ContentType)
+    : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
 let v_LABEL_C_AP_TRAFFIC: t_Array u8 (sz 12) =
   let list = [99uy; 32uy; 97uy; 112uy; 32uy; 116uy; 114uy; 97uy; 102uy; 102uy; 105uy; 99uy] in
