@@ -2469,20 +2469,11 @@ letfun bertie__tls13utils__impl__Bytes__prefix(self:bertie__tls13utils__t_Bytes,
        bertie__tls13utils__impl__Bytes__concat(prefix, self).
 (* MARKER: tls13utils models end*)
 
+
 event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash_len.
 letfun bertie__tls13crypto__impl__HashAlgorithm__hash_len(
          self : bertie__tls13crypto__t_HashAlgorithm
-       ) =
-       event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash_len;
-       let bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() = self in libcrux__digest__digest_size(
-         libcrux__digest__Algorithm_Algorithm_Sha256_c()
-       )
-       else let bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA384_c() = self in libcrux__digest__digest_size(
-         libcrux__digest__Algorithm_Algorithm_Sha384_c()
-       )
-       else let bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA512_c() = self in libcrux__digest__digest_size(
-         libcrux__digest__Algorithm_Algorithm_Sha512_c()
-       ).
+       ) = 0.
 
 event Reached_bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len.
 letfun bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(
