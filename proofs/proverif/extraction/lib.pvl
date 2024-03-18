@@ -2983,23 +2983,30 @@ fun bertie__tls13formats__server_hello(
     )
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 (* MARKER: tls13formats models*)
-reduc forall hs1: bertie__tls13formats__handshake_data__t_HandshakeData,
-             hs2: bertie__tls13formats__handshake_data__t_HandshakeData;
-  bertie__tls13formats__handshake_data__impl__HandshakeData__to_two(
-    bertie__tls13formats__handshake_data__impl__HandshakeData__concat(hs1, hs2)
-    ) = (hs1, hs2).
 
-reduc forall hs1: bertie__tls13formats__handshake_data__t_HandshakeData,
-             hs2: bertie__tls13formats__handshake_data__t_HandshakeData,
-             hs3: bertie__tls13formats__handshake_data__t_HandshakeData,
-             hs4: bertie__tls13formats__handshake_data__t_HandshakeData;
+reduc forall hs1: bertie__tls13utils__t_Bytes,
+             hs2: bertie__tls13utils__t_Bytes;
+  bertie__tls13formats__handshake_data__impl__HandshakeData__to_two(
+  bertie__tls13formats__handshake_data__HandshakeData_c(
+                      bertie__tls13utils__impl__Bytes__concat(hs1, hs2)
+                      )
+    ) =  (bertie__tls13formats__handshake_data__HandshakeData_c(hs1), bertie__tls13formats__handshake_data__HandshakeData_c(hs2)).
+
+reduc forall hs1: bertie__tls13utils__t_Bytes,
+             hs2: bertie__tls13utils__t_Bytes,
+             hs3: bertie__tls13utils__t_Bytes,
+             hs4: bertie__tls13utils__t_Bytes;
   bertie__tls13formats__handshake_data__impl__HandshakeData__to_four(
-    bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
-        bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
-           bertie__tls13formats__handshake_data__impl__HandshakeData__concat(hs1, hs2),
-           hs3),
-        hs4))
-     = (hs1, hs2, hs3, hs4).
+    bertie__tls13formats__handshake_data__HandshakeData_c(
+                          bertie__tls13utils__impl__Bytes__concat(
+                             bertie__tls13utils__impl__Bytes__concat(
+                                bertie__tls13utils__impl__Bytes__concat(hs1, hs2),
+                             hs3),
+                          hs4)))
+     = (bertie__tls13formats__handshake_data__HandshakeData_c(hs1),
+        bertie__tls13formats__handshake_data__HandshakeData_c(hs2),
+        bertie__tls13formats__handshake_data__HandshakeData_c(hs3),
+        bertie__tls13formats__handshake_data__HandshakeData_c(hs4)).
 
 reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
       bertie__tls13formats__parse_certificate_verify(
