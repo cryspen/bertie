@@ -2464,12 +2464,9 @@ letfun bertie__tls13utils__eq(
        event Reached_bertie__tls13utils__eq;
        b1 = b2. (* This is term equality, which may not be what we want? *)
 
-event Reached_bertie__tls13utils__check_eq.
-letfun bertie__tls13utils__check_eq(
-         b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13utils__check_eq;
-       if bertie__tls13utils__eq(b1, b2) then () else construct_fail().
+fun bertie__tls13utils__check_eq(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bitstring
+reduc forall b1 : bertie__tls13utils__t_Bytes;
+      bertie__tls13utils__check_eq(b1,b1) = ().
 
 fun bertie__tls13utils__impl__Bytes__concat(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes [data].
 
