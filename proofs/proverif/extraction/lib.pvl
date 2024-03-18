@@ -2919,14 +2919,19 @@ reduc forall alg: bertie__tls13crypto__t_KemScheme, kem_sk: bertie__tls13utils__
      ) = shared_secret.
 (* MARKER: tls13crypto models end*)
 
+fun HandshakeData_to_bytes(bertie__tls13formats__handshake_data__t_HandshakeData): bertie__tls13utils__t_Bytes [typeConverter].
 
 
 letfun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
       self: bertie__tls13formats__handshake_data__t_HandshakeData,
       other: bertie__tls13formats__handshake_data__t_HandshakeData
     ) =
-    let self_bytes: bertie__tls13utils__t_Bytes =          accessor_bertie__tls13formats__handshake_data__HandshakeData_0(self) in
-    let other_bytes: bertie__tls13utils__t_Bytes =         accessor_bertie__tls13formats__handshake_data__HandshakeData_0(other) in
+
+
+    let self_bytes: bertie__tls13utils__t_Bytes =          HandshakeData_to_bytes(self) in
+
+    let other_bytes: bertie__tls13utils__t_Bytes =         HandshakeData_to_bytes(other) in
+
     bertie__tls13formats__handshake_data__HandshakeData_c(
     bertie__tls13utils__impl__Bytes__concat(
     self_bytes,
