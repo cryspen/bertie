@@ -2606,7 +2606,7 @@ letfun bertie__tls13handshake__hkdf_expand_label(
          len : nat
        ) =
        event Reached_bertie__tls13handshake__hkdf_expand_label;
-       if core__cmp__PartialOrd__ge(len, 65536)
+       if core__cmp__PartialOrd__ge(len, 1)
        then (bertie__tls13utils__t_Bytes_err())
        else (
          let lenb =
