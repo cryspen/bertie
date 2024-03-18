@@ -2937,12 +2937,19 @@ reduc forall alg: bertie__tls13crypto__t_KemScheme, kem_sk: bertie__tls13utils__
 (* MARKER: tls13crypto models end*)
 
 
-(* marked as constructor *)
-fun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
-      bertie__tls13formats__handshake_data__t_HandshakeData,
-      bertie__tls13formats__handshake_data__t_HandshakeData
-    )
-    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+letfun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
+      self: bertie__tls13formats__handshake_data__t_HandshakeData,
+      other: bertie__tls13formats__handshake_data__t_HandshakeData
+    ) =
+    let self_bytes: bertie__tls13utils__t_Bytes =          accessor_bertie__tls13formats__handshake_data__HandshakeData_0(self) in
+    let other_bytes: bertie__tls13utils__t_Bytes =         accessor_bertie__tls13formats__handshake_data__HandshakeData_0(other) in
+    bertie__tls13formats__handshake_data__HandshakeData_c(
+    bertie__tls13utils__impl__Bytes__concat(
+    self_bytes,
+    other_bytes
+    )).
+
 
 
 (* marked as constructor *)
