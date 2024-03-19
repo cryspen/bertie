@@ -2588,44 +2588,14 @@ letfun bertie__tls13utils__bytes(x : bitstring) =
 fun bertie__tls13utils__encode_length_u8(bitstring)
     : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13handshake__hkdf_expand_label.
-letfun bertie__tls13handshake__hkdf_expand_label(
-         hash_algorithm : bertie__tls13crypto__t_HashAlgorithm,
-         key : bertie__tls13utils__t_Bytes,
-         label : bertie__tls13utils__t_Bytes,
-         context : bertie__tls13utils__t_Bytes,
-         len : nat
-       ) =
-       event Reached_bertie__tls13handshake__hkdf_expand_label;
-       if core__cmp__PartialOrd__ge(len, 1)
-       then (bertie__tls13utils__t_Bytes_err())
-       else (
-         let lenb =
-           bertie__tls13utils__u16_as_be_bytes(bertie__tls13utils__v_U16(len))
-          in
-         let tls13_label =
-           bertie__tls13utils__impl__Bytes__concat(
-             bertie__tls13utils__impl__Bytes__from_slice(
-               bertie__tls13formats__v_LABEL_TLS13
-             ),
-             label
-           )
-          in
-         let hoist27 = bertie__tls13utils__encode_length_u8(
-           bertie__tls13utils__impl__Bytes__as_raw(tls13_label)
-         ) in let hoist26 = bertie__tls13utils__encode_length_u8(
-           bertie__tls13utils__impl__Bytes__as_raw(context)
-         ) in (
-           let hoist28 =
-             bertie__tls13utils__impl__Bytes__concat(hoist27, hoist26)
-            in
-           let info = bertie__tls13utils__impl__Bytes__prefix(hoist28, lenb) in
-           bertie__tls13crypto__hkdf_expand(hash_algorithm, key, info, len)
-         )
-         else bertie__tls13utils__t_Bytes_err()
-         else bertie__tls13utils__t_Bytes_err()
-       ).
-
+fun bertie__tls13handshake__hkdf_expand_label(
+         bertie__tls13crypto__t_HashAlgorithm,
+         bertie__tls13utils__t_Bytes,
+         bertie__tls13utils__t_Bytes,
+         bertie__tls13utils__t_Bytes,
+         nat
+       ): bertie__tls13utils__t_Bytes [data].
+       
 event Reached_bertie__tls13handshake__derive_finished_key.
 letfun bertie__tls13handshake__derive_finished_key(
          ha : bertie__tls13crypto__t_HashAlgorithm,
