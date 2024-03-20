@@ -20,7 +20,7 @@ letfun nat_default() = 0.
 fun nat_to_bitstring(nat): bitstring.
 
 letfun bool_default() = false.
-
+event Reachable_simple.
 
 (*****************************************)
 (* Types and Constructors *)
