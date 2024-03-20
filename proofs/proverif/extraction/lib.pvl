@@ -2793,15 +2793,19 @@ fun bertie__tls13crypto__verify(
         sign_inner_rsa(sk, pk_modulus, pk_exponent, cert_scheme, input)
       ) = ()
   otherwise
-    forall alg: bertie__tls13crypto__t_SignatureScheme,
-           sk: bertie__tls13utils__t_Bytes,
+    forall sk: bertie__tls13utils__t_Bytes,
            input: bertie__tls13utils__t_Bytes,
            rng: impl_CryptoRng___RngCore;
       bertie__tls13crypto__verify(
-        alg,
-        vk_from_sk(sk),
+        bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c,
+        bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
+            bertie__tls13cert__ecdsa_public_key(
+                certificate(
+                    spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c,ecdsa_cert_key_slice),
+                    vk_from_sk(sk)),
+                ecdsa_cert_key_slice)),
         input,
-        sign_inner(alg, sk, input)
+        sign_inner(bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c, sk, input)
       ) = ().
 
 reduc
