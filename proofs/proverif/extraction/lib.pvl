@@ -2927,7 +2927,7 @@ reduc forall hs1: bertie__tls13utils__t_Bytes,
 reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
       bertie__tls13formats__parse_certificate_verify(
         algs,
-        bertie__tls13formats__certificate_verify(algs, cert)
+        bertie__tls13formats__handshake_data__HandshakeData_c(HandshakeData_to_bytes(bertie__tls13formats__certificate_verify(algs, cert)))
       ) = cert.
 
 reduc forall   algs: bertie__tls13crypto__t_Algorithms, server_random: bertie__tls13utils__t_Bytes, sid: bertie__tls13utils__t_Bytes, gy: bertie__tls13utils__t_Bytes;
