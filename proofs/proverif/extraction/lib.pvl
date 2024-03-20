@@ -2691,7 +2691,6 @@ fun bertie__tls13cert__ecdsa_public_key(bertie__tls13utils__t_Bytes, bertie__tls
 letfun bertie__tls13cert__cert_public_key(
          certificate : bertie__tls13utils__t_Bytes, spki : bitstring
        ) =
-       event Reached_bertie__tls13cert__cert_public_key;
        let (scheme: bertie__tls13crypto__t_SignatureScheme, pk: bertie__tls13cert__t_CertificateKey) = spki in
        let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c() = scheme in
        bertie__tls13crypto__t_PublicVerificationKey_err()
