@@ -2950,7 +2950,8 @@ reduc forall vd: bertie__tls13utils__t_Bytes;
 
 reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
   bertie__tls13formats__parse_server_certificate(
-   bertie__tls13formats__server_certificate(algs, cert)
+  bertie__tls13formats__handshake_data__HandshakeData_c(
+   HandshakeData_to_bytes(bertie__tls13formats__server_certificate(algs, cert)))
   ) = cert.
 
 fun client_hello_no_binder(
