@@ -1,6 +1,11 @@
 (*****************************************)
 (* Top-level process *)
 (*****************************************)
+free server_name: bertie__tls13utils__t_Bytes.
+
+free cert_sk: bertie__tls13utils__t_Bytes [private].
+(* query attacker(cert_sk). *)
+
 
 process
     0
