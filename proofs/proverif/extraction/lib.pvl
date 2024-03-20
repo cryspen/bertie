@@ -2714,16 +2714,20 @@ letfun bertie__tls13cert__cert_public_key(
 fun spki(bertie__tls13crypto__t_SignatureScheme,
          bertie__tls13cert__t_CertificateKey):  bertie__tls13utils__t_Bytes [data].
 
-reduc forall alg: bertie__tls13crypto__t_SignatureScheme, cert_key: bertie__tls13cert__t_CertificateKey;
+fun certificate(bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_PublicVerificationKey): bertie__tls13utils__t_Bytes [data].
+
+reduc forall alg: bertie__tls13crypto__t_SignatureScheme, cert_key_slice: bertie__tls13cert__t_CertificateKey, cert_key: bertie__tls13crypto__t_PublicVerificationKey;
   bertie__tls13cert__verification_key_from_cert(
-            spki(alg, cert_key)
+            certificate(spki(alg, cert_key_slice), cert_key) 
        ) =
-       (alg, cert_key).
+       (alg, cert_key_slice).
 (* MARKER: tls13cert models end*)
 
 (* MARKER: tls13crypto models*)
 fun vk_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13crypto__t_PublicVerificationKey.
 fun rsa_vk_from_sk(bertie__tls13utils__t_Bytes,bertie__tls13utils__t_Bytes,bertie__tls13utils__t_Bytes): bertie__tls13crypto__t_PublicVerificationKey.
+
+fun ecdsa_cert_key_slice(): bertie__tls13cert__t_CertificateKey.
 
 fun sign_inner(
       bertie__tls13crypto__t_SignatureScheme,
