@@ -2851,7 +2851,7 @@ reduc forall alg: bertie__tls13crypto__t_KemScheme, kem_sk: bertie__tls13utils__
 (* MARKER: tls13crypto models end*)
 
 fun HandshakeData_to_bytes(bertie__tls13formats__handshake_data__t_HandshakeData): bertie__tls13utils__t_Bytes [typeConverter].
-
+fun HandshakeData_from_bytes(bertie__tls13utils__t_Bytes):  bertie__tls13formats__handshake_data__t_HandshakeData [typeConverter].
 
 letfun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
       self: bertie__tls13formats__handshake_data__t_HandshakeData,
@@ -2863,7 +2863,7 @@ letfun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
 
     let other_bytes: bertie__tls13utils__t_Bytes =         HandshakeData_to_bytes(other) in
 
-    bertie__tls13formats__handshake_data__HandshakeData_c(
+    HandshakeData_from_bytes(
     bertie__tls13utils__impl__Bytes__concat(
     self_bytes,
     other_bytes
@@ -2916,25 +2916,21 @@ reduc forall hs1: bertie__tls13utils__t_Bytes,
              hs3: bertie__tls13utils__t_Bytes,
              hs4: bertie__tls13utils__t_Bytes;
   bertie__tls13formats__handshake_data__impl__HandshakeData__to_four(
-             bertie__tls13formats__handshake_data__HandshakeData_c(
-                bertie__tls13utils__impl__Bytes__concat(
-                    HandshakeData_to_bytes(bertie__tls13formats__handshake_data__HandshakeData_c(
+                HandshakeData_from_bytes(bertie__tls13utils__impl__Bytes__concat(
                         bertie__tls13utils__impl__Bytes__concat(
-                            HandshakeData_to_bytes(bertie__tls13formats__handshake_data__HandshakeData_c(
                                 bertie__tls13utils__impl__Bytes__concat(
                                 hs1,
-                                hs2))),
-                                hs3))),
+                                hs2),
+                                hs3),
                                 hs4)))
-     = (bertie__tls13formats__handshake_data__HandshakeData_c(hs1),
-        bertie__tls13formats__handshake_data__HandshakeData_c(hs2),
-        bertie__tls13formats__handshake_data__HandshakeData_c(hs3),
-        bertie__tls13formats__handshake_data__HandshakeData_c(hs4)).
+     = (hs1,
+        hs2,
+        hs3,
+        hs4).
 
 reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
       bertie__tls13formats__parse_certificate_verify(
-        algs,
-        bertie__tls13formats__handshake_data__HandshakeData_c(HandshakeData_to_bytes(bertie__tls13formats__certificate_verify(algs, cert)))
+        algs,bertie__tls13formats__certificate_verify(algs, cert)
       ) = cert.
 
 reduc forall   algs: bertie__tls13crypto__t_Algorithms, server_random: bertie__tls13utils__t_Bytes, sid: bertie__tls13utils__t_Bytes, gy: bertie__tls13utils__t_Bytes;
@@ -2946,8 +2942,7 @@ reduc forall   algs: bertie__tls13crypto__t_Algorithms, server_random: bertie__t
 reduc forall algs: bertie__tls13crypto__t_Algorithms;
       bertie__tls13formats__parse_encrypted_extensions(
         algs,
-        bertie__tls13formats__handshake_data__HandshakeData_c(
-        HandshakeData_to_bytes(bertie__tls13formats__encrypted_extensions(algs)))
+        bertie__tls13formats__encrypted_extensions(algs)
       ) = ().
 
 reduc forall vd: bertie__tls13utils__t_Bytes;
@@ -2957,8 +2952,7 @@ reduc forall vd: bertie__tls13utils__t_Bytes;
 
 reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
   bertie__tls13formats__parse_server_certificate(
-  bertie__tls13formats__handshake_data__HandshakeData_c(
-   HandshakeData_to_bytes(bertie__tls13formats__server_certificate(algs, cert)))
+     bertie__tls13formats__server_certificate(algs, cert)
   ) = cert.
 
 fun client_hello_no_binder(
@@ -3081,7 +3075,7 @@ letfun bertie__tls13formats__impl__Transcript__add(
         bertie__tls13formats__Transcript_c(
          hash_algorithm
          ,
-         bertie__tls13formats__handshake_data__impl__HandshakeData__concat(old_handshake_data, addition)
+         bertie__tls13formats__handshake_data__HandshakeData_c(HandshakeData_to_bytes(bertie__tls13formats__handshake_data__impl__HandshakeData__concat(old_handshake_data, addition)))
     ).
 
 letfun bertie__tls13formats__impl__Transcript__new(
