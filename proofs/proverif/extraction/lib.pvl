@@ -2391,11 +2391,17 @@ reduc forall
 
 letfun bertie__tls13crypto__impl__AeadAlgorithm__iv_len(
          self : bertie__tls13crypto__t_AeadAlgorithm
-       ) = 12.
+       ) =
+       let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() = self in 12
+       else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes128Gcm_c() = self in 12
+       else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes256Gcm_c() = self in 12.
 
 letfun bertie__tls13crypto__impl__AeadAlgorithm__key_len(
          self : bertie__tls13crypto__t_AeadAlgorithm
-       ) = 32.
+       ) =
+       let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() = self in 32
+       else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes128Gcm_c() = self in 16
+       else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes256Gcm_c() = self in 32.
 
 const bertie__tls13formats__v_LABEL_C_AP_TRAFFIC: bitstring.
 
