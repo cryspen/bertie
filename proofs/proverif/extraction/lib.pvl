@@ -4140,12 +4140,10 @@ letfun bertie__tls13handshake__put_server_finished(
        else bitstring_err()
        else bitstring_err().
 
-
 letfun bertie__tls13handshake__client_finish(
          payload : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostServerHello
        ) =
-
        let (=false) = bertie__tls13crypto__impl__Algorithms__psk_mode(
          bertie__tls13handshake__algs_post_server_hello(handshake_state)
        ) in let (
