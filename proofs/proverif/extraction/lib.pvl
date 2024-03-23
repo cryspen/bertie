@@ -2563,13 +2563,18 @@ letfun bertie__tls13utils__bytes(x : bitstring) =
 fun bertie__tls13utils__encode_length_u8(bitstring)
     : bertie__tls13utils__t_Bytes [data].
 
-fun bertie__tls13handshake__hkdf_expand_label(
-         bertie__tls13crypto__t_HashAlgorithm,
+fun expand_label_inner(bertie__tls13crypto__t_HashAlgorithm,
          bertie__tls13utils__t_Bytes,
          bertie__tls13utils__t_Bytes,
-         bertie__tls13utils__t_Bytes,
-         nat
-       ): bertie__tls13utils__t_Bytes [data].
+         bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes [data].
+
+letfun bertie__tls13handshake__hkdf_expand_label(
+         hash_algorithm: bertie__tls13crypto__t_HashAlgorithm,
+         key: bertie__tls13utils__t_Bytes,
+         label: bertie__tls13utils__t_Bytes,
+         input: bertie__tls13utils__t_Bytes,
+         length: nat
+       ) = expand_label_inner(hash_algorithm, key, label, input).
        
 letfun bertie__tls13handshake__derive_finished_key(
          ha : bertie__tls13crypto__t_HashAlgorithm,
