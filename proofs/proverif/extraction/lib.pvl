@@ -2528,7 +2528,7 @@ fun bertie__tls13crypto__hmac_tag(
       bertie__tls13utils__t_Bytes,
       bertie__tls13utils__t_Bytes
     )
-    : bertie__tls13utils__t_Bytes [data].
+    : bertie__tls13utils__t_Bytes.
 
 
 letfun bertie__tls13utils__impl__Bytes__as_raw(
