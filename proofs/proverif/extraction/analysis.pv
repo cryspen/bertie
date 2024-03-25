@@ -8,6 +8,8 @@ free cert_sk: bertie__tls13utils__t_Bytes [private].
 (* Name, DB *)
 table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB).
 
+event CompromisedServer(bertie__tls13utils__t_Bytes).
+
 query event(Reachable_simple).
 
 query server_name:bertie__tls13utils__t_Bytes,cipher:bertie__tls13record__t_DuplexCipherState1, st:bertie__tls13handshake__t_ClientPostClientFinished;
@@ -134,9 +136,15 @@ let CreateServer() =
         None()
     ) in
     insert server_dbs(server_name, db).
+
+let CompromiseServer() =
+    in(c, server_name: bertie__tls13utils__t_Bytes);
+    get server_dbs(=server_name, db) in
+    event CompromisedServer(server_name);
+    out(c, db).
        
 process
-    CreateServer() | Client() | Server()
+    CreateServer() | Client() | Server() | CompromiseServer()
 
 
 
