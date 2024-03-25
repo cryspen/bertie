@@ -6,7 +6,39 @@ free server_name: bertie__tls13utils__t_Bytes.
 free cert_sk: bertie__tls13utils__t_Bytes [private].
 (* query attacker(cert_sk). *)
 
+
 query event(Reachable_simple).
+
+query server_name:bertie__tls13utils__t_Bytes,cipher:bertie__tls13record__t_DuplexCipherState1, st:bertie__tls13handshake__t_ClientPostClientFinished;
+      event(ClientFinished(server_name,cipher,st)).
+query server_name:bertie__tls13utils__t_Bytes,cipher:bertie__tls13record__t_DuplexCipherState1, st:bertie__tls13handshake__t_ServerPostServerFinished;
+      event(ServerFinished(server_name,cipher,st)).
+
+query server_name:bertie__tls13utils__t_Bytes,
+      alg: bertie__tls13crypto__t_AeadAlgorithm,
+      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+      c2sctr:nat,
+      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2cctr:nat,
+      exp:bertie__tls13utils__t_Bytes,
+      ccipher:bertie__tls13record__t_DuplexCipherState1,
+      cst:bertie__tls13handshake__t_ClientPostClientFinished,
+      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+      event(ClientFinished(server_name,bertie__tls13record__DuplexCipherState1_c(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),cst)) ==>
+      event(ServerFinished(server_name,bertie__tls13record__DuplexCipherState1_c(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),sst)).
+
+
+
+query server_name:bertie__tls13utils__t_Bytes,
+      alg: bertie__tls13crypto__t_AeadAlgorithm,
+      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+      c2sctr:nat,
+      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2cctr:nat,
+      exp:bertie__tls13utils__t_Bytes,
+      ccipher:bertie__tls13record__t_DuplexCipherState1,
+      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+      event(ClientFinished(server_name,bertie__tls13record__DuplexCipherState1_c(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),cst)) && attacker(s2ckiv).
 
 process
     let ha = bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() in
@@ -55,6 +87,7 @@ process
        server_state: bertie__tls13handshake__t_ServerPostServerFinished)
     = server_init_output in
 
+    event ServerFinished(server_name,cipher1,server_state);
     out(c, server_hello);
     out(c, flight);
     in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
@@ -74,11 +107,12 @@ process
          flight,
          client_state
        ) in
+    event ClientFinished(server_name,cipher,client_state);
 
     out(c, client_finished);
     in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData);
 
-    let res = bertie__tls13handshake__server_finish(
+    let server_state = bertie__tls13handshake__server_finish(
          client_finished,
          server_state
        ) in

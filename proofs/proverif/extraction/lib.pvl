@@ -2125,6 +2125,9 @@ reduc forall
 
 type bertie__tls13record__t_DuplexCipherState1.
 
+event ClientFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ClientPostClientFinished).
+event ServerFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ServerPostServerFinished).
+
 fun bertie__tls13record__t_DuplexCipherState1_to_bitstring(
       bertie__tls13record__t_DuplexCipherState1
     )
@@ -2725,7 +2728,7 @@ letfun bertie__tls13cert__cert_public_key(
 fun spki(bertie__tls13crypto__t_SignatureScheme,
          bertie__tls13cert__t_CertificateKey):  bertie__tls13utils__t_Bytes [data].
 
-fun certificate(bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_PublicVerificationKey): bertie__tls13utils__t_Bytes [data].
+fun certificate(bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_PublicVerificationKey): bertie__tls13utils__t_Bytes [private].
 
 reduc forall alg: bertie__tls13crypto__t_SignatureScheme, cert_key_slice: bertie__tls13cert__t_CertificateKey, cert_key: bertie__tls13crypto__t_PublicVerificationKey;
   bertie__tls13cert__verification_key_from_cert(
@@ -4140,6 +4143,7 @@ letfun bertie__tls13handshake__put_server_finished(
        else bitstring_err()
        else bitstring_err().
 
+
 letfun bertie__tls13handshake__client_finish(
          payload : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostServerHello
@@ -4168,7 +4172,8 @@ letfun bertie__tls13handshake__client_finish(
          client_state: bertie__tls13handshake__t_ClientPostClientFinished
        ) = bertie__tls13handshake__get_client_finished(
          client_state_server_finished
-       ) in (client_finished, cipher, client_state)
+       ) in
+       (client_finished, cipher, client_state)
        else bitstring_err()
        else bitstring_err()
        else bitstring_err()
