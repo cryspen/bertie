@@ -2701,10 +2701,24 @@ fun bertie__tls13cert__rsa_public_key(
 
 (* MARKER: tls13cert models*)
 fun bertie__tls13cert__ecdsa_public_key(bertie__tls13utils__t_Bytes, bertie__tls13cert__t_CertificateKey): bertie__tls13utils__t_Bytes.
+fun spki(bertie__tls13crypto__t_SignatureScheme,
+         bertie__tls13cert__t_CertificateKey):  bertie__tls13utils__t_Bytes [data].
+
+fun certificate(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_PublicVerificationKey): bertie__tls13utils__t_Bytes [private].
+
+reduc forall
+      server_name: bertie__tls13utils__t_Bytes,
+      spki:bertie__tls13utils__t_Bytes,
+      cert_pk: bertie__tls13crypto__t_PublicVerificationKey;
+      cert_verify(server_name, certificate(server_name, spki, cert_pk))
+      = certificate(server_name, spki, cert_pk).
+
 
 letfun bertie__tls13cert__cert_public_key(
+         server_name: bertie__tls13utils__t_Bytes,
          certificate : bertie__tls13utils__t_Bytes, spki : bitstring
        ) =
+       let certificate = cert_verify(server_name, certificate) in
        let (scheme: bertie__tls13crypto__t_SignatureScheme, pk: bertie__tls13cert__t_CertificateKey) = spki in
        let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c() = scheme in
        bertie__tls13crypto__t_PublicVerificationKey_err()
@@ -2725,14 +2739,10 @@ letfun bertie__tls13cert__cert_public_key(
        )
        else bertie__tls13crypto__t_PublicVerificationKey_err().
 
-fun spki(bertie__tls13crypto__t_SignatureScheme,
-         bertie__tls13cert__t_CertificateKey):  bertie__tls13utils__t_Bytes [data].
-
-fun certificate(bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_PublicVerificationKey): bertie__tls13utils__t_Bytes [private].
-
-reduc forall alg: bertie__tls13crypto__t_SignatureScheme, cert_key_slice: bertie__tls13cert__t_CertificateKey, cert_key: bertie__tls13crypto__t_PublicVerificationKey;
+      
+reduc forall server_name: bertie__tls13utils__t_Bytes, alg: bertie__tls13crypto__t_SignatureScheme, cert_key_slice: bertie__tls13cert__t_CertificateKey, cert_key: bertie__tls13crypto__t_PublicVerificationKey;
   bertie__tls13cert__verification_key_from_cert(
-            certificate(spki(alg, cert_key_slice), cert_key) 
+            certificate(server_name, spki(alg, cert_key_slice), cert_key) 
        ) =
        (alg, cert_key_slice).
 (* MARKER: tls13cert models end*)
@@ -2811,14 +2821,15 @@ fun bertie__tls13crypto__verify(
         sign_inner_rsa(sk, pk_modulus, pk_exponent, cert_scheme, input)
       ) = ()
   otherwise
-    forall sk: bertie__tls13utils__t_Bytes,
+    forall server_name: bertie__tls13utils__t_Bytes,
+           sk: bertie__tls13utils__t_Bytes,
            input: bertie__tls13utils__t_Bytes,
            rng: impl_CryptoRng___RngCore;
       bertie__tls13crypto__verify(
         bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c,
         bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
             bertie__tls13cert__ecdsa_public_key(
-                certificate(
+                certificate(server_name,
                     spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c,ecdsa_cert_key_slice),
                     vk_from_sk(sk)),
                 ecdsa_cert_key_slice)),
@@ -3626,6 +3637,7 @@ letfun bertie__tls13handshake__put_psk_skip_server_signature(
        else (bertie__tls13handshake__t_ClientPostCertificateVerify_err()).
 
 letfun bertie__tls13handshake__put_server_signature(
+         server_name: bertie__tls13utils__t_Bytes,
          encrypted_extensions : bertie__tls13formats__handshake_data__t_HandshakeData,
          server_certificate : bertie__tls13formats__handshake_data__t_HandshakeData,
          server_certificate_verify : bertie__tls13formats__handshake_data__t_HandshakeData,
@@ -3668,7 +3680,7 @@ letfun bertie__tls13handshake__put_server_signature(
               ) in let spki = bertie__tls13cert__verification_key_from_cert(
                 certificate
               ) in let cert_pk = bertie__tls13cert__cert_public_key(
-                certificate, spki
+                server_name, certificate, spki
               ) in let cert_signature = bertie__tls13formats__parse_certificate_verify(
                 algorithms, server_certificate_verify
               ) in (
@@ -4145,6 +4157,7 @@ letfun bertie__tls13handshake__put_server_finished(
 
 
 letfun bertie__tls13handshake__client_finish(
+         server_name: bertie__tls13utils__t_Bytes,
          payload : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostServerHello
        ) =
@@ -4158,6 +4171,7 @@ letfun bertie__tls13handshake__client_finish(
        ) = bertie__tls13formats__handshake_data__impl__HandshakeData__to_four(
          payload
        ) in let client_state_certificate_verify = bertie__tls13handshake__put_server_signature(
+         server_name,
          encrypted_extensions,
          server_certificate,
          server_certificate_verify,

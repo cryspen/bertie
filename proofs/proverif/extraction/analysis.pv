@@ -1,11 +1,12 @@
 (*****************************************)
 (* Top-level process *)
 (*****************************************)
-free server_name: bertie__tls13utils__t_Bytes.
 
 free cert_sk: bertie__tls13utils__t_Bytes [private].
 (* query attacker(cert_sk). *)
 
+(* Name, DB *)
+table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB).
 
 query event(Reachable_simple).
 
@@ -40,22 +41,15 @@ query server_name:bertie__tls13utils__t_Bytes,
       cst:bertie__tls13handshake__t_ClientPostClientFinished;
       event(ClientFinished(server_name,bertie__tls13record__DuplexCipherState1_c(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),cst)) && attacker(s2ckiv).
 
-process
+let Client() =
+    in(c, server_name: bertie__tls13utils__t_Bytes);
     let ha = bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() in
     let ae = bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() in
     let v__sa = bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c() in
     let v__ks =  bertie__tls13crypto__KemScheme_KemScheme_X25519_c() in
     let algs =  bertie__tls13crypto__Algorithms_c(ha,ae,v__sa,v__ks,false,false) in
-    let cert = certificate(spki(v__sa, ecdsa_cert_key_slice), vk_from_sk(cert_sk)) in
-    let db = bertie__server__ServerDB_c(
-        server_name,
-        cert,
-        cert_sk,
-        None()
-    ) in
-
     new rng_client: impl_CryptoRng___RngCore;
-    new rng_server: impl_CryptoRng___RngCore;
+
     let (rng_client: impl_CryptoRng___RngCore, client_init_out: bitstring) = bertie__tls13handshake__client_init(
          algs,
          server_name,
@@ -63,15 +57,45 @@ process
          None(),
          rng_client
        ) in
-    let (
-             nch: bertie__tls13formats__handshake_data__t_HandshakeData,
+    let (    nch: bertie__tls13formats__handshake_data__t_HandshakeData,
              cipher0: Option,
              client_state: bertie__tls13handshake__t_ClientPostClientHello
            ) = client_init_out in
 
     out(c, nch);
+    in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
+
+    let (duplex_cipher_state_h: bitstring,
+        client_state: bertie__tls13handshake__t_ClientPostServerHello) = bertie__tls13handshake__client_set_params(
+         server_hello,
+         client_state
+       ) in
+
+    in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
+
+    let (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
+        cipher: bertie__tls13record__t_DuplexCipherState1,
+        client_state: bertie__tls13handshake__t_ClientPostClientFinished) = bertie__tls13handshake__client_finish(
+         server_name,
+         flight,
+         client_state
+       ) in
+    event ClientFinished(server_name,cipher,client_state);
+    out(c, client_finished).
+
+
+let Server() =
+    in(c, server_name: bertie__tls13utils__t_Bytes);
+    let ha = bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() in
+    let ae = bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() in
+    let v__sa = bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c() in
+    let v__ks =  bertie__tls13crypto__KemScheme_KemScheme_X25519_c() in
+    let algs =  bertie__tls13crypto__Algorithms_c(ha,ae,v__sa,v__ks,false,false) in
+    
+    new rng_server: impl_CryptoRng___RngCore;
     in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData);
 
+    get server_dbs(=server_name, db) in 
     let (rng_server: impl_CryptoRng___RngCore, server_init_output: bitstring) = bertie__tls13handshake__server_init(
          algs,
          nch,
@@ -90,32 +114,29 @@ process
     event ServerFinished(server_name,cipher1,server_state);
     out(c, server_hello);
     out(c, flight);
-    in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
 
-
-    let (duplex_cipher_state_h: bitstring,
-        client_state: bertie__tls13handshake__t_ClientPostServerHello) = bertie__tls13handshake__client_set_params(
-         server_hello,
-         client_state
-       ) in
-
-    in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
-
-    let (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
-        cipher: bertie__tls13record__t_DuplexCipherState1,
-        client_state: bertie__tls13handshake__t_ClientPostClientFinished) = bertie__tls13handshake__client_finish(
-         flight,
-         client_state
-       ) in
-    event ClientFinished(server_name,cipher,client_state);
-
-    out(c, client_finished);
     in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData);
 
     let server_state = bertie__tls13handshake__server_finish(
          client_finished,
          server_state
        ) in
-    event Reachable_simple;  
+    event Reachable_simple.
 
-    0
+let CreateServer() =
+    in(c, server_name: bertie__tls13utils__t_Bytes);
+    new cert_sk: bertie__tls13utils__t_Bytes;
+    let cert = certificate(server_name, spki( bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(), ecdsa_cert_key_slice), vk_from_sk(cert_sk)) in
+    let db = bertie__server__ServerDB_c(
+        server_name,
+        cert,
+        cert_sk,
+        None()
+    ) in
+    insert server_dbs(server_name, db).
+       
+process
+    CreateServer() | Client() | Server()
+
+
+
