@@ -198,41 +198,40 @@ let error_string (c: u8) =
       Core.Fmt.t_Arguments)
 
 let tlserr (#v_T: Type) (err: u8) =
-  // let bt:Backtrace.Capture.t_Backtrace = Backtrace.Capture.impl__Backtrace__new () in
-  // let _:Prims.unit =
-  //   Std.Io.Stdio.v__print (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize (let list = [""; "\n"] in
-  //               FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-  //               Rust_primitives.Hax.array_of_list 2 list)
-  //           <:
-  //           t_Slice string)
-  //         (Rust_primitives.unsize (let list =
-  //                 [Core.Fmt.Rt.impl_1__new_debug bt <: Core.Fmt.Rt.t_Argument]
-  //               in
-  //               FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-  //               Rust_primitives.Hax.array_of_list 1 list)
-  //           <:
-  //           t_Slice Core.Fmt.Rt.t_Argument)
-  //       <:
-  //       Core.Fmt.t_Arguments)
-  // in
-  // let _:Prims.unit = () in
+  let bt:Backtrace.Capture.t_Backtrace = Backtrace.Capture.impl__Backtrace__new () in
+  let _:Prims.unit =
+    Std.Io.Stdio.v__print (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize (let list = [""; "\n"] in
+                FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+                Rust_primitives.Hax.array_of_list 2 list)
+            <:
+            t_Slice string)
+          (Rust_primitives.unsize (let list =
+                  [Core.Fmt.Rt.impl_1__new_debug bt <: Core.Fmt.Rt.t_Argument]
+                in
+                FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                Rust_primitives.Hax.array_of_list 1 list)
+            <:
+            t_Slice Core.Fmt.Rt.t_Argument)
+        <:
+        Core.Fmt.t_Arguments)
+  in
+  let _:Prims.unit = () in
   Core.Result.Result_Err err <: Core.Result.t_Result v_T u8
 
 let impl__Bytes__as_raw (self: t_Bytes) = Core.Ops.Deref.f_deref self._0
 
 let impl__Bytes__declassify (self: t_Bytes) =
-  admit ()
-  // Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map (Core.Slice.impl__iter (Core.Ops.Deref.f_deref
-  //               self._0
-  //             <:
-  //             t_Slice u8)
-  //         <:
-  //         Core.Slice.Iter.t_Iter u8)
-  //       (fun x ->
-  //           let x:u8 = x in
-  //           f_declassify x <: u8)
-  //     <:
-  //     Core.Iter.Adapters.Map.t_Map (Core.Slice.Iter.t_Iter u8) (u8 -> u8))
+  Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map (Core.Slice.impl__iter (Core.Ops.Deref.f_deref
+                self._0
+              <:
+              t_Slice u8)
+          <:
+          Core.Slice.Iter.t_Iter u8)
+        (fun x ->
+            let x:u8 = x in
+            f_declassify x <: u8)
+      <:
+      Core.Iter.Adapters.Map.t_Map (Core.Slice.Iter.t_Iter u8) (u8 -> u8))
 
 let impl__Bytes__into_raw (self: t_Bytes) = self._0
 
@@ -247,24 +246,24 @@ let impl__Bytes__declassify_array (v_C: usize) (self: t_Bytes) =
         v_INCORRECT_ARRAY_LENGTH)
 
 let impl__Bytes__append (self x: t_Bytes) =
-    admit ()
-  //   Alloc.Vec.impl_1__append self._0 x._0
-  // in
-  // let self:t_Bytes = { self with _0 = tmp0 } <: t_Bytes in
-  // let x:t_Bytes = { x with _0 = tmp1 } <: t_Bytes in
-  // let hax_temp_output:Prims.unit = () in
-  // self
+  let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global & Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  =
+    Alloc.Vec.impl_1__append self._0 x._0
+  in
+  let self:t_Bytes = { self with _0 = tmp0 } <: t_Bytes in
+  let x:t_Bytes = { x with _0 = tmp1 } <: t_Bytes in
+  let hax_temp_output:Prims.unit = () in
+  self
 
 let impl__Bytes__concat (self other: t_Bytes) =
-  admit ()
-  // let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global & Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-  // =
-  //   Alloc.Vec.impl_1__append self._0 other._0
-  // in
-  // let self:t_Bytes = { self with _0 = tmp0 } <: t_Bytes in
-  // let other:t_Bytes = { other with _0 = tmp1 } <: t_Bytes in
-  // let _:Prims.unit = () in
-  // self
+  let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global & Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  =
+    Alloc.Vec.impl_1__append self._0 other._0
+  in
+  let self:t_Bytes = { self with _0 = tmp0 } <: t_Bytes in
+  let other:t_Bytes = { other with _0 = tmp1 } <: t_Bytes in
+  let _:Prims.unit = () in
+  self
 
 let impl__Bytes__concat_array (v_N: usize) (self: t_Bytes) (other: t_Array u8 v_N) =
   let self:t_Bytes =
@@ -292,31 +291,96 @@ let impl__Bytes__extend_from_slice (self x: t_Bytes) =
   self
 
 let impl__Bytes__from_hex (s: string) =
-  admit ()
+  let (s: Alloc.String.t_String):Alloc.String.t_String =
+    Core.Iter.Traits.Iterator.f_collect (Core.Str.impl__str__split_whitespace s
+        <:
+        Core.Str.Iter.t_SplitWhitespace)
+  in
+  if ((Alloc.String.impl__String__len s <: usize) %! sz 2 <: usize) =. sz 0
+  then
+    Bytes
+    (Core.Option.impl__expect (Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map (
+                  Core.Iter.Traits.Iterator.f_step_by ({
+                        Core.Ops.Range.f_start = sz 0;
+                        Core.Ops.Range.f_end = Alloc.String.impl__String__len s <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize)
+                    (sz 2)
+                  <:
+                  Core.Iter.Adapters.Step_by.t_StepBy (Core.Ops.Range.t_Range usize))
+                (fun i ->
+                    let i:usize = i in
+                    Core.Option.impl__and_then (Core.Str.impl__str__get (Core.Ops.Deref.f_deref s
+                            <:
+                            string)
+                          ({ Core.Ops.Range.f_start = i; Core.Ops.Range.f_end = i +! sz 2 <: usize }
+                            <:
+                            Core.Ops.Range.t_Range usize)
+                        <:
+                        Core.Option.t_Option string)
+                      (fun sub ->
+                          let sub:string = sub in
+                          Core.Option.impl__map (Core.Result.impl__ok (Core.Num.impl__u8__from_str_radix
+                                    sub
+                                    16ul
+                                  <:
+                                  Core.Result.t_Result u8 Core.Num.Error.t_ParseIntError)
+                              <:
+                              Core.Option.t_Option u8)
+                            v_U8
+                          <:
+                          Core.Option.t_Option u8)
+                    <:
+                    Core.Option.t_Option u8)
+              <:
+              Core.Iter.Adapters.Map.t_Map
+                (Core.Iter.Adapters.Step_by.t_StepBy (Core.Ops.Range.t_Range usize))
+                (usize -> Core.Option.t_Option u8))
+          <:
+          Core.Option.t_Option (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global))
+        "Not a hex string1")
+    <:
+    t_Bytes
+  else
+    Rust_primitives.Hax.never_to_any (Core.Panicking.panic_fmt (Core.Fmt.impl_2__new_v1 (Rust_primitives.unsize
+                  (let list = ["internal error: entered unreachable code: Not a hex string2"] in
+                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                    Rust_primitives.Hax.array_of_list 1 list)
+                <:
+                t_Slice string)
+              (Rust_primitives.unsize (Core.Fmt.Rt.impl_1__none ()
+                    <:
+                    t_Array Core.Fmt.Rt.t_Argument (sz 0))
+                <:
+                t_Slice Core.Fmt.Rt.t_Argument)
+            <:
+            Core.Fmt.t_Arguments)
+        <:
+        Rust_primitives.Hax.t_Never)
 
 let impl__Bytes__from_slice (s: t_Slice u8) = Core.Convert.f_into s
 
 let impl__Bytes__len (self: t_Bytes) = Alloc.Vec.impl_1__len self._0
 
 let impl__Bytes__prefix (self: t_Bytes) (prefix: t_Slice u8) =
-  admit ()
-  // let out:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-  //   Alloc.Vec.impl__with_capacity ((Core.Slice.impl__len prefix <: usize) +!
-  //       (impl__Bytes__len self <: usize)
-  //       <:
-  //       usize)
-  // in
-  // let out:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
-  //   Alloc.Vec.impl_2__extend_from_slice out prefix
-  // in
-  // let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global & Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-  // =
-  //   Alloc.Vec.impl_1__append out self._0
-  // in
-  // let out:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global = tmp0 in
-  // let self:t_Bytes = { self with _0 = tmp1 } <: t_Bytes in
-  // let _:Prims.unit = () in
-  // Bytes out <: t_Bytes
+  let out:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+    Alloc.Vec.impl__with_capacity ((Core.Slice.impl__len prefix <: usize) +!
+        (impl__Bytes__len self <: usize)
+        <:
+        usize)
+  in
+  let out:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global =
+    Alloc.Vec.impl_2__extend_from_slice out prefix
+  in
+  let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global & Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  =
+    Alloc.Vec.impl_1__append out self._0
+  in
+  let out:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global = tmp0 in
+  let self:t_Bytes = { self with _0 = tmp1 } <: t_Bytes in
+  let _:Prims.unit = () in
+  Bytes out <: t_Bytes
 
 let impl__Bytes__new (_: Prims.unit) = Bytes (Alloc.Vec.impl__new ()) <: t_Bytes
 
@@ -346,28 +410,27 @@ let impl__Bytes__slice_range (self: t_Bytes) (range: Core.Ops.Range.t_Range usiz
 let impl__Bytes__zeroes (len: usize) = Bytes (Alloc.Vec.from_elem (v_U8 0uy <: u8) len) <: t_Bytes
 
 let impl__Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize) =
-  admit ()
-  // let res:t_Bytes = Core.Clone.f_clone self in
-  // let res:t_Bytes =
-  //   Core.Iter.Traits.Iterator.f_fold (Core.Iter.Traits.Collect.f_into_iter ({
-  //             Core.Ops.Range.f_start = sz 0;
-  //             Core.Ops.Range.f_end = len
-  //           }
-  //           <:
-  //           Core.Ops.Range.t_Range usize)
-  //       <:
-  //       Core.Ops.Range.t_Range usize)
-  //     res
-  //     (fun res i ->
-  //         let res:t_Bytes = res in
-  //         let i:usize = i in
-  //         Rust_primitives.Hax.update_at res
-  //           (start +! i <: usize)
-  //           (other.[ beg +! i <: usize ] <: u8)
-  //         <:
-  //         t_Bytes)
-  // in
-  // res
+  let res:t_Bytes = Core.Clone.f_clone self in
+  let res:t_Bytes =
+    Core.Iter.Traits.Iterator.f_fold (Core.Iter.Traits.Collect.f_into_iter ({
+              Core.Ops.Range.f_start = sz 0;
+              Core.Ops.Range.f_end = len
+            }
+            <:
+            Core.Ops.Range.t_Range usize)
+        <:
+        Core.Ops.Range.t_Range usize)
+      res
+      (fun res i ->
+          let res:t_Bytes = res in
+          let i:usize = i in
+          Rust_primitives.Hax.update_at res
+            (start +! i <: usize)
+            (other.[ beg +! i <: usize ] <: u8)
+          <:
+          t_Bytes)
+  in
+  res
 
 let bytes (x: t_Slice u8) = Core.Convert.f_into x
 
@@ -391,25 +454,24 @@ let check_length_encoding_u8 (bytes: t_Bytes) =
   check_length_encoding_u8_slice (impl__Bytes__as_raw bytes <: t_Slice u8)
 
 let encode_length_u16 (bytes: t_Bytes) =
-  admit ()
-  // let len:usize = impl__Bytes__len bytes in
-  // if len >=. sz 65536
-  // then Core.Result.Result_Err v_PAYLOAD_TOO_LONG <: Core.Result.t_Result t_Bytes u8
-  // else
-  //   let len:t_Array u8 (sz 2) = u16_as_be_bytes (v_U16 (cast (len <: usize) <: u16) <: u16) in
-  //   let lenb:t_Bytes =
-  //     impl__Bytes__new_alloc (sz 2 +! (impl__Bytes__len bytes <: usize) <: usize)
-  //   in
-  //   let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 0 ] <: u8) in
-  //   let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 1 ] <: u8) in
-  //   let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global &
-  //     Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) =
-  //     Alloc.Vec.impl_1__append lenb._0 bytes._0
-  //   in
-  //   let lenb:t_Bytes = { lenb with _0 = tmp0 } <: t_Bytes in
-  //   let bytes:t_Bytes = { bytes with _0 = tmp1 } <: t_Bytes in
-  //   let _:Prims.unit = () in
-  //   Core.Result.Result_Ok lenb <: Core.Result.t_Result t_Bytes u8
+  let len:usize = impl__Bytes__len bytes in
+  if len >=. sz 65536
+  then Core.Result.Result_Err v_PAYLOAD_TOO_LONG <: Core.Result.t_Result t_Bytes u8
+  else
+    let len:t_Array u8 (sz 2) = u16_as_be_bytes (v_U16 (cast (len <: usize) <: u16) <: u16) in
+    let lenb:t_Bytes =
+      impl__Bytes__new_alloc (sz 2 +! (impl__Bytes__len bytes <: usize) <: usize)
+    in
+    let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 0 ] <: u8) in
+    let lenb:t_Bytes = impl__Bytes__push lenb (len.[ sz 1 ] <: u8) in
+    let tmp0, tmp1:(Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global &
+      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) =
+      Alloc.Vec.impl_1__append lenb._0 bytes._0
+    in
+    let lenb:t_Bytes = { lenb with _0 = tmp0 } <: t_Bytes in
+    let bytes:t_Bytes = { bytes with _0 = tmp1 } <: t_Bytes in
+    let _:Prims.unit = () in
+    Core.Result.Result_Ok lenb <: Core.Result.t_Result t_Bytes u8
 
 let encode_length_u24 (bytes: t_Bytes) =
   let len:usize = impl__Bytes__len bytes in
@@ -444,20 +506,19 @@ let eq (b1 b2: t_Bytes) =
   eq_slice (Core.Ops.Deref.f_deref b1._0 <: t_Slice u8) (Core.Ops.Deref.f_deref b2._0 <: t_Slice u8)
 
 let random_bytes (len: usize) =
-  admit ()
-  // Core.Convert.f_into (Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map ({
-  //               Core.Ops.Range.f_start = sz 0;
-  //               Core.Ops.Range.f_end = len
-  //             }
-  //             <:
-  //             Core.Ops.Range.t_Range usize)
-  //           (fun temp_0_ ->
-  //               let _:usize = temp_0_ in
-  //               Rand.random () <: u8)
-  //         <:
-  //         Core.Iter.Adapters.Map.t_Map (Core.Ops.Range.t_Range usize) (usize -> u8))
-  //     <:
-  //     Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+  Core.Convert.f_into (Core.Iter.Traits.Iterator.f_collect (Core.Iter.Traits.Iterator.f_map ({
+                Core.Ops.Range.f_start = sz 0;
+                Core.Ops.Range.f_end = len
+              }
+              <:
+              Core.Ops.Range.t_Range usize)
+            (fun temp_0_ ->
+                let _:usize = temp_0_ in
+                Rand.random () <: u8)
+          <:
+          Core.Iter.Adapters.Map.t_Map (Core.Ops.Range.t_Range usize) (usize -> u8))
+      <:
+      Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
 let impl__AppData__as_raw (self: t_AppData) = self._0
 

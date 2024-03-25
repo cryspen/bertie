@@ -54,7 +54,7 @@ ROOTS = $(wildcard *.fst)
 
 
 
-FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME) /home/lucas/repos/libcrux/bertie-extraction/proofs/fstar/extraction
+FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME)
 
 FSTAR_FLAGS = --cmi \
   --warn_error -331 \

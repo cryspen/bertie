@@ -46,10 +46,12 @@ val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
 val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
     : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 
+(*
 val impl__HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
     : Prims.Pure (Core.Result.t_Result Libcrux.Digest.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+*)
 
 val impl__HashAlgorithm__hash_len (self: t_HashAlgorithm)
     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
@@ -57,6 +59,7 @@ val impl__HashAlgorithm__hash_len (self: t_HashAlgorithm)
 val impl__HashAlgorithm__hmac_tag_len (self: t_HashAlgorithm)
     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
 
+(*
 val hkdf_algorithm (alg: t_HashAlgorithm)
     : Prims.Pure (Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
       Prims.l_True
@@ -76,6 +79,7 @@ val impl__KemScheme__libcrux_algorithm (self: t_KemScheme)
     : Prims.Pure (Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+*)
 
 type t_Algorithms = {
   f_hash:t_HashAlgorithm;
@@ -336,10 +340,12 @@ val sign
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+(*
 val supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+*)
 
 val sign_rsa
       (#impl_916461611_: Type)
@@ -488,8 +494,10 @@ type t_AeadKey = {
   f_alg:t_AeadAlgorithm
 }
 
+(*
 val impl__AeadKey__as_libcrux_key (self: t_AeadKey)
     : Prims.Pure (Core.Result.t_Result Libcrux.Aead.t_Key u8) Prims.l_True (fun _ -> Prims.l_True)
+*)
 
 val impl__AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (alg: t_AeadAlgorithm)
     : Prims.Pure t_AeadKey Prims.l_True (fun _ -> Prims.l_True)

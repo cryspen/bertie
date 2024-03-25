@@ -1190,7 +1190,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8))
 
-let rec check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+let check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   match check_server_extension algs b with
   | Core.Result.Result_Ok (len, out) ->
     if len =. (Core.Slice.impl__len b <: usize)
@@ -1440,7 +1440,7 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms) =
     <:
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
-let rec find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
+let find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
   if (Core.Slice.impl__len ch <: usize) <. sz 4
   then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
   else
@@ -2211,7 +2211,7 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
   match
     Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list = [] in
             FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 0);
-            Rust_primitives.Hax.array_of_list #u32 0 list)
+            Rust_primitives.Hax.array_of_list 0 list)
         <:
         t_Slice u8)
   with
@@ -2437,7 +2437,7 @@ let impl__Transcript__transcript_hash_without_client_hello
       <:
       Bertie.Tls13utils.t_Bytes)
 
-let rec check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+let check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   match check_extension algs b with
   | Core.Result.Result_Ok (len, out) ->
     if len =. (Core.Slice.impl__len b <: usize)
