@@ -2,11 +2,11 @@
 (* Top-level process *)
 (*****************************************)
 
-free cert_sk: bertie__tls13utils__t_Bytes [private].
-(* query attacker(cert_sk). *)
-
 (* Name, DB *)
-table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB).
+table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB, bertie__tls13crypto__t_Algorithms).
+
+(* Name, Ticket, PSK *)
+table server_psks(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes).
 
 event CompromisedServer(bertie__tls13utils__t_Bytes).
 
@@ -66,30 +66,46 @@ query server_name:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
       cst:bertie__tls13handshake__t_ClientPostClientFinished;
       event(ClientFinished(server_name,bertie__tls13record__DuplexCipherState1_c(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),cst)) && attacker(s2ckiv) ==> event(CompromisedServer(server_name)).
-      
-let Client() =
+
+letfun set_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
+       if psk_mode then
+          new psk: bertie__tls13utils__t_Bytes;
+          new ticket: bertie__tls13utils__t_Bytes;
+          insert server_psks(server_name, ticket, psk);
+          Some((ticket, psk))
+        else
+          None().
+
+letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
+       if psk_mode then
+        (get server_psks(=server_name, client_ticket, psk) in
+          (Some(bertie__tls13utils__t_Bytes_to_bitstring(client_ticket)), Some(bertie__tls13utils__t_Bytes_to_bitstring(psk))))
+        else
+          (None(), None()).
+
+let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    let ha = bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() in
-    let ae = bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() in
-    let v__sa = bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c() in
-    let v__ks =  bertie__tls13crypto__KemScheme_KemScheme_X25519_c() in
-    let algs =  bertie__tls13crypto__Algorithms_c(ha,ae,v__sa,v__ks,false,false) in
     new rng_client: impl_CryptoRng___RngCore;
+
+    let (client_ticket_o: Option, psk_o: Option) = get_psk(server_name, psk_mode) in 
+
 
     let (rng_client: impl_CryptoRng___RngCore, client_init_out: bitstring) = bertie__tls13handshake__client_init(
          algs,
          server_name,
-         None(),
-         None(),
+         client_ticket_o,
+         psk_o,
          rng_client
        ) in
     let (    nch: bertie__tls13formats__handshake_data__t_HandshakeData,
              cipher0: Option,
              client_state: bertie__tls13handshake__t_ClientPostClientHello
            ) = client_init_out in
-
     out(c, nch);
     in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
+
+
+
 
     let (duplex_cipher_state_h: bitstring,
         client_state: bertie__tls13handshake__t_ClientPostServerHello) = bertie__tls13handshake__client_set_params(
@@ -112,16 +128,11 @@ let Client() =
 
 let Server() =
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    let ha = bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() in
-    let ae = bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() in
-    let v__sa = bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c() in
-    let v__ks =  bertie__tls13crypto__KemScheme_KemScheme_X25519_c() in
-    let algs =  bertie__tls13crypto__Algorithms_c(ha,ae,v__sa,v__ks,false,false) in
-    
+
+    get server_dbs(=server_name, db, algs) in    
+
     new rng_server: impl_CryptoRng___RngCore;
     in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData);
-
-    get server_dbs(=server_name, db) in 
     let (rng_server: impl_CryptoRng___RngCore, server_init_output: bitstring) = bertie__tls13handshake__server_init(
          algs,
          nch,
@@ -147,28 +158,106 @@ let Server() =
          client_finished,
          server_state
        ) in
-    event Reachable_simple.
+       0.
+    (* event Reachable_simple. *)
 
-let CreateServer() =
+
+          
+let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     in(c, server_name: bertie__tls13utils__t_Bytes);
     new cert_sk: bertie__tls13utils__t_Bytes;
-    let cert = certificate(server_name, spki( bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(), ecdsa_cert_key_slice), vk_from_sk(cert_sk)) in
-    let db = bertie__server__ServerDB_c(
-        server_name,
-        cert,
-        cert_sk,
-        None()
-    ) in
-    insert server_dbs(server_name, db).
+
+    let psk_opt = set_psk(server_name, psk_mode) in
+
+    let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c() = bertie__tls13crypto__impl__Algorithms__signature(algs) in
+        (let cert = certificate(server_name, spki( bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(), ecdsa_cert_key_slice), vk_from_sk(cert_sk)) in
+        let db = bertie__server__ServerDB_c(
+            server_name,
+            cert,
+            cert_sk,
+            psk_opt
+        ) in
+        insert server_dbs(server_name, db, algs))
+    else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c() = bertie__tls13crypto__impl__Algorithms__signature(algs) in
+
+        let cert = certificate(server_name, spki( bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(), rsa_cert_key_slice), rsa_vk_from_sk(cert_sk, rsa_modulus_from_sk(cert_sk), RSA_PUBLIC_EXPONENT())) in
+        let db = bertie__server__ServerDB_c(
+            server_name,
+            cert,
+            cert_sk,
+            psk_opt
+        ) in
+        insert server_dbs(server_name, db, algs).
+
+
 
 let CompromiseServer() =
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    get server_dbs(=server_name, db) in
+    get server_dbs(=server_name, db, algs) in
     event CompromisedServer(server_name);
     out(c, db).
-       
+    
 process
-    !CreateServer() | !Client() | !Server() | !CompromiseServer()
+    let psk_mode = false in 
+    let zero_rtt = false in
+    
+    (* SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519 *)
+    let SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519 = 
+        bertie__tls13crypto__Algorithms_c(bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c(),
+                                          bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c(),
+                                          bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(),
+                                          bertie__tls13crypto__KemScheme_KemScheme_X25519_c(),
+                                          psk_mode,
+                                          zero_rtt)
+    in
+    
+    (* SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519 *)
+    let SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519 =
+     bertie__tls13crypto__Algorithms_c(bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c(),
+                                       bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes128Gcm_c(),
+                                       bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(),
+                                       bertie__tls13crypto__KemScheme_KemScheme_X25519_c(),
+                                       psk_mode,
+                                       zero_rtt)
+    in
 
+    (* SHA256_Aes128Gcm_RsaPssRsaSha256_X25519 *)
+    let SHA256_Aes128Gcm_RsaPssRsaSha256_X25519 =
+     bertie__tls13crypto__Algorithms_c(bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c(),
+                                       bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes128Gcm_c(),
+                                       bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(),
+                                       bertie__tls13crypto__KemScheme_KemScheme_X25519_c(),
+                                       psk_mode,
+                                       zero_rtt)
+    in
 
+    (* SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519 *)
+    let SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519 =
+     bertie__tls13crypto__Algorithms_c(bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA384_c(),
+                                       bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes256Gcm_c(),
+                                       bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(),
+                                       bertie__tls13crypto__KemScheme_KemScheme_X25519_c(),
+                                       psk_mode,
+                                       zero_rtt)
+    in
 
+    (* SHA384_Aes256Gcm_RsaPssRsaSha256_X25519 *)
+    let SHA384_Aes256Gcm_RsaPssRsaSha256_X25519 =
+     bertie__tls13crypto__Algorithms_c(bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA384_c(),
+                                       bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes256Gcm_c(),
+                                       bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(),
+                                       bertie__tls13crypto__KemScheme_KemScheme_X25519_c(),
+                                       psk_mode,
+                                       zero_rtt)
+    in
+      !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !CreateServer(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !CreateServer(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode)
+    | !CreateServer(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !CreateServer(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
+    | !Client(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !Client(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !Client(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode)
+    | !Client(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !Client(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
+    | !Server() | !CompromiseServer()
