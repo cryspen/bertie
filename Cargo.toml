@@ -18,6 +18,8 @@ rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
 libcrux = { version = "0.0.2-pre.2", features = ["rand"] }
+hax-lib-macros = { git = "https://github.com/hacspec/hax",  branch = "jonas/pv-macros-extract" }
+
 
 [features]
 default = ["api"]
