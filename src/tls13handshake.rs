@@ -573,7 +573,7 @@ fn put_client_hello(
     let transcript = tx.add(ch);
     let th = transcript.transcript_hash()?;
     let server = lookup_db(ciphersuite, &db, &sni, &tkto)?;
-    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th, th_trunc, &server.psk_opt, bindero)?;
+    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero)?;
     Ok((
         cipher0,
         ServerPostClientHello {
