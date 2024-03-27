@@ -4312,8 +4312,8 @@ letfun bertie__tls13handshake__put_client_hello(
              ciphersuite, db, sni, tkto
            ) in let cipher0 = bertie__tls13handshake__process_psk_binder_zero_rtt(
              ciphersuite,
-             th,
              th_trunc,
+             th,
              accessor_bertie__server__ServerInfo_f_psk_opt(server),
              bindero
            ) in (
