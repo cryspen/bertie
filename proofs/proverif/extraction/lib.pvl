@@ -486,26 +486,9 @@ fun bertie__tls13crypto__RsaVerificationKey_c(
       bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes
     )
     : bertie__tls13crypto__t_RsaVerificationKey [data].
-reduc forall 
-  bertie__tls13crypto__RsaVerificationKey_f_modulus: bertie__tls13utils__t_Bytes,
-  bertie__tls13crypto__RsaVerificationKey_f_exponent: bertie__tls13utils__t_Bytes
-;
-    accessor_bertie__tls13crypto__RsaVerificationKey_f_modulus(
-      bertie__tls13crypto__RsaVerificationKey_c(
-        bertie__tls13crypto__RsaVerificationKey_f_modulus,
-        bertie__tls13crypto__RsaVerificationKey_f_exponent
-      )
-    ) = bertie__tls13crypto__RsaVerificationKey_f_modulus.
-reduc forall 
-  bertie__tls13crypto__RsaVerificationKey_f_modulus: bertie__tls13utils__t_Bytes,
-  bertie__tls13crypto__RsaVerificationKey_f_exponent: bertie__tls13utils__t_Bytes
-;
-    accessor_bertie__tls13crypto__RsaVerificationKey_f_exponent(
-      bertie__tls13crypto__RsaVerificationKey_c(
-        bertie__tls13crypto__RsaVerificationKey_f_modulus,
-        bertie__tls13crypto__RsaVerificationKey_f_exponent
-      )
-    ) = bertie__tls13crypto__RsaVerificationKey_f_exponent.
+
+
+
 
 type bertie__tls13crypto__t_PublicVerificationKey.
 
@@ -2750,9 +2733,66 @@ reduc forall server_name: bertie__tls13utils__t_Bytes, alg: bertie__tls13crypto_
 (* MARKER: tls13crypto models*)
 fun vk_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13crypto__t_PublicVerificationKey.
 fun rsa_vk_from_sk(bertie__tls13utils__t_Bytes,bertie__tls13utils__t_Bytes,bertie__tls13utils__t_Bytes): bertie__tls13crypto__t_PublicVerificationKey.
+fun rsa_modulus_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
+const RSA_PUBLIC_EXPONENT: bertie__tls13utils__t_Bytes.
 
 fun ecdsa_cert_key_slice(): bertie__tls13cert__t_CertificateKey.
+fun rsa_cert_key_slice(): bertie__tls13cert__t_CertificateKey.
 
+
+fun accessor_bertie__tls13crypto__RsaVerificationKey_f_modulus(bertie__tls13crypto__t_RsaVerificationKey): bertie__tls13utils__t_Bytes
+reduc forall 
+  bertie__tls13crypto__RsaVerificationKey_f_modulus: bertie__tls13utils__t_Bytes,
+  bertie__tls13crypto__RsaVerificationKey_f_exponent: bertie__tls13utils__t_Bytes
+;
+    accessor_bertie__tls13crypto__RsaVerificationKey_f_modulus(
+      bertie__tls13crypto__RsaVerificationKey_c(
+        bertie__tls13crypto__RsaVerificationKey_f_modulus,
+        bertie__tls13crypto__RsaVerificationKey_f_exponent
+      )
+    ) = bertie__tls13crypto__RsaVerificationKey_f_modulus
+otherwise
+    forall server_name: bertie__tls13utils__t_Bytes,
+           sk: bertie__tls13utils__t_Bytes,
+           modulus: bertie__tls13utils__t_Bytes,
+           exponent: bertie__tls13utils__t_Bytes,
+           key_slice: bertie__tls13cert__t_CertificateKey;
+    accessor_bertie__tls13crypto__RsaVerificationKey_f_modulus(    bertie__tls13cert__rsa_public_key(
+        certificate(server_name,
+                    spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c,
+                         key_slice),
+                    rsa_vk_from_sk(sk,
+                                   modulus,
+                    exponent)),
+                    key_slice)) = modulus.
+
+fun accessor_bertie__tls13crypto__RsaVerificationKey_f_exponent(bertie__tls13crypto__t_RsaVerificationKey): bertie__tls13utils__t_Bytes
+reduc forall 
+  bertie__tls13crypto__RsaVerificationKey_f_modulus: bertie__tls13utils__t_Bytes,
+  bertie__tls13crypto__RsaVerificationKey_f_exponent: bertie__tls13utils__t_Bytes
+;
+    accessor_bertie__tls13crypto__RsaVerificationKey_f_exponent(
+      bertie__tls13crypto__RsaVerificationKey_c(
+        bertie__tls13crypto__RsaVerificationKey_f_modulus,
+        bertie__tls13crypto__RsaVerificationKey_f_exponent
+      )
+    ) = bertie__tls13crypto__RsaVerificationKey_f_exponent
+    otherwise
+    forall server_name: bertie__tls13utils__t_Bytes,
+           sk: bertie__tls13utils__t_Bytes,
+           modulus: bertie__tls13utils__t_Bytes,
+           exponent: bertie__tls13utils__t_Bytes,
+           key_slice: bertie__tls13cert__t_CertificateKey;
+    accessor_bertie__tls13crypto__RsaVerificationKey_f_exponent(    bertie__tls13cert__rsa_public_key(
+        certificate(server_name,
+                    spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c,
+                         key_slice),
+                    rsa_vk_from_sk(sk,
+                                   modulus,
+                    exponent)),
+                    key_slice)) = exponent.
+
+    
 fun sign_inner(
       bertie__tls13crypto__t_SignatureScheme,
       bertie__tls13utils__t_Bytes,
@@ -2808,17 +2848,22 @@ fun bertie__tls13crypto__verify(
         )
     : bitstring
   reduc
-    forall sk: bertie__tls13utils__t_Bytes,
-           pk_modulus: bertie__tls13utils__t_Bytes,
-           pk_exponent: bertie__tls13utils__t_Bytes,
+    forall server_name: bertie__tls13utils__t_Bytes,
+           sk: bertie__tls13utils__t_Bytes,
            cert_scheme: bertie__tls13crypto__t_SignatureScheme,
            input: bertie__tls13utils__t_Bytes,
            rng: impl_CryptoRng___RngCore;
       bertie__tls13crypto__verify(
         bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(),
-        rsa_vk_from_sk(sk, pk_modulus, pk_exponent),
+
+        bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
+            bertie__tls13cert__rsa_public_key(
+                certificate(server_name,
+                    spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c,rsa_cert_key_slice),
+                    rsa_vk_from_sk(sk,rsa_modulus_from_sk(sk),RSA_PUBLIC_EXPONENT)),
+                    rsa_cert_key_slice)),
         input,
-        sign_inner_rsa(sk, pk_modulus, pk_exponent, cert_scheme, input)
+        sign_inner_rsa(sk, rsa_modulus_from_sk(sk), RSA_PUBLIC_EXPONENT, cert_scheme, input)
       ) = ()
   otherwise
     forall server_name: bertie__tls13utils__t_Bytes,
