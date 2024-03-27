@@ -2976,10 +2976,10 @@ fun bertie__tls13formats__server_hello(
 reduc forall hs1: bertie__tls13utils__t_Bytes,
              hs2: bertie__tls13utils__t_Bytes;
   bertie__tls13formats__handshake_data__impl__HandshakeData__to_two(
-  bertie__tls13formats__handshake_data__HandshakeData_c(
-                      bertie__tls13utils__impl__Bytes__concat(hs1, hs2)
-                      )
-    ) =  (bertie__tls13formats__handshake_data__HandshakeData_c(hs1), bertie__tls13formats__handshake_data__HandshakeData_c(hs2)).
+                HandshakeData_from_bytes(bertie__tls13utils__impl__Bytes__concat(hs1, hs2)))
+     = (hs1,
+        hs2).
+
 
 reduc forall hs1: bertie__tls13utils__t_Bytes,
              hs2: bertie__tls13utils__t_Bytes,
@@ -3025,7 +3025,7 @@ reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__
      bertie__tls13formats__server_certificate(algs, cert)
   ) = cert.
 
-fun client_hello_no_binder(
+fun client_hello_c(
       bertie__tls13utils__t_Bytes, (* client_randomness *)
       bertie__tls13utils__t_Bytes, (* session_id *)
       bertie__tls13utils__t_Bytes, (*server name /sni*)
@@ -3035,16 +3035,6 @@ fun client_hello_no_binder(
       nat) (*trunc_len*)
       : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-fun client_hello_with_binder(
-      bertie__tls13utils__t_Bytes, (* client_randomness *)
-      bertie__tls13utils__t_Bytes, (* session_id *)
-      bertie__tls13utils__t_Bytes, (*server name /sni*)
-      bertie__tls13utils__t_Bytes, (*kem_pk / gx*)
-      Option, (*tkto*)
-      Option, (*bindero*)
-      nat) (*trunc_len*)
-      : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-      
 letfun bertie__tls13formats__client_hello(
       alg: bertie__tls13crypto__t_Algorithms,
       client_random: bertie__tls13utils__t_Bytes,
@@ -3052,7 +3042,7 @@ letfun bertie__tls13formats__client_hello(
       server_name: bertie__tls13utils__t_Bytes,
       session_ticket: Option
     ) =
-    (client_hello_no_binder(client_random,
+    (client_hello_c(client_random,
                             bertie__tls13utils__t_Bytes_default(),
                             server_name,
                             kem_pk,
@@ -3067,47 +3057,24 @@ letfun bertie__tls13formats__set_client_hello_binder(
          client_hello : bertie__tls13formats__handshake_data__t_HandshakeData,
          trunc_len : Option
        ) =
-       let client_hello_no_binder(client_randomness,
+       let client_hello_c(client_randomness,
                                   session_id,
                                   server_name,
                                   kem_pk,
                                   tkto,
-                                  None(),
-                                  trunc_len)
+                                  old_binder,
+                                  old_trunc_len)
         = client_hello in
-          client_hello_with_binder(client_randomness,
+          client_hello_c(client_randomness,
                                   session_id,
                                   server_name,
                                   kem_pk,
                                   tkto,
                                   binder,
-                                  trunc_len).
+                                  0).
 
 fun bertie__tls13formats__parse_client_hello(bertie__tls13crypto__t_Algorithms, bertie__tls13formats__handshake_data__t_HandshakeData): bitstring
 reduc forall
-      algs:bertie__tls13crypto__t_Algorithms,
-      client_random: bertie__tls13utils__t_Bytes,
-      server_name: bertie__tls13utils__t_Bytes,
-      kem_pk: bertie__tls13utils__t_Bytes,
-      session_ticket: Option;
-    bertie__tls13formats__parse_client_hello(
-    algs,
-        client_hello_no_binder(client_random,
-                            bertie__tls13utils__t_Bytes_default_value,
-                            server_name,
-                            kem_pk,
-                            session_ticket,
-                            None(),
-                            0))
-    = (client_random,
-                            bertie__tls13utils__t_Bytes_default_value,
-                            server_name,
-                            kem_pk,
-                            session_ticket,
-                            None(),
-                            0)
-otherwise
-  forall
       algs:bertie__tls13crypto__t_Algorithms,
       client_random: bertie__tls13utils__t_Bytes,
       server_name: bertie__tls13utils__t_Bytes,
@@ -3116,7 +3083,7 @@ otherwise
       binder: Option;
     bertie__tls13formats__parse_client_hello(
         algs,
-        client_hello_with_binder(client_random,
+        client_hello_c(client_random,
                             bertie__tls13utils__t_Bytes_default_value,
                             server_name,
                             kem_pk,
@@ -3171,13 +3138,34 @@ letfun bertie__tls13formats__impl__Transcript__transcript_hash(
        ) in th
        else bertie__tls13utils__t_Bytes_err().
 
+fun transcript_to_bytes(bertie__tls13formats__t_Transcript): bertie__tls13utils__t_Bytes [typeConverter].
+
 (* marked as constructor *)
 fun bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello(
       bertie__tls13formats__t_Transcript,
       bertie__tls13formats__handshake_data__t_HandshakeData,
       nat
     )
-    : bertie__tls13utils__t_Bytes [data].
+    : bertie__tls13utils__t_Bytes
+reduc forall tx: bertie__tls13formats__t_Transcript,
+            cr: bertie__tls13utils__t_Bytes,
+            sid: bertie__tls13utils__t_Bytes,
+            server_name: bertie__tls13utils__t_Bytes,
+            kem_pk: bertie__tls13utils__t_Bytes,
+            ticket: Option,
+            binder: Option,
+             trunc_len: nat;
+      bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello(
+        tx,
+        client_hello_c(
+            cr,
+            sid,
+            server_name,
+            kem_pk,
+            ticket,
+            binder,
+            trunc_len),
+         trunc_len) = transcript_to_bytes(tx).
 
 letfun bertie__tls13handshake__derive_aead_key_iv(
          hash_algorithm : bertie__tls13crypto__t_HashAlgorithm,
