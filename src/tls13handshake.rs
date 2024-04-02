@@ -209,6 +209,8 @@ pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<Psk>, Transcr
 pub struct ClientPostServerHello(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
+// We do not use most of this state, but we keep the unused parts for verification purposes.
+#[allow(dead_code)]
 pub struct ClientPostClientFinished(Random, Random, Algorithms, Key, Transcript);
 
 pub fn algs_post_client_hello(st: &ClientPostClientHello) -> Algorithms {
@@ -245,6 +247,8 @@ pub struct ServerPostServerHello {
 
 pub struct ServerPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ServerPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
+// We do not use most of this state, but we keep the unsused parts for verification purposes.
+#[allow(dead_code)]
 pub struct ServerPostClientFinished(Random, Random, Algorithms, Key, Transcript);
 
 /* Handshake Core Functions: See RFC 8446 Section 4 */
