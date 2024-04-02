@@ -15,8 +15,7 @@
 //!     }
 //!     BitString // 0x03
 //! }
-//! ```
-
+#[cfg(feature = "hax-pv")]
 use hax_lib_macros::{pv_constructor, pv_handwritten};
 
 #[cfg(not(feature = "secret_integers"))]
@@ -283,7 +282,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
     // Take the first sequence inside the outer because we're interested in the
@@ -304,7 +303,7 @@ pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error
 }
 
 /// Read the EC PK from the cert as uncompressed point.
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn ecdsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
@@ -317,7 +316,7 @@ pub(crate) fn ecdsa_public_key(
     Ok(cert.slice(offset + 1, len - 1)) // Drop the 0x04 here.
 }
 
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn rsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
@@ -392,7 +391,7 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 ///
 /// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
 /// if successful, or an [`Asn1Error`] otherwise.
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn cert_public_key(
     certificate: &Bytes,
     spki: &Spki,
