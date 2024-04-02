@@ -18,7 +18,7 @@ rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
 libcrux = { version = "0.0.2-pre.2", features = ["rand"] }
-hax-lib-macros = { git = "https://github.com/hacspec/hax" }
+hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
 
 
 [features]
@@ -26,6 +26,7 @@ default = ["api"]
 test_utils = []
 secret_integers = []
 api = []             # The streaming Rust API that everyone should use but is not hacspec.
+hax-pv = ["dep:hax-lib-macros"]
 
 [dev-dependencies]
 bertie = { path = ".", features = ["test_utils"] }

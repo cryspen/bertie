@@ -24,6 +24,8 @@ pub(crate) mod handshake_data;
 use handshake_data::{HandshakeData, HandshakeType};
 #[cfg(bench)]
 pub use handshake_data::{HandshakeData, HandshakeType};
+
+#[cfg(feature = "hax-pv")]
 use hax_lib_macros::{pv_constructor, pv_handwritten};
 
 // Well Known Constants
@@ -493,7 +495,7 @@ pub fn bench_client_hello(
 }
 
 /// Build a ClientHello message.
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
@@ -545,7 +547,7 @@ pub(crate) fn client_hello(
     Ok((client_hello, trunc_len))
 }
 
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn set_client_hello_binder(
     ciphersuite: &Algorithms,
     binder: &Option<Hmac>,
@@ -593,7 +595,7 @@ pub fn bench_parse_client_hello(
 
 /// Parse the provided `client_hello` with the given `ciphersuite`.
 #[allow(clippy::type_complexity)]
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(super) fn parse_client_hello(
     ciphersuite: &Algorithms,
     client_hello: &HandshakeData,
@@ -691,7 +693,7 @@ pub(super) fn parse_client_hello(
 }
 
 /// Build the server hello message.
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     sr: Random,
@@ -733,7 +735,7 @@ pub fn bench_parse_server_hello(
     parse_server_hello(algs, server_hello)
 }
 
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn parse_server_hello(
     algs: &Algorithms,
     server_hello: &HandshakeData,
@@ -773,7 +775,7 @@ pub(crate) fn parse_server_hello(
     }
 }
 
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     Ok(HandshakeData(handshake_type.concat(encode_length_u24(
@@ -781,7 +783,7 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
     )?)))
 }
 
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn parse_encrypted_extensions(
     _algs: &Algorithms,
     encrypted_extensions: &HandshakeData,
@@ -796,7 +798,7 @@ pub(crate) fn parse_encrypted_extensions(
         encrypted_extension_bytes.raw_slice(1..encrypted_extension_bytes.len()),
     )
 }
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn server_certificate(
     _algs: &Algorithms,
     cert: &Bytes,
@@ -813,7 +815,7 @@ pub fn bench_parse_server_certificate(certificate: &HandshakeData) -> Result<Byt
     parse_server_certificate(certificate)
 }
 
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(sc) = certificate.as_handshake_message(HandshakeType::Certificate)?;
     let mut next = 0;
@@ -882,7 +884,7 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
         }
     }
 }
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
     let sv = match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => cv.clone(),
@@ -902,7 +904,7 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
     HandshakeData::from_bytes(HandshakeType::CertificateVerify, &sig)
 }
 
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn parse_certificate_verify(
     algs: &Algorithms,
     certificate_verify: &HandshakeData,
@@ -925,12 +927,12 @@ pub(crate) fn parse_certificate_verify(
     }
 }
 
-#[pv_constructor]
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
     HandshakeData::from_bytes(HandshakeType::Finished, vd)
 }
 
-#[pv_handwritten]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn parse_finished(finished: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(fin) = finished.as_handshake_message(HandshakeType::Finished)?;
     Ok(fin)
@@ -1058,7 +1060,7 @@ impl Transcript {
     }
 
     /// Add the [`HandshakeData`] `msg` to this transcript.
-    #[pv_constructor]
+    #[cfg_attr(feature = "hax-pv", pv_constructor)]
     pub(crate) fn add(mut self, msg: &HandshakeData) -> Self {
         self.transcript = self.transcript.concat(msg);
         self
@@ -1071,7 +1073,7 @@ impl Transcript {
     }
 
     /// Get the hash of this transcript without the client hello
-    #[pv_constructor]
+    #[cfg_attr(feature = "hax-pv", pv_constructor)]
     pub(crate) fn transcript_hash_without_client_hello(
         &self,
         client_hello: &HandshakeData,
