@@ -651,6 +651,24 @@ fn get_server_hello(
     ))
 }
 
+fn get_rsa_signature(cert:&Bytes, sk:&Bytes, sigval:&Bytes, rng: &mut (impl CryptoRng + RngCore),) ->
+ Result<Bytes,TLSError> {
+    // To avoid cyclic dependencies between the modules we pull out
+    // the values from the RSA certificate here.
+    // We could really read this from the key as well.
+    let (cert_scheme, cert_slice) = verification_key_from_cert(&cert)?;
+    let pk = rsa_public_key(&cert, cert_slice)?;
+    sign_rsa(
+        &sk,
+        &pk.modulus,
+        &pk.exponent,
+        cert_scheme,
+        &sigval,
+        rng,
+    )
+
+}
+ 
 fn get_server_signature(
     state: ServerPostServerHello,
     rng: &mut (impl CryptoRng + RngCore),
@@ -670,30 +688,18 @@ fn get_server_signature(
         let transcript = transcript.add(&sc);
         let transcript_hash = transcript.transcript_hash()?;
         let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(transcript_hash);
-        let sig = match state.ciphersuite.signature() {
+        let sig = (match state.ciphersuite.signature() {
             SignatureScheme::EcdsaSecp256r1Sha256 => sign(
                 &state.ciphersuite.signature(),
                 &state.server.sk,
                 &sigval,
                 rng,
-            )?,
+            ),
             SignatureScheme::RsaPssRsaSha256 => {
-                // To avoid cyclic dependencies between the modules we pull out
-                // the values from the RSA certificate here.
-                // We could really read this from the key as well.
-                let (cert_scheme, cert_slice) = verification_key_from_cert(&state.server.cert)?;
-                let pk = rsa_public_key(&state.server.cert, cert_slice)?;
-                sign_rsa(
-                    &state.server.sk,
-                    &pk.modulus,
-                    &pk.exponent,
-                    cert_scheme,
-                    &sigval,
-                    rng,
-                )?
+                get_rsa_signature(&state.server.cert, &state.server.sk, &sigval, rng)
             }
-            SignatureScheme::ED25519 => unimplemented!(),
-        };
+            SignatureScheme::ED25519 => Err(UNSUPPORTED_ALGORITHM),
+        })?;
         let scv = certificate_verify(&state.ciphersuite, &sig)?;
         let transcript = transcript.add(&scv);
         Ok((

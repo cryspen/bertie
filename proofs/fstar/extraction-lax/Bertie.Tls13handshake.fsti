@@ -205,6 +205,20 @@ val get_client_finished (handshake_state: t_ClientPostServerFinished)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+val get_server_signature_no_psk
+      (#impl_916461611_: Type)
+      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
+      {| i2: Rand_core.t_RngCore impl_916461611_ |}
+      (state: t_ServerPostServerHello)
+      (rng: impl_916461611_)
+    : Prims.Pure
+      (impl_916461611_ &
+        Core.Result.t_Result
+          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            t_ServerPostCertificateVerify) u8) Prims.l_True (fun _ -> Prims.l_True)
+
 val get_server_signature
       (#impl_916461611_: Type)
       {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
@@ -218,6 +232,13 @@ val get_server_signature
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             t_ServerPostCertificateVerify) u8) Prims.l_True (fun _ -> Prims.l_True)
+
+val get_skip_server_signature_no_psk (st: t_ServerPostServerHello)
+    : Prims.Pure
+      (Core.Result.t_Result
+          (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val get_skip_server_signature (st: t_ServerPostServerHello)
     : Prims.Pure
@@ -283,12 +304,6 @@ val client_set_params
       (Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
-
-val hey: Prims.unit
-  -> Prims.Pure
-      (Core.Result.t_Result
-          (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val compute_psk_binder_zero_rtt
       (algs0: Bertie.Tls13crypto.t_Algorithms)
@@ -373,12 +388,41 @@ val put_client_hello
           (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello)
           u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val foobar
+val server_init_no_psk
+      (#impl_916461611_: Type)
+      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
+      {| i2: Rand_core.t_RngCore impl_916461611_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: u8)
-    : Prims.Pure (u8 & Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+      (rng: impl_916461611_)
+    : Prims.Pure
+      (impl_916461611_ &
+        Core.Result.t_Result
+          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Bertie.Tls13record.t_DuplexCipherStateH &
+            Bertie.Tls13record.t_DuplexCipherState1 &
+            t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
+
+val server_init_psk
+      (#impl_916461611_: Type)
+      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
+      {| i2: Rand_core.t_RngCore impl_916461611_ |}
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (db: Bertie.Server.t_ServerDB)
+      (rng: impl_916461611_)
+    : Prims.Pure
+      (impl_916461611_ &
+        Core.Result.t_Result
+          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Bertie.Tls13record.t_DuplexCipherStateH &
+            Bertie.Tls13record.t_DuplexCipherState1 &
+            t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val server_init
       (#impl_916461611_: Type)
