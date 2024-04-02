@@ -82,7 +82,7 @@ if options.sub == "extract":
             "-**::non_hax::** -bertie::stream::**",
             "fstar",
             "--interfaces",
-            "+** +!bertie::tls13crypto::**"
+            "+** +!bertie::tls13crypto::** +!bertie::tls13utils::**"
         ],
         cwd=".",
         env=hax_env,
