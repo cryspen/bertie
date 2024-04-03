@@ -494,12 +494,15 @@ pub fn bench_client_hello(
     )
 }
 
-fn get_psk_extensions(algorithms: &Algorithms,session_ticket: &Bytes,mut extensions: Bytes) -> 
-                      Result<(usize,Bytes),TLSError> {
+fn get_psk_extensions(
+    algorithms: &Algorithms,
+    session_ticket: &Bytes,
+    mut extensions: Bytes,
+) -> Result<(usize, Bytes), TLSError> {
     let pskm = psk_key_exchange_modes()?;
     let (psk, len) = pre_shared_key(algorithms, session_ticket)?;
     extensions = extensions.concat(pskm).concat(psk);
-    Ok ((len,extensions))
+    Ok((len, extensions))
 }
 
 /// Build a ClientHello message.
@@ -530,14 +533,11 @@ pub(crate) fn client_hello(
         signature_algorithms,
         key_shares
     );
-    let (trunc_len,extensions) = 
-        (match (algorithms.psk_mode(), session_ticket) {
-            (true, Some(session_ticket)) => {
-                get_psk_extensions(algorithms, session_ticket, extensions)
-            }
-            (false, None) => { Ok((0,extensions)) }
-            _ => tlserr(PSK_MODE_MISMATCH),
-        })?;
+    let (trunc_len, extensions) = (match (algorithms.psk_mode(), session_ticket) {
+        (true, Some(session_ticket)) => get_psk_extensions(algorithms, session_ticket, extensions),
+        (false, None) => Ok((0, extensions)),
+        _ => tlserr(PSK_MODE_MISMATCH),
+    })?;
 
     let encoded_extensions = encode_length_u16(extensions)?;
     let handshake_bytes = bytes_concat!(

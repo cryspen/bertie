@@ -234,8 +234,6 @@ let supported_groups__SUPPORTED_GROUPS_PREFIX: t_Array u8 (sz 2) =
   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
   Rust_primitives.Hax.array_of_list 2 list
 
-val foofoooo: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
-
 val application_data_instead_of_handshake: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
@@ -494,6 +492,13 @@ val pre_shared_key
 
 val psk_key_exchange_modes: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val get_psk_extensions
+      (algorithms: Bertie.Tls13crypto.t_Algorithms)
+      (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 

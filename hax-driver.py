@@ -34,7 +34,7 @@ sub_parser = parser.add_subparsers(
     dest="sub",
     help="Extract and typecheck F* etc. from the Bertie Rust code.",
 )
-extract_parser = sub_parser.add_parser("extract")
+extract_parser = sub_parser.add_parser("extract-fstar")
 extract_proverif_parser = sub_parser.add_parser("extract-proverif")
 typecheck_parser = sub_parser.add_parser("typecheck")
 patch_proverif_parser = sub_parser.add_parser("patch-proverif")
@@ -73,9 +73,10 @@ cargo_hax_into = [
     ";",
     "into",
 ]
+
 hax_env = {}
 
-if options.sub == "extract":
+if options.sub == "extract-fstar":
     # The extract sub command.
     shell(
         cargo_hax_into

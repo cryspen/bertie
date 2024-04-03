@@ -30,17 +30,6 @@ let check_tag (b: Bertie.Tls13utils.t_Bytes) (offset: usize) (value: u8) =
   then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
   else asn1_error v_ASN1_INVALID_TAG
 
-let ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey) =
-  let CertificateKey offset len:t_CertificateKey = indices in
-  match check_tag cert offset 4uy with
-  | Core.Result.Result_Ok _ ->
-    Core.Result.Result_Ok
-    (Bertie.Tls13utils.impl__Bytes__slice cert (offset +! sz 1 <: usize) (len -! sz 1 <: usize))
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-
 let length_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
   if ((Bertie.Tls13utils.f_declassify (b.[ offset ] <: u8) <: u8) >>! 7l <: u8) =. 1uy
   then cast ((Bertie.Tls13utils.f_declassify (b.[ offset ] <: u8) <: u8) &. 127uy <: u8) <: usize
@@ -142,19 +131,25 @@ let length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
     | Core.Result.Result_Err err ->
       Core.Result.Result_Err err <: Core.Result.t_Result (usize & usize) u8
 
-let read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
+let skip_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
   match check_tag b offset 2uy with
   | Core.Result.Result_Ok _ ->
     let offset:usize = offset +! sz 1 in
     (match length b offset with
       | Core.Result.Result_Ok (offset, length) ->
-        Core.Result.Result_Ok (Bertie.Tls13utils.impl__Bytes__slice b offset length)
-        <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core.Result.Result_Ok (offset +! length) <: Core.Result.t_Result usize u8
+      | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8)
+  | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8
+
+let skip_sequence (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
+  match check_tag b offset 48uy with
+  | Core.Result.Result_Ok _ ->
+    let offset:usize = offset +! sz 1 in
+    (match length b offset with
+      | Core.Result.Result_Ok (offset, length) ->
+        Core.Result.Result_Ok (offset +! length) <: Core.Result.t_Result usize u8
+      | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8)
+  | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8
 
 let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize) =
   Rust_primitives.Hax.Control_flow_monad.Mexception.run (match
@@ -532,98 +527,30 @@ let read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize) =
           (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
           (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8))
 
-let skip_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
-  match check_tag b offset 2uy with
-  | Core.Result.Result_Ok _ ->
-    let offset:usize = offset +! sz 1 in
-    (match length b offset with
-      | Core.Result.Result_Ok (offset, length) ->
-        Core.Result.Result_Ok (offset +! length) <: Core.Result.t_Result usize u8
-      | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8)
-  | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8
-
-let skip_sequence (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
-  match check_tag b offset 48uy with
-  | Core.Result.Result_Ok _ ->
-    let offset:usize = offset +! sz 1 in
-    (match length b offset with
-      | Core.Result.Result_Ok (offset, length) ->
-        Core.Result.Result_Ok (offset +! length) <: Core.Result.t_Result usize u8
-      | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8)
-  | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8
-
-let rsa_private_key (key: Bertie.Tls13utils.t_Bytes) =
-  match read_sequence_header key (sz 0) with
-  | Core.Result.Result_Ok offset ->
-    (match skip_integer key offset with
-      | Core.Result.Result_Ok hoist36 ->
-        let offset:usize = hoist36 in
-        (match skip_sequence key offset with
-          | Core.Result.Result_Ok hoist37 ->
-            let offset:usize = hoist37 in
-            (match read_octet_header key offset with
-              | Core.Result.Result_Ok hoist38 ->
-                let offset:usize = hoist38 in
-                (match read_sequence_header key offset with
-                  | Core.Result.Result_Ok hoist39 ->
-                    let offset:usize = hoist39 in
-                    (match skip_integer key offset with
-                      | Core.Result.Result_Ok hoist40 ->
-                        let offset:usize = hoist40 in
-                        (match skip_integer key offset with
-                          | Core.Result.Result_Ok hoist41 ->
-                            let offset:usize = hoist41 in
-                            (match skip_integer key offset with
-                              | Core.Result.Result_Ok hoist42 ->
-                                let offset:usize = hoist42 in
-                                read_integer key offset
-                              | Core.Result.Result_Err err ->
-                                Core.Result.Result_Err err
-                                <:
-                                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-                          | Core.Result.Result_Err err ->
-                            Core.Result.Result_Err err
-                            <:
-                            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-                      | Core.Result.Result_Err err ->
-                        Core.Result.Result_Err err
-                        <:
-                        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-                  | Core.Result.Result_Err err ->
-                    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-
 let verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes) =
   match read_sequence_header cert (sz 0) with
   | Core.Result.Result_Ok offset ->
     (match read_sequence_header cert offset with
-      | Core.Result.Result_Ok hoist43 ->
-        let offset:usize = hoist43 in
+      | Core.Result.Result_Ok hoist30 ->
+        let offset:usize = hoist30 in
         (match read_version_number cert offset with
-          | Core.Result.Result_Ok hoist44 ->
-            let offset:usize = hoist44 in
+          | Core.Result.Result_Ok hoist31 ->
+            let offset:usize = hoist31 in
             (match skip_integer cert offset with
-              | Core.Result.Result_Ok hoist45 ->
-                let offset:usize = hoist45 in
+              | Core.Result.Result_Ok hoist32 ->
+                let offset:usize = hoist32 in
                 (match skip_sequence cert offset with
-                  | Core.Result.Result_Ok hoist46 ->
-                    let offset:usize = hoist46 in
+                  | Core.Result.Result_Ok hoist33 ->
+                    let offset:usize = hoist33 in
                     (match skip_sequence cert offset with
-                      | Core.Result.Result_Ok hoist47 ->
-                        let offset:usize = hoist47 in
+                      | Core.Result.Result_Ok hoist34 ->
+                        let offset:usize = hoist34 in
                         (match skip_sequence cert offset with
-                          | Core.Result.Result_Ok hoist48 ->
-                            let offset:usize = hoist48 in
+                          | Core.Result.Result_Ok hoist35 ->
+                            let offset:usize = hoist35 in
                             (match skip_sequence cert offset with
-                              | Core.Result.Result_Ok hoist49 ->
-                                let offset:usize = hoist49 in
+                              | Core.Result.Result_Ok hoist36 ->
+                                let offset:usize = hoist36 in
                                 read_spki cert offset
                               | Core.Result.Result_Err err ->
                                 Core.Result.Result_Err err
@@ -661,6 +588,79 @@ let verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes) =
     Core.Result.Result_Err err
     <:
     Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8
+
+let ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey) =
+  let CertificateKey offset len:t_CertificateKey = indices in
+  match check_tag cert offset 4uy with
+  | Core.Result.Result_Ok _ ->
+    Core.Result.Result_Ok
+    (Bertie.Tls13utils.impl__Bytes__slice cert (offset +! sz 1 <: usize) (len -! sz 1 <: usize))
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+
+let read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
+  match check_tag b offset 2uy with
+  | Core.Result.Result_Ok _ ->
+    let offset:usize = offset +! sz 1 in
+    (match length b offset with
+      | Core.Result.Result_Ok (offset, length) ->
+        Core.Result.Result_Ok (Bertie.Tls13utils.impl__Bytes__slice b offset length)
+        <:
+        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+
+let rsa_private_key (key: Bertie.Tls13utils.t_Bytes) =
+  match read_sequence_header key (sz 0) with
+  | Core.Result.Result_Ok offset ->
+    (match skip_integer key offset with
+      | Core.Result.Result_Ok hoist41 ->
+        let offset:usize = hoist41 in
+        (match skip_sequence key offset with
+          | Core.Result.Result_Ok hoist42 ->
+            let offset:usize = hoist42 in
+            (match read_octet_header key offset with
+              | Core.Result.Result_Ok hoist43 ->
+                let offset:usize = hoist43 in
+                (match read_sequence_header key offset with
+                  | Core.Result.Result_Ok hoist44 ->
+                    let offset:usize = hoist44 in
+                    (match skip_integer key offset with
+                      | Core.Result.Result_Ok hoist45 ->
+                        let offset:usize = hoist45 in
+                        (match skip_integer key offset with
+                          | Core.Result.Result_Ok hoist46 ->
+                            let offset:usize = hoist46 in
+                            (match skip_integer key offset with
+                              | Core.Result.Result_Ok hoist47 ->
+                                let offset:usize = hoist47 in
+                                read_integer key offset
+                              | Core.Result.Result_Err err ->
+                                Core.Result.Result_Err err
+                                <:
+                                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                          | Core.Result.Result_Err err ->
+                            Core.Result.Result_Err err
+                            <:
+                            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                      | Core.Result.Result_Err err ->
+                        Core.Result.Result_Err err
+                        <:
+                        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                  | Core.Result.Result_Err err ->
+                    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey) =
   let CertificateKey offset v__len:t_CertificateKey = indices in

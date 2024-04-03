@@ -1,7 +1,7 @@
 use core::ops::Range;
 
 #[cfg(feature = "hax-fstar")]
-use hax_lib_macros as hax;
+use hax_lib_macros::{attributes, requires};
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
@@ -39,7 +39,6 @@ pub const MISSING_KEY_SHARE: TLSError = 139u8;
 pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub const DECODE_ERROR: TLSError = 142u8;
-
 
 #[allow(dead_code)]
 pub(crate) fn error_string(c: u8) -> String {
@@ -300,7 +299,7 @@ pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
-#[cfg_attr(feature = "hax-fstar", hax::attributes)]
+#[cfg_attr(feature = "hax-fstar", attributes)]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
     #[cfg_attr(feature = "hax-fstar", requires(x < self.0.len()))]
@@ -324,7 +323,7 @@ mod non_hax {
     }
 }
 
-#[cfg_attr(feature = "hax-fstar", hax::attributes)]
+#[cfg_attr(feature = "hax-fstar", attributes)]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
     #[cfg_attr(feature = "hax-fstar", requires(x.start <= self.0.len() && x.end <= self.0.len()))]
