@@ -54,7 +54,7 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   in
   iv_ctr
 
-let padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
+let rec padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
   if n >. sz 0 && (Bertie.Tls13utils.f_declassify (b.[ n -! sz 1 <: usize ] <: u8) <: u8) =. 0uy
   then sz 1 +! (padlen b (n -! sz 1 <: usize) <: usize)
   else sz 0

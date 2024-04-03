@@ -47,4 +47,4 @@ jobs:
       - name: 🏃🏻‍♀️ Run hax extraction
         run: |
           eval $(opam env)
-          ./hax-driver.py extract
+          ./hax-driver.py extract-fstar
