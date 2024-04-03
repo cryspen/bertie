@@ -61,8 +61,6 @@ let v_UNSUPPORTED_ALGORITHM: u8 = 1uy
 
 let v_ZERO_RTT_DISABLED: u8 = 129uy
 
-val dummy_fn: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
-
 val parse_failed: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
 class t_Declassify (v_Self: Type) (v_T: Type) = {
