@@ -664,9 +664,9 @@ fn get_rsa_signature(
     // To avoid cyclic dependencies between the modules we pull out
     // the values from the RSA certificate here.
     // We could really read this from the key as well.
-    let (cert_scheme, cert_slice) = verification_key_from_cert(&cert)?;
-    let pk = rsa_public_key(&cert, cert_slice)?;
-    sign_rsa(&sk, &pk.modulus, &pk.exponent, cert_scheme, &sigval, rng)
+    let (cert_scheme, cert_slice) = verification_key_from_cert(cert)?;
+    let pk = rsa_public_key(cert, cert_slice)?;
+    sign_rsa(sk, &pk.modulus, &pk.exponent, cert_scheme, sigval, rng)
 }
 
 fn get_server_signature_no_psk(
