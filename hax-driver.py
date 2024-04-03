@@ -35,9 +35,11 @@ sub_parser = parser.add_subparsers(
     help="Extract and typecheck F* etc. from the Bertie Rust code.",
 )
 extract_parser = sub_parser.add_parser("extract")
-extract_parser = sub_parser.add_parser("extract-handshake")
-
+extract_proverif_parser = sub_parser.add_parser("extract-proverif")
 typecheck_parser = sub_parser.add_parser("typecheck")
+patch_proverif_parser = sub_parser.add_parser("patch-proverif")
+typecheck_proverif_parser = sub_parser.add_parser("typecheck-proverif")
+
 typecheck_parser.add_argument(
     "--lax",
     action="store_true",
@@ -93,10 +95,28 @@ elif options.sub == "extract-handshake":
         cargo_hax_into
         + [
             "-i",
-            "-** +~bertie::tls13handshake::** +**::rand_core::**",
+            "-** +~bertie::tls13handshake::**",
             "fstar",
             "--interfaces",
             "+!** +bertie::tls13handshake::**"
+        ],
+        cwd=".",
+        env=hax_env,
+    )
+elif options.sub == "extract-proverif":
+    # The extract sub command.
+    shell(
+        cargo_hax_into
+        + [
+            "-i",
+            " ".join([
+                "-**",
+                "+~**::tls13handshake::**",
+                "+~**::server::lookup_db", # to include transitive dependency on tls13utils
+                "+~**::tls13utils::parse_failed", # transitive dependencies required
+                "+~**::tls13crypto::zero_key", # transitive dependencies required
+                ]),
+            "pro-verif",
         ],
         cwd=".",
         env=hax_env,
@@ -111,6 +131,16 @@ elif options.sub == "typecheck":
     if options.clean:
         shell(["make", "-C", "proofs/fstar/extraction/", "clean"])
     shell(["make", "-C", "proofs/fstar/extraction/"], env=custom_env)
+    exit(0)
+elif options.sub == "patch-proverif":
+    custom_env = {}
+    shell(["patch", "proofs/proverif/extraction/lib.pvl", "proofs/proverif/patches/lib.patch"], env=custom_env)
+    shell(["patch", "proofs/proverif/extraction/analysis.pv", "proofs/proverif/patches/analysis.patch"], env=custom_env)
+    exit(0)
+elif options.sub == "typecheck-proverif":
+    # Typecheck subcommand.
+    custom_env = {}
+    shell(["proverif", "-lib", "proofs/proverif/handwritten_lib", "-lib", "proofs/proverif/extraction/lib", "proofs/proverif/extraction/analysis.pv"], env=custom_env)
     exit(0)
 else:
     parser.print_help()
