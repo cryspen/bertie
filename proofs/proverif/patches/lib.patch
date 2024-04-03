@@ -1413,16 +1413,6 @@
         let (
           client_randomness: bertie__tls13utils__t_Bytes,
           session_id: bertie__tls13utils__t_Bytes,
-@@ -4276,8 +4345,8 @@
-              ciphersuite, db, sni, tkto
-            ) in let cipher0 = bertie__tls13handshake__process_psk_binder_zero_rtt(
-              ciphersuite,
--             th,
-              th_trunc,
-+             th,
-              accessor_bertie__server__ServerInfo_f_psk_opt(server),
-              bindero
-            ) in (
 @@ -4294,14 +4363,12 @@
         )
         else bitstring_err().
