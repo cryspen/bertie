@@ -1,3 +1,158 @@
+diff --git a/proofs/fstar/bertie-lax.patch b/proofs/fstar/bertie-lax.patch
+index 5a9461a..e69de29 100644
+--- a/proofs/fstar/bertie-lax.patch
++++ b/proofs/fstar/bertie-lax.patch
+@@ -1,150 +0,0 @@
+-diff --git a/proofs/fstar/extraction/Bertie.Tls13crypto.fsti b/proofs/fstar/extraction/Bertie.Tls13crypto.fsti
+-index 70b4e34..4e2e9ce 100644
+---- a/proofs/fstar/extraction/Bertie.Tls13crypto.fsti
+-+++ b/proofs/fstar/extraction/Bertie.Tls13crypto.fsti
+-@@ -46,10 +46,12 @@ val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
+- val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+-     : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+- 
+-+(*
+- val impl__HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
+-     : Prims.Pure (Core.Result.t_Result Libcrux.Digest.t_Algorithm u8)
+-       Prims.l_True
+-       (fun _ -> Prims.l_True)
+-+*)
+- 
+- val impl__HashAlgorithm__hash_len (self: t_HashAlgorithm)
+-     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+-@@ -57,6 +59,7 @@ val impl__HashAlgorithm__hash_len (self: t_HashAlgorithm)
+- val impl__HashAlgorithm__hmac_tag_len (self: t_HashAlgorithm)
+-     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+- 
+-+(*
+- val hkdf_algorithm (alg: t_HashAlgorithm)
+-     : Prims.Pure (Core.Result.t_Result Libcrux.Hkdf.t_Algorithm u8)
+-       Prims.l_True
+-@@ -76,6 +79,7 @@ val impl__KemScheme__libcrux_algorithm (self: t_KemScheme)
+-     : Prims.Pure (Core.Result.t_Result Libcrux.Kem.t_Algorithm u8)
+-       Prims.l_True
+-       (fun _ -> Prims.l_True)
+-+*)
+- 
+- type t_Algorithms = {
+-   f_hash:t_HashAlgorithm;
+-@@ -336,10 +340,12 @@ val sign
+-       Prims.l_True
+-       (fun _ -> Prims.l_True)
+- 
+-+(*
+- val supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
+-     : Prims.Pure (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
+-       Prims.l_True
+-       (fun _ -> Prims.l_True)
+-+*)
+- 
+- val sign_rsa
+-       (#impl_916461611_: Type)
+-@@ -488,9 +494,10 @@ type t_AeadKey = {
+-   f_alg:t_AeadAlgorithm
+- }
+- 
+-+(*
+- val impl__AeadKey__as_libcrux_key (self: t_AeadKey)
+-     : Prims.Pure (Core.Result.t_Result Libcrux.Aead.t_Key u8) Prims.l_True (fun _ -> Prims.l_True)
+--
+-+*)
+- val impl__AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (alg: t_AeadAlgorithm)
+-     : Prims.Pure t_AeadKey Prims.l_True (fun _ -> Prims.l_True)
+- 
+-diff --git a/proofs/fstar/extraction/Bertie.Tls13formats.Handshake_data.fst b/proofs/fstar/extraction/Bertie.Tls13formats.Handshake_data.fst
+-index 94b6b13..5bbc6f1 100644
+---- a/proofs/fstar/extraction/Bertie.Tls13formats.Handshake_data.fst
+-+++ b/proofs/fstar/extraction/Bertie.Tls13formats.Handshake_data.fst
+-@@ -244,8 +244,8 @@ let impl__HandshakeData__from_bytes
+-     Core.Result.t_Result t_HandshakeData u8
+-   | Core.Result.Result_Err err ->
+-     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
+--
+--let impl__HandshakeData__find_handshake_message
+-+ 
+-+let rec impl__HandshakeData__find_handshake_message
+-       (self: t_HandshakeData)
+-       (handshake_type: t_HandshakeType)
+-       (start: usize)
+-diff --git a/proofs/fstar/extraction/Bertie.Tls13formats.fst b/proofs/fstar/extraction/Bertie.Tls13formats.fst
+-index d5e231f..40e68b3 100644
+---- a/proofs/fstar/extraction/Bertie.Tls13formats.fst
+-+++ b/proofs/fstar/extraction/Bertie.Tls13formats.fst
+-@@ -1190,7 +1190,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
+-           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+-           (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8))
+- 
+--let check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+-+let rec check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+-   match check_server_extension algs b with
+-   | Core.Result.Result_Ok (len, out) ->
+-     if len =. (Core.Slice.impl__len b <: usize)
+-@@ -1440,7 +1440,7 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms) =
+-     <:
+-     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+- 
+--let find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
+-+let rec find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
+-   if (Core.Slice.impl__len ch <: usize) <. sz 4
+-   then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+-   else
+-@@ -2209,7 +2209,7 @@ let parse_server_hello
+- 
+- let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes) =
+-   match
+--    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list = [] in
+-+    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list : list u8 = [] in
+-             FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 0);
+-             Rust_primitives.Hax.array_of_list 0 list)
+-         <:
+-@@ -2437,7 +2437,7 @@ let impl__Transcript__transcript_hash_without_client_hello
+-       <:
+-       Bertie.Tls13utils.t_Bytes)
+- 
+--let check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+-+let rec check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+-   match check_extension algs b with
+-   | Core.Result.Result_Ok (len, out) ->
+-     if len =. (Core.Slice.impl__len b <: usize)
+-@@ -2949,3 +2949,4 @@ let parse_client_hello
+-                 Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                 Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                 usize) u8))
+-+ 
+-diff --git a/proofs/fstar/extraction/Bertie.Tls13record.fst b/proofs/fstar/extraction/Bertie.Tls13record.fst
+-index a15f719..6f434c9 100644
+---- a/proofs/fstar/extraction/Bertie.Tls13record.fst
+-+++ b/proofs/fstar/extraction/Bertie.Tls13record.fst
+-@@ -54,7 +54,7 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
+-   in
+-   iv_ctr
+- 
+--let padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
+-+let rec padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
+-   if n >. sz 0 && (Bertie.Tls13utils.f_declassify (b.[ n -! sz 1 <: usize ] <: u8) <: u8) =. 0uy
+-   then sz 1 +! (padlen b (n -! sz 1 <: usize) <: usize)
+-   else sz 0
+-diff --git a/proofs/fstar/extraction/Bertie.Tls13utils.fsti b/proofs/fstar/extraction/Bertie.Tls13utils.fsti
+-index f839107..f6973d6 100644
+---- a/proofs/fstar/extraction/Bertie.Tls13utils.fsti
+-+++ b/proofs/fstar/extraction/Bertie.Tls13utils.fsti
+-@@ -262,6 +262,14 @@ let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
+-     f_index = fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> self._0.[ x ]
+-   }
+- 
+-+[@@ FStar.Tactics.Typeclasses.tcinstance]
+-+let upd_22: Rust_primitives.Hax.update_at_tc t_Bytes usize =
+-+  {
+-+    super_index = impl_21;
+-+    update_at = fun s (i:usize{v i < Seq.length s._0}) x -> Bytes (Seq.upd s._0 (v i) x)
+-+  } 
+-+
+-+
+- val bytes (x: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+- 
+- val bytes1 (x: u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 diff --git a/proofs/fstar/extraction/Bertie.Tls13crypto.fsti b/proofs/fstar/extraction/Bertie.Tls13crypto.fsti
 index 70b4e34..4e2e9ce 100644
 --- a/proofs/fstar/extraction/Bertie.Tls13crypto.fsti
@@ -72,10 +227,49 @@ index 94b6b13..5bbc6f1 100644
        (handshake_type: t_HandshakeType)
        (start: usize)
 diff --git a/proofs/fstar/extraction/Bertie.Tls13formats.fst b/proofs/fstar/extraction/Bertie.Tls13formats.fst
-index d5e231f..40e68b3 100644
+index d5e231f..7d3782e 100644
 --- a/proofs/fstar/extraction/Bertie.Tls13formats.fst
 +++ b/proofs/fstar/extraction/Bertie.Tls13formats.fst
-@@ -1190,7 +1190,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
+@@ -47,8 +47,6 @@ let t_ContentType_cast_to_repr (x: t_ContentType) =
+   | ContentType_Handshake  -> discriminant_ContentType_Handshake
+   | ContentType_ApplicationData  -> discriminant_ContentType_ApplicationData
+ 
+-let foofoooo (_: Prims.unit) = cast (discriminant_ContentType_Handshake +! 0uy <: u8) <: u8
+-
+ let application_data_instead_of_handshake (_: Prims.unit) =
+   Core.Result.Result_Err Bertie.Tls13utils.v_APPLICATION_DATA_INSTEAD_OF_HANDSHAKE
+   <:
+@@ -935,6 +933,29 @@ let psk_key_exchange_modes (_: Prims.unit) =
+   | Core.Result.Result_Err err ->
+     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+ 
++let get_psk_extensions
++      (algorithms: Bertie.Tls13crypto.t_Algorithms)
++      (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
++     =
++  match psk_key_exchange_modes () with
++  | Core.Result.Result_Ok pskm ->
++    (match pre_shared_key algorithms session_ticket with
++      | Core.Result.Result_Ok (psk, len) ->
++        let extensions:Bertie.Tls13utils.t_Bytes =
++          Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat extensions
++                pskm
++              <:
++              Bertie.Tls13utils.t_Bytes)
++            psk
++        in
++        Core.Result.Result_Ok (len, extensions <: (usize & Bertie.Tls13utils.t_Bytes))
++        <:
++        Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8
++      | Core.Result.Result_Err err ->
++        Core.Result.Result_Err err <: Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
++  | Core.Result.Result_Err err ->
++    Core.Result.Result_Err err <: Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8
++
+ let supported_versions (_: Prims.unit) =
+   match
+     Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list =
+@@ -1190,7 +1211,7 @@ let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
            (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8))
  
@@ -84,7 +278,176 @@ index d5e231f..40e68b3 100644
    match check_server_extension algs b with
    | Core.Result.Result_Ok (len, out) ->
      if len =. (Core.Slice.impl__len b <: usize)
-@@ -1440,7 +1440,7 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms) =
+@@ -1290,73 +1311,102 @@ let client_hello
+                                   Bertie.Tls13utils.impl__Bytes__append out key_shares
+                                 in
+                                 let extensions:Bertie.Tls13utils.t_Bytes = out in
+-                                let trunc_len:usize = sz 0 in
+-                                (match Bertie.Tls13utils.encode_length_u16 extensions with
+-                                  | Core.Result.Result_Ok encoded_extensions ->
+-                                    let len:usize =
+-                                      (Bertie.Tls13utils.impl__Bytes__len version <: usize) +!
+-                                      (Bertie.Tls13utils.impl__Bytes__len client_random <: usize)
+-                                    in
+-                                    let len:usize =
+-                                      len +!
+-                                      (Bertie.Tls13utils.impl__Bytes__len legacy_session_id <: usize
+-                                      )
+-                                    in
+-                                    let len:usize =
+-                                      len +!
+-                                      (Bertie.Tls13utils.impl__Bytes__len cipher_suites <: usize)
+-                                    in
+-                                    let len:usize =
+-                                      len +!
+-                                      (Bertie.Tls13utils.impl__Bytes__len compression_methods
+-                                        <:
+-                                        usize)
+-                                    in
+-                                    let len:usize =
+-                                      len +!
+-                                      (Bertie.Tls13utils.impl__Bytes__len encoded_extensions
+-                                        <:
+-                                        usize)
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__new_alloc len
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__append out version
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__append out client_random
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__append out legacy_session_id
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__append out cipher_suites
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__append out compression_methods
+-                                    in
+-                                    let out:Bertie.Tls13utils.t_Bytes =
+-                                      Bertie.Tls13utils.impl__Bytes__append out encoded_extensions
+-                                    in
+-                                    let handshake_bytes:Bertie.Tls13utils.t_Bytes = out in
+-                                    (match
+-                                        Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes
+-                                          (Bertie.Tls13formats.Handshake_data.HandshakeType_ClientHello
++                                (match
++                                    match
++                                      Bertie.Tls13crypto.impl__Algorithms__psk_mode algorithms,
++                                      session_ticket
++                                      <:
++                                      (bool & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
++                                    with
++                                    | true, Core.Option.Option_Some session_ticket ->
++                                      get_psk_extensions algorithms session_ticket extensions
++                                    | false, Core.Option.Option_None  ->
++                                      Core.Result.Result_Ok
++                                      (sz 0, extensions <: (usize & Bertie.Tls13utils.t_Bytes))
++                                      <:
++                                      Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8
++                                    | _ ->
++                                      Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_PSK_MODE_MISMATCH
++                                  with
++                                  | Core.Result.Result_Ok (trunc_len, extensions) ->
++                                    (match Bertie.Tls13utils.encode_length_u16 extensions with
++                                      | Core.Result.Result_Ok encoded_extensions ->
++                                        let len:usize =
++                                          (Bertie.Tls13utils.impl__Bytes__len version <: usize) +!
++                                          (Bertie.Tls13utils.impl__Bytes__len client_random <: usize
++                                          )
++                                        in
++                                        let len:usize =
++                                          len +!
++                                          (Bertie.Tls13utils.impl__Bytes__len legacy_session_id
+                                             <:
+-                                            Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+-                                          handshake_bytes
+-                                      with
+-                                      | Core.Result.Result_Ok client_hello ->
+-                                        Core.Result.Result_Ok
+-                                        (client_hello, trunc_len
+-                                          <:
+-                                          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+-                                            usize))
+-                                        <:
+-                                        Core.Result.t_Result
+-                                          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+-                                            usize) u8
++                                            usize)
++                                        in
++                                        let len:usize =
++                                          len +!
++                                          (Bertie.Tls13utils.impl__Bytes__len cipher_suites <: usize
++                                          )
++                                        in
++                                        let len:usize =
++                                          len +!
++                                          (Bertie.Tls13utils.impl__Bytes__len compression_methods
++                                            <:
++                                            usize)
++                                        in
++                                        let len:usize =
++                                          len +!
++                                          (Bertie.Tls13utils.impl__Bytes__len encoded_extensions
++                                            <:
++                                            usize)
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__new_alloc len
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__append out version
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__append out client_random
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__append out
++                                            legacy_session_id
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__append out cipher_suites
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__append out
++                                            compression_methods
++                                        in
++                                        let out:Bertie.Tls13utils.t_Bytes =
++                                          Bertie.Tls13utils.impl__Bytes__append out
++                                            encoded_extensions
++                                        in
++                                        let handshake_bytes:Bertie.Tls13utils.t_Bytes = out in
++                                        (match
++                                            Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes
++                                              (Bertie.Tls13formats.Handshake_data.HandshakeType_ClientHello
++                                                <:
++                                                Bertie.Tls13formats.Handshake_data.t_HandshakeType)
++                                              handshake_bytes
++                                          with
++                                          | Core.Result.Result_Ok client_hello ->
++                                            Core.Result.Result_Ok
++                                            (client_hello, trunc_len
++                                              <:
++                                              (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
++                                                usize))
++                                            <:
++                                            Core.Result.t_Result
++                                              (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
++                                                usize) u8
++                                          | Core.Result.Result_Err err ->
++                                            Core.Result.Result_Err err
++                                            <:
++                                            Core.Result.t_Result
++                                              (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
++                                                usize) u8)
+                                       | Core.Result.Result_Err err ->
+                                         Core.Result.Result_Err err
+                                         <:
+@@ -1440,7 +1490,7 @@ let encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms) =
      <:
      Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
  
@@ -93,16 +456,237 @@ index d5e231f..40e68b3 100644
    if (Core.Slice.impl__len ch <: usize) <. sz 4
    then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
    else
-@@ -2209,7 +2209,7 @@ let parse_server_hello
+@@ -2209,7 +2259,7 @@ let parse_server_hello
  
  let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes) =
    match
 -    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list = [] in
-+    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list : list u8 = [] in
++    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list: list u8 = [] in
              FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 0);
              Rust_primitives.Hax.array_of_list 0 list)
          <:
-@@ -2437,7 +2437,7 @@ let impl__Transcript__transcript_hash_without_client_hello
+@@ -2252,86 +2302,155 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
+     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+ 
+ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes) =
+-  let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
+-  match
+-    Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.impl__Bytes__as_raw sid <: t_Slice u8)
+-  with
+-  | Core.Result.Result_Ok sid ->
+-    (match Bertie.Tls13crypto.impl__Algorithms__ciphersuite algs with
+-      | Core.Result.Result_Ok cip ->
+-        let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 0uy in
+-        (match server_key_shares algs (Core.Clone.f_clone gy <: Bertie.Tls13utils.t_Bytes) with
+-          | Core.Result.Result_Ok ks ->
+-            (match server_supported_version algs with
+-              | Core.Result.Result_Ok sv ->
+-                let exts:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl__Bytes__concat ks sv in
+-                (match Bertie.Tls13utils.encode_length_u16 exts with
+-                  | Core.Result.Result_Ok encoded_extensions ->
+-                    let len:usize =
+-                      (Bertie.Tls13utils.impl__Bytes__len ver <: usize) +!
+-                      (Bertie.Tls13utils.impl__Bytes__len sr <: usize)
+-                    in
+-                    let len:usize = len +! (Bertie.Tls13utils.impl__Bytes__len sid <: usize) in
+-                    let len:usize = len +! (Bertie.Tls13utils.impl__Bytes__len cip <: usize) in
+-                    let len:usize = len +! (Bertie.Tls13utils.impl__Bytes__len comp <: usize) in
+-                    let len:usize =
+-                      len +! (Bertie.Tls13utils.impl__Bytes__len encoded_extensions <: usize)
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__new_alloc len
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__append out ver
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__append out sr
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__append out sid
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__append out cip
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__append out comp
+-                    in
+-                    let out:Bertie.Tls13utils.t_Bytes =
+-                      Bertie.Tls13utils.impl__Bytes__append out encoded_extensions
++  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let ver:Bertie.Tls13utils.t_Bytes =
++        Bertie.Tls13utils.bytes2 3uy 3uy
++      in
++      match
++        Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.impl__Bytes__as_raw sid <: t_Slice u8)
++      with
++      | Core.Result.Result_Ok sid ->
++        (match Bertie.Tls13crypto.impl__Algorithms__ciphersuite algs with
++          | Core.Result.Result_Ok cip ->
++            let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 0uy in
++            (match server_key_shares algs (Core.Clone.f_clone gy <: Bertie.Tls13utils.t_Bytes) with
++              | Core.Result.Result_Ok ks ->
++                (match server_supported_version algs with
++                  | Core.Result.Result_Ok sv ->
++                    let exts:Bertie.Tls13utils.t_Bytes =
++                      Bertie.Tls13utils.impl__Bytes__concat ks sv
+                     in
+-                    (match
+-                        Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_ServerHello
++                    let! exts:Bertie.Tls13utils.t_Bytes =
++                      match Bertie.Tls13crypto.impl__Algorithms__psk_mode algs with
++                      | true ->
++                        (match server_pre_shared_key algs with
++                          | Core.Result.Result_Ok hoist160 ->
++                            Core.Ops.Control_flow.ControlFlow_Continue
++                            (Bertie.Tls13utils.impl__Bytes__concat exts hoist160)
+                             <:
+-                            Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+-                          out
+-                      with
+-                      | Core.Result.Result_Ok sh ->
+-                        Core.Result.Result_Ok sh
++                            Core.Ops.Control_flow.t_ControlFlow
++                              (Core.Result.t_Result
++                                  Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                              Bertie.Tls13utils.t_Bytes
++                          | Core.Result.Result_Err err ->
++                            let! _:Prims.unit =
++                              Core.Ops.Control_flow.ControlFlow_Break
++                              (Core.Result.Result_Err err
++                                <:
++                                Core.Result.t_Result
++                                  Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                              <:
++                              Core.Ops.Control_flow.t_ControlFlow
++                                (Core.Result.t_Result
++                                    Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                                Prims.unit
++                            in
++                            Core.Ops.Control_flow.ControlFlow_Continue exts
++                            <:
++                            Core.Ops.Control_flow.t_ControlFlow
++                              (Core.Result.t_Result
++                                  Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                              Bertie.Tls13utils.t_Bytes)
++                      | false ->
++                        Core.Ops.Control_flow.ControlFlow_Continue exts
+                         <:
+-                        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
++                        Core.Ops.Control_flow.t_ControlFlow
++                          (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData
++                              u8) Bertie.Tls13utils.t_Bytes
++                    in
++                    Core.Ops.Control_flow.ControlFlow_Continue
++                    (match Bertie.Tls13utils.encode_length_u16 exts with
++                      | Core.Result.Result_Ok encoded_extensions ->
++                        let len:usize =
++                          (Bertie.Tls13utils.impl__Bytes__len ver <: usize) +!
++                          (Bertie.Tls13utils.impl__Bytes__len sr <: usize)
++                        in
++                        let len:usize = len +! (Bertie.Tls13utils.impl__Bytes__len sid <: usize) in
++                        let len:usize = len +! (Bertie.Tls13utils.impl__Bytes__len cip <: usize) in
++                        let len:usize = len +! (Bertie.Tls13utils.impl__Bytes__len comp <: usize) in
++                        let len:usize =
++                          len +! (Bertie.Tls13utils.impl__Bytes__len encoded_extensions <: usize)
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__new_alloc len
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__append out ver
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__append out sr
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__append out sid
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__append out cip
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__append out comp
++                        in
++                        let out:Bertie.Tls13utils.t_Bytes =
++                          Bertie.Tls13utils.impl__Bytes__append out encoded_extensions
++                        in
++                        (match
++                            Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_ServerHello
++                                <:
++                                Bertie.Tls13formats.Handshake_data.t_HandshakeType)
++                              out
++                          with
++                          | Core.Result.Result_Ok sh ->
++                            Core.Result.Result_Ok sh
++                            <:
++                            Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData
++                              u8
++                          | Core.Result.Result_Err err ->
++                            Core.Result.Result_Err err
++                            <:
++                            Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData
++                              u8)
+                       | Core.Result.Result_Err err ->
+                         Core.Result.Result_Err err
+                         <:
+                         Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                    <:
++                    Core.Ops.Control_flow.t_ControlFlow
++                      (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                      (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+                   | Core.Result.Result_Err err ->
+-                    Core.Result.Result_Err err
++                    Core.Ops.Control_flow.ControlFlow_Continue
++                    (Core.Result.Result_Err err
++                      <:
++                      Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+                     <:
+-                    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                    Core.Ops.Control_flow.t_ControlFlow
++                      (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                      (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8))
+               | Core.Result.Result_Err err ->
+-                Core.Result.Result_Err err
++                Core.Ops.Control_flow.ControlFlow_Continue
++                (Core.Result.Result_Err err
++                  <:
++                  Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+                 <:
+-                Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                Core.Ops.Control_flow.t_ControlFlow
++                  (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                  (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8))
+           | Core.Result.Result_Err err ->
+-            Core.Result.Result_Err err
++            Core.Ops.Control_flow.ControlFlow_Continue
++            (Core.Result.Result_Err err
++              <:
++              Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+             <:
+-            Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++            Core.Ops.Control_flow.t_ControlFlow
++              (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++              (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8))
+       | Core.Result.Result_Err err ->
+-        Core.Result.Result_Err err
++        Core.Ops.Control_flow.ControlFlow_Continue
++        (Core.Result.Result_Err err
++          <:
++          Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+         <:
+-        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+-  | Core.Result.Result_Err err ->
+-    Core.Result.Result_Err err
+-    <:
+-    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
++        Core.Ops.Control_flow.t_ControlFlow
++          (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++          (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8))
+ 
+ let set_client_hello_binder
+       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
+@@ -2437,7 +2556,7 @@ let impl__Transcript__transcript_hash_without_client_hello
        <:
        Bertie.Tls13utils.t_Bytes)
  
@@ -111,11 +695,55 @@ index d5e231f..40e68b3 100644
    match check_extension algs b with
    | Core.Result.Result_Ok (len, out) ->
      if len =. (Core.Slice.impl__len b <: usize)
-@@ -2949,3 +2949,4 @@ let parse_client_hello
-                 Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-                 Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-                 usize) u8))
-+ 
+diff --git a/proofs/fstar/extraction/Bertie.Tls13formats.fsti b/proofs/fstar/extraction/Bertie.Tls13formats.fsti
+index fa0cb99..575995c 100644
+--- a/proofs/fstar/extraction/Bertie.Tls13formats.fsti
++++ b/proofs/fstar/extraction/Bertie.Tls13formats.fsti
+@@ -234,8 +234,6 @@ let supported_groups__SUPPORTED_GROUPS_PREFIX: t_Array u8 (sz 2) =
+   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
+   Rust_primitives.Hax.array_of_list 2 list
+ 
+-val foofoooo: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
+-
+ val application_data_instead_of_handshake: Prims.unit
+   -> Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+ 
+@@ -497,6 +495,13 @@ val psk_key_exchange_modes: Prims.unit
+       Prims.l_True
+       (fun _ -> Prims.l_True)
+ 
++val get_psk_extensions
++      (algorithms: Bertie.Tls13crypto.t_Algorithms)
++      (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
++    : Prims.Pure (Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
++      Prims.l_True
++      (fun _ -> Prims.l_True)
++
+ val supported_versions: Prims.unit
+   -> Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+       Prims.l_True
+diff --git a/proofs/fstar/extraction/Bertie.Tls13handshake.fst b/proofs/fstar/extraction/Bertie.Tls13handshake.fst
+index 23d43dd..7de7057 100644
+--- a/proofs/fstar/extraction/Bertie.Tls13handshake.fst
++++ b/proofs/fstar/extraction/Bertie.Tls13handshake.fst
+@@ -654,7 +654,7 @@ let get_server_signature_no_psk
+                   Bertie.Tls13utils.t_Bytes)
+                 transcript_hash
+             in
+-            let rng, hoist162:(impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
++            let rng, hoist164:(impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+             =
+               match Bertie.Tls13crypto.impl__Algorithms__signature state.f_ciphersuite with
+               | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
+@@ -688,7 +688,7 @@ let get_server_signature_no_psk
+                 <:
+                 (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+             in
+-            (match hoist162 with
++            (match hoist164 with
+               | Core.Result.Result_Ok sig ->
+                 (match Bertie.Tls13formats.certificate_verify state.f_ciphersuite sig with
+                   | Core.Result.Result_Ok scv ->
 diff --git a/proofs/fstar/extraction/Bertie.Tls13record.fst b/proofs/fstar/extraction/Bertie.Tls13record.fst
 index a15f719..6f434c9 100644
 --- a/proofs/fstar/extraction/Bertie.Tls13record.fst
@@ -130,10 +758,19 @@ index a15f719..6f434c9 100644
    then sz 1 +! (padlen b (n -! sz 1 <: usize) <: usize)
    else sz 0
 diff --git a/proofs/fstar/extraction/Bertie.Tls13utils.fsti b/proofs/fstar/extraction/Bertie.Tls13utils.fsti
-index f839107..f6973d6 100644
+index f839107..ea32944 100644
 --- a/proofs/fstar/extraction/Bertie.Tls13utils.fsti
 +++ b/proofs/fstar/extraction/Bertie.Tls13utils.fsti
-@@ -262,6 +262,14 @@ let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
+@@ -61,8 +61,6 @@ let v_UNSUPPORTED_ALGORITHM: u8 = 1uy
+ 
+ let v_ZERO_RTT_DISABLED: u8 = 129uy
+ 
+-val dummy_fn: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
+-
+ val parse_failed: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
+ 
+ class t_Declassify (v_Self: Type) (v_T: Type) = {
+@@ -262,6 +260,14 @@ let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
      f_index = fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> self._0.[ x ]
    }
  
