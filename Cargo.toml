@@ -22,10 +22,11 @@ hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true}
 hax-lib = { git = "https://github.com/hacspec/hax" }
 
 [features]
-default = ["api","dep:hax-lib-macros"]
+default = ["api"]
 test_utils = []
 secret_integers = []
 api = []             # The streaming Rust API that everyone should use but is not hacspec.
+hax-fstar = ["dep:hax-lib-macros"]
 hax-pv = ["dep:hax-lib-macros"]
 
 [dev-dependencies]

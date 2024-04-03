@@ -1,4 +1,6 @@
 use core::ops::Range;
+
+#[cfg(feature = "hax-fstar")]
 use hax_lib_macros as hax;
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
@@ -298,10 +300,10 @@ pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
-#[hax::attributes]
+#[cfg_attr(feature = "hax-fstar", hax::attributes)]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
-    #[requires(x < self.0.len())]
+    #[cfg_attr(feature = "hax-fstar", requires(x < self.0.len()))]
     fn index(&self, x: usize) -> &U8 {
         &self.0[x]
     }
@@ -322,10 +324,10 @@ mod non_hax {
     }
 }
 
-#[hax::attributes]
+#[cfg_attr(feature = "hax-fstar", hax::attributes)]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
-    #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
+    #[cfg_attr(feature = "hax-fstar", requires(x.start <= self.0.len() && x.end <= self.0.len()))]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
