@@ -24,6 +24,7 @@ pub(crate) mod handshake_data;
 use handshake_data::{HandshakeData, HandshakeType};
 #[cfg(bench)]
 pub use handshake_data::{HandshakeData, HandshakeType};
+use tracing::dispatcher::with_default;
 
 // Well Known Constants
 
@@ -491,6 +492,14 @@ pub fn bench_client_hello(
     )
 }
 
+fn get_psk_extensions(algorithms: &Algorithms,session_ticket: &Bytes,mut extensions: Bytes) -> 
+                      Result<(usize,Bytes),TLSError> {
+    let pskm = psk_key_exchange_modes()?;
+    let (psk, len) = pre_shared_key(algorithms, session_ticket)?;
+    extensions = extensions.concat(pskm).concat(psk);
+    Ok ((len,extensions))
+}
+
 /// Build a ClientHello message.
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
@@ -511,24 +520,21 @@ pub(crate) fn client_hello(
     let signature_algorithms = signature_algorithms(algorithms)?;
     let key_shares = key_shares(algorithms, kem_pk.clone())?;
 
-    let mut extensions = bytes_concat!(
+    let extensions = bytes_concat!(
         server_name,
         supported_versions,
         supported_groups,
         signature_algorithms,
         key_shares
     );
-    let mut trunc_len = 0;
-    // match (algorithms.psk_mode(), session_ticket) {
-    //     (true, Some(session_ticket)) => {
-    //         let pskm = psk_key_exchange_modes()?;
-    //         let (psk, len) = pre_shared_key(algorithms, session_ticket)?;
-    //         extensions = extensions.concat(pskm).concat(psk);
-    //         trunc_len = len;
-    //     }
-    //     (false, None) => {}
-    //     _ => tlserr(PSK_MODE_MISMATCH)?,
-    // }
+    let (trunc_len,extensions) = 
+        (match (algorithms.psk_mode(), session_ticket) {
+            (true, Some(session_ticket)) => {
+                get_psk_extensions(algorithms, session_ticket, extensions)
+            }
+            (false, None) => { Ok((0,extensions)) }
+            _ => tlserr(PSK_MODE_MISMATCH),
+        })?;
 
     let encoded_extensions = encode_length_u16(extensions)?;
     let handshake_bytes = bytes_concat!(
@@ -700,10 +706,10 @@ pub(crate) fn server_hello(
     let ks = server_key_shares(algs, gy.clone())?;
     let sv = server_supported_version(algs)?;
     let mut exts = ks.concat(sv);
-    // match algs.psk_mode() {
-    //     true => exts = exts.concat(server_pre_shared_key(algs)?),
-    //     false => {}
-    // }
+    match algs.psk_mode() {
+        true => exts = exts.concat(server_pre_shared_key(algs)?),
+        false => {}
+    }
     let encoded_extensions = encode_length_u16(exts)?;
     let sh = HandshakeData::from_bytes(
         HandshakeType::ServerHello,
@@ -999,10 +1005,6 @@ fn protocol_version_alert() -> Result<(), TLSError> {
 
 fn application_data_instead_of_handshake() -> Result<(), TLSError> {
     Result::<(), TLSError>::Err(APPLICATION_DATA_INSTEAD_OF_HANDSHAKE)
-}
-
-pub(crate) fn foofoooo() -> u8 {
-    ContentType::Handshake as u8
 }
 
 pub(crate) fn check_handshake_record(p: &Bytes) -> Result<(HandshakeData, usize), TLSError> {

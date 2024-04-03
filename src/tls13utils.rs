@@ -38,9 +38,6 @@ pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub const DECODE_ERROR: TLSError = 142u8;
 
-pub fn dummy_fn() -> u8 {
-    PAYLOAD_TOO_LONG
-}
 
 #[allow(dead_code)]
 pub(crate) fn error_string(c: u8) -> String {
