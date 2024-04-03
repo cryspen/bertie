@@ -71,6 +71,19 @@ cargo_hax_into = [
     ";",
     "into",
 ]
+
+cargo_hax_into_pv = [
+    "cargo",
+    "hax",
+    "-C",
+    "-p",
+    "bertie",
+    "--no-default-features",
+    "--features",
+    "hax-pv",
+    ";",
+    "into",
+]
 hax_env = {}
 
 if options.sub == "extract":
@@ -104,7 +117,7 @@ elif options.sub == "extract-handshake":
 elif options.sub == "extract-proverif":
     # The extract sub command.
     shell(
-        cargo_hax_into
+        cargo_hax_into_pv
         + [
             "-i",
             " ".join([
