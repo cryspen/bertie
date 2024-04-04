@@ -62,12 +62,12 @@ val impl__Server__read_handshake (self: t_Server) (handshake_bytes: Bertie.Tls13
 
 val impl__Client__write (self: t_Client) (application_data: Bertie.Tls13utils.t_AppData)
     : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
-      Prims.l_True
+      (Seq.length application_data._0._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val impl__Server__write (self: t_Server) (application_data: Bertie.Tls13utils.t_AppData)
     : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Server) u8)
-      Prims.l_True
+      (Seq.length application_data._0._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val impl__Client__read_handshake (self: t_Client) (handshake_bytes: Bertie.Tls13utils.t_Bytes)

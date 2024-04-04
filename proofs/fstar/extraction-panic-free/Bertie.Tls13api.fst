@@ -239,8 +239,9 @@ let impl__Client__read_handshake (self: t_Client) (handshake_bytes: Bertie.Tls13
             (sz 0)
         then
           match Bertie.Tls13handshake.client_finish buf cstate with
-          | Core.Result.Result_Ok (cfin, cipher1, cstate) ->
-            (match Bertie.Tls13record.encrypt_handshake cfin (sz 0) cipher_hs with
+          | Core.Result.Result_Ok (cfin, cipher1, cstate) ->        
+            (assume (Seq.length cfin._0._0 < 65536);
+             match Bertie.Tls13record.encrypt_handshake cfin (sz 0) cipher_hs with
               | Core.Result.Result_Ok (cf_rec, v__cipher_hs) ->
                 Core.Result.Result_Ok
                 ((Core.Option.Option_Some cf_rec <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
@@ -304,7 +305,8 @@ let impl__Server__accept
       | Core.Result.Result_Ok (server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate) ->
         (match Bertie.Tls13formats.handshake_record server_hello with
           | Core.Result.Result_Ok sh_rec ->
-            (match Bertie.Tls13record.encrypt_handshake server_finished (sz 0) cipher_hs with
+            (assume (Seq.length server_finished._0._0 < 65536);
+             match Bertie.Tls13record.encrypt_handshake server_finished (sz 0) cipher_hs with
               | Core.Result.Result_Ok (sf_rec, cipher_hs) ->
                 let hax_temp_output:Core.Result.t_Result
                   (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8 =

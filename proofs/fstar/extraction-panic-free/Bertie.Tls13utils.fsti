@@ -366,11 +366,9 @@ val random_bytes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.
 
 type t_AppData = | AppData : t_Bytes -> t_AppData
 
-val impl__AppData__as_raw (self: t_AppData)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+let impl__AppData__as_raw (self: t_AppData) = self._0
 
-val impl__AppData__into_raw (self: t_AppData)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+let impl__AppData__into_raw (self: t_AppData) = self._0
 
 val impl__AppData__new (b: t_Bytes) : Prims.Pure t_AppData Prims.l_True (fun _ -> Prims.l_True)
 

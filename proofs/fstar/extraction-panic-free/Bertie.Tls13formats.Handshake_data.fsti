@@ -57,10 +57,9 @@ val impl__HandshakeData__next_handshake_message (self: t_HandshakeData)
 val impl__HandshakeData__as_handshake_message
       (self: t_HandshakeData)
       (expected_type: t_HandshakeType)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
+      : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val impl__HandshakeData__to_bytes (self: t_HandshakeData)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+let impl__HandshakeData__to_bytes (self: t_HandshakeData) = self._0
 
 val impl__HandshakeData__to_four (self: t_HandshakeData)
     : Prims.Pure

@@ -154,7 +154,6 @@ let impl__HandshakeData__as_handshake_message
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
 
-let impl__HandshakeData__to_bytes (self: t_HandshakeData) = Core.Clone.f_clone self._0
 
 let impl__HandshakeData__to_four (self: t_HandshakeData) =
   match impl__HandshakeData__next_handshake_message self with

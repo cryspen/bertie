@@ -550,7 +550,7 @@ val verify
 
 type t_AeadKeyIV = {
   f_key:t_AeadKey;
-  f_iv:Bertie.Tls13utils.t_Bytes
+  f_iv:x:Bertie.Tls13utils.t_Bytes{Seq.length x._0 >= 8 /\ Seq.length x._0 <= 32}
 }
 
 val impl__AeadKeyIV__new (key: t_AeadKey) (iv: Bertie.Tls13utils.t_Bytes)

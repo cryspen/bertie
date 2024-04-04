@@ -4,8 +4,6 @@ open Core
 open FStar.Mul
 
 let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
-  assume (Seq.length iv._0 >= 8);
-  assume (Seq.length iv._0 <= 12);
   let (counter: Bertie.Tls13utils.t_Bytes):Bertie.Tls13utils.t_Bytes =
     Core.Convert.f_into (Core.Num.impl__u64__to_be_bytes n <: t_Array u8 (sz 8))
   in
@@ -59,7 +57,7 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
           Bertie.Tls13utils.t_Bytes)
   in
   iv_ctr
-
+ 
 let rec padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
   if n >. sz 0 && (Bertie.Tls13utils.f_declassify (b.[ n -! sz 1 <: usize ] <: u8) <: u8) =. 0uy
   then sz 1 +! (padlen b (n -! sz 1 <: usize) <: usize)
@@ -159,7 +157,6 @@ let encrypt_record_payload
       (payload: Bertie.Tls13utils.t_Bytes)
       (pad: usize)
      =
-  assume (Seq.length payload._0 + 17 + v pad <= max_usize);
   let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr key_iv.Bertie.Tls13crypto.f_iv n in
   let inner_plaintext:Bertie.Tls13utils.t_Bytes =
     Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat payload

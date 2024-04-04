@@ -4,7 +4,9 @@ open Core
 open FStar.Mul
 
 val derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes
+      (Seq.length iv._0 >= 8 /\ Seq.length iv._0 <= 32)
+      (fun _ -> Prims.l_True)
 
 val padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize)
     : Prims.Pure usize
@@ -28,7 +30,7 @@ val encrypt_record_payload
       (payload: Bertie.Tls13utils.t_Bytes)
       (pad: usize)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (Seq.length payload._0 < 65536 /\ v pad < 4096)
       (fun _ -> Prims.l_True)
 
 type t_ClientCipherState0 =
@@ -111,7 +113,7 @@ val duplex_cipher_state1
 
 val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1)
     : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-      Prims.l_True
+      (Seq.length payload._0._0 < 65536 /\ v pad < 4096)
       (fun _ -> Prims.l_True)
 
 val encrypt_handshake
@@ -119,12 +121,12 @@ val encrypt_handshake
       (pad: usize)
       (state: t_DuplexCipherStateH)
     : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
-      Prims.l_True
+      (Seq.length payload._0._0 < 65536 /\ v pad < 4096)
       (fun _ -> Prims.l_True)
 
 val encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0)
     : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
-      Prims.l_True
+      (Seq.length payload._0._0 < 65536 /\ v pad < 4096)
       (fun _ -> Prims.l_True)
 
 val server_cipher_state0
