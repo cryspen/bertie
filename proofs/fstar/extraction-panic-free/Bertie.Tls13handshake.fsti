@@ -13,7 +13,7 @@ val hkdf_expand_label
       (key label context: Bertie.Tls13utils.t_Bytes)
       (len: usize)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (Seq.length label._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val derive_finished_key (ha: Bertie.Tls13crypto.t_HashAlgorithm) (k: Bertie.Tls13utils.t_Bytes)
@@ -25,7 +25,7 @@ val derive_secret
       (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
       (key label transcript_hash: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (Seq.length label._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val derive_binder_key (ha: Bertie.Tls13crypto.t_HashAlgorithm) (k: Bertie.Tls13utils.t_Bytes)
@@ -330,7 +330,9 @@ val build_client_hello
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
-            t_ClientPostClientHello) u8) Prims.l_True (fun _ -> Prims.l_True)
+            t_ClientPostClientHello) u8)
+      (Seq.length sn._0 < 65536)
+      (fun _ -> Prims.l_True)
 
 val client_init
       (#impl_916461611_: Type)
@@ -345,8 +347,10 @@ val client_init
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
-            t_ClientPostClientHello) u8) Prims.l_True (fun _ -> Prims.l_True)
-
+            t_ClientPostClientHello) u8) 
+      (Seq.length sn._0 < 65536)
+      (fun _ -> Prims.l_True)
+      
 val get_server_finished (st: t_ServerPostCertificateVerify)
     : Prims.Pure
       (Core.Result.t_Result

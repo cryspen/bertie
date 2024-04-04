@@ -649,7 +649,9 @@ val impl__Transcript__new (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
 val impl__Transcript__transcript_hash (self: t_Transcript)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with 
+              | Core.Result.Result_Ok h -> Seq.length h._0 <= 64
+              | _ -> True)
 
 val impl__Transcript__transcript_hash_without_client_hello
       (self: t_Transcript)

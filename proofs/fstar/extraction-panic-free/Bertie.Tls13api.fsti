@@ -42,7 +42,7 @@ val impl__Client__connect
       (session_ticket psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: impl_916461611_)
     : Prims.Pure (impl_916461611_ & Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
-      Prims.l_True
+      (Seq.length server_name._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val impl__Server__read (self: t_Server) (application_data: Bertie.Tls13utils.t_Bytes)

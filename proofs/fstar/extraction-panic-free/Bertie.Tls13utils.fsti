@@ -256,8 +256,7 @@ val impl__Bytes__extend_from_slice (self x: t_Bytes)
 
 val impl__Bytes__from_hex (s: string) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-val impl__Bytes__from_slice (s: t_Slice u8)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+let impl__Bytes__from_slice (s: t_Slice u8) = Bytes s
 
 let impl__Bytes__len (self: t_Bytes) = Alloc.Vec.impl_1__len self._0 <: usize
 
@@ -320,7 +319,7 @@ let upd_22: Rust_primitives.Hax.update_at_tc t_Bytes usize =
   } 
 
 
-val bytes (x: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+let bytes (x: t_Slice u8) = Bytes x
 
 val bytes1 (x: u8) : Prims.Pure t_Bytes Prims.l_True (fun res -> Seq.length res._0 == 1)
 

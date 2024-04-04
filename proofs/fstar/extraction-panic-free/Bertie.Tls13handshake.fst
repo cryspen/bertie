@@ -22,13 +22,14 @@ let hkdf_expand_label
       Bertie.Tls13utils.u16_as_be_bytes (Bertie.Tls13utils.v_U16 (cast (len <: usize) <: u16) <: u16
         )
     in
-    let tls13_label:Bertie.Tls13utils.t_Bytes =
-      Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__from_slice (Rust_primitives.unsize
+    let x = (Bertie.Tls13utils.impl__Bytes__from_slice (Rust_primitives.unsize
                 Bertie.Tls13formats.v_LABEL_TLS13
               <:
               t_Slice u8)
           <:
-          Bertie.Tls13utils.t_Bytes)
+          Bertie.Tls13utils.t_Bytes) in
+    let tls13_label:Bertie.Tls13utils.t_Bytes =
+      Bertie.Tls13utils.impl__Bytes__concat x
         label
     in
     match

@@ -296,7 +296,9 @@ let t_VerificationKey = Bertie.Tls13utils.t_Bytes
 val impl__HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with 
+               | Core.Result.Result_Ok h -> Seq.length h._0 <= 64
+               | _ -> True)
 
 val hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -323,7 +325,7 @@ val impl__Algorithms__ciphersuite (self: t_Algorithms)
 val impl__Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True
       (fun res -> match res with
-               | Core.Result.Result_Ok len -> v len <= 256 /\ Seq.length bytes >= v len
+               | Core.Result.Result_Ok len -> v len < 256 /\ Seq.length bytes >= v len
                | _ -> True)
 
 
@@ -385,7 +387,9 @@ val kem_keygen
       (impl_916461611_ &
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun (_,res) -> match res with
+                   | Core.Result.Result_Ok (sk,pk) -> Seq.length pk._0 < 65536
+                   | _ -> True)
 
 val into_raw (alg: t_KemScheme) (point: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -409,7 +413,9 @@ val kem_encap
       (impl_916461611_ &
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun (_,res) -> match res with 
+                   | Core.Result.Result_Ok (ss,gy) -> Seq.length gy._0 < 65536
+                   | _ -> True)
 
 val zero_key (alg: t_HashAlgorithm)
     : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True
