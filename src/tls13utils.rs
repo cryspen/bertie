@@ -1,5 +1,8 @@
 use core::ops::Range;
 
+#[cfg(feature = "hax-fstar")]
+use hax_lib_macros::{attributes, requires};
+
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
     // let bt = backtrace::Backtrace::new();
@@ -296,16 +299,17 @@ pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
+#[cfg_attr(feature = "hax-fstar", attributes)]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
+    #[cfg_attr(feature = "hax-fstar", requires(x < self.0.len()))]
     fn index(&self, x: usize) -> &U8 {
         &self.0[x]
     }
 }
 
 mod non_hax {
-    use super::{Bytes, U8};
-
+    use super::*;
     impl core::ops::IndexMut<usize> for Bytes {
         fn index_mut(&mut self, i: usize) -> &mut U8 {
             &mut self.0[i]
@@ -319,8 +323,10 @@ mod non_hax {
     }
 }
 
+#[cfg_attr(feature = "hax-fstar", attributes)]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
+    #[cfg_attr(feature = "hax-fstar", requires(x.start <= self.0.len() && x.end <= self.0.len()))]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }

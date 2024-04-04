@@ -655,7 +655,21 @@ fn get_server_hello(
     ))
 }
 
-fn get_server_signature(
+fn get_rsa_signature(
+    cert: &Bytes,
+    sk: &Bytes,
+    sigval: &Bytes,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<Bytes, TLSError> {
+    // To avoid cyclic dependencies between the modules we pull out
+    // the values from the RSA certificate here.
+    // We could really read this from the key as well.
+    let (cert_scheme, cert_slice) = verification_key_from_cert(cert)?;
+    let pk = rsa_public_key(cert, cert_slice)?;
+    sign_rsa(sk, &pk.modulus, &pk.exponent, cert_scheme, sigval, rng)
+}
+
+fn get_server_signature_no_psk(
     state: ServerPostServerHello,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<
@@ -669,54 +683,78 @@ fn get_server_signature(
 > {
     let ee = encrypted_extensions(&state.ciphersuite)?;
     let transcript = state.transcript.add(&ee);
+    let sc = server_certificate(&state.ciphersuite, &state.server.cert)?;
+    let transcript = transcript.add(&sc);
+    let transcript_hash = transcript.transcript_hash()?;
+    let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(transcript_hash);
+    let sig = (match state.ciphersuite.signature() {
+        SignatureScheme::EcdsaSecp256r1Sha256 => sign(
+            &state.ciphersuite.signature(),
+            &state.server.sk,
+            &sigval,
+            rng,
+        ),
+        SignatureScheme::RsaPssRsaSha256 => {
+            get_rsa_signature(&state.server.cert, &state.server.sk, &sigval, rng)
+        }
+        SignatureScheme::ED25519 => Err(UNSUPPORTED_ALGORITHM),
+    })?;
+    let scv = certificate_verify(&state.ciphersuite, &sig)?;
+    let transcript = transcript.add(&scv);
+    Ok((
+        ee,
+        sc,
+        scv,
+        ServerPostCertificateVerify(
+            state.client_random,
+            state.server_random,
+            state.ciphersuite,
+            state.master_secret,
+            state.cfk,
+            state.sfk,
+            transcript,
+        ),
+    ))
+}
+
+fn get_server_signature(
+    state: ServerPostServerHello,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<
+    (
+        HandshakeData,
+        HandshakeData,
+        HandshakeData,
+        ServerPostCertificateVerify,
+    ),
+    TLSError,
+> {
     if !state.ciphersuite.psk_mode() {
-        let sc = server_certificate(&state.ciphersuite, &state.server.cert)?;
-        let transcript = transcript.add(&sc);
-        let transcript_hash = transcript.transcript_hash()?;
-        let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(transcript_hash);
-        let sig = match state.ciphersuite.signature() {
-            SignatureScheme::EcdsaSecp256r1Sha256 => sign(
-                &state.ciphersuite.signature(),
-                &state.server.sk,
-                &sigval,
-                rng,
-            )?,
-            SignatureScheme::RsaPssRsaSha256 => {
-                // To avoid cyclic dependencies between the modules we pull out
-                // the values from the RSA certificate here.
-                // We could really read this from the key as well.
-                let (cert_scheme, cert_slice) = verification_key_from_cert(&state.server.cert)?;
-                let pk = rsa_public_key(&state.server.cert, cert_slice)?;
-                sign_rsa(
-                    &state.server.sk,
-                    &pk.modulus,
-                    &pk.exponent,
-                    cert_scheme,
-                    &sigval,
-                    rng,
-                )?
-            }
-            SignatureScheme::ED25519 => unimplemented!(),
-        };
-        let scv = certificate_verify(&state.ciphersuite, &sig)?;
-        let transcript = transcript.add(&scv);
-        Ok((
-            ee,
-            sc,
-            scv,
-            ServerPostCertificateVerify(
-                state.client_random,
-                state.server_random,
-                state.ciphersuite,
-                state.master_secret,
-                state.cfk,
-                state.sfk,
-                transcript,
-            ),
-        ))
+        get_server_signature_no_psk(state, rng)
     } else {
         Err(PSK_MODE_MISMATCH)
     }
+}
+
+fn get_skip_server_signature_no_psk(
+    st: ServerPostServerHello,
+) -> Result<(HandshakeData, ServerPostCertificateVerify), TLSError> {
+    let ServerPostServerHello {
+        client_random: cr,
+        server_random: sr,
+        ciphersuite: algs,
+        server,
+        master_secret: ms,
+        cfk,
+        sfk,
+        transcript: tx,
+    } = st;
+    let ee = encrypted_extensions(&algs)?;
+    let tx = tx.add(&ee);
+    Ok((
+        ee,
+        ServerPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx),
+    ))
 }
 
 fn get_skip_server_signature(
@@ -731,14 +769,9 @@ fn get_skip_server_signature(
         cfk,
         sfk,
         transcript: tx,
-    } = st;
+    } = &st;
     if algs.psk_mode() {
-        let ee = encrypted_extensions(&algs)?;
-        let tx = tx.add(&ee);
-        Ok((
-            ee,
-            ServerPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx),
-        ))
+        get_skip_server_signature_no_psk(st)
     } else {
         Err(PSK_MODE_MISMATCH)
     }
@@ -789,7 +822,7 @@ fn put_client_finished(
 // server_finish -> (encrypt_data | decrypt_data)*
 
 #[allow(clippy::type_complexity)]
-pub fn server_init(
+pub fn server_init_no_psk(
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
@@ -807,19 +840,59 @@ pub fn server_init(
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
+
+    let (ee, sc, scv, st) = get_server_signature(st, rng)?;
+    let (sfin, cipher1, st) = get_server_finished(st)?;
+    let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
+    Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+}
+
+#[allow(clippy::type_complexity)]
+pub fn server_init_psk(
+    algs: Algorithms,
+    ch: &HandshakeData,
+    db: ServerDB,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<
+    (
+        HandshakeData,
+        HandshakeData,
+        Option<ServerCipherState0>,
+        DuplexCipherStateH,
+        DuplexCipherState1,
+        ServerPostServerFinished,
+    ),
+    TLSError,
+> {
+    let (cipher0, st) = put_client_hello(algs, ch, db)?;
+    let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
+
+    let (ee, st) = get_skip_server_signature(st)?;
+    let (sfin, cipher1, st) = get_server_finished(st)?;
+    let flight = ee.concat(&sfin);
+    Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
+}
+
+#[allow(clippy::type_complexity)]
+pub fn server_init(
+    algs: Algorithms,
+    ch: &HandshakeData,
+    db: ServerDB,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<
+    (
+        HandshakeData,
+        HandshakeData,
+        Option<ServerCipherState0>,
+        DuplexCipherStateH,
+        DuplexCipherState1,
+        ServerPostServerFinished,
+    ),
+    TLSError,
+> {
     match algs.psk_mode() {
-        false => {
-            let (ee, sc, scv, st) = get_server_signature(st, rng)?;
-            let (sfin, cipher1, st) = get_server_finished(st)?;
-            let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
-            Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
-        }
-        true => {
-            let (ee, st) = get_skip_server_signature(st)?;
-            let (sfin, cipher1, st) = get_server_finished(st)?;
-            let flight = ee.concat(&sfin);
-            Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
-        }
+        false => server_init_no_psk(algs, ch, db, rng),
+        true => server_init_psk(algs, ch, db, rng),
     }
 }
 
