@@ -2389,20 +2389,16 @@ reduc forall
 (* Functions *)
 (*****************************************)
 
-event Reached_bertie__tls13crypto__impl__AeadAlgorithm__iv_len.
 letfun bertie__tls13crypto__impl__AeadAlgorithm__iv_len(
          self : bertie__tls13crypto__t_AeadAlgorithm
        ) =
-       event Reached_bertie__tls13crypto__impl__AeadAlgorithm__iv_len;
        let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() = self in 12
        else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes128Gcm_c() = self in 12
        else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes256Gcm_c() = self in 12.
 
-event Reached_bertie__tls13crypto__impl__AeadAlgorithm__key_len.
 letfun bertie__tls13crypto__impl__AeadAlgorithm__key_len(
          self : bertie__tls13crypto__t_AeadAlgorithm
        ) =
-       event Reached_bertie__tls13crypto__impl__AeadAlgorithm__key_len;
        let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Chacha20Poly1305_c() = self in 32
        else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes128Gcm_c() = self in 16
        else let bertie__tls13crypto__AeadAlgorithm_AeadAlgorithm_Aes256Gcm_c() = self in 32.
@@ -2443,31 +2439,21 @@ const bertie__tls13utils__v_PAYLOAD_TOO_LONG: bitstring.
 
 const bertie__tls13utils__v_PSK_MODE_MISMATCH: bitstring.
 
-event Reached_bertie__tls13utils__v_U16.
 letfun bertie__tls13utils__v_U16(x : nat) =
-       event Reached_bertie__tls13utils__v_U16;
        x.
 
 const bertie__tls13utils__v_UNSUPPORTED_ALGORITHM: bitstring.
 
-event Reached_bertie__tls13utils__parse_failed.
 letfun bertie__tls13utils__parse_failed(wildcard1 : bitstring) =
-       event Reached_bertie__tls13utils__parse_failed;
        bertie__tls13utils__v_PARSE_FAILED.
 
-event Reached_bertie__tls13utils__u16_as_be_bytes.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13utils__u16_as_be_bytes(val : nat) =
-       event Reached_bertie__tls13utils__u16_as_be_bytes;
-       let val = core__num__impl__u16__to_be_bytes(val) in
-       [bertie__tls13utils__v_U8(core__ops__index__Index__index(val, 0)),bertie__tls13utils__v_U8(
-         core__ops__index__Index__index(val, 1)
-       )].
+       bitstring_default().
 
-event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash_len.
 letfun bertie__tls13crypto__impl__HashAlgorithm__hash_len(
          self : bertie__tls13crypto__t_HashAlgorithm
        ) =
-       event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash_len;
        let bertie__tls13crypto__HashAlgorithm_HashAlgorithm_SHA256_c() = self in libcrux__digest__digest_size(
          libcrux__digest__Algorithm_Algorithm_Sha256_c()
        )
@@ -2478,565 +2464,163 @@ letfun bertie__tls13crypto__impl__HashAlgorithm__hash_len(
          libcrux__digest__Algorithm_Algorithm_Sha512_c()
        ).
 
-event Reached_bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len.
 letfun bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(
          self : bertie__tls13crypto__t_HashAlgorithm
        ) =
-       event Reached_bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len;
        bertie__tls13crypto__impl__HashAlgorithm__hash_len(self).
 
-event Reached_bertie__tls13crypto__impl__Algorithms__hash.
 letfun bertie__tls13crypto__impl__Algorithms__hash(
          self : bertie__tls13crypto__t_Algorithms
        ) =
-       event Reached_bertie__tls13crypto__impl__Algorithms__hash;
        accessor_bertie__tls13crypto__Algorithms_f_hash(self).
 
-event Reached_bertie__tls13crypto__impl__Algorithms__kem.
 letfun bertie__tls13crypto__impl__Algorithms__kem(
          self : bertie__tls13crypto__t_Algorithms
        ) =
-       event Reached_bertie__tls13crypto__impl__Algorithms__kem;
        accessor_bertie__tls13crypto__Algorithms_f_kem(self).
 
-event Reached_bertie__tls13crypto__impl__Algorithms__psk_mode.
 letfun bertie__tls13crypto__impl__Algorithms__psk_mode(
          self : bertie__tls13crypto__t_Algorithms
        ) =
-       event Reached_bertie__tls13crypto__impl__Algorithms__psk_mode;
        accessor_bertie__tls13crypto__Algorithms_f_psk_mode(self).
 
-event Reached_bertie__tls13crypto__impl__Algorithms__signature.
 letfun bertie__tls13crypto__impl__Algorithms__signature(
          self : bertie__tls13crypto__t_Algorithms
        ) =
-       event Reached_bertie__tls13crypto__impl__Algorithms__signature;
        accessor_bertie__tls13crypto__Algorithms_f_signature(self).
 
-event Reached_bertie__tls13cert__verification_key_from_cert.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13cert__verification_key_from_cert(
          cert : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13cert__verification_key_from_cert;
-       let offset = bertie__tls13cert__read_sequence_header(cert, 0) in let hoist1 = bertie__tls13cert__read_sequence_header(
-         cert, offset
-       ) in (
-         let offset = hoist1 in
-         let hoist2 = bertie__tls13cert__read_version_number(cert, offset) in (
-           let offset = hoist2 in
-           let hoist3 = bertie__tls13cert__skip_integer(cert, offset) in (
-             let offset = hoist3 in
-             let hoist4 = bertie__tls13cert__skip_sequence(cert, offset) in (
-               let offset = hoist4 in
-               let hoist5 = bertie__tls13cert__skip_sequence(cert, offset) in (
-                 let offset = hoist5 in
-                 let hoist6 = bertie__tls13cert__skip_sequence(cert, offset) in (
-                   let offset = hoist6 in
-                   let hoist7 = bertie__tls13cert__skip_sequence(cert, offset) in (
-                     let offset = hoist7 in
-                     bertie__tls13cert__read_spki(cert, offset)
-                   )
-                   else bitstring_err()
-                 )
-                 else bitstring_err()
-               )
-               else bitstring_err()
-             )
-             else bitstring_err()
-           )
-           else bitstring_err()
-         )
-         else bitstring_err()
-       )
-       else bitstring_err()
-       else bitstring_err().
+       bitstring_default().
 
-event Reached_bertie__tls13crypto__sign_rsa.
-letfun bertie__tls13crypto__sign_rsa(
-         sk : bertie__tls13utils__t_Bytes,
-         pk_modulus : bertie__tls13utils__t_Bytes,
-         pk_exponent : bertie__tls13utils__t_Bytes,
-         cert_scheme : bertie__tls13crypto__t_SignatureScheme,
-         input : bertie__tls13utils__t_Bytes,
-         rng : impl_CryptoRng___RngCore
-       ) =
-       event Reached_bertie__tls13crypto__sign_rsa;
-       let salt = rust_primitives__hax__repeat(0, 32) in
-       let (tmp0: impl_CryptoRng___RngCore, tmp1: bitstring) =
-         rand_core__RngCore_f_fill_bytes(rng, salt)
-        in
-       let rng = tmp0 in
-       let salt = tmp1 in
-       let wildcard7: bitstring = () in
-       let wildcard6: bitstring =
-         if
-           core__ops__bit__Not__v_not(
-               let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
+(* marked as constructor *)
+fun bertie__tls13crypto__sign_rsa(
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13crypto__t_SignatureScheme,
+      bertie__tls13utils__t_Bytes,
+      impl_CryptoRng___RngCore
+    )
+    : bitstring [data].
 
-               ) = cert_scheme in true
-               else false
-             )
-         then
-           (let hoist8 = todo return; in
-            bitstring_err())
-         else (())
-        in
-       let wildcard5: bitstring =
-         if
-           core__ops__bit__Not__v_not(
-               bertie__tls13crypto__valid_rsa_exponent(
-                 bertie__tls13utils__impl__Bytes__declassify(pk_exponent)
-               )
-             )
-         then
-           (let hoist9 = todo return; in
-            bitstring_err())
-         else (())
-        in
-       let key_size = bertie__tls13crypto__supported_rsa_key_size(pk_modulus) in let pk = core__result__impl__map_err(
-         libcrux__signature__rsa_pss__impl__RsaPssPublicKey__new(
-           key_size,
-           core__ops__index__Index_f_index(
-             bertie__tls13utils__impl__Bytes__declassify(pk_modulus),
-             core__ops__range__RangeFrom_c(1)
-           )
-         ),
-         |wildcard4: bitstring|bertie__tls13utils__v_CRYPTO_ERROR
-       ) in let sk = core__result__impl__map_err(
-         libcrux__signature__rsa_pss__impl_5__new(
-           pk, bertie__tls13utils__impl__Bytes__declassify(sk)
-         ),
-         |wildcard3: bitstring|bertie__tls13utils__v_CRYPTO_ERROR
-       ) in (
-         let msg = bertie__tls13utils__impl__Bytes__declassify(input) in
-         let sig =
-           libcrux__signature__rsa_pss__impl_5__sign(
-             sk,
-             libcrux__signature__DigestAlgorithm_DigestAlgorithm_Sha256_c(),
-             salt,
-             msg
-           )
-          in
-         let hax_temp_output =
-           core__result__impl__map_err(
-             core__result__impl__map(
-               sig,
-               |sig|bertie__tls13utils__t_Bytes_from_bitstring(
-                 libcrux__signature__rsa_pss__impl__RsaPssSignature__as_bytes(
-                   sig
-                 )
-               )
-             ),
-             |wildcard2: bitstring|bertie__tls13utils__v_CRYPTO_ERROR
-           )
-          in
-         (rng, hax_temp_output)
-       )
-       else bitstring_err()
-       else bitstring_err()
-       else bitstring_err().
+(* marked as constructor *)
+fun bertie__tls13crypto__impl__HashAlgorithm__hash(
+      bertie__tls13crypto__t_HashAlgorithm, bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash.
-letfun bertie__tls13crypto__impl__HashAlgorithm__hash(
-         self : bertie__tls13crypto__t_HashAlgorithm,
-         data : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13crypto__impl__HashAlgorithm__hash;
-       let hoist10 = bertie__tls13crypto__impl__HashAlgorithm__libcrux_algorithm(
-         self
-       ) in (
-         let hoist11 =
-           libcrux__digest__hash(
-             hoist10, bertie__tls13utils__impl__Bytes__declassify(data)
-           )
-          in
-         let hoist12 = bertie__tls13utils__t_Bytes_from_bitstring(hoist11) in
-         hoist12
-       )
-       else bertie__tls13utils__t_Bytes_err().
+(* marked as constructor *)
+fun bertie__tls13crypto__hkdf_expand(
+      bertie__tls13crypto__t_HashAlgorithm,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      nat
+    )
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13crypto__hkdf_expand.
-letfun bertie__tls13crypto__hkdf_expand(
-         alg : bertie__tls13crypto__t_HashAlgorithm,
-         prk : bertie__tls13utils__t_Bytes,
-         info : bertie__tls13utils__t_Bytes,
-         len : nat
-       ) =
-       event Reached_bertie__tls13crypto__hkdf_expand;
-       let hoist13 = bertie__tls13crypto__hkdf_algorithm(alg) in (
-         let hoist14 =
-           libcrux__hkdf__v_expand(
-             hoist13,
-             bertie__tls13utils__impl__Bytes__declassify(prk),
-             bertie__tls13utils__impl__Bytes__declassify(info),
-             len
-           )
-          in
-         let x = hoist14 in core__convert__Into_f_into(x)
-         else bertie__tls13utils__t_Bytes_err()
-       )
-       else bertie__tls13utils__t_Bytes_err().
+(* marked as constructor *)
+fun bertie__tls13crypto__hkdf_extract(
+      bertie__tls13crypto__t_HashAlgorithm,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13crypto__hkdf_extract.
-letfun bertie__tls13crypto__hkdf_extract(
-         alg : bertie__tls13crypto__t_HashAlgorithm,
-         ikm : bertie__tls13utils__t_Bytes,
-         salt : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13crypto__hkdf_extract;
-       let hoist15 = bertie__tls13crypto__hkdf_algorithm(alg) in (
-         let hoist16 =
-           libcrux__hkdf__extract(
-             hoist15,
-             bertie__tls13utils__impl__Bytes__declassify(salt),
-             bertie__tls13utils__impl__Bytes__declassify(ikm)
-           )
-          in
-         let hoist17 = bertie__tls13utils__t_Bytes_from_bitstring(hoist16) in
-         hoist17
-       )
-       else bertie__tls13utils__t_Bytes_err().
+(* marked as constructor *)
+fun bertie__tls13crypto__hmac_tag(
+      bertie__tls13crypto__t_HashAlgorithm,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13crypto__hmac_tag.
-letfun bertie__tls13crypto__hmac_tag(
-         alg : bertie__tls13crypto__t_HashAlgorithm,
-         mk : bertie__tls13utils__t_Bytes,
-         input : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13crypto__hmac_tag;
-       let hoist18 = bertie__tls13crypto__impl__HashAlgorithm__hmac_algorithm(
-         alg
-       ) in (
-         let hoist19 =
-           libcrux__hmac__hmac(
-             hoist18,
-             bertie__tls13utils__impl__Bytes__declassify(mk),
-             bertie__tls13utils__impl__Bytes__declassify(input),
-             None()
-           )
-          in
-         let hoist20 = bertie__tls13utils__t_Bytes_from_bitstring(hoist19) in
-         hoist20
-       )
-       else bertie__tls13utils__t_Bytes_err().
-
-event Reached_bertie__tls13crypto__kem_decap.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13crypto__kem_decap(
          alg : bertie__tls13crypto__t_KemScheme,
          ct : bertie__tls13utils__t_Bytes,
          sk : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13crypto__kem_decap;
-       let librux_algorithm = bertie__tls13crypto__impl__KemScheme__libcrux_algorithm(
-         alg
-       ) in (
-         let sk =
-           core__result__impl__unwrap(
-             libcrux__kem__impl__PrivateKey__decode(
-               librux_algorithm, bertie__tls13utils__impl__Bytes__declassify(sk)
-             )
-           )
-          in
-         let ct =
-           bertie__tls13utils__impl__Bytes__declassify(
-             bertie__tls13crypto__into_raw(alg, ct)
-           )
-          in
-         let ct =
-           core__result__impl__unwrap(
-             libcrux__kem__impl__Ct__decode(librux_algorithm, ct)
-           )
-          in
-         let res = libcrux__kem__impl__Ct__decapsulate(ct, sk) in
-         let shared_secret = res in (
-           let shared_secret:bertie__tls13utils__t_Bytes =
-             bertie__tls13utils__t_Bytes_from_bitstring(
-               libcrux__kem__impl__Ss__encode(shared_secret)
-             )
-            in
-           let shared_secret =
-             bertie__tls13crypto__to_shared_secret(alg, shared_secret)
-            in
-           shared_secret
-         )
-         else bertie__tls13utils__t_Bytes_err()
-       )
-       else bertie__tls13utils__t_Bytes_err().
+       bertie__tls13utils__t_Bytes_default().
 
-event Reached_bertie__tls13utils__impl__Bytes__as_raw.
 letfun bertie__tls13utils__impl__Bytes__as_raw(
          self : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13utils__impl__Bytes__as_raw;
        accessor_bertie__tls13utils__Bytes_0(self).
 
-event Reached_bertie__tls13utils__impl__Bytes__prefix.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13utils__impl__Bytes__prefix(
          self : bertie__tls13utils__t_Bytes, prefix : bitstring
        ) =
-       event Reached_bertie__tls13utils__impl__Bytes__prefix;
-       let v_out =
-         alloc__vec__impl__with_capacity(
-           core__ops__arith__Add__add(
-             core__slice__impl__len(prefix),
-             bertie__tls13utils__impl__Bytes__len(self)
-           )
-         )
-        in
-       let v_out = alloc__vec__impl_2__extend_from_slice(v_out, prefix) in
-       let (tmp0: bitstring, tmp1: bitstring) =
-         alloc__vec__impl_1__append(
-           v_out, accessor_bertie__tls13utils__Bytes_0(self)
-         )
-        in
-       let v_out = tmp0 in
-       let self = bertie__tls13utils__t_Bytes(tmp1) in
-       let wildcard8: bitstring = () in
-       bertie__tls13utils__Bytes_c(v_out).
+       bertie__tls13utils__t_Bytes_default().
 
-event Reached_bertie__tls13utils__impl__Bytes__concat.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13utils__impl__Bytes__concat(
          self : bertie__tls13utils__t_Bytes, other : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13utils__impl__Bytes__concat;
-       let (tmp0: bitstring, tmp1: bitstring) =
-         alloc__vec__impl_1__append(
-           accessor_bertie__tls13utils__Bytes_0(self),
-           accessor_bertie__tls13utils__Bytes_0(other)
-         )
-        in
-       let self = bertie__tls13utils__t_Bytes(tmp0) in
-       let other = bertie__tls13utils__t_Bytes(tmp1) in
-       let wildcard9: bitstring = () in
-       self.
+       bertie__tls13utils__t_Bytes_default().
 
-event Reached_bertie__tls13crypto__kem_encap.
-letfun bertie__tls13crypto__kem_encap(
-         alg : bertie__tls13crypto__t_KemScheme,
-         pk : bertie__tls13utils__t_Bytes,
-         rng : impl_CryptoRng___RngCore
-       ) =
-       event Reached_bertie__tls13crypto__kem_encap;
-       let pk = bertie__tls13crypto__into_raw(alg, pk) in
-       let hoist21 = bertie__tls13crypto__impl__KemScheme__libcrux_algorithm(alg
-       ) in (
-         let hoist22 =
-           libcrux__kem__impl__PublicKey__decode(
-             hoist21, bertie__tls13utils__impl__Bytes__declassify(pk)
-           )
-          in
-         let pk = core__result__impl__unwrap(hoist22) in
-         let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
-           libcrux__kem__impl__PublicKey__encapsulate(pk, rng)
-          in
-         let rng = tmp0 in
-         let res = v_out in
-         let hax_temp_output =
-           let (shared_secret: libcrux__kem__t_Ss, ct: libcrux__kem__t_Ct) = res in (
-             let ct =
-               bertie__tls13utils__impl__Bytes__concat(
-                 bertie__tls13crypto__encoding_prefix(alg),
-                 core__convert__From_f_from(libcrux__kem__impl__Ct__encode(ct))
-               )
-              in
-             let shared_secret =
-               bertie__tls13crypto__to_shared_secret(
-                 alg,
-                 core__convert__From_f_from(
-                   libcrux__kem__impl__Ss__encode(shared_secret)
-                 )
-               )
-              in
-             (shared_secret, ct)
-           )
-           else bitstring_err()
-          in
-         (rng, hax_temp_output)
-       )
-       else bitstring_err().
+(* marked as constructor *)
+fun bertie__tls13crypto__kem_encap(
+      bertie__tls13crypto__t_KemScheme,
+      bertie__tls13utils__t_Bytes,
+      impl_CryptoRng___RngCore
+    )
+    : bitstring [data].
 
-event Reached_bertie__tls13crypto__kem_keygen.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13crypto__kem_keygen(
          alg : bertie__tls13crypto__t_KemScheme, rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13crypto__kem_keygen;
-       let hoist23 = bertie__tls13crypto__impl__KemScheme__libcrux_algorithm(alg
-       ) in (
-         let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
-           libcrux__kem__key_gen(hoist23, rng)
-          in
-         let rng = tmp0 in
-         let res = v_out in
-         let hax_temp_output =
-           let (sk: libcrux__kem__t_PrivateKey, pk: libcrux__kem__t_PublicKey) = res in (
-             core__convert__From_f_from(
-               libcrux__kem__impl__PrivateKey__encode(sk)
-             ),
-             bertie__tls13utils__impl__Bytes__concat(
-               bertie__tls13crypto__encoding_prefix(alg),
-               core__convert__From_f_from(
-                 libcrux__kem__impl__PublicKey__encode(pk)
-               )
-             )
-           )
-           else bitstring_err()
-          in
-         (rng, hax_temp_output)
-       )
-       else bitstring_err().
+       bitstring_default().
 
-event Reached_bertie__tls13crypto__sign.
-letfun bertie__tls13crypto__sign(
-         algorithm : bertie__tls13crypto__t_SignatureScheme,
-         sk : bertie__tls13utils__t_Bytes,
-         input : bertie__tls13utils__t_Bytes,
-         rng : impl_CryptoRng___RngCore
-       ) =
-       event Reached_bertie__tls13crypto__sign;
-       let (rng: impl_CryptoRng___RngCore, sig: libcrux__signature__t_Signature) =
-         let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+(* marked as constructor *)
+fun bertie__tls13crypto__sign(
+      bertie__tls13crypto__t_SignatureScheme,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      impl_CryptoRng___RngCore
+    )
+    : bitstring [data].
 
-         ) = algorithm in let hoist24 = bertie__tls13crypto__impl__SignatureScheme__libcrux_scheme(
-           algorithm
-         ) in (
-           let
-             (
-               tmp0: impl_CryptoRng___RngCore,
-               v_out: libcrux__signature__t_Signature
-             )
-            =
-             libcrux__signature__sign(
-               hoist24,
-               bertie__tls13utils__impl__Bytes__declassify(input),
-               bertie__tls13utils__impl__Bytes__declassify(sk),
-               rng
-             )
-            in
-           let rng = tmp0 in
-           (rng, v_out)
-         )
-         else bitstring_err()
-         else let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c(
-
-         ) = algorithm in let hoist25 = bertie__tls13crypto__impl__SignatureScheme__libcrux_scheme(
-           algorithm
-         ) in (
-           let
-             (
-               tmp0: impl_CryptoRng___RngCore,
-               v_out: libcrux__signature__t_Signature
-             )
-            =
-             libcrux__signature__sign(
-               hoist25,
-               bertie__tls13utils__impl__Bytes__declassify(input),
-               bertie__tls13utils__impl__Bytes__declassify(sk),
-               rng
-             )
-            in
-           let rng = tmp0 in
-           (rng, v_out)
-         )
-         else bitstring_err()
-         else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
-
-         ) = algorithm in (rng, libcrux__signature__t_Signature_err())
-        in
-       let hax_temp_output =
-         let libcrux__signature__Signature_Signature_Ed25519_c(sig) = sig in core__convert__Into_f_into(
-           libcrux__signature__impl__Ed25519Signature__as_bytes(sig)
-         )
-         else let libcrux__signature__Signature_Signature_EcDsaP256_c(sig) = sig in (
-           let (r: bitstring, s: bitstring) =
-             libcrux__signature__impl__EcDsaP256Signature__as_bytes(sig)
-            in
-           bertie__tls13utils__impl__Bytes__concat(
-             core__convert__From_f_from(r), core__convert__From_f_from(s)
-           )
-         )
-         else let libcrux__signature__Signature_Signature_RsaPss_c(sig) = sig in bertie__tls13utils__t_Bytes_err()
-         else bertie__tls13utils__t_Bytes_err()
-        in
-       (rng, hax_temp_output).
-
-event Reached_bertie__tls13utils__impl__Bytes__from_slice.
 letfun bertie__tls13utils__impl__Bytes__from_slice(s : bitstring) =
-       event Reached_bertie__tls13utils__impl__Bytes__from_slice;
        bertie__tls13utils__t_Bytes_from_bitstring(s).
 
-event Reached_bertie__tls13utils__impl__Bytes__new.
-letfun bertie__tls13utils__impl__Bytes__new(wildcard10 : bitstring) =
-       event Reached_bertie__tls13utils__impl__Bytes__new;
-       bertie__tls13utils__Bytes_c(alloc__vec__impl__new(())).
+(* marked as constructor *)
+fun bertie__tls13utils__impl__Bytes__new(bitstring)
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13handshake__hash_empty.
 letfun bertie__tls13handshake__hash_empty(
          algorithm : bertie__tls13crypto__t_HashAlgorithm
        ) =
-       event Reached_bertie__tls13handshake__hash_empty;
        bertie__tls13crypto__impl__HashAlgorithm__hash(
          algorithm, bertie__tls13utils__impl__Bytes__new(())
        ).
 
-event Reached_bertie__tls13utils__impl__Bytes__zeroes.
-letfun bertie__tls13utils__impl__Bytes__zeroes(len : nat) =
-       event Reached_bertie__tls13utils__impl__Bytes__zeroes;
-       bertie__tls13utils__Bytes_c(
-         alloc__vec__from_elem(bertie__tls13utils__v_U8(0), len)
-       ).
+(* marked as constructor *)
+fun bertie__tls13utils__impl__Bytes__zeroes(nat)
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13crypto__zero_key.
 letfun bertie__tls13crypto__zero_key(alg : bertie__tls13crypto__t_HashAlgorithm) =
-       event Reached_bertie__tls13crypto__zero_key;
        bertie__tls13utils__impl__Bytes__zeroes(
          bertie__tls13crypto__impl__HashAlgorithm__hash_len(alg)
        ).
 
-event Reached_bertie__tls13utils__bytes.
 letfun bertie__tls13utils__bytes(x : bitstring) =
-       event Reached_bertie__tls13utils__bytes;
        bertie__tls13utils__t_Bytes_from_bitstring(x).
 
-event Reached_bertie__tls13utils__check_eq.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13utils__check_eq(
          b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13utils__check_eq;
-       bertie__tls13utils__check_eq_slice(
-         bertie__tls13utils__impl__Bytes__as_raw(b1),
-         bertie__tls13utils__impl__Bytes__as_raw(b2)
-       ).
+       bitstring_default().
 
-event Reached_bertie__tls13utils__encode_length_u8.
-letfun bertie__tls13utils__encode_length_u8(bytes : bitstring) =
-       event Reached_bertie__tls13utils__encode_length_u8;
-       let len = core__slice__impl__len(bytes) in
-       if core__cmp__PartialOrd__ge(len, 256)
-       then (bertie__tls13utils__t_Bytes_err())
-       else (
-         let lenb =
-           bertie__tls13utils__impl__Bytes__new_alloc(
-             core__ops__arith__Add__add(1, core__slice__impl__len(bytes))
-           )
-          in
-         let lenb =
-           bertie__tls13utils__impl__Bytes__push(
-             lenb, bertie__tls13utils__v_U8(len)
-           )
-          in
-         let lenb =
-           bertie__tls13utils__t_Bytes(
+(* marked as constructor *)
+fun bertie__tls13utils__encode_length_u8(bitstring)
+    : bertie__tls13utils__t_Bytes [data].
 
-               alloc__vec__impl_2__extend_from_slice(
-                 accessor_bertie__tls13utils__Bytes_0(lenb), bytes
-               )
-
-           )
-          in
-         lenb
-       ).
-
-event Reached_bertie__tls13handshake__hkdf_expand_label.
 letfun bertie__tls13handshake__hkdf_expand_label(
          hash_algorithm : bertie__tls13crypto__t_HashAlgorithm,
          key : bertie__tls13utils__t_Bytes,
@@ -3044,7 +2628,6 @@ letfun bertie__tls13handshake__hkdf_expand_label(
          context : bertie__tls13utils__t_Bytes,
          len : nat
        ) =
-       event Reached_bertie__tls13handshake__hkdf_expand_label;
        if core__cmp__PartialOrd__ge(len, 65536)
        then (bertie__tls13utils__t_Bytes_err())
        else (
@@ -3074,12 +2657,10 @@ letfun bertie__tls13handshake__hkdf_expand_label(
          else bertie__tls13utils__t_Bytes_err()
        ).
 
-event Reached_bertie__tls13handshake__derive_finished_key.
 letfun bertie__tls13handshake__derive_finished_key(
          ha : bertie__tls13crypto__t_HashAlgorithm,
          k : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_finished_key;
        bertie__tls13handshake__hkdf_expand_label(
          ha,
          k,
@@ -3088,14 +2669,12 @@ letfun bertie__tls13handshake__derive_finished_key(
          bertie__tls13crypto__impl__HashAlgorithm__hmac_tag_len(ha)
        ).
 
-event Reached_bertie__tls13handshake__derive_secret.
 letfun bertie__tls13handshake__derive_secret(
          hash_algorithm : bertie__tls13crypto__t_HashAlgorithm,
          key : bertie__tls13utils__t_Bytes,
          label : bertie__tls13utils__t_Bytes,
          transcript_hash : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_secret;
        bertie__tls13handshake__hkdf_expand_label(
          hash_algorithm,
          key,
@@ -3104,12 +2683,10 @@ letfun bertie__tls13handshake__derive_secret(
          bertie__tls13crypto__impl__HashAlgorithm__hash_len(hash_algorithm)
        ).
 
-event Reached_bertie__tls13handshake__derive_binder_key.
 letfun bertie__tls13handshake__derive_binder_key(
          ha : bertie__tls13crypto__t_HashAlgorithm,
          k : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_binder_key;
        let early_secret = bertie__tls13crypto__hkdf_extract(
          ha, k, bertie__tls13crypto__zero_key(ha)
        ) in let hoist29 = bertie__tls13handshake__hash_empty(ha) in bertie__tls13handshake__derive_secret(
@@ -3121,13 +2698,11 @@ letfun bertie__tls13handshake__derive_binder_key(
        else bertie__tls13utils__t_Bytes_err()
        else bertie__tls13utils__t_Bytes_err().
 
-event Reached_bertie__tls13handshake__derive_rms.
 letfun bertie__tls13handshake__derive_rms(
          ha : bertie__tls13crypto__t_HashAlgorithm,
          master_secret : bertie__tls13utils__t_Bytes,
          tx : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_rms;
        bertie__tls13handshake__derive_secret(
          ha,
          master_secret,
@@ -3135,40 +2710,27 @@ letfun bertie__tls13handshake__derive_rms(
          tx
        ).
 
-event Reached_bertie__tls13utils__eq.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13utils__eq(
          b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13utils__eq;
-       bertie__tls13utils__eq_slice(
-         accessor_bertie__tls13utils__Bytes_0(b1),
-         accessor_bertie__tls13utils__Bytes_0(b2)
-       ).
+       bool_default().
 
-event Reached_bertie__tls13crypto__hmac_verify.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13crypto__hmac_verify(
          alg : bertie__tls13crypto__t_HashAlgorithm,
          mk : bertie__tls13utils__t_Bytes,
          input : bertie__tls13utils__t_Bytes,
          tag : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13crypto__hmac_verify;
-       let hoist30 = bertie__tls13crypto__hmac_tag(alg, mk, input) in (
-         let hoist31 = bertie__tls13utils__eq(hoist30, tag) in
-         if hoist31
-         then (())
-         else (bertie__tls13utils__tlserr(bertie__tls13utils__v_CRYPTO_ERROR))
-       )
-       else bitstring_err().
+       bitstring_default().
 
-event Reached_bertie__server__lookup_db.
 letfun bertie__server__lookup_db(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          db : bertie__server__t_ServerDB,
          sni : bertie__tls13utils__t_Bytes,
          tkt : Option
        ) =
-       event Reached_bertie__server__lookup_db;
        if
          bertie__tls13utils__eq(sni, bertie__tls13utils__impl__Bytes__new(())) || bertie__tls13utils__eq(
              sni, accessor_bertie__server__ServerDB_f_server_name(db)
@@ -3187,7 +2749,7 @@ letfun bertie__server__lookup_db(
             bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite),
             tkt,
             accessor_bertie__server__ServerDB_f_psk_opt(db)
-          ) in let wildcard11: bitstring = bertie__tls13utils__check_eq(
+          ) in let wildcard2: bitstring = bertie__tls13utils__check_eq(
             ctkt, stkt
           ) in (
             let server =
@@ -3200,7 +2762,7 @@ letfun bertie__server__lookup_db(
             server
           )
           else bertie__server__t_ServerInfo_err()
-          else let (=false, wildcard12: bitstring, wildcard13: bitstring) = (
+          else let (=false, wildcard3: bitstring, wildcard4: bitstring) = (
             bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite),
             tkt,
             accessor_bertie__server__ServerDB_f_psk_opt(db)
@@ -3217,1201 +2779,147 @@ letfun bertie__server__lookup_db(
           else bertie__server__t_ServerInfo_err())
        else (bertie__server__t_ServerInfo_err()).
 
-event Reached_bertie__tls13crypto__impl__AeadKey__new.
 letfun bertie__tls13crypto__impl__AeadKey__new(
          bytes : bertie__tls13utils__t_Bytes,
          alg : bertie__tls13crypto__t_AeadAlgorithm
        ) =
-       event Reached_bertie__tls13crypto__impl__AeadKey__new;
        bertie__tls13crypto__AeadKey_c(bytes,alg).
 
-event Reached_bertie__tls13cert__rsa_public_key.
-letfun bertie__tls13cert__rsa_public_key(
-         cert : bertie__tls13utils__t_Bytes,
-         indices : bertie__tls13cert__t_CertificateKey
-       ) =
-       event Reached_bertie__tls13cert__rsa_public_key;
-       let bertie__tls13cert__CertificateKey_c(offset, v__len) = indices in
-       let wildcard16: bitstring = bertie__tls13cert__check_tag(cert, offset, 48
-       ) in (
-         let offset = core__ops__arith__Add__add(offset, 1) in
-         let (offset: nat, v__seq_len: nat) = bertie__tls13cert__length(
-           cert, offset
-         ) in let wildcard15: bitstring = bertie__tls13cert__check_tag(
-           cert, offset, 2
-         ) in (
-           let offset = core__ops__arith__Add__add(offset, 1) in
-           let (offset: nat, int_len: nat) = bertie__tls13cert__length(
-             cert, offset
-           ) in (
-             let n =
-               bertie__tls13utils__impl__Bytes__slice(cert, offset, int_len)
-              in
-             let offset = core__ops__arith__Add__add(offset, int_len) in
-             let wildcard14: bitstring = bertie__tls13cert__check_tag(
-               cert, offset, 2
-             ) in (
-               let offset = core__ops__arith__Add__add(offset, 1) in
-               let (offset: nat, int_len: nat) = bertie__tls13cert__length(
-                 cert, offset
-               ) in (
-                 let e =
-                   bertie__tls13utils__impl__Bytes__slice(cert, offset, int_len)
-                  in
-                 bertie__tls13crypto__RsaVerificationKey_c(n,e)
-               )
-               else bertie__tls13crypto__t_RsaVerificationKey_err()
-             )
-             else bertie__tls13crypto__t_RsaVerificationKey_err()
-           )
-           else bertie__tls13crypto__t_RsaVerificationKey_err()
-         )
-         else bertie__tls13crypto__t_RsaVerificationKey_err()
-         else bertie__tls13crypto__t_RsaVerificationKey_err()
-       )
-       else bertie__tls13crypto__t_RsaVerificationKey_err().
+(* marked as constructor *)
+fun bertie__tls13cert__rsa_public_key(
+      bertie__tls13utils__t_Bytes, bertie__tls13cert__t_CertificateKey
+    )
+    : bertie__tls13crypto__t_RsaVerificationKey [data].
 
-event Reached_bertie__tls13cert__cert_public_key.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13cert__cert_public_key(
          certificate : bertie__tls13utils__t_Bytes, spki : bitstring
        ) =
-       event Reached_bertie__tls13cert__cert_public_key;
-       let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c() = spki.0 in bertie__tls13cert__asn1_error(
-         bertie__tls13cert__v_ASN1_UNSUPPORTED_ALGORITHM
-       )
-       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+       bertie__tls13crypto__t_PublicVerificationKey_default().
 
-       ) = spki.0 in let pk = bertie__tls13cert__ecdsa_public_key(
-         certificate, spki.1
-       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
-         pk
-       )
-       else bertie__tls13crypto__t_PublicVerificationKey_err()
-       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
-
-       ) = spki.0 in let pk = bertie__tls13cert__rsa_public_key(
-         certificate, spki.1
-       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
-         pk
-       )
-       else bertie__tls13crypto__t_PublicVerificationKey_err().
-
-event Reached_bertie__tls13crypto__verify.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13crypto__verify(
          alg : bertie__tls13crypto__t_SignatureScheme,
          pk : bertie__tls13crypto__t_PublicVerificationKey,
          input : bertie__tls13utils__t_Bytes,
          sig : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13crypto__verify;
-       let (
-         bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c(),
-         bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
-           pk
-         )
-       ) = (alg, pk) in let hoist32 = bertie__tls13utils__impl__Bytes__declassify_array(
-         sig
-       ) in (
-         let hoist33 =
-           libcrux__signature__impl__Ed25519Signature__from_bytes(hoist32)
-          in
-         let hoist34 =
-           libcrux__signature__Signature_Signature_Ed25519_c(hoist33)
-          in
-         let res =
-           libcrux__signature__verify(
-             bertie__tls13utils__impl__Bytes__declassify(input),
-             hoist34,
-             bertie__tls13utils__impl__Bytes__declassify(pk)
-           )
-          in
-         let res = res in res
-         else bitstring_err()
-       )
-       else bitstring_err()
-       else let (
-         bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+       bitstring_default().
 
-         ),
-         bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
-           pk
-         )
-       ) = (alg, pk) in let hoist35 = bertie__tls13utils__impl__Bytes__declassify_array(
-         sig
-       ) in (
-         let hoist36 =
-           libcrux__signature__impl__EcDsaP256Signature__from_bytes(
-             hoist35,
-             libcrux__signature__Algorithm_Algorithm_EcDsaP256_c(
-               libcrux__signature__DigestAlgorithm_DigestAlgorithm_Sha256_c()
-             )
-           )
-          in
-         let hoist37 =
-           libcrux__signature__Signature_Signature_EcDsaP256_c(hoist36)
-          in
-         let res =
-           libcrux__signature__verify(
-             bertie__tls13utils__impl__Bytes__declassify(input),
-             hoist37,
-             bertie__tls13utils__impl__Bytes__declassify(pk)
-           )
-          in
-         let res = res in res
-         else bitstring_err()
-       )
-       else bitstring_err()
-       else let (
-         bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
-         ),
-         bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
-           bertie__tls13crypto__RsaVerificationKey_c(n,e)
-         )
-       ) = (alg, pk) in (
-         if
-           core__ops__bit__Not__v_not(
-               bertie__tls13crypto__valid_rsa_exponent(
-                 bertie__tls13utils__impl__Bytes__declassify(e)
-               )
-             )
-         then
-           (bertie__tls13utils__tlserr(
-              bertie__tls13utils__v_UNSUPPORTED_ALGORITHM
-            ))
-         else (
-           let key_size = bertie__tls13crypto__supported_rsa_key_size(n) in let pk = core__result__impl__map_err(
-             libcrux__signature__rsa_pss__impl__RsaPssPublicKey__new(
-               key_size,
-               core__ops__index__Index_f_index(
-                 bertie__tls13utils__impl__Bytes__declassify(n),
-                 core__ops__range__RangeFrom_c(1)
-               )
-             ),
-             |wildcard17: bitstring|bertie__tls13utils__v_CRYPTO_ERROR
-           ) in (
-             let res =
-               libcrux__signature__rsa_pss__impl__RsaPssPublicKey__verify(
-                 pk,
-                 libcrux__signature__DigestAlgorithm_DigestAlgorithm_Sha256_c(),
-                 libcrux__signature__rsa_pss__t_RsaPssSignature_from_bitstring(
-                   bertie__tls13utils__impl__Bytes__declassify(sig)
-                 ),
-                 bertie__tls13utils__impl__Bytes__declassify(input),
-                 32
-               )
-              in
-             let res = res in res
-             else bitstring_err()
-           )
-           else bitstring_err()
-           else bitstring_err()
-         )
-       )
-       else bertie__tls13utils__tlserr(
-         bertie__tls13utils__v_UNSUPPORTED_ALGORITHM
-       ).
+(* marked as constructor *)
+fun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
+      bertie__tls13formats__handshake_data__t_HandshakeData,
+      bertie__tls13formats__handshake_data__t_HandshakeData
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__concat.
-letfun bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
-         self : bertie__tls13formats__handshake_data__t_HandshakeData,
-         other : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__concat;
-       let message1 =
-         bertie__tls13formats__handshake_data__impl__HandshakeData__to_bytes(
-           self
-         )
-        in
-       let message2 =
-         bertie__tls13formats__handshake_data__impl__HandshakeData__to_bytes(
-           other
-         )
-        in
-       let message1 =
-         bertie__tls13utils__impl__Bytes__extend_from_slice(message1, message2)
-        in
-       core__convert__From_f_from(message1).
-
-event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_four.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__handshake_data__impl__HandshakeData__to_four(
          self : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_four;
-       let (
-         message1: bertie__tls13formats__handshake_data__t_HandshakeData,
-         payload_rest: bertie__tls13formats__handshake_data__t_HandshakeData
-       ) = bertie__tls13formats__handshake_data__impl__HandshakeData__next_handshake_message(
-         self
-       ) in let (
-         message2: bertie__tls13formats__handshake_data__t_HandshakeData,
-         payload_rest: bertie__tls13formats__handshake_data__t_HandshakeData
-       ) = bertie__tls13formats__handshake_data__impl__HandshakeData__next_handshake_message(
-         payload_rest
-       ) in let (
-         message3: bertie__tls13formats__handshake_data__t_HandshakeData,
-         payload_rest: bertie__tls13formats__handshake_data__t_HandshakeData
-       ) = bertie__tls13formats__handshake_data__impl__HandshakeData__next_handshake_message(
-         payload_rest
-       ) in let (
-         message4: bertie__tls13formats__handshake_data__t_HandshakeData,
-         payload_rest: bertie__tls13formats__handshake_data__t_HandshakeData
-       ) = bertie__tls13formats__handshake_data__impl__HandshakeData__next_handshake_message(
-         payload_rest
-       ) in (
-         if
-           core__cmp__PartialEq__ne(
-               bertie__tls13formats__handshake_data__impl__HandshakeData__len(
-                 payload_rest
-               ),
-               0
-             )
-         then (bertie__tls13utils__tlserr(bertie__tls13utils__parse_failed(())))
-         else ((message1, message2, message3, message4))
-       )
-       else bitstring_err()
-       else bitstring_err()
-       else bitstring_err()
-       else bitstring_err().
+       bitstring_default().
 
-event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_two.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__handshake_data__impl__HandshakeData__to_two(
          self : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__handshake_data__impl__HandshakeData__to_two;
-       let (
-         message1: bertie__tls13formats__handshake_data__t_HandshakeData,
-         payload_rest: bertie__tls13formats__handshake_data__t_HandshakeData
-       ) = bertie__tls13formats__handshake_data__impl__HandshakeData__next_handshake_message(
-         self
-       ) in let (
-         message2: bertie__tls13formats__handshake_data__t_HandshakeData,
-         payload_rest: bertie__tls13formats__handshake_data__t_HandshakeData
-       ) = bertie__tls13formats__handshake_data__impl__HandshakeData__next_handshake_message(
-         payload_rest
-       ) in (
-         if
-           core__cmp__PartialEq__ne(
-               bertie__tls13formats__handshake_data__impl__HandshakeData__len(
-                 payload_rest
-               ),
-               0
-             )
-         then (bertie__tls13utils__tlserr(bertie__tls13utils__parse_failed(())))
-         else ((message1, message2))
-       )
-       else bitstring_err()
-       else bitstring_err().
+       bitstring_default().
 
-event Reached_bertie__tls13formats__certificate_verify.
-letfun bertie__tls13formats__certificate_verify(
-         algs : bertie__tls13crypto__t_Algorithms,
-         cv : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13formats__certificate_verify;
-       let sv =
-         let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
+(* marked as constructor *)
+fun bertie__tls13formats__certificate_verify(
+      bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-         ) = accessor_bertie__tls13crypto__Algorithms_f_signature(algs) in cv
-         else let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+(* marked as constructor *)
+fun bertie__tls13formats__client_hello(
+      bertie__tls13crypto__t_Algorithms,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      Option
+    )
+    : bitstring [data].
 
-         ) = accessor_bertie__tls13crypto__Algorithms_f_signature(algs) in (
-           if
-             core__cmp__PartialEq__ne(
-                 bertie__tls13utils__impl__Bytes__len(cv), 64
-               )
-           then
-             (let hoist38 = todo return; in
-              bertie__tls13utils__t_Bytes_err())
-           else (
-             let ok = bertie__tls13formats__ecdsa_signature(cv) in ok
-             else bertie__tls13utils__t_Bytes_err()
-           )
-         )
-         else let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c(
+(* marked as constructor *)
+fun bertie__tls13formats__encrypted_extensions(bertie__tls13crypto__t_Algorithms
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-         ) = accessor_bertie__tls13crypto__Algorithms_f_signature(algs) in bertie__tls13utils__t_Bytes_err()
-        in
-       let hoist40 = bertie__tls13crypto__impl__Algorithms__signature_algorithm(
-         algs
-       ) in let hoist39 = bertie__tls13utils__encode_length_u16(sv) in (
-         let sig = bertie__tls13utils__impl__Bytes__concat(hoist40, hoist39) in
-         bertie__tls13formats__handshake_data__impl__HandshakeData__from_bytes(
-           bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_CertificateVerify_c(
+(* marked as constructor *)
+fun bertie__tls13formats__finished(bertie__tls13utils__t_Bytes)
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-           ),
-           sig
-         )
-       )
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err().
-
-event Reached_bertie__tls13formats__client_hello.
-letfun bertie__tls13formats__client_hello(
-         algorithms : bertie__tls13crypto__t_Algorithms,
-         client_random : bertie__tls13utils__t_Bytes,
-         kem_pk : bertie__tls13utils__t_Bytes,
-         server_name : bertie__tls13utils__t_Bytes,
-         session_ticket : Option
-       ) =
-       event Reached_bertie__tls13formats__client_hello;
-       let version = bertie__tls13utils__bytes2(3, 3) in
-       let compression_methods = bertie__tls13utils__bytes2(1, 0) in
-       let legacy_session_id = bertie__tls13utils__encode_length_u8(
-         rust_primitives__hax__repeat(bertie__tls13utils__v_U8(0), 32)
-       ) in let hoist41 = bertie__tls13crypto__impl__Algorithms__ciphersuite(
-         algorithms
-       ) in (
-         let hoist42 = bertie__tls13utils__encode_length_u16(hoist41) in
-         let cipher_suites = hoist42 in let server_name = bertie__tls13formats__build_server_name(
-           server_name
-         ) in let supported_versions = bertie__tls13formats__supported_versions(
-           ()
-         ) in let supported_groups = bertie__tls13formats__supported_groups(
-           algorithms
-         ) in let signature_algorithms = bertie__tls13formats__signature_algorithms(
-           algorithms
-         ) in let key_shares = bertie__tls13formats__key_shares(
-           algorithms, kem_pk
-         ) in (
-           let len =
-             core__ops__arith__Add__add(
-               bertie__tls13utils__impl__Bytes__len(server_name),
-               bertie__tls13utils__impl__Bytes__len(supported_versions)
-             )
-            in
-           let len =
-             core__ops__arith__Add__add(
-               len, bertie__tls13utils__impl__Bytes__len(supported_groups)
-             )
-            in
-           let len =
-             core__ops__arith__Add__add(
-               len, bertie__tls13utils__impl__Bytes__len(signature_algorithms)
-             )
-            in
-           let len =
-             core__ops__arith__Add__add(
-               len, bertie__tls13utils__impl__Bytes__len(key_shares)
-             )
-            in
-           let v_out = bertie__tls13utils__impl__Bytes__new_alloc(len) in
-           let v_out =
-             bertie__tls13utils__impl__Bytes__append(v_out, server_name)
-            in
-           let v_out =
-             bertie__tls13utils__impl__Bytes__append(v_out, supported_versions)
-            in
-           let v_out =
-             bertie__tls13utils__impl__Bytes__append(v_out, supported_groups)
-            in
-           let v_out =
-             bertie__tls13utils__impl__Bytes__append(v_out, signature_algorithms
-             )
-            in
-           let v_out =
-             bertie__tls13utils__impl__Bytes__append(v_out, key_shares)
-            in
-           let extensions = v_out in
-           let (trunc_len: nat, extensions: bertie__tls13utils__t_Bytes) = let (
-             =true,
-             Some(bertie__tls13utils__t_Bytes_to_bitstring(session_ticket))
-           ) = (
-             bertie__tls13crypto__impl__Algorithms__psk_mode(algorithms),
-             session_ticket
-           ) in bertie__tls13formats__get_psk_extensions(
-             algorithms, session_ticket, extensions
-           )
-           else let (=false, None()) = (
-             bertie__tls13crypto__impl__Algorithms__psk_mode(algorithms),
-             session_ticket
-           ) in (0, extensions)
-           else bertie__tls13utils__tlserr(
-             bertie__tls13utils__v_PSK_MODE_MISMATCH
-           ) in let encoded_extensions = bertie__tls13utils__encode_length_u16(
-             extensions
-           ) in (
-             let len =
-               core__ops__arith__Add__add(
-                 bertie__tls13utils__impl__Bytes__len(version),
-                 bertie__tls13utils__impl__Bytes__len(client_random)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(legacy_session_id)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(cipher_suites)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(compression_methods)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(encoded_extensions)
-               )
-              in
-             let v_out = bertie__tls13utils__impl__Bytes__new_alloc(len) in
-             let v_out = bertie__tls13utils__impl__Bytes__append(v_out, version) in
-             let v_out =
-               bertie__tls13utils__impl__Bytes__append(v_out, client_random)
-              in
-             let v_out =
-               bertie__tls13utils__impl__Bytes__append(v_out, legacy_session_id)
-              in
-             let v_out =
-               bertie__tls13utils__impl__Bytes__append(v_out, cipher_suites)
-              in
-             let v_out =
-               bertie__tls13utils__impl__Bytes__append(
-                 v_out, compression_methods
-               )
-              in
-             let v_out =
-               bertie__tls13utils__impl__Bytes__append(v_out, encoded_extensions
-               )
-              in
-             let handshake_bytes = v_out in
-             let client_hello = bertie__tls13formats__handshake_data__impl__HandshakeData__from_bytes(
-               bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_ClientHello_c(
-
-               ),
-               handshake_bytes
-             ) in (client_hello, trunc_len)
-             else bitstring_err()
-           )
-           else bitstring_err()
-           else bitstring_err()
-         )
-         else bitstring_err()
-         else bitstring_err()
-         else bitstring_err()
-         else bitstring_err()
-         else bitstring_err()
-         else bitstring_err()
-       )
-       else bitstring_err()
-       else bitstring_err().
-
-event Reached_bertie__tls13formats__encrypted_extensions.
-letfun bertie__tls13formats__encrypted_extensions(
-         v__algs : bertie__tls13crypto__t_Algorithms
-       ) =
-       event Reached_bertie__tls13formats__encrypted_extensions;
-       let handshake_type =
-         bertie__tls13utils__bytes1(
-           core__ops__arith__Add__add(
-             bertie__tls13formats__handshake_data__discriminant_HandshakeType_HandshakeType_EncryptedExtensions_c,
-             0
-           )
-         )
-        in
-       let hoist43 = bertie__tls13utils__encode_length_u16(
-         bertie__tls13utils__impl__Bytes__new(())
-       ) in (
-         let hoist44 = bertie__tls13utils__encode_length_u24(hoist43) in
-         let hoist45 = hoist44 in (
-           let hoist46 =
-             bertie__tls13utils__impl__Bytes__concat(handshake_type, hoist45)
-            in
-           let hoist47 =
-             bertie__tls13formats__handshake_data__HandshakeData_c(hoist46)
-            in
-           hoist47
-         )
-         else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       )
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err().
-
-event Reached_bertie__tls13formats__finished.
-letfun bertie__tls13formats__finished(vd : bertie__tls13utils__t_Bytes) =
-       event Reached_bertie__tls13formats__finished;
-       bertie__tls13formats__handshake_data__impl__HandshakeData__from_bytes(
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_Finished_c(
-
-         ),
-         vd
-       ).
-
-event Reached_bertie__tls13formats__parse_certificate_verify.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__parse_certificate_verify(
          algs : bertie__tls13crypto__t_Algorithms,
          certificate_verify : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__parse_certificate_verify;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(cv) = bertie__tls13formats__handshake_data__impl__HandshakeData__as_handshake_message(
-         certificate_verify,
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_CertificateVerify_c(
+       bertie__tls13utils__t_Bytes_default().
 
-         )
-       ) in (
-         let sa = bertie__tls13crypto__impl__Algorithms__signature(algs) in
-         let hoist48 = bertie__tls13crypto__impl__Algorithms__signature_algorithm(
-           algs
-         ) in (
-           let hoist49 =
-             bertie__tls13utils__check_eq(
-               hoist48,
-               bertie__tls13utils__impl__Bytes__slice_range(
-                 cv, core__ops__range__Range_c(0,2)
-               )
-             )
-            in
-           let wildcard19: bitstring = hoist49 in let wildcard18: bitstring = bertie__tls13utils__check_length_encoding_u16(
-             bertie__tls13utils__impl__Bytes__slice_range(
-               cv,
-               core__ops__range__Range_c(
-                 2,bertie__tls13utils__impl__Bytes__len(cv)
-               )
-             )
-           ) in let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
-
-           ) = sa in bertie__tls13formats__parse_ecdsa_signature(
-             bertie__tls13utils__impl__Bytes__slice_range(
-               cv,
-               core__ops__range__Range_c(
-                 4,bertie__tls13utils__impl__Bytes__len(cv)
-               )
-             )
-           )
-           else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
-
-           ) = sa in bertie__tls13utils__impl__Bytes__slice_range(
-             cv,
-             core__ops__range__Range_c(
-               4,bertie__tls13utils__impl__Bytes__len(cv)
-             )
-           )
-           else let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c(
-
-           ) = sa in (
-             if
-               core__cmp__PartialEq__eq(
-                   core__ops__arith__Sub__sub(
-                     bertie__tls13utils__impl__Bytes__len(cv), 4
-                   ),
-                   64
-                 )
-             then
-               (bertie__tls13utils__impl__Bytes__slice_range(
-                  cv,
-                  core__ops__range__Range_c(
-                    8,bertie__tls13utils__impl__Bytes__len(cv)
-                  )
-                ))
-             else (bertie__tls13utils__t_Bytes_err())
-           )
-           else bertie__tls13utils__t_Bytes_err()
-           else bertie__tls13utils__t_Bytes_err()
-         )
-         else bertie__tls13utils__t_Bytes_err()
-       )
-       else bertie__tls13utils__t_Bytes_err().
-
-event Reached_bertie__tls13formats__parse_client_hello.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__parse_client_hello(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          client_hello : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__parse_client_hello;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(ch) = bertie__tls13formats__handshake_data__impl__HandshakeData__as_handshake_message(
-         client_hello,
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_ClientHello_c(
+       bitstring_default().
 
-         )
-       ) in (
-         let ver = bertie__tls13utils__bytes2(3, 3) in
-         let comp = bertie__tls13utils__bytes2(1, 0) in
-         let next = 0 in
-         let wildcard27: bitstring = bertie__tls13utils__check_eq(
-           ver,
-           bertie__tls13utils__impl__Bytes__slice_range(
-             ch,
-             core__ops__range__Range_c(next,core__ops__arith__Add__add(next, 2))
-           )
-         ) in (
-           let next = core__ops__arith__Add__add(next, 2) in
-           let crand =
-             bertie__tls13utils__impl__Bytes__slice_range(
-               ch,
-               core__ops__range__Range_c(
-                 next,core__ops__arith__Add__add(next, 32)
-               )
-             )
-            in
-           let next = core__ops__arith__Add__add(next, 32) in
-           let sidlen = bertie__tls13utils__length_u8_encoded(
-             core__ops__index__Index_f_index(
-               ch,
-               core__ops__range__Range_c(
-                 next,bertie__tls13utils__impl__Bytes__len(ch)
-               )
-             )
-           ) in (
-             let sid =
-               bertie__tls13utils__impl__Bytes__slice_range(
-                 ch,
-                 core__ops__range__Range_c(
-                   core__ops__arith__Add__add(next, 1)
-                   ,
-                     core__ops__arith__Add__add(
-                       core__ops__arith__Add__add(next, 1), sidlen
-                     )
-
-                 )
-               )
-              in
-             let next =
-               core__ops__arith__Add__add(
-                 core__ops__arith__Add__add(next, 1), sidlen
-               )
-              in
-             let cslen = bertie__tls13crypto__impl__Algorithms__check(
-               ciphersuite,
-               bertie__tls13utils__impl__Bytes__raw_slice(
-                 ch,
-                 core__ops__range__Range_c(
-                   next,bertie__tls13utils__impl__Bytes__len(ch)
-                 )
-               )
-             ) in (
-               let next = core__ops__arith__Add__add(next, cslen) in
-               let wildcard26: bitstring =
-                 let wildcard25: bitstring = bertie__tls13utils__check_eq(
-                   comp,
-                   bertie__tls13utils__impl__Bytes__slice_range(
-                     ch,
-                     core__ops__range__Range_c(
-                       next,core__ops__arith__Add__add(next, 2)
-                     )
-                   )
-                 ) in ()
-                 else bitstring_err()
-                in
-               let next = core__ops__arith__Add__add(next, 2) in
-               let wildcard24: bitstring = bertie__tls13utils__check_length_encoding_u16(
-                 bertie__tls13utils__impl__Bytes__slice_range(
-                   ch,
-                   core__ops__range__Range_c(
-                     next,bertie__tls13utils__impl__Bytes__len(ch)
-                   )
-                 )
-               ) in (
-                 let next = core__ops__arith__Add__add(next, 2) in
-                 let exts = bertie__tls13formats__check_extensions(
-                   ciphersuite,
-                   bertie__tls13utils__impl__Bytes__slice_range(
-                     ch,
-                     core__ops__range__Range_c(
-                       next,bertie__tls13utils__impl__Bytes__len(ch)
-                     )
-                   )
-                 ) in (
-                   let trunc_len =
-                     core__ops__arith__Sub__sub(
-                       core__ops__arith__Sub__sub(
-                         bertie__tls13utils__impl__Bytes__len(ch),
-                         bertie__tls13crypto__impl__HashAlgorithm__hash_len(
-                           bertie__tls13crypto__impl__Algorithms__hash(
-                             ciphersuite
-                           )
-                         )
-                       ),
-                       3
-                     )
-                    in
-                   let (
-                     wildcard20: bitstring,
-                     bertie__tls13formats__Extensions_c(
-                       wildcard21: bitstring
-                       ,None()
-                       ,wildcard22: bitstring
-                       ,wildcard23: bitstring
-                     )
-                   ) = (
-                     bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite
-                     ),
-                     exts
-                   ) in bitstring_err()
-                   else let (
-                     =true,
-                     bertie__tls13formats__Extensions_c(
-                       Some(bertie__tls13utils__t_Bytes_to_bitstring(sn))
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(gx))
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(tkt))
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(binder))
-                     )
-                   ) = (
-                     bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite
-                     ),
-                     exts
-                   ) in (
-                     crand,
-                     sid,
-                     sn,
-                     gx,
-                     Some(bertie__tls13utils__t_Bytes_to_bitstring(tkt)),
-                     Some(bertie__tls13utils__t_Bytes_to_bitstring(binder)),
-                     trunc_len
-                   )
-                   else let (
-                     =true,
-                     bertie__tls13formats__Extensions_c(
-                       None()
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(gx))
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(tkt))
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(binder))
-                     )
-                   ) = (
-                     bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite
-                     ),
-                     exts
-                   ) in (
-                     crand,
-                     sid,
-                     bertie__tls13utils__impl__Bytes__new(()),
-                     gx,
-                     Some(bertie__tls13utils__t_Bytes_to_bitstring(tkt)),
-                     Some(bertie__tls13utils__t_Bytes_to_bitstring(binder)),
-                     trunc_len
-                   )
-                   else let (
-                     =false,
-                     bertie__tls13formats__Extensions_c(
-                       Some(bertie__tls13utils__t_Bytes_to_bitstring(sn))
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(gx))
-                       ,None()
-                       ,None()
-                     )
-                   ) = (
-                     bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite
-                     ),
-                     exts
-                   ) in (crand, sid, sn, gx, None(), None(), 0)
-                   else let (
-                     =false,
-                     bertie__tls13formats__Extensions_c(
-                       None()
-                       ,Some(bertie__tls13utils__t_Bytes_to_bitstring(gx))
-                       ,None()
-                       ,None()
-                     )
-                   ) = (
-                     bertie__tls13crypto__impl__Algorithms__psk_mode(ciphersuite
-                     ),
-                     exts
-                   ) in (
-                     crand,
-                     sid,
-                     bertie__tls13utils__impl__Bytes__new(()),
-                     gx,
-                     None(),
-                     None(),
-                     0
-                   )
-                   else bitstring_err()
-                 )
-                 else bitstring_err()
-               )
-               else bitstring_err()
-             )
-             else bitstring_err()
-           )
-           else bitstring_err()
-         )
-         else bitstring_err()
-       )
-       else bitstring_err().
-
-event Reached_bertie__tls13formats__parse_encrypted_extensions.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__parse_encrypted_extensions(
          v__algs : bertie__tls13crypto__t_Algorithms,
          encrypted_extensions : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__parse_encrypted_extensions;
-       let
-         bertie__tls13formats__handshake_data__HandshakeData_c(
-           encrypted_extension_bytes
-         )
-        = encrypted_extensions in
-       let expected_handshake_type =
-         bertie__tls13utils__bytes1(
-           core__ops__arith__Add__add(
-             bertie__tls13formats__handshake_data__discriminant_HandshakeType_HandshakeType_EncryptedExtensions_c,
-             0
-           )
-         )
-        in
-       let wildcard28: bitstring = bertie__tls13utils__check_eq(
-         expected_handshake_type,
-         bertie__tls13utils__impl__Bytes__slice_range(
-           encrypted_extension_bytes, core__ops__range__Range_c(0,1)
-         )
-       ) in bertie__tls13utils__check_length_encoding_u24(
-         bertie__tls13utils__impl__Bytes__raw_slice(
-           encrypted_extension_bytes,
-           core__ops__range__Range_c(
-             1,bertie__tls13utils__impl__Bytes__len(encrypted_extension_bytes)
-           )
-         )
-       )
-       else bitstring_err().
+       bitstring_default().
 
-event Reached_bertie__tls13formats__parse_finished.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__parse_finished(
          finished : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__parse_finished;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(fin) = bertie__tls13formats__handshake_data__impl__HandshakeData__as_handshake_message(
-         finished,
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_Finished_c(
+       bertie__tls13utils__t_Bytes_default().
 
-         )
-       ) in fin
-       else bertie__tls13utils__t_Bytes_err().
-
-event Reached_bertie__tls13formats__parse_server_certificate.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__parse_server_certificate(
          certificate : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__parse_server_certificate;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(sc) = bertie__tls13formats__handshake_data__impl__HandshakeData__as_handshake_message(
-         certificate,
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_Certificate_c(
+       bertie__tls13utils__t_Bytes_default().
 
-         )
-       ) in (
-         let next = 0 in
-         let creqlen = bertie__tls13utils__length_u8_encoded(
-           core__ops__index__Index_f_index(
-             sc,
-             core__ops__range__Range_c(
-               4,bertie__tls13utils__impl__Bytes__len(sc)
-             )
-           )
-         ) in (
-           let next =
-             core__ops__arith__Add__add(
-               core__ops__arith__Add__add(next, 1), creqlen
-             )
-            in
-           let wildcard29: bitstring = bertie__tls13utils__check_length_encoding_u24(
-             bertie__tls13utils__impl__Bytes__raw_slice(
-               sc,
-               core__ops__range__Range_c(
-                 next,bertie__tls13utils__impl__Bytes__len(sc)
-               )
-             )
-           ) in (
-             let next = core__ops__arith__Add__add(next, 3) in
-             let crtlen = bertie__tls13utils__length_u24_encoded(
-               bertie__tls13utils__impl__Bytes__raw_slice(
-                 sc,
-                 core__ops__range__Range_c(
-                   next,bertie__tls13utils__impl__Bytes__len(sc)
-                 )
-               )
-             ) in (
-               let next = core__ops__arith__Add__add(next, 3) in
-               let crt =
-                 bertie__tls13utils__impl__Bytes__slice_range(
-                   sc,
-                   core__ops__range__Range_c(
-                     next,core__ops__arith__Add__add(next, crtlen)
-                   )
-                 )
-                in
-               let next = core__ops__arith__Add__add(next, crtlen) in
-               let v__extlen = bertie__tls13utils__length_u16_encoded(
-                 core__ops__index__Index_f_index(
-                   sc,
-                   core__ops__range__Range_c(
-                     next,bertie__tls13utils__impl__Bytes__len(sc)
-                   )
-                 )
-               ) in crt
-               else bertie__tls13utils__t_Bytes_err()
-             )
-             else bertie__tls13utils__t_Bytes_err()
-           )
-           else bertie__tls13utils__t_Bytes_err()
-         )
-         else bertie__tls13utils__t_Bytes_err()
-       )
-       else bertie__tls13utils__t_Bytes_err().
-
-event Reached_bertie__tls13formats__parse_server_hello.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__parse_server_hello(
          algs : bertie__tls13crypto__t_Algorithms,
          server_hello : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
-       event Reached_bertie__tls13formats__parse_server_hello;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(server_hello) = bertie__tls13formats__handshake_data__impl__HandshakeData__as_handshake_message(
-         server_hello,
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_ServerHello_c(
+       bitstring_default().
 
-         )
-       ) in (
-         let ver = bertie__tls13utils__bytes2(3, 3) in
-         let cip = bertie__tls13crypto__impl__Algorithms__ciphersuite(algs) in (
-           let comp = bertie__tls13utils__bytes1(0) in
-           let next = 0 in
-           let wildcard36: bitstring =
-             let wildcard35: bitstring = bertie__tls13utils__check_eq(
-               ver,
-               bertie__tls13utils__impl__Bytes__slice_range(
-                 server_hello,
-                 core__ops__range__Range_c(
-                   next,core__ops__arith__Add__add(next, 2)
-                 )
-               )
-             ) in ()
-             else bitstring_err()
-            in
-           let next = core__ops__arith__Add__add(next, 2) in
-           let srand =
-             bertie__tls13utils__impl__Bytes__slice_range(
-               server_hello,
-               core__ops__range__Range_c(
-                 next,core__ops__arith__Add__add(next, 32)
-               )
-             )
-            in
-           let next = core__ops__arith__Add__add(next, 32) in
-           let sidlen = bertie__tls13utils__length_u8_encoded(
-             core__ops__index__Index_f_index(
-               server_hello,
-               core__ops__range__Range_c(
-                 next,bertie__tls13utils__impl__Bytes__len(server_hello)
-               )
-             )
-           ) in (
-             let next =
-               core__ops__arith__Add__add(
-                 core__ops__arith__Add__add(next, 1), sidlen
-               )
-              in
-             let wildcard34: bitstring =
-               let wildcard33: bitstring = bertie__tls13utils__check_eq(
-                 cip,
-                 bertie__tls13utils__impl__Bytes__slice_range(
-                   server_hello,
-                   core__ops__range__Range_c(
-                     next,core__ops__arith__Add__add(next, 2)
-                   )
-                 )
-               ) in ()
-               else bitstring_err()
-              in
-             let next = core__ops__arith__Add__add(next, 2) in
-             let wildcard32: bitstring =
-               let wildcard31: bitstring = bertie__tls13utils__check_eq(
-                 comp,
-                 bertie__tls13utils__impl__Bytes__slice_range(
-                   server_hello,
-                   core__ops__range__Range_c(
-                     next,core__ops__arith__Add__add(next, 1)
-                   )
-                 )
-               ) in ()
-               else bitstring_err()
-              in
-             let next = core__ops__arith__Add__add(next, 1) in
-             let wildcard30: bitstring = bertie__tls13utils__check_length_encoding_u16(
-               bertie__tls13utils__impl__Bytes__slice_range(
-                 server_hello,
-                 core__ops__range__Range_c(
-                   next,bertie__tls13utils__impl__Bytes__len(server_hello)
-                 )
-               )
-             ) in (
-               let next = core__ops__arith__Add__add(next, 2) in
-               let gy = bertie__tls13formats__check_server_extensions(
-                 algs,
-                 core__ops__index__Index_f_index(
-                   server_hello,
-                   core__ops__range__Range_c(
-                     next,bertie__tls13utils__impl__Bytes__len(server_hello)
-                   )
-                 )
-               ) in let Some(bertie__tls13utils__t_Bytes_to_bitstring(gy)) = gy in (
-                 srand, gy
-               )
-               else bitstring_err()
-               else bitstring_err()
-             )
-             else bitstring_err()
-           )
-           else bitstring_err()
-         )
-         else bitstring_err()
-       )
-       else bitstring_err().
+(* marked as constructor *)
+fun bertie__tls13formats__server_certificate(
+      bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-event Reached_bertie__tls13formats__server_certificate.
-letfun bertie__tls13formats__server_certificate(
-         v__algs : bertie__tls13crypto__t_Algorithms,
-         cert : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13formats__server_certificate;
-       let creq = bertie__tls13utils__encode_length_u8([]) in let crt = bertie__tls13utils__encode_length_u24(
-         cert
-       ) in let ext = bertie__tls13utils__encode_length_u16(
-         bertie__tls13utils__impl__Bytes__new(())
-       ) in let crts = bertie__tls13utils__encode_length_u24(
-         bertie__tls13utils__impl__Bytes__concat(crt, ext)
-       ) in bertie__tls13formats__handshake_data__impl__HandshakeData__from_bytes(
-         bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_Certificate_c(
+(* marked as constructor *)
+fun bertie__tls13formats__server_hello(
+      bertie__tls13crypto__t_Algorithms,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
-         ),
-         bertie__tls13utils__impl__Bytes__concat(creq, crts)
-       )
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err().
-
-event Reached_bertie__tls13formats__server_hello.
-letfun bertie__tls13formats__server_hello(
-         algs : bertie__tls13crypto__t_Algorithms,
-         sr : bertie__tls13utils__t_Bytes,
-         sid : bertie__tls13utils__t_Bytes,
-         gy : bertie__tls13utils__t_Bytes
-       ) =
-       event Reached_bertie__tls13formats__server_hello;
-       let ver = bertie__tls13utils__bytes2(3, 3) in
-       let sid = bertie__tls13utils__encode_length_u8(
-         bertie__tls13utils__impl__Bytes__as_raw(sid)
-       ) in let cip = bertie__tls13crypto__impl__Algorithms__ciphersuite(algs) in (
-         let comp = bertie__tls13utils__bytes1(0) in
-         let ks = bertie__tls13formats__server_key_shares(algs, gy) in let sv = bertie__tls13formats__server_supported_version(
-           algs
-         ) in (
-           let exts = bertie__tls13utils__impl__Bytes__concat(ks, sv) in
-           let exts =
-             let (=true) = bertie__tls13crypto__impl__Algorithms__psk_mode(algs) in let hoist50 = bertie__tls13formats__server_pre_shared_key(
-               algs
-             ) in (
-               let hoist51 =
-                 bertie__tls13utils__impl__Bytes__concat(exts, hoist50)
-                in
-               hoist51
-             )
-             else bertie__tls13utils__t_Bytes_err()
-             else let (=false) = bertie__tls13crypto__impl__Algorithms__psk_mode(
-               algs
-             ) in exts
-            in
-           let encoded_extensions = bertie__tls13utils__encode_length_u16(exts) in (
-             let len =
-               core__ops__arith__Add__add(
-                 bertie__tls13utils__impl__Bytes__len(ver),
-                 bertie__tls13utils__impl__Bytes__len(sr)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(sid)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(cip)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(comp)
-               )
-              in
-             let len =
-               core__ops__arith__Add__add(
-                 len, bertie__tls13utils__impl__Bytes__len(encoded_extensions)
-               )
-              in
-             let v_out = bertie__tls13utils__impl__Bytes__new_alloc(len) in
-             let v_out = bertie__tls13utils__impl__Bytes__append(v_out, ver) in
-             let v_out = bertie__tls13utils__impl__Bytes__append(v_out, sr) in
-             let v_out = bertie__tls13utils__impl__Bytes__append(v_out, sid) in
-             let v_out = bertie__tls13utils__impl__Bytes__append(v_out, cip) in
-             let v_out = bertie__tls13utils__impl__Bytes__append(v_out, comp) in
-             let v_out =
-               bertie__tls13utils__impl__Bytes__append(v_out, encoded_extensions
-               )
-              in
-             let hoist52 = v_out in
-             let hoist53 =
-               bertie__tls13formats__handshake_data__impl__HandshakeData__from_bytes(
-                 bertie__tls13formats__handshake_data__HandshakeType_HandshakeType_ServerHello_c(
-
-                 ),
-                 hoist52
-               )
-              in
-             let sh = hoist53 in sh
-             else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-           )
-           else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-         )
-         else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-         else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       )
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err()
-       else bertie__tls13formats__handshake_data__t_HandshakeData_err().
-
-event Reached_bertie__tls13formats__set_client_hello_binder.
+(* REPLACE by handwritten model *)
 letfun bertie__tls13formats__set_client_hello_binder(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          binder : Option,
          client_hello : bertie__tls13formats__handshake_data__t_HandshakeData,
          trunc_len : Option
        ) =
-       event Reached_bertie__tls13formats__set_client_hello_binder;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(ch) =
-         client_hello
-        in
-       let chlen = bertie__tls13utils__impl__Bytes__len(ch) in
-       let hlen =
-         bertie__tls13crypto__impl__HashAlgorithm__hash_len(
-           bertie__tls13crypto__impl__Algorithms__hash(ciphersuite)
-         )
-        in
-       let (
-         Some(bertie__tls13utils__t_Bytes_to_bitstring(m)),
-         Some(nat_to_bitstring(trunc_len))
-       ) = (binder, trunc_len) in (
-         if
-           core__cmp__PartialEq__eq(
-               core__ops__arith__Sub_f_sub(chlen, hlen), trunc_len
-             )
-         then
-           (bertie__tls13formats__handshake_data__HandshakeData_c(
-              bertie__tls13utils__impl__Bytes__update_slice(
-                ch, trunc_len, m, 0, hlen
-              )
-            ))
-         else (bertie__tls13utils__tlserr(bertie__tls13utils__parse_failed(())))
-       )
-       else let (None(), None()) = (binder, trunc_len) in bertie__tls13formats__handshake_data__HandshakeData_c(
-         ch
-       )
-       else let (wildcard38: bitstring, wildcard39: bitstring) = (
-         binder, trunc_len
-       ) in bertie__tls13utils__tlserr(bertie__tls13utils__parse_failed(())).
+       bertie__tls13formats__handshake_data__t_HandshakeData_default().
 
-event Reached_bertie__tls13handshake__get_rsa_signature.
 letfun bertie__tls13handshake__get_rsa_signature(
          cert : bertie__tls13utils__t_Bytes,
          sk : bertie__tls13utils__t_Bytes,
          sigval : bertie__tls13utils__t_Bytes,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__get_rsa_signature;
        let (
          cert_scheme: bertie__tls13crypto__t_SignatureScheme,
          cert_slice: bertie__tls13cert__t_CertificateKey
@@ -4437,35 +2945,21 @@ letfun bertie__tls13handshake__get_rsa_signature(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13crypto__impl__AeadKeyIV__new.
 letfun bertie__tls13crypto__impl__AeadKeyIV__new(
          key : bertie__tls13crypto__t_AeadKey, iv : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13crypto__impl__AeadKeyIV__new;
        bertie__tls13crypto__AeadKeyIV_c(key,iv).
 
-event Reached_bertie__tls13formats__impl__Transcript__add.
-letfun bertie__tls13formats__impl__Transcript__add(
-         self : bertie__tls13formats__t_Transcript,
-         msg : bertie__tls13formats__handshake_data__t_HandshakeData
-       ) =
-       event Reached_bertie__tls13formats__impl__Transcript__add;
-       let self =
-         bertie__tls13formats__t_Transcript(
+(* marked as constructor *)
+fun bertie__tls13formats__impl__Transcript__add(
+      bertie__tls13formats__t_Transcript,
+      bertie__tls13formats__handshake_data__t_HandshakeData
+    )
+    : bertie__tls13formats__t_Transcript [data].
 
-             bertie__tls13formats__handshake_data__impl__HandshakeData__concat(
-               accessor_bertie__tls13formats__Transcript_f_transcript(self), msg
-             )
-
-         )
-        in
-       self.
-
-event Reached_bertie__tls13formats__impl__Transcript__new.
 letfun bertie__tls13formats__impl__Transcript__new(
          hash_algorithm : bertie__tls13crypto__t_HashAlgorithm
        ) =
-       event Reached_bertie__tls13formats__impl__Transcript__new;
        bertie__tls13formats__Transcript_c(
          hash_algorithm
          ,
@@ -4475,11 +2969,9 @@ letfun bertie__tls13formats__impl__Transcript__new(
 
        ).
 
-event Reached_bertie__tls13formats__impl__Transcript__transcript_hash.
 letfun bertie__tls13formats__impl__Transcript__transcript_hash(
          self : bertie__tls13formats__t_Transcript
        ) =
-       event Reached_bertie__tls13formats__impl__Transcript__transcript_hash;
        let th = bertie__tls13crypto__impl__HashAlgorithm__hash(
          accessor_bertie__tls13formats__Transcript_f_hash_algorithm(self),
          accessor_bertie__tls13formats__handshake_data__HandshakeData_0(
@@ -4488,38 +2980,19 @@ letfun bertie__tls13formats__impl__Transcript__transcript_hash(
        ) in th
        else bertie__tls13utils__t_Bytes_err().
 
-event Reached_bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello.
-letfun bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello(
-         self : bertie__tls13formats__t_Transcript,
-         client_hello : bertie__tls13formats__handshake_data__t_HandshakeData,
-         trunc_len : nat
-       ) =
-       event Reached_bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello;
-       let bertie__tls13formats__handshake_data__HandshakeData_c(ch) =
-         client_hello
-        in
-       bertie__tls13crypto__impl__HashAlgorithm__hash(
-         accessor_bertie__tls13formats__Transcript_f_hash_algorithm(self),
-         bertie__tls13utils__impl__Bytes__concat(
-           accessor_bertie__tls13formats__handshake_data__HandshakeData_0(
-             accessor_bertie__tls13formats__Transcript_f_transcript(self)
-           ),
-           bertie__tls13utils__impl__Bytes__slice_range(
-             accessor_bertie__tls13formats__handshake_data__HandshakeData_0(
-               client_hello
-             ),
-             core__ops__range__Range_c(0,trunc_len)
-           )
-         )
-       ).
+(* marked as constructor *)
+fun bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello(
+      bertie__tls13formats__t_Transcript,
+      bertie__tls13formats__handshake_data__t_HandshakeData,
+      nat
+    )
+    : bertie__tls13utils__t_Bytes [data].
 
-event Reached_bertie__tls13handshake__derive_aead_key_iv.
 letfun bertie__tls13handshake__derive_aead_key_iv(
          hash_algorithm : bertie__tls13crypto__t_HashAlgorithm,
          aead_algorithm : bertie__tls13crypto__t_AeadAlgorithm,
          key : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_aead_key_iv;
        let sender_write_key = bertie__tls13handshake__hkdf_expand_label(
          hash_algorithm,
          key,
@@ -4541,14 +3014,12 @@ letfun bertie__tls13handshake__derive_aead_key_iv(
        else bertie__tls13crypto__t_AeadKeyIV_err()
        else bertie__tls13crypto__t_AeadKeyIV_err().
 
-event Reached_bertie__tls13handshake__derive_0rtt_keys.
 letfun bertie__tls13handshake__derive_0rtt_keys(
          hash_algorithm : bertie__tls13crypto__t_HashAlgorithm,
          aead_algoorithm : bertie__tls13crypto__t_AeadAlgorithm,
          key : bertie__tls13utils__t_Bytes,
          tx : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_0rtt_keys;
        let early_secret = bertie__tls13crypto__hkdf_extract(
          hash_algorithm, key, bertie__tls13crypto__zero_key(hash_algorithm)
        ) in let client_early_traffic_secret = bertie__tls13handshake__derive_secret(
@@ -4569,14 +3040,12 @@ letfun bertie__tls13handshake__derive_0rtt_keys(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__derive_app_keys.
 letfun bertie__tls13handshake__derive_app_keys(
          ha : bertie__tls13crypto__t_HashAlgorithm,
          ae : bertie__tls13crypto__t_AeadAlgorithm,
          master_secret : bertie__tls13utils__t_Bytes,
          tx : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_app_keys;
        let client_application_traffic_secret_0_ = bertie__tls13handshake__derive_secret(
          ha,
          master_secret,
@@ -4603,7 +3072,6 @@ letfun bertie__tls13handshake__derive_app_keys(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__derive_hk_ms.
 letfun bertie__tls13handshake__derive_hk_ms(
          ha : bertie__tls13crypto__t_HashAlgorithm,
          ae : bertie__tls13crypto__t_AeadAlgorithm,
@@ -4611,7 +3079,6 @@ letfun bertie__tls13handshake__derive_hk_ms(
          psko : Option,
          transcript_hash : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13handshake__derive_hk_ms;
        let psk =
          let Some(bertie__tls13utils__t_Bytes_to_bitstring(k)) = psko in k
          else bertie__tls13crypto__zero_key(ha)
@@ -4670,32 +3137,24 @@ letfun bertie__tls13handshake__derive_hk_ms(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__algs_post_client_finished.
 letfun bertie__tls13handshake__algs_post_client_finished(
          st : bertie__tls13handshake__t_ClientPostClientFinished
        ) =
-       event Reached_bertie__tls13handshake__algs_post_client_finished;
        accessor_bertie__tls13handshake__ClientPostClientFinished_2(st).
 
-event Reached_bertie__tls13handshake__algs_post_client_hello.
 letfun bertie__tls13handshake__algs_post_client_hello(
          st : bertie__tls13handshake__t_ClientPostClientHello
        ) =
-       event Reached_bertie__tls13handshake__algs_post_client_hello;
        accessor_bertie__tls13handshake__ClientPostClientHello_1(st).
 
-event Reached_bertie__tls13handshake__algs_post_server_hello.
 letfun bertie__tls13handshake__algs_post_server_hello(
          st : bertie__tls13handshake__t_ClientPostServerHello
        ) =
-       event Reached_bertie__tls13handshake__algs_post_server_hello;
        accessor_bertie__tls13handshake__ClientPostServerHello_2(st).
 
-event Reached_bertie__tls13handshake__get_client_finished.
 letfun bertie__tls13handshake__get_client_finished(
          handshake_state : bertie__tls13handshake__t_ClientPostServerFinished
        ) =
-       event Reached_bertie__tls13handshake__get_client_finished;
        let
          bertie__tls13handshake__ClientPostServerFinished_c(
            client_random,
@@ -4741,12 +3200,10 @@ letfun bertie__tls13handshake__get_client_finished(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__get_server_signature_no_psk.
 letfun bertie__tls13handshake__get_server_signature_no_psk(
          state : bertie__tls13handshake__t_ServerPostServerHello,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__get_server_signature_no_psk;
        let ee = bertie__tls13formats__encrypted_extensions(
          accessor_bertie__tls13handshake__ServerPostServerHello_f_ciphersuite(
            state
@@ -4908,12 +3365,10 @@ letfun bertie__tls13handshake__get_server_signature_no_psk(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__get_server_signature.
 letfun bertie__tls13handshake__get_server_signature(
          state : bertie__tls13handshake__t_ServerPostServerHello,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__get_server_signature;
        let (rng: impl_CryptoRng___RngCore, hax_temp_output: bitstring) =
          if
            core__ops__bit__Not__v_not(
@@ -4933,11 +3388,9 @@ letfun bertie__tls13handshake__get_server_signature(
         in
        (rng, hax_temp_output).
 
-event Reached_bertie__tls13handshake__get_skip_server_signature_no_psk.
 letfun bertie__tls13handshake__get_skip_server_signature_no_psk(
          st : bertie__tls13handshake__t_ServerPostServerHello
        ) =
-       event Reached_bertie__tls13handshake__get_skip_server_signature_no_psk;
        let
          bertie__tls13handshake__ServerPostServerHello_c(
            cr,sr,algs,server,ms,cfk,sfk,tx
@@ -4954,11 +3407,9 @@ letfun bertie__tls13handshake__get_skip_server_signature_no_psk(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__get_skip_server_signature.
 letfun bertie__tls13handshake__get_skip_server_signature(
          st : bertie__tls13handshake__t_ServerPostServerHello
        ) =
-       event Reached_bertie__tls13handshake__get_skip_server_signature;
        let
          bertie__tls13handshake__ServerPostServerHello_c(
            cr,sr,algs,server,ms,cfk,sfk,tx
@@ -4968,12 +3419,10 @@ letfun bertie__tls13handshake__get_skip_server_signature(
        then (bertie__tls13handshake__get_skip_server_signature_no_psk(st))
        else (bitstring_err()).
 
-event Reached_bertie__tls13handshake__put_client_finished.
 letfun bertie__tls13handshake__put_client_finished(
          cfin : bertie__tls13formats__handshake_data__t_HandshakeData,
          st : bertie__tls13handshake__t_ServerPostServerFinished
        ) =
-       event Reached_bertie__tls13handshake__put_client_finished;
        let
          bertie__tls13handshake__ServerPostServerFinished_c(
            cr, sr, algs, ms, cfk, tx
@@ -4981,7 +3430,7 @@ letfun bertie__tls13handshake__put_client_finished(
         = st in
        let th = bertie__tls13formats__impl__Transcript__transcript_hash(tx) in let vd = bertie__tls13formats__parse_finished(
          cfin
-       ) in let wildcard40: bitstring = bertie__tls13crypto__hmac_verify(
+       ) in let wildcard5: bitstring = bertie__tls13crypto__hmac_verify(
          bertie__tls13crypto__impl__Algorithms__hash(algs), cfk, th, vd
        ) in (
          let tx = bertie__tls13formats__impl__Transcript__add(tx, cfin) in
@@ -4997,12 +3446,10 @@ letfun bertie__tls13handshake__put_client_finished(
        else bertie__tls13handshake__t_ServerPostClientFinished_err()
        else bertie__tls13handshake__t_ServerPostClientFinished_err().
 
-event Reached_bertie__tls13handshake__put_psk_skip_server_signature.
 letfun bertie__tls13handshake__put_psk_skip_server_signature(
          encrypted_extensions : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostServerHello
        ) =
-       event Reached_bertie__tls13handshake__put_psk_skip_server_signature;
        let
          bertie__tls13handshake__ClientPostServerHello_c(
            client_random,
@@ -5016,7 +3463,7 @@ letfun bertie__tls13handshake__put_psk_skip_server_signature(
         = handshake_state in
        if bertie__tls13crypto__impl__Algorithms__psk_mode(algorithms)
        then
-         (let wildcard41: bitstring = bertie__tls13formats__parse_encrypted_extensions(
+         (let wildcard6: bitstring = bertie__tls13formats__parse_encrypted_extensions(
             algorithms, encrypted_extensions
           ) in (
             let transcript =
@@ -5037,14 +3484,12 @@ letfun bertie__tls13handshake__put_psk_skip_server_signature(
           else bertie__tls13handshake__t_ClientPostCertificateVerify_err())
        else (bertie__tls13handshake__t_ClientPostCertificateVerify_err()).
 
-event Reached_bertie__tls13handshake__put_server_signature.
 letfun bertie__tls13handshake__put_server_signature(
          encrypted_extensions : bertie__tls13formats__handshake_data__t_HandshakeData,
          server_certificate : bertie__tls13formats__handshake_data__t_HandshakeData,
          server_certificate_verify : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostServerHello
        ) =
-       event Reached_bertie__tls13handshake__put_server_signature;
        let
          bertie__tls13handshake__ClientPostServerHello_c(
            client_random,
@@ -5061,7 +3506,7 @@ letfun bertie__tls13handshake__put_server_signature(
              bertie__tls13crypto__impl__Algorithms__psk_mode(algorithms)
            )
        then
-         (let wildcard43: bitstring = bertie__tls13formats__parse_encrypted_extensions(
+         (let wildcard8: bitstring = bertie__tls13formats__parse_encrypted_extensions(
             algorithms, encrypted_extensions
           ) in (
             let transcript =
@@ -5094,7 +3539,7 @@ letfun bertie__tls13handshake__put_server_signature(
                     transcript_hash_server_certificate
                   )
                  in
-                let wildcard42: bitstring = bertie__tls13crypto__verify(
+                let wildcard7: bitstring = bertie__tls13crypto__verify(
                   bertie__tls13crypto__impl__Algorithms__signature(algorithms),
                   cert_pk,
                   sigval,
@@ -5127,39 +3572,33 @@ letfun bertie__tls13handshake__put_server_signature(
           else bertie__tls13handshake__t_ClientPostCertificateVerify_err())
        else (bertie__tls13handshake__t_ClientPostCertificateVerify_err()).
 
-event Reached_bertie__tls13handshake__server_finish.
 letfun bertie__tls13handshake__server_finish(
          cf : bertie__tls13formats__handshake_data__t_HandshakeData,
          st : bertie__tls13handshake__t_ServerPostServerFinished
        ) =
-       event Reached_bertie__tls13handshake__server_finish;
        bertie__tls13handshake__put_client_finished(cf, st).
 
-event Reached_bertie__tls13record__impl__DuplexCipherStateH__new.
 letfun bertie__tls13record__impl__DuplexCipherStateH__new(
          sender_key_iv : bertie__tls13crypto__t_AeadKeyIV,
          sender_counter : nat,
          receiver_key_iv : bertie__tls13crypto__t_AeadKeyIV,
          receiver_counter : nat
        ) =
-       event Reached_bertie__tls13record__impl__DuplexCipherStateH__new;
        bertie__tls13record__DuplexCipherStateH_c(
          sender_key_iv,sender_counter,receiver_key_iv,receiver_counter
        ).
 
-event Reached_bertie__tls13handshake__get_server_hello.
 letfun bertie__tls13handshake__get_server_hello(
          state : bertie__tls13handshake__t_ServerPostClientHello,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__get_server_hello;
        let server_random = rust_primitives__hax__repeat(0, 32) in
        let (tmp0: impl_CryptoRng___RngCore, tmp1: bitstring) =
          rand_core__RngCore_f_fill_bytes(rng, server_random)
         in
        let rng = tmp0 in
        let server_random = tmp1 in
-       let wildcard44: bitstring = () in
+       let wildcard9: bitstring = () in
        let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
          bertie__tls13crypto__kem_encap(
            accessor_bertie__tls13crypto__Algorithms_f_kem(
@@ -5258,12 +3697,10 @@ letfun bertie__tls13handshake__get_server_hello(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__put_server_hello.
 letfun bertie__tls13handshake__put_server_hello(
          handshake : bertie__tls13formats__handshake_data__t_HandshakeData,
          state : bertie__tls13handshake__t_ClientPostClientHello
        ) =
-       event Reached_bertie__tls13handshake__put_server_hello;
        let
          bertie__tls13handshake__ClientPostClientHello_c(
            client_random, ciphersuite, sk, psk, tx
@@ -5301,25 +3738,20 @@ letfun bertie__tls13handshake__put_server_hello(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__client_set_params.
 letfun bertie__tls13handshake__client_set_params(
          payload : bertie__tls13formats__handshake_data__t_HandshakeData,
          st : bertie__tls13handshake__t_ClientPostClientHello
        ) =
-       event Reached_bertie__tls13handshake__client_set_params;
        bertie__tls13handshake__put_server_hello(payload, st).
 
-event Reached_bertie__tls13record__client_cipher_state0.
 letfun bertie__tls13record__client_cipher_state0(
          ae : bertie__tls13crypto__t_AeadAlgorithm,
          kiv : bertie__tls13crypto__t_AeadKeyIV,
          c : nat,
          k : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13record__client_cipher_state0;
        bertie__tls13record__ClientCipherState0_c(ae, kiv, c, k).
 
-event Reached_bertie__tls13handshake__compute_psk_binder_zero_rtt.
 letfun bertie__tls13handshake__compute_psk_binder_zero_rtt(
          algs0 : bertie__tls13crypto__t_Algorithms,
          ch : bertie__tls13formats__handshake_data__t_HandshakeData,
@@ -5327,14 +3759,13 @@ letfun bertie__tls13handshake__compute_psk_binder_zero_rtt(
          psk : Option,
          tx : bertie__tls13formats__t_Transcript
        ) =
-       event Reached_bertie__tls13handshake__compute_psk_binder_zero_rtt;
        let
          bertie__tls13crypto__Algorithms_c(ha,ae,v__sa,v__ks,psk_mode,zero_rtt)
         = algs0 in
        let (
          =true,
          Some(bertie__tls13utils__t_Bytes_to_bitstring(k)),
-         wildcard45: bitstring
+         wildcard10: bitstring
        ) = (psk_mode, psk, trunc_len) in let th_trunc = bertie__tls13formats__impl__Transcript__transcript_hash_without_client_hello(
          tx, ch, trunc_len
        ) in let mk = bertie__tls13handshake__derive_binder_key(ha, k) in let binder = bertie__tls13crypto__hmac_tag(
@@ -5377,7 +3808,6 @@ letfun bertie__tls13handshake__compute_psk_binder_zero_rtt(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__build_client_hello.
 letfun bertie__tls13handshake__build_client_hello(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          sn : bertie__tls13utils__t_Bytes,
@@ -5385,7 +3815,6 @@ letfun bertie__tls13handshake__build_client_hello(
          psk : Option,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__build_client_hello;
        let tx =
          bertie__tls13formats__impl__Transcript__new(
            bertie__tls13crypto__impl__Algorithms__hash(ciphersuite)
@@ -5397,7 +3826,7 @@ letfun bertie__tls13handshake__build_client_hello(
         in
        let rng = tmp0 in
        let client_random = tmp1 in
-       let wildcard46: bitstring = () in
+       let wildcard11: bitstring = () in
        let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
          bertie__tls13crypto__kem_keygen(
            bertie__tls13crypto__impl__Algorithms__kem(ciphersuite), rng
@@ -5443,7 +3872,6 @@ letfun bertie__tls13handshake__build_client_hello(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__client_init.
 letfun bertie__tls13handshake__client_init(
          algs : bertie__tls13crypto__t_Algorithms,
          sn : bertie__tls13utils__t_Bytes,
@@ -5451,7 +3879,6 @@ letfun bertie__tls13handshake__client_init(
          psk : Option,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__client_init;
        let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
          bertie__tls13handshake__build_client_hello(algs, sn, tkt, psk, rng)
         in
@@ -5459,7 +3886,6 @@ letfun bertie__tls13handshake__client_init(
        let hax_temp_output = v_out in
        (rng, hax_temp_output).
 
-event Reached_bertie__tls13record__duplex_cipher_state1.
 letfun bertie__tls13record__duplex_cipher_state1(
          ae : bertie__tls13crypto__t_AeadAlgorithm,
          kiv1 : bertie__tls13crypto__t_AeadKeyIV,
@@ -5468,14 +3894,11 @@ letfun bertie__tls13record__duplex_cipher_state1(
          c2 : nat,
          k : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13record__duplex_cipher_state1;
        bertie__tls13record__DuplexCipherState1_c(ae, kiv1, c1, kiv2, c2, k).
 
-event Reached_bertie__tls13handshake__get_server_finished.
 letfun bertie__tls13handshake__get_server_finished(
          st : bertie__tls13handshake__t_ServerPostCertificateVerify
        ) =
-       event Reached_bertie__tls13handshake__get_server_finished;
        let
          bertie__tls13handshake__ServerPostCertificateVerify_c(
            cr, sr, algs, ms, cfk, sfk, tx
@@ -5515,12 +3938,10 @@ letfun bertie__tls13handshake__get_server_finished(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__put_server_finished.
 letfun bertie__tls13handshake__put_server_finished(
          server_finished : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostCertificateVerify
        ) =
-       event Reached_bertie__tls13handshake__put_server_finished;
        let
          bertie__tls13handshake__ClientPostCertificateVerify_c(
            client_random,
@@ -5541,7 +3962,7 @@ letfun bertie__tls13handshake__put_server_finished(
          transcript
        ) in let verify_data = bertie__tls13formats__parse_finished(
          server_finished
-       ) in let wildcard47: bitstring = bertie__tls13crypto__hmac_verify(
+       ) in let wildcard12: bitstring = bertie__tls13crypto__hmac_verify(
          hash, server_finished_key, transcript_hash, verify_data
        ) in (
          let transcript =
@@ -5581,12 +4002,10 @@ letfun bertie__tls13handshake__put_server_finished(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__client_finish.
 letfun bertie__tls13handshake__client_finish(
          payload : bertie__tls13formats__handshake_data__t_HandshakeData,
          handshake_state : bertie__tls13handshake__t_ClientPostServerHello
        ) =
-       event Reached_bertie__tls13handshake__client_finish;
        let (=false) = bertie__tls13crypto__impl__Algorithms__psk_mode(
          bertie__tls13handshake__algs_post_server_hello(handshake_state)
        ) in let (
@@ -5641,18 +4060,15 @@ letfun bertie__tls13handshake__client_finish(
        else bitstring_err()
        else bitstring_err().
 
-event Reached_bertie__tls13record__server_cipher_state0.
 letfun bertie__tls13record__server_cipher_state0(
          key_iv : bertie__tls13crypto__t_AeadKeyIV,
          counter : nat,
          early_exporter_ms : bertie__tls13utils__t_Bytes
        ) =
-       event Reached_bertie__tls13record__server_cipher_state0;
        bertie__tls13record__ServerCipherState0_c(
          key_iv,counter,early_exporter_ms
        ).
 
-event Reached_bertie__tls13handshake__process_psk_binder_zero_rtt.
 letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          th_trunc : bertie__tls13utils__t_Bytes,
@@ -5660,7 +4076,6 @@ letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
          psko : Option,
          bindero : Option
        ) =
-       event Reached_bertie__tls13handshake__process_psk_binder_zero_rtt;
        let (
          =true,
          Some(bertie__tls13utils__t_Bytes_to_bitstring(k)),
@@ -5671,7 +4086,7 @@ letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
          bindero
        ) in let mk = bertie__tls13handshake__derive_binder_key(
          accessor_bertie__tls13crypto__Algorithms_f_hash(ciphersuite), k
-       ) in let wildcard48: bitstring = bertie__tls13crypto__hmac_verify(
+       ) in let wildcard13: bitstring = bertie__tls13crypto__hmac_verify(
          accessor_bertie__tls13crypto__Algorithms_f_hash(ciphersuite),
          mk,
          th_trunc,
@@ -5711,13 +4126,11 @@ letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
        ) in None()
        else Option_err().
 
-event Reached_bertie__tls13handshake__put_client_hello.
 letfun bertie__tls13handshake__put_client_hello(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
          ch : bertie__tls13formats__handshake_data__t_HandshakeData,
          db : bertie__server__t_ServerDB
        ) =
-       event Reached_bertie__tls13handshake__put_client_hello;
        let (
          client_randomness: bertie__tls13utils__t_Bytes,
          session_id: bertie__tls13utils__t_Bytes,
@@ -5760,14 +4173,12 @@ letfun bertie__tls13handshake__put_client_hello(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__server_init_no_psk.
 letfun bertie__tls13handshake__server_init_no_psk(
          algs : bertie__tls13crypto__t_Algorithms,
          ch : bertie__tls13formats__handshake_data__t_HandshakeData,
          db : bertie__server__t_ServerDB,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__server_init_no_psk;
        let (cipher0: Option, st: bertie__tls13handshake__t_ServerPostClientHello
        ) = bertie__tls13handshake__put_client_hello(algs, ch, db) in (
          let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
@@ -5816,14 +4227,12 @@ letfun bertie__tls13handshake__server_init_no_psk(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__server_init_psk.
 letfun bertie__tls13handshake__server_init_psk(
          algs : bertie__tls13crypto__t_Algorithms,
          ch : bertie__tls13formats__handshake_data__t_HandshakeData,
          db : bertie__server__t_ServerDB,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__server_init_psk;
        let (cipher0: Option, st: bertie__tls13handshake__t_ServerPostClientHello
        ) = bertie__tls13handshake__put_client_hello(algs, ch, db) in (
          let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
@@ -5857,14 +4266,12 @@ letfun bertie__tls13handshake__server_init_psk(
        )
        else bitstring_err().
 
-event Reached_bertie__tls13handshake__server_init.
 letfun bertie__tls13handshake__server_init(
          algs : bertie__tls13crypto__t_Algorithms,
          ch : bertie__tls13formats__handshake_data__t_HandshakeData,
          db : bertie__server__t_ServerDB,
          rng : impl_CryptoRng___RngCore
        ) =
-       event Reached_bertie__tls13handshake__server_init;
        let (rng: impl_CryptoRng___RngCore, hax_temp_output: bitstring) =
          let (=false) = bertie__tls13crypto__impl__Algorithms__psk_mode(algs) in (
            let (tmp0: impl_CryptoRng___RngCore, v_out: bitstring) =
