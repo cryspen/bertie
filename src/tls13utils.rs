@@ -527,6 +527,22 @@ pub(crate) fn check_eq_slice(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
     }
 }
 
+/// Parse function to check if two slices `b1` and `b2` are of the same
+/// length and agree on all positions, returning a [TLSError] otherwise.
+#[inline(always)]
+pub(crate) fn check_eq_with_slice(b1: &[U8], b2: &[U8], start:usize, end:usize) -> Result<(), TLSError> {
+    if start > b2.len() || end > b2.len() || end < start {
+        Err(parse_failed())
+    } else {
+        let b = eq_slice(b1, &b2[start..end]);
+        if b {
+            Ok(())
+        } else {    
+        Err(parse_failed())
+        }
+    }
+}
+
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]

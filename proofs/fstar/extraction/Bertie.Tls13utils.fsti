@@ -61,8 +61,6 @@ let v_UNSUPPORTED_ALGORITHM: u8 = 1uy
 
 let v_ZERO_RTT_DISABLED: u8 = 129uy
 
-val dummy_fn: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
-
 val parse_failed: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
 class t_Declassify (v_Self: Type) (v_T: Type) = {
@@ -129,6 +127,9 @@ val check_length_encoding_u8_slice (bytes: t_Slice u8)
 val eq_slice (b1 b2: t_Slice u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 
 val check_eq_slice (b1 b2: t_Slice u8)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+
+val check_eq_with_slice (b1 b2: t_Slice u8) (start v_end: usize)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val check_mem (b1 b2: t_Slice u8)

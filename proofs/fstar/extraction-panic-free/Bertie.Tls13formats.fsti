@@ -427,7 +427,7 @@ val check_server_name (extension: t_Slice u8)
 
 val check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      (Seq.length b >= 2)
+      True
       (fun _ -> Prims.l_True)
 
 val check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
@@ -457,12 +457,12 @@ val build_server_name (name: Bertie.Tls13utils.t_Bytes)
 
 val key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      (Seq.length gx._0 < 1024)
+      (Seq.length gx._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val server_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      (Seq.length gx._0 < 1024)
+      (Seq.length gx._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val server_pre_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms)
@@ -542,7 +542,7 @@ val client_hello
       (session_ticket: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
       (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-      Prims.l_True
+      (Seq.length client_random._0 == 32 /\ Seq.length kem_pk._0 < 65536 /\ Seq.length server_name._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
@@ -564,7 +564,9 @@ val check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
 val check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (usize & t_Extensions) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with
+               | Core.Result.Result_Ok (len,out) -> Seq.length bytes >= v len /\ v len >= 4
+               | _ -> True)
 
 val finished (vd: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -619,7 +621,7 @@ val server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
 
 val server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      Prims.l_True
+      (Seq.length sr._0 == 32 /\ Seq.length gy._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val set_client_hello_binder

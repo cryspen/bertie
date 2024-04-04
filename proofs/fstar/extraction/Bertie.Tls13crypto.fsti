@@ -313,7 +313,9 @@ val impl__Algorithms__ciphersuite (self: t_Algorithms)
       (fun _ -> Prims.l_True)
 
 val impl__Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True 
+      (fun _ -> Prims.l_True)
+
 
 val impl__Algorithms__signature_algorithm (self: t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)

@@ -100,7 +100,11 @@ val u32_as_be_bytes (v_val: u32)
     : Prims.Pure (t_Array u8 (sz 4)) Prims.l_True (fun _ -> Prims.l_True)
 
 val check (b: bool)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True
+      (fun res -> match res with 
+               | Core.Result.Result_Ok l -> b == true
+               | _ -> True)
+
 
 val check_eq1 (b1 b2: u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -162,13 +166,22 @@ val eq_slice (b1 b2: t_Slice u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.
 val check_eq_slice (b1 b2: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
+val check_eq_with_slice (b1 b2: t_Slice u8) (start v_end: usize)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True
+      (fun res -> match res with 
+               | Core.Result.Result_Ok _ -> Seq.length b2 >= v v_end
+               | _ -> True)
+
 val check_mem (b1 b2: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val error_string (c: u8) : Prims.Pure Alloc.String.t_String Prims.l_True (fun _ -> Prims.l_True)
 
 val tlserr (#v_T: Type) (err: u8)
-    : Prims.Pure (Core.Result.t_Result v_T u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result v_T u8) Prims.l_True
+      (fun res -> match res with 
+               | Core.Result.Result_Ok _ -> False
+               | Core.Result.Result_Err _ -> True)
 
 type t_Bytes = | Bytes : Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global -> t_Bytes
 
@@ -262,7 +275,7 @@ let impl__Bytes__raw_slice (self: t_Bytes) (range: Core.Ops.Range.t_Range usize{
     self._0.[ range ] 
 
 val impl__Bytes__slice (self: t_Bytes) (start len: usize)
-    : Prims.Pure t_Bytes Prims.l_True 
+    : Prims.Pure t_Bytes (v start + v len <= Seq.length self._0)
       (fun res -> Seq.length res._0 == v len)
 
 val impl__Bytes__slice_range (self: t_Bytes) (range: Core.Ops.Range.t_Range usize{Core.Ops.Index.f_index_pre self._0 range})
@@ -282,7 +295,9 @@ let impl_21: Core.Ops.Index.t_Index t_Bytes usize =
     }
 
 val impl__Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure t_Bytes
+      (v start + v len <= Seq.length self._0 /\ v beg + v len <= Seq.length other._0)
+      (fun res -> Seq.length res._0 == Seq.length self._0)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
@@ -315,10 +330,17 @@ val check_eq (b1 b2: t_Bytes)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val check_length_encoding_u16 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True
+      (fun res -> match res with 
+               | Core.Result.Result_Ok _ -> Seq.length bytes._0 >= 2
+               | _ -> True)
+
 
 val check_length_encoding_u8 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True
+      (fun res -> match res with 
+               | Core.Result.Result_Ok _ -> Seq.length bytes._0 >= 1
+               | _ -> True)
 
 val encode_length_u16 (bytes: t_Bytes)
     : Prims.Pure (Core.Result.t_Result t_Bytes u8) 
