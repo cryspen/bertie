@@ -628,7 +628,7 @@ pub(super) fn parse_client_hello(
     let ver = bytes2(3, 3);
     let comp = bytes2(1, 0);
     let mut next = 0;
-    check_eq_with_slice(&ver.as_raw(), &ch.as_raw(), next, next + 2)?;
+    check_eq_with_slice(ver.as_raw(), ch.as_raw(), next, next + 2)?;
     next += 2;
     check(ch.len() >= next + 32)?;
     let crand = ch.slice_range(next..next + 32);
@@ -638,7 +638,7 @@ pub(super) fn parse_client_hello(
     next = next + 1 + sidlen;
     let cslen = ciphersuite.check(ch.raw_slice(next..ch.len()))?;
     next += cslen;
-    match check_eq_with_slice(&comp.as_raw(), &ch.as_raw(), next, next + 2) {
+    match check_eq_with_slice(comp.as_raw(), ch.as_raw(), next, next + 2) {
         Ok(_) => Ok(()),
         Err(_) => invalid_compression_list(),
     }?;
@@ -760,7 +760,7 @@ pub(crate) fn parse_server_hello(
     let cip = algs.ciphersuite()?;
     let comp = bytes1(0);
     let mut next = 0;
-    (match check_eq_with_slice(&ver.as_raw(), &server_hello.as_raw(), next, next + 2) {
+    (match check_eq_with_slice(ver.as_raw(), server_hello.as_raw(), next, next + 2) {
         Ok(_) => Ok(()),
         Err(_) => protocol_version_alert(),
     })?;
@@ -770,12 +770,12 @@ pub(crate) fn parse_server_hello(
     next += 32;
     let sidlen = length_u8_encoded(&server_hello[next..server_hello.len()])?;
     next = next + 1 + sidlen;
-    (match check_eq_with_slice(&cip.as_raw(), &server_hello.as_raw(), next, next + 2) {
+    (match check_eq_with_slice(cip.as_raw(), server_hello.as_raw(), next, next + 2) {
         Ok(_) => Ok(()),
         Err(_) => unsupported_cipher_alert(),
     })?;
     next += 2;
-    (match check_eq_with_slice(&comp.as_raw(), &server_hello.as_raw(), next, next + 1) {
+    (match check_eq_with_slice(comp.as_raw(), server_hello.as_raw(), next, next + 1) {
         Ok(_) => Ok(()),
         Err(_) => invalid_compression_method_alert(),
     })?;
@@ -806,8 +806,8 @@ pub(crate) fn parse_encrypted_extensions(
     let HandshakeData(encrypted_extension_bytes) = encrypted_extensions;
     let expected_handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     check_eq_with_slice(
-        &expected_handshake_type.as_raw(),
-        &encrypted_extension_bytes.as_raw(),
+        expected_handshake_type.as_raw(),
+        encrypted_extension_bytes.as_raw(),
         0,
         1,
     )?;
@@ -927,7 +927,7 @@ pub(crate) fn parse_certificate_verify(
     let HandshakeData(cv) =
         certificate_verify.as_handshake_message(HandshakeType::CertificateVerify)?;
     let sa = algs.signature();
-    check_eq_with_slice(&algs.signature_algorithm()?.as_raw(), &cv.as_raw(), 0, 2)?;
+    check_eq_with_slice(algs.signature_algorithm()?.as_raw(), cv.as_raw(), 0, 2)?;
     check_length_encoding_u16(&cv.slice_range(2..cv.len()))?;
     match sa {
         SignatureScheme::EcdsaSecp256r1Sha256 => parse_ecdsa_signature(cv.slice_range(4..cv.len())),
