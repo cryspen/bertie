@@ -8,14 +8,14 @@ use crate::{
         zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
     tls13utils::{
-        bytes1, bytes2, bytes_concat, check, check_eq, check_eq_slice, check_eq_with_slice, check_length_encoding_u16,
-        check_length_encoding_u16_slice, check_length_encoding_u24, check_length_encoding_u8,
-        check_length_encoding_u8_slice, check_mem, encode_length_u16, encode_length_u24,
-        encode_length_u8, eq_slice, length_u16_encoded, length_u16_encoded_slice,
-        length_u24_encoded, length_u8_encoded, parse_failed, tlserr, u32_as_be_bytes, Bytes,
-        TLSError, APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
-        INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
-        UNSUPPORTED_ALGORITHM,
+        bytes1, bytes2, bytes_concat, check, check_eq, check_eq_slice, check_eq_with_slice,
+        check_length_encoding_u16, check_length_encoding_u16_slice, check_length_encoding_u24,
+        check_length_encoding_u8, check_length_encoding_u8_slice, check_mem, encode_length_u16,
+        encode_length_u24, encode_length_u8, eq_slice, length_u16_encoded,
+        length_u16_encoded_slice, length_u24_encoded, length_u8_encoded, parse_failed, tlserr,
+        u32_as_be_bytes, Bytes, TLSError, APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR,
+        INVALID_COMPRESSION_LIST, INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT,
+        PSK_MODE_MISMATCH, U32, U8, UNSUPPORTED_ALGORITHM,
     },
 };
 
@@ -760,19 +760,19 @@ pub(crate) fn parse_server_hello(
     let cip = algs.ciphersuite()?;
     let comp = bytes1(0);
     let mut next = 0;
-    (match check_eq_with_slice(&ver.as_raw(), &server_hello.as_raw(),next,next + 2) {
+    (match check_eq_with_slice(&ver.as_raw(), &server_hello.as_raw(), next, next + 2) {
         Ok(_) => Ok(()),
         Err(_) => protocol_version_alert(),
     })?;
     next += 2;
-    check (server_hello.len() >= next + 32)?;
+    check(server_hello.len() >= next + 32)?;
     let srand = server_hello.slice_range(next..next + 32);
     next += 32;
     let sidlen = length_u8_encoded(&server_hello[next..server_hello.len()])?;
     next = next + 1 + sidlen;
     (match check_eq_with_slice(&cip.as_raw(), &server_hello.as_raw(), next, next + 2) {
         Ok(_) => Ok(()),
-        Err(_) => unsupported_cipher_alert(), 
+        Err(_) => unsupported_cipher_alert(),
     })?;
     next += 2;
     (match check_eq_with_slice(&comp.as_raw(), &server_hello.as_raw(), next, next + 1) {
@@ -807,7 +807,9 @@ pub(crate) fn parse_encrypted_extensions(
     let expected_handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     check_eq_with_slice(
         &expected_handshake_type.as_raw(),
-        &encrypted_extension_bytes.as_raw(),0,1,
+        &encrypted_extension_bytes.as_raw(),
+        0,
+        1,
     )?;
     check_length_encoding_u24(
         encrypted_extension_bytes.raw_slice(1..encrypted_extension_bytes.len()),
@@ -910,9 +912,7 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
                 ecdsa_signature(cv)
             }
         }
-        SignatureScheme::ED25519 => {
-            Err(UNSUPPORTED_ALGORITHM)
-        }
+        SignatureScheme::ED25519 => Err(UNSUPPORTED_ALGORITHM),
     })?;
 
     let sig = algs.signature_algorithm()?.concat(encode_length_u16(sv)?);
