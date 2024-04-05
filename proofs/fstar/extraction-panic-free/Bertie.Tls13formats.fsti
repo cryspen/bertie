@@ -234,6 +234,8 @@ let supported_groups__SUPPORTED_GROUPS_PREFIX: t_Array u8 (sz 2) =
   FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
   Rust_primitives.Hax.array_of_list 2 list
 
+val foofoooo: Prims.unit -> Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
+
 val application_data_instead_of_handshake: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
@@ -256,7 +258,8 @@ val check_r_len (rlen: usize)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val check_psk_key_exchange_modes (client_hello: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      True (fun _ -> Prims.l_True)
 
 val check_supported_versions (client_hello: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -408,7 +411,7 @@ let impl_3: Core.Convert.t_TryFrom t_AlertDescription u8 =
       | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
   }
 
-val check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
+val check_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val check_server_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
@@ -424,13 +427,15 @@ val check_server_name (extension: t_Slice u8)
 
 val check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      True
       (fun _ -> Prims.l_True)
 
 val check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with
+               | Core.Result.Result_Ok (len,out) -> Seq.length b >= v len
+               | _ -> True)
 
 val check_signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -446,16 +451,18 @@ val parse_ecdsa_signature (sig: Bertie.Tls13utils.t_Bytes)
 val build_server_name (name: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with
+               | Core.Result.Result_Ok b -> Seq.length b._0 == 9 + Seq.length name._0
+               | _ -> True)
 
 val key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (Seq.length gx._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val server_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (gx: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (Seq.length gx._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val server_pre_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms)
@@ -495,17 +502,12 @@ val psk_key_exchange_modes: Prims.unit
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-val get_psk_extensions
-      (algorithms: Bertie.Tls13crypto.t_Algorithms)
-      (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val supported_versions: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with
+               | Core.Result.Result_Ok b -> Seq.length b._0 == 7
+               | _ -> True)
 
 type t_Extensions = {
   f_sni:Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
@@ -526,12 +528,13 @@ val check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
       (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> True) 
 
 val check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+      (decreases Seq.length b)
 
 val client_hello
       (algorithms: Bertie.Tls13crypto.t_Algorithms)
@@ -539,7 +542,7 @@ val client_hello
       (session_ticket: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
       (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-      Prims.l_True
+      (Seq.length client_random._0 == 32 /\ Seq.length kem_pk._0 < 65536 /\ Seq.length server_name._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val encrypted_extensions (v__algs: Bertie.Tls13crypto.t_Algorithms)
@@ -551,6 +554,7 @@ val find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+      (decreases Seq.length ch)
 
 val check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -560,7 +564,9 @@ val check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
 val check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (usize & t_Extensions) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with
+               | Core.Result.Result_Ok (len,out) -> Seq.length bytes >= v len /\ v len >= 4
+               | _ -> True)
 
 val finished (vd: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
@@ -570,12 +576,14 @@ val finished (vd: Bertie.Tls13utils.t_Bytes)
 val get_handshake_record (p: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> True)
 
 val handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with 
+               | Core.Result.Result_Ok x -> Seq.length x._0 >= 3
+               | _ -> True)
 
 val parse_certificate_verify
       (algs: Bertie.Tls13crypto.t_Algorithms)
@@ -613,7 +621,7 @@ val server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
 
 val server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      Prims.l_True
+      (Seq.length sr._0 == 32 /\ Seq.length gy._0 < 65536)
       (fun _ -> Prims.l_True)
 
 val set_client_hello_binder
@@ -641,7 +649,9 @@ val impl__Transcript__new (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
 val impl__Transcript__transcript_hash (self: t_Transcript)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (fun res -> match res with 
+              | Core.Result.Result_Ok h -> Seq.length h._0 <= 64
+              | _ -> True)
 
 val impl__Transcript__transcript_hash_without_client_hello
       (self: t_Transcript)
@@ -653,6 +663,7 @@ val impl__Transcript__transcript_hash_without_client_hello
 
 val check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8) Prims.l_True (fun _ -> Prims.l_True)
+      (decreases (Seq.length b))
 
 val check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8) Prims.l_True (fun _ -> Prims.l_True)
