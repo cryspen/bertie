@@ -39,11 +39,6 @@ val x962_ec_public_key_oid: Prims.unit
 val check_tag (b: Bertie.Tls13utils.t_Bytes) (offset: usize) (value: u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val length_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
 
@@ -65,29 +60,34 @@ val long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize)
 val length (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
     : Prims.Pure (Core.Result.t_Result (usize & usize) u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-val read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val skip_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
     : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val skip_sequence (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
     : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val rsa_private_key (key: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+val read_spki (cert: Bertie.Tls13utils.t_Bytes) (offset: usize)
+    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & t_CertificateKey) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val rsa_private_key (key: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 

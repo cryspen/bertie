@@ -244,7 +244,7 @@ let impl__HandshakeData__from_bytes
     Core.Result.t_Result t_HandshakeData u8
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
- 
+
 let rec impl__HandshakeData__find_handshake_message
       (self: t_HandshakeData)
       (handshake_type: t_HandshakeType)

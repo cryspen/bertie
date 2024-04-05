@@ -199,6 +199,24 @@ let impl_7 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C) =
           Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
   }
 
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+let impl_8: Core.Ops.Index.t_Index t_Bytes usize =
+  {
+    f_Output = u8;
+    f_index_pre = (fun (self: t_Bytes) (x: usize) -> true);
+    f_index_post = (fun (self: t_Bytes) (x: usize) (out: u8) -> true);
+    f_index = fun (self: t_Bytes) (x: usize) -> self._0.[ x ]
+  }
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+let impl_9: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
+  {
+    f_Output = t_Slice u8;
+    f_index_pre = (fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> true);
+    f_index_post = (fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) (out: t_Slice u8) -> true);
+    f_index = fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> self._0.[ x ]
+  }
+
 val impl__Bytes__append (self x: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 val impl__Bytes__concat (self other: t_Bytes)
@@ -236,32 +254,10 @@ val impl__Bytes__slice (self: t_Bytes) (start len: usize)
 val impl__Bytes__slice_range (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-val impl__Bytes__zeroes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_21: Core.Ops.Index.t_Index t_Bytes usize =
-  {
-    f_Output = u8;
-    f_index_pre = (fun (self: t_Bytes) (x: usize) -> x <. (Alloc.Vec.impl_1__len self._0 <: usize));
-    f_index_post = (fun (self: t_Bytes) (x: usize) (out: u8) -> true);
-    f_index = fun (self: t_Bytes) (x: usize) -> self._0.[ x ]
-  }
-
 val impl__Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
-  {
-    f_Output = t_Slice u8;
-    f_index_pre
-    =
-    (fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) ->
-        x.Core.Ops.Range.f_start <=. (Alloc.Vec.impl_1__len self._0 <: usize) &&
-        x.Core.Ops.Range.f_end <=. (Alloc.Vec.impl_1__len self._0 <: usize));
-    f_index_post = (fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) (out: t_Slice u8) -> true);
-    f_index = fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> self._0.[ x ]
-  }
+val impl__Bytes__zeroes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 val bytes (x: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
@@ -302,7 +298,7 @@ val impl__AppData__into_raw (self: t_AppData)
 val impl__AppData__new (b: t_Bytes) : Prims.Pure t_AppData Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_10: Core.Convert.t_From t_AppData (t_Slice u8) =
+let impl_12: Core.Convert.t_From t_AppData (t_Slice u8) =
   {
     f_from_pre = (fun (value: t_Slice u8) -> true);
     f_from_post = (fun (value: t_Slice u8) (out: t_AppData) -> true);
@@ -310,7 +306,7 @@ let impl_10: Core.Convert.t_From t_AppData (t_Slice u8) =
   }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_11 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N) =
+let impl_13 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N) =
   {
     f_from_pre = (fun (value: t_Array u8 v_N) -> true);
     f_from_post = (fun (value: t_Array u8 v_N) (out: t_AppData) -> true);
@@ -318,7 +314,7 @@ let impl_11 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N) =
   }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_12: Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) =
+let impl_14: Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) =
   {
     f_from_pre = (fun (value: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) -> true);
     f_from_post = (fun (value: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) (out: t_AppData) -> true);
@@ -329,7 +325,7 @@ let impl_12: Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Glo
   }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_13: Core.Convert.t_From t_AppData t_Bytes =
+let impl_15: Core.Convert.t_From t_AppData t_Bytes =
   {
     f_from_pre = (fun (value: t_Bytes) -> true);
     f_from_post = (fun (value: t_Bytes) (out: t_AppData) -> true);

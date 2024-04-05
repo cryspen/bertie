@@ -1960,8 +1960,8 @@ let put_client_hello
               | Core.Result.Result_Ok server ->
                 (match
                     process_psk_binder_zero_rtt ciphersuite
-                      th
                       th_trunc
+                      th
                       server.Bertie.Server.f_psk_opt
                       bindero
                   with

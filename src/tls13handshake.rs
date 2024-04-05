@@ -209,6 +209,8 @@ pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<Psk>, Transcr
 pub struct ClientPostServerHello(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ClientPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
+// We do not use most of this state, but we keep the unused parts for verification purposes.
+#[allow(dead_code)]
 pub struct ClientPostClientFinished(Random, Random, Algorithms, Key, Transcript);
 
 pub fn algs_post_client_hello(st: &ClientPostClientHello) -> Algorithms {
@@ -245,6 +247,8 @@ pub struct ServerPostServerHello {
 
 pub struct ServerPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
 pub struct ServerPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
+// We do not use most of this state, but we keep the unsused parts for verification purposes.
+#[allow(dead_code)]
 pub struct ServerPostClientFinished(Random, Random, Algorithms, Key, Transcript);
 
 /* Handshake Core Functions: See RFC 8446 Section 4 */
@@ -573,7 +577,7 @@ fn put_client_hello(
     let transcript = tx.add(ch);
     let th = transcript.transcript_hash()?;
     let server = lookup_db(ciphersuite, &db, &sni, &tkto)?;
-    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th, th_trunc, &server.psk_opt, bindero)?;
+    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero)?;
     Ok((
         cipher0,
         ServerPostClientHello {
@@ -651,22 +655,18 @@ fn get_server_hello(
     ))
 }
 
-fn get_rsa_signature(cert:&Bytes, sk:&Bytes, sigval:&Bytes, rng: &mut (impl CryptoRng + RngCore),) ->
- Result<Bytes,TLSError> {
+fn get_rsa_signature(
+    cert: &Bytes,
+    sk: &Bytes,
+    sigval: &Bytes,
+    rng: &mut (impl CryptoRng + RngCore),
+) -> Result<Bytes, TLSError> {
     // To avoid cyclic dependencies between the modules we pull out
     // the values from the RSA certificate here.
     // We could really read this from the key as well.
-    let (cert_scheme, cert_slice) = verification_key_from_cert(&cert)?;
-    let pk = rsa_public_key(&cert, cert_slice)?;
-    sign_rsa(
-        &sk,
-        &pk.modulus,
-        &pk.exponent,
-        cert_scheme,
-        &sigval,
-        rng,
-    )
-
+    let (cert_scheme, cert_slice) = verification_key_from_cert(cert)?;
+    let pk = rsa_public_key(cert, cert_slice)?;
+    sign_rsa(sk, &pk.modulus, &pk.exponent, cert_scheme, sigval, rng)
 }
 
 fn get_server_signature_no_psk(
@@ -716,7 +716,7 @@ fn get_server_signature_no_psk(
         ),
     ))
 }
- 
+
 fn get_server_signature(
     state: ServerPostServerHello,
     rng: &mut (impl CryptoRng + RngCore),
@@ -840,7 +840,7 @@ pub fn server_init_no_psk(
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
-    
+
     let (ee, sc, scv, st) = get_server_signature(st, rng)?;
     let (sfin, cipher1, st) = get_server_finished(st)?;
     let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
@@ -866,7 +866,7 @@ pub fn server_init_psk(
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
-    
+
     let (ee, st) = get_skip_server_signature(st)?;
     let (sfin, cipher1, st) = get_server_finished(st)?;
     let flight = ee.concat(&sfin);
@@ -891,12 +891,8 @@ pub fn server_init(
     TLSError,
 > {
     match algs.psk_mode() {
-        false => {
-            server_init_no_psk(algs, ch, db, rng)
-        }
-        true => {
-            server_init_psk(algs, ch, db, rng)
-        }
+        false => server_init_no_psk(algs, ch, db, rng),
+        true => server_init_psk(algs, ch, db, rng),
     }
 }
 

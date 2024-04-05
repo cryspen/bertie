@@ -1,11 +1,12 @@
-use std::fmt::Display;
-
+#[cfg(feature = "hax-pv")]
+use hax_lib_macros::{pv_constructor, pv_handwritten};
 use libcrux::{
     kem::{Ct, PrivateKey, PublicKey},
     signature::rsa_pss::{RsaPssKeySize, RsaPssPrivateKey, RsaPssPublicKey},
     *,
 };
 use rand::{CryptoRng, RngCore};
+use std::fmt::Display;
 
 use crate::tls13utils::{
     check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
@@ -108,6 +109,7 @@ impl HashAlgorithm {
     /// Hash `data` with the given `algorithm`.
     ///
     /// Returns the digest or an [`TLSError`].
+    #[cfg_attr(feature = "hax-pv", pv_constructor)]
     pub(crate) fn hash(&self, data: &Bytes) -> Result<Bytes, TLSError> {
         Ok(digest::hash(self.libcrux_algorithm()?, &data.declassify()).into())
     }
@@ -139,6 +141,7 @@ impl HashAlgorithm {
 /// Compute the HMAC tag.
 ///
 /// Returns the tag [`Hmac`] or a [`TLSError`].
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac::hmac(
         alg.hmac_algorithm()?,
@@ -152,6 +155,7 @@ pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Resul
 /// Verify a given HMAC `tag`.
 ///
 /// Returns `()` if successful or a [`TLSError`].
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn hmac_verify(
     alg: &HashAlgorithm,
     mk: &MacKey,
@@ -182,6 +186,7 @@ fn hkdf_algorithm(alg: &HashAlgorithm) -> Result<hkdf::Algorithm, TLSError> {
 /// HKDF Extract.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn hkdf_extract(
     alg: &HashAlgorithm,
     ikm: &Bytes,
@@ -193,6 +198,7 @@ pub(crate) fn hkdf_extract(
 /// HKDF Expand.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn hkdf_expand(
     alg: &HashAlgorithm,
     prk: &Bytes,
@@ -310,6 +316,7 @@ impl SignatureScheme {
 }
 
 /// Sign the `input` with the provided RSA key.
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -343,6 +350,7 @@ pub(crate) fn sign_rsa(
 }
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn sign(
     algorithm: &SignatureScheme,
     sk: &Bytes,
@@ -380,6 +388,7 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
@@ -488,6 +497,7 @@ impl KemScheme {
 }
 
 /// Generate a new KEM key pair.
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn kem_keygen(
     alg: KemScheme,
     rng: &mut (impl CryptoRng + RngCore),
@@ -531,6 +541,7 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 }
 
 /// KEM encapsulation
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn kem_encap(
     alg: KemScheme,
     pk: &Bytes,
@@ -565,6 +576,7 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 }
 
 /// KEM decapsulation
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
     // event!(Level::DEBUG, "KEM Decaps with {alg:?}");
     // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());

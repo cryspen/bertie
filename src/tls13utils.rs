@@ -1,5 +1,7 @@
 use core::ops::Range;
-use hax_lib_macros as hax;
+
+#[cfg(feature = "hax-fstar")]
+use hax_lib_macros::{attributes, requires};
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
@@ -37,7 +39,6 @@ pub const MISSING_KEY_SHARE: TLSError = 139u8;
 pub const INVALID_SIGNATURE: TLSError = 140u8;
 pub const GOT_HANDSHAKE_FAILURE_ALERT: TLSError = 141u8;
 pub const DECODE_ERROR: TLSError = 142u8;
-
 
 #[allow(dead_code)]
 pub(crate) fn error_string(c: u8) -> String {
@@ -190,6 +191,7 @@ impl From<Vec<u8>> for Bytes {
 
 impl Bytes {
     /// Add a prefix to these bytes and return it.
+    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -256,7 +258,7 @@ impl U32 {
         self.0
     }
 }
-
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
     #[cfg(not(feature = "secret_integers"))]
     let val = val.to_be_bytes();
@@ -297,10 +299,10 @@ pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
-#[hax::attributes]
+#[cfg_attr(feature = "hax-fstar", attributes)]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
-    #[requires(x < self.0.len())]
+    #[cfg_attr(feature = "hax-fstar", requires(x < self.0.len()))]
     fn index(&self, x: usize) -> &U8 {
         &self.0[x]
     }
@@ -321,10 +323,10 @@ mod non_hax {
     }
 }
 
-#[hax::attributes]
+#[cfg_attr(feature = "hax-fstar", attributes)]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
-    #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
+    #[cfg_attr(feature = "hax-fstar", requires(x.start <= self.0.len() && x.end <= self.0.len()))]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
@@ -332,6 +334,7 @@ impl core::ops::Index<Range<usize>> for Bytes {
 
 impl Bytes {
     /// Create new [`Bytes`].
+    #[cfg_attr(feature = "hax-pv", pv_constructor)]
     pub(crate) fn new() -> Bytes {
         Bytes(Vec::new())
     }
@@ -342,6 +345,7 @@ impl Bytes {
     }
 
     /// Generate `len` bytes of `0`.
+    #[cfg_attr(feature = "hax-pv", pv_constructor)]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
@@ -406,6 +410,7 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
+    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
         self
@@ -452,6 +457,9 @@ macro_rules! bytes_concat {
     };
 }
 pub(crate) use bytes_concat;
+
+#[cfg(feature = "hax-pv")]
+use hax_lib_macros::{pv_constructor, pv_handwritten};
 
 #[cfg(test)]
 impl Bytes {
@@ -511,6 +519,7 @@ pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
 // TODO: This function should short-circuit once hax supports returns within loops
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     eq_slice(&b1.0, &b2.0)
 }
@@ -546,6 +555,7 @@ pub(crate) fn check_eq_with_slice(b1: &[U8], b2: &[U8], start:usize, end:usize) 
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
+#[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_slice(b1.as_raw(), b2.as_raw())
 }
@@ -577,6 +587,7 @@ pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// On success, return a new [Bytes] slice such that its first byte encodes the
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
