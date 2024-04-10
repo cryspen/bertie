@@ -45,9 +45,7 @@ create`) and regeneration of the `extraction` folder.
 
 The lax checking patch mainly performs the following fixes which will become unnecessary with future hax fixes:
 
-* Recursive functions are not produced with `let rec` in F*
 * IndexMut implementations need to implemented by hand in F*
-* Empty lists need type annotations in F*
 
 Finally, we edit the code in `extraction-lax` by hand to obtain panic-freedom proofs in `extraction-panic-free`.
 Eventually these hand-edits will be backported into Rust as pre- and post-conditions.
