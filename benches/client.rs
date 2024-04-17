@@ -175,6 +175,9 @@ fn protocol() {
         let mut handshake_time = Duration::ZERO;
         let mut application_time = Duration::ZERO;
         let payload = rng.generate_vec(NUM_PAYLOAD_BYTES).unwrap();
+        let mut size1:usize = 0;
+        let mut size2:usize = 0;
+        let mut size3:usize = 0;
 
         for _ in 0..ITERATIONS {
             let start_time = Instant::now();
@@ -182,15 +185,19 @@ fn protocol() {
                 Client::connect(ciphersuite, &server_name, None, None, &mut rng).unwrap();
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
+	        size1 += client_hello.declassify().len();
 
             let (server_hello, server_finished, server) =
                 Server::accept(ciphersuite, db.clone(), &client_hello, &mut rng).unwrap();
+	        size2 += server_hello.declassify().len();
+	        size2 += server_finished.declassify().len();
 
             let start_time = Instant::now();
             let (_client_msg, client) = client.read_handshake(&server_hello).unwrap();
             let (client_msg, client) = client.read_handshake(&server_finished).unwrap();
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
+	        size3 += client_msg.as_ref().unwrap().declassify().len();
 
             let server = server.read_handshake(&client_msg.unwrap()).unwrap();
 
@@ -207,13 +214,15 @@ fn protocol() {
         }
 
         println!(
-            " - {}:\n\tHandshake: {} μs | {} /s \n\tApplication: {} μs | {} MB/s",
+            " - {}:\n\tHandshake: {} μs | {} /s \n\tApplication: {} μs | {} MB/s\n\tMessage Sizes: {}, {}, {} bytes",
             ciphersuite,
             handshake_time.as_micros() / (ITERATIONS as u128),
             hs_per_second(handshake_time),
             application_time.as_micros() / (ITERATIONS as u128),
             mb_per_second(application_time),
+            size1/ITERATIONS, size2/ITERATIONS, size3/ITERATIONS
         );
+
     }
 }
 
