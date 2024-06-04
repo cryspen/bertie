@@ -24,7 +24,10 @@
             hax
             pkgs.python3
           ];
-          buildPhase = "python hax-driver.py extract-fstar";
+          buildPhase = ''
+            python hax-driver.py extract-fstar
+            python hax-driver.py extract-proverif
+          '';
           installPhase = "cp -r . $out";
           doCheck = false;
         };
