@@ -1,3 +1,5 @@
+name: Nix
+
 on:
   push:
     branches: [main]
