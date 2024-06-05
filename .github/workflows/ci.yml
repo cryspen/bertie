@@ -28,6 +28,9 @@ jobs:
           repository: google/boringssl
           path: boringssl
 
+      - name: Update dependencies
+        run: cargo  update
+
       - name: Build code
         if: matrix.os != 'windows-latest'
         run: cargo build --workspace

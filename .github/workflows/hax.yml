@@ -26,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Update dependencies
+        run: cargo update
+
       - name: 🔨 OCaml Setup
         uses: ocaml/setup-ocaml@v2
         with:
