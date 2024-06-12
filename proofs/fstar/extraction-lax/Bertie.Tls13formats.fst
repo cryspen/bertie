@@ -2259,7 +2259,7 @@ let parse_server_hello
 
 let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes) =
   match
-    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list : list u8 = [] in
+    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list:Prims.list u8 = [] in
             FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 0);
             Rust_primitives.Hax.array_of_list 0 list)
         <:
