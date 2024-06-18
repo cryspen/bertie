@@ -483,6 +483,7 @@ pub enum KemScheme {
     X448,
     Secp384r1,
     Secp521r1,
+    XwingKemDraft02,
 }
 
 impl KemScheme {
@@ -491,6 +492,7 @@ impl KemScheme {
         match self {
             KemScheme::X25519 => Ok(kem::Algorithm::X25519),
             KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
+            KemScheme::XwingKemDraft02 => Ok(kem::Algorithm::XWingKemDraft02),
             _ => tlserr(UNSUPPORTED_ALGORITHM),
         }
     }
@@ -682,6 +684,7 @@ impl Algorithms {
             KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp384r1 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp521r1 => tlserr(UNSUPPORTED_ALGORITHM),
+            KemScheme::XwingKemDraft02 => Ok([0x00, 0x1D].into()), // same as X25519?
         }
     }
 
@@ -786,6 +789,20 @@ pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algo
     false,
     false,
 );
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * XWing KEM (Draft 02) for key exchange
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_XWingKemDraft02: Algorithms =
+    Algorithms::new(
+        HashAlgorithm::SHA256,
+        AeadAlgorithm::Chacha20Poly1305,
+        SignatureScheme::EcdsaSecp256r1Sha256,
+        KemScheme::XwingKemDraft02,
+        false,
+        false,
+    );
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with
