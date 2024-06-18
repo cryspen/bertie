@@ -4,7 +4,7 @@
 
 use bertie::{
     stream::BertieStream,
-    tls13crypto::{Algorithms, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519},
+    tls13crypto::{Algorithms, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00},
     tls13utils::*,
 };
 use rand::thread_rng;
@@ -58,7 +58,7 @@ fn main() -> anyhow::Result<()> {
     let ciphersuite = cli
         .ciphersuite
         .and_then(|s| Algorithms::try_from(s.as_str()).ok())
-        .unwrap_or(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
+        .unwrap_or(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00);
 
     event!(Level::INFO, "Starting new Client connection ...");
     event!(Level::DEBUG, "  {host}:{port}");
