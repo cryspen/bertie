@@ -483,7 +483,7 @@ pub enum KemScheme {
     X448,
     Secp384r1,
     Secp521r1,
-    XwingKemDraft02,
+    X25519Kyber768Draft00,
 }
 
 impl KemScheme {
@@ -492,7 +492,7 @@ impl KemScheme {
         match self {
             KemScheme::X25519 => Ok(kem::Algorithm::X25519),
             KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
-            KemScheme::XwingKemDraft02 => Ok(kem::Algorithm::XWingKemDraft02),
+            KemScheme::X25519Kyber768Draft00 => Ok(kem::Algorithm::X25519MlKem768Draft00),
             _ => tlserr(UNSUPPORTED_ALGORITHM),
         }
     }
@@ -558,7 +558,9 @@ pub(crate) fn kem_encap(
     match res {
         Ok((shared_secret, ct)) => {
             let ct = encoding_prefix(alg).concat(Bytes::from(ct.encode()));
+            eprintln!("ct: {}", ct.as_hex());
             let shared_secret = to_shared_secret(alg, Bytes::from(shared_secret.encode()));
+            eprintln!("ss: {}", shared_secret.as_hex());
             // event!(Level::TRACE, "  output ciphertext: {}", ct.as_hex());
             Ok((shared_secret, ct))
         }
@@ -590,7 +592,9 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     let res = ct.decapsulate(&sk);
     match res {
         Ok(shared_secret) => {
+            eprintln!("decap ct: {}", hex::encode(ct.encode()));
             let shared_secret: Bytes = shared_secret.encode().into();
+            eprintln!("decap ss: {}", shared_secret.as_hex());
             // event!(Level::TRACE, "  shared secret: {}", shared_secret.as_hex());
             let shared_secret = to_shared_secret(alg, shared_secret);
             Ok(shared_secret)
@@ -684,7 +688,7 @@ impl Algorithms {
             KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp384r1 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp521r1 => tlserr(UNSUPPORTED_ALGORITHM),
-            KemScheme::XwingKemDraft02 => Ok([0x00, 0x1D].into()), // same as X25519?
+            KemScheme::X25519Kyber768Draft00 => Ok([0x63, 0x99].into()), // same as https://github.com/google/boringssl/blob/66d274dfbab9e4f84599f06504987c418ca087d9/include/openssl/ssl.h#L2540
         }
     }
 
@@ -792,14 +796,14 @@ pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algo
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with
-/// * XWing KEM (Draft 02) for key exchange
+/// * X25519Kyber768Draft00 for key exchange (cf. https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-02.html)
 /// * EcDSA P256 SHA256 for signatures
-pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_XWingKemDraft02: Algorithms =
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00: Algorithms =
     Algorithms::new(
         HashAlgorithm::SHA256,
         AeadAlgorithm::Chacha20Poly1305,
         SignatureScheme::EcdsaSecp256r1Sha256,
-        KemScheme::XwingKemDraft02,
+        KemScheme::X25519Kyber768Draft00,
         false,
         false,
     );

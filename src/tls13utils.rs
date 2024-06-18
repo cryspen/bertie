@@ -461,7 +461,6 @@ pub(crate) use bytes_concat;
 #[cfg(feature = "hax-pv")]
 use hax_lib_macros::{pv_constructor, pv_handwritten};
 
-#[cfg(test)]
 impl Bytes {
     /// Get a hex representation of self as [`String`].
     pub(crate) fn as_hex(&self) -> String {
