@@ -1,10 +1,10 @@
 #[cfg(feature = "hax-pv")]
 use hax_lib_macros::{pv_constructor, pv_handwritten};
 use libcrux::{
-    kem::{Ct, PrivateKey, PublicKey},
     signature::rsa_pss::{RsaPssKeySize, RsaPssPrivateKey, RsaPssPublicKey},
     *,
 };
+use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use rand::{CryptoRng, RngCore};
 use std::fmt::Display;
 
@@ -488,11 +488,11 @@ pub enum KemScheme {
 
 impl KemScheme {
     /// Get the libcrux algorithm for this [`KemScheme`].
-    fn libcrux_algorithm(self) -> Result<kem::Algorithm, TLSError> {
+    fn libcrux_kem_algorithm(self) -> Result<libcrux_kem::Algorithm, TLSError> {
         match self {
-            KemScheme::X25519 => Ok(kem::Algorithm::X25519),
-            KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
-            KemScheme::X25519Kyber768Draft00 => Ok(kem::Algorithm::X25519MlKem768Draft00),
+            KemScheme::X25519 => Ok(libcrux_kem::Algorithm::X25519),
+            KemScheme::Secp256r1 => Ok(libcrux_kem::Algorithm::Secp256r1),
+            KemScheme::X25519Kyber768Draft00 => Ok(libcrux_kem::Algorithm::X25519Kyber768Draft00),
             _ => tlserr(UNSUPPORTED_ALGORITHM),
         }
     }
@@ -504,7 +504,7 @@ pub(crate) fn kem_keygen(
     alg: KemScheme,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(KemSk, KemPk), TLSError> {
-    let res = kem::key_gen(alg.libcrux_algorithm()?, rng);
+    let res = libcrux_kem::key_gen(alg.libcrux_kem_algorithm()?, rng);
     match res {
         Ok((sk, pk)) => {
             // event!(
@@ -553,14 +553,13 @@ pub(crate) fn kem_encap(
     // event!(Level::TRACE, "  pk:  {}", pk.as_hex());
 
     let pk = into_raw(alg, pk.clone());
-    let pk = PublicKey::decode(alg.libcrux_algorithm()?, &pk.declassify()).unwrap();
+    let pk = PublicKey::decode(alg.libcrux_kem_algorithm()?, &pk.declassify()).unwrap();
     let res = pk.encapsulate(rng);
     match res {
         Ok((shared_secret, ct)) => {
             let ct = encoding_prefix(alg).concat(Bytes::from(ct.encode()));
-            eprintln!("ct: {}", ct.as_hex());
             let shared_secret = to_shared_secret(alg, Bytes::from(shared_secret.encode()));
-            eprintln!("ss: {}", shared_secret.as_hex());
+
             // event!(Level::TRACE, "  output ciphertext: {}", ct.as_hex());
             Ok((shared_secret, ct))
         }
@@ -585,16 +584,14 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     // event!(Level::DEBUG, "KEM Decaps with {alg:?}");
     // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
 
-    let librux_algorithm = alg.libcrux_algorithm()?;
+    let librux_algorithm = alg.libcrux_kem_algorithm()?;
     let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).unwrap();
     let ct = into_raw(alg, ct.clone()).declassify();
     let ct = Ct::decode(librux_algorithm, &ct).unwrap();
     let res = ct.decapsulate(&sk);
     match res {
         Ok(shared_secret) => {
-            eprintln!("decap ct: {}", hex::encode(ct.encode()));
             let shared_secret: Bytes = shared_secret.encode().into();
-            eprintln!("decap ss: {}", shared_secret.as_hex());
             // event!(Level::TRACE, "  shared secret: {}", shared_secret.as_hex());
             let shared_secret = to_shared_secret(alg, shared_secret);
             Ok(shared_secret)
@@ -749,6 +746,9 @@ impl TryFrom<&str> for Algorithms {
             "SHA384_Aes256Gcm_RsaPssRsaSha256_P256" => Ok(SHA384_Aes256Gcm_RsaPssRsaSha256_P256),
             "SHA384_Aes256Gcm_RsaPssRsaSha256_X25519" => {
                 Ok(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
+            }
+            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00" => {
+                Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00)
             }
             _ => Err(Error::UnknownCiphersuite(format!(
                 "Invalid ciphersuite description: {}",
