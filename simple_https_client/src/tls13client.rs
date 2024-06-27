@@ -63,7 +63,7 @@ fn main() -> anyhow::Result<()> {
 
     event!(Level::INFO, "Starting new Client connection ...");
     event!(Level::DEBUG, "  {host}:{port}");
-    event!(Level::DEBUG, "  {ciphersuite:?}");
+    event!(Level::DEBUG, "  {ciphersuite:#?}");
 
     // Initiate HTTPS connection to host:port.
     let mut stream = BertieStream::client(&host, port, ciphersuite, &mut thread_rng())
