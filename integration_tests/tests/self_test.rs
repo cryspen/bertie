@@ -3,16 +3,16 @@ use std::net::TcpListener;
 
 use bertie::{
     stream::BertieStream,
-    tls13crypto::SignatureScheme,
     tls13crypto::{
         SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256, SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
         SHA256_Aes128Gcm_RsaPssRsaSha256_P256, SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00,
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519, SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
         SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
-        SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
+        SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, SignatureScheme,
     },
 };
 
@@ -23,6 +23,10 @@ fn test_sha256_chacha20_poly1305_rsa_pss_rsa_sha256_x25519() {
 #[test]
 fn test_sha256_chacha20_poly1305_ecdsa_secp256r1_sha256_x25519() {
     self_test_algorithm(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519);
+}
+#[test]
+fn test_sha256_chacha20_poly1305_ecdsa_secp256r1_sha256_x25519kyber768() {
+    self_test_algorithm(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00);
 }
 #[test]
 fn test_sha256_chacha20_poly1305_ecdsa_secp256r1_sha256_p256() {

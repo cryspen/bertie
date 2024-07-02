@@ -1,10 +1,10 @@
 #[cfg(feature = "hax-pv")]
 use hax_lib_macros::{pv_constructor, pv_handwritten};
 use libcrux::{
-    kem::{Ct, PrivateKey, PublicKey},
     signature::rsa_pss::{RsaPssKeySize, RsaPssPrivateKey, RsaPssPublicKey},
     *,
 };
+use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use rand::{CryptoRng, RngCore};
 use std::fmt::Display;
 
@@ -483,14 +483,16 @@ pub enum KemScheme {
     X448,
     Secp384r1,
     Secp521r1,
+    X25519Kyber768Draft00,
 }
 
 impl KemScheme {
     /// Get the libcrux algorithm for this [`KemScheme`].
-    fn libcrux_algorithm(self) -> Result<kem::Algorithm, TLSError> {
+    fn libcrux_kem_algorithm(self) -> Result<libcrux_kem::Algorithm, TLSError> {
         match self {
-            KemScheme::X25519 => Ok(kem::Algorithm::X25519),
-            KemScheme::Secp256r1 => Ok(kem::Algorithm::Secp256r1),
+            KemScheme::X25519 => Ok(libcrux_kem::Algorithm::X25519),
+            KemScheme::Secp256r1 => Ok(libcrux_kem::Algorithm::Secp256r1),
+            KemScheme::X25519Kyber768Draft00 => Ok(libcrux_kem::Algorithm::X25519Kyber768Draft00),
             _ => tlserr(UNSUPPORTED_ALGORITHM),
         }
     }
@@ -502,7 +504,7 @@ pub(crate) fn kem_keygen(
     alg: KemScheme,
     rng: &mut (impl CryptoRng + RngCore),
 ) -> Result<(KemSk, KemPk), TLSError> {
-    let res = kem::key_gen(alg.libcrux_algorithm()?, rng);
+    let res = libcrux_kem::key_gen(alg.libcrux_kem_algorithm()?, rng);
     match res {
         Ok((sk, pk)) => {
             // event!(
@@ -551,12 +553,13 @@ pub(crate) fn kem_encap(
     // event!(Level::TRACE, "  pk:  {}", pk.as_hex());
 
     let pk = into_raw(alg, pk.clone());
-    let pk = PublicKey::decode(alg.libcrux_algorithm()?, &pk.declassify()).unwrap();
+    let pk = PublicKey::decode(alg.libcrux_kem_algorithm()?, &pk.declassify()).unwrap();
     let res = pk.encapsulate(rng);
     match res {
         Ok((shared_secret, ct)) => {
             let ct = encoding_prefix(alg).concat(Bytes::from(ct.encode()));
             let shared_secret = to_shared_secret(alg, Bytes::from(shared_secret.encode()));
+
             // event!(Level::TRACE, "  output ciphertext: {}", ct.as_hex());
             Ok((shared_secret, ct))
         }
@@ -581,7 +584,7 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     // event!(Level::DEBUG, "KEM Decaps with {alg:?}");
     // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
 
-    let librux_algorithm = alg.libcrux_algorithm()?;
+    let librux_algorithm = alg.libcrux_kem_algorithm()?;
     let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).unwrap();
     let ct = into_raw(alg, ct.clone()).declassify();
     let ct = Ct::decode(librux_algorithm, &ct).unwrap();
@@ -682,6 +685,7 @@ impl Algorithms {
             KemScheme::X448 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp384r1 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp521r1 => tlserr(UNSUPPORTED_ALGORITHM),
+            KemScheme::X25519Kyber768Draft00 => Ok([0x63, 0x99].into()), // same as https://github.com/google/boringssl/blob/66d274dfbab9e4f84599f06504987c418ca087d9/include/openssl/ssl.h#L2540
         }
     }
 
@@ -743,6 +747,9 @@ impl TryFrom<&str> for Algorithms {
             "SHA384_Aes256Gcm_RsaPssRsaSha256_X25519" => {
                 Ok(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
             }
+            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00" => {
+                Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00)
+            }
             _ => Err(Error::UnknownCiphersuite(format!(
                 "Invalid ciphersuite description: {}",
                 s
@@ -786,6 +793,20 @@ pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: Algorithms = Algo
     false,
     false,
 );
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * X25519Kyber768Draft00 for key exchange (cf. https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-02.html)
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00: Algorithms =
+    Algorithms::new(
+        HashAlgorithm::SHA256,
+        AeadAlgorithm::Chacha20Poly1305,
+        SignatureScheme::EcdsaSecp256r1Sha256,
+        KemScheme::X25519Kyber768Draft00,
+        false,
+        false,
+    );
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with

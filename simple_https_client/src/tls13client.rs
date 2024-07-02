@@ -35,6 +35,7 @@ struct Cli {
     ///   * SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519
     ///   * SHA384_Aes256Gcm_RsaPssRsaSha256_P256
     ///   * SHA384_Aes256Gcm_RsaPssRsaSha256_X25519
+    ///   * SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00
     ///
     /// The default value is SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519.
     #[clap(verbatim_doc_comment)]
@@ -62,7 +63,7 @@ fn main() -> anyhow::Result<()> {
 
     event!(Level::INFO, "Starting new Client connection ...");
     event!(Level::DEBUG, "  {host}:{port}");
-    event!(Level::DEBUG, "  {ciphersuite:?}");
+    event!(Level::DEBUG, "  {ciphersuite:#?}");
 
     // Initiate HTTPS connection to host:port.
     let mut stream = BertieStream::client(&host, port, ciphersuite, &mut thread_rng())
