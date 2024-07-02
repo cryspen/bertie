@@ -17,10 +17,10 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = {version = "0.0.2-pre.2", features = ["kyber"], git = "https://github.com/cryspen/libcrux.git", branch = "dev"}
-libcrux = { version = "0.0.2-pre.2", features = [
+libcrux-kem = {version = "0.0.2-alpha.1", features = ["pre-verification", "kyber"]}
+libcrux = { version = "0.0.2-alpha.1", features = [
     "rand",
-], git = "https://github.com/cryspen/libcrux.git", branch = "dev" }
+]}
 hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
 hax-lib = { git = "https://github.com/hacspec/hax" }
 
