@@ -7,11 +7,16 @@ cd "$SCRIPTPATH"
 
 DENYLIST=""
 
+CP="gcp"
+if ! command -v gcp &> /dev/null; then
+    CP="cp"
+fi
+
 # `prepare_folder SRC DEST` copies F* files from SRC to DEST/<basename SRC>
 prepare_folder() {
     original="$1"
     workdir="$2"
-    find "$original" \( -name '*.fst' -o -name '*.fsti' \) -exec gcp --parents \{\} "$workdir" \;
+    find "$original" \( -name '*.fst' -o -name '*.fsti' \) -exec "$CP" --parents \{\} "$workdir" \;
 }
 
 # `patch_folder ORIGINAL DESTINATION PATCH` creates the folder
