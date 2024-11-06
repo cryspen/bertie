@@ -1,11 +1,35 @@
 use crate::{
     tls13crypto::{
-        hkdf_expand, hkdf_extract, hmac_tag, zero_key, AeadAlgorithm, AeadKey, AeadKeyIV,
+        hkdf_expand, hkdf_extract, hmac_tag, AeadAlgorithm, AeadKey, AeadKeyIV,
         Algorithms, Digest, HashAlgorithm, Key, MacKey, Psk,
     },
     tls13formats::*,
     tls13utils::*,
 };
+
+/// Get an empty key of the correct size.
+pub(crate) fn zero_salt(alg: &HashAlgorithm) -> TagKey {
+    TagKey {
+        tag: ZeroSalt,
+        val: Bytes::zeroes(alg.hash_len()),
+    }
+}
+
+/// Get an empty key of the correct size.
+pub(crate) fn zero_psk(alg: &HashAlgorithm) -> TagKey {
+    TagKey {
+        tag: PSK,
+        val: Bytes::zeroes(alg.hash_len()),
+    }
+}
+
+/// Get an empty key of the correct size.
+pub(crate) fn zero_ikm(alg: &HashAlgorithm) -> TagKey {
+    TagKey {
+        tag: ZeroIKM,
+        val: Bytes::zeroes(alg.hash_len()),
+    }
+}
 
 /// Get the hash of an empty byte slice.
 fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
@@ -34,14 +58,11 @@ fn hkdf_expand_label(
     }
 }
 
-pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
+pub fn derive_binder_key(ha: &HashAlgorithm, k: &TagKey) -> Result<MacKey, TLSError> {
     let early_secret = xtr(
         ha,
-        &TagKey { tag: PSK, val: k.clone() },
-        &TagKey {
-            tag: ZeroSalt,
-            val: zero_key(ha),
-        },
+        k,
+        &zero_salt(ha),
     )?;
     Ok(xpd(
         ha,
@@ -82,16 +103,13 @@ pub(crate) fn derive_aead_key_iv(
 pub(crate) fn derive_0rtt_keys(
     hash_algorithm: &HashAlgorithm,
     aead_algoorithm: &AeadAlgorithm,
-    key: &Key,
+    key: &TagKey,
     tx: &Digest,
-) -> Result<(AeadKeyIV, Key), TLSError> {
+) -> Result<(AeadKeyIV, TagKey), TLSError> {
     let early_secret = xtr(
         hash_algorithm,
-        &TagKey { tag: PSK, val: key.clone() },
-        &TagKey {
-            tag: ZeroSalt,
-            val: zero_key(hash_algorithm),
-        },
+        &key,
+        &zero_salt(hash_algorithm),
     )?;
     let client_early_traffic_secret =
         xpd(hash_algorithm, &early_secret, bytes(&LABEL_C_E_TRAFFIC), tx)?;
@@ -106,7 +124,7 @@ pub(crate) fn derive_0rtt_keys(
         aead_algoorithm,
         &client_early_traffic_secret.val,
     )?;
-    Ok((sender_write_key_iv, early_exporter_master_secret.val))
+    Ok((sender_write_key_iv, early_exporter_master_secret))
 }
 
 pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
@@ -123,34 +141,25 @@ pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSErr
 pub(crate) fn derive_hk_ms(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
-    shared_secret: &Key,
-    psko: &Option<Psk>,
+    shared_secret: &TagKey,
+    psko: &Option<TagKey>,
     transcript_hash: &Digest,
-) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
+) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, TagKey), TLSError> {
     let psk = if let Some(k) = psko {
-        k.clone()
+        &k.clone()
     } else {
-        zero_key(ha)
+        &zero_psk(ha)
     };
     let early_secret = xtr(
         ha,
-        &TagKey {
-            tag: PSK,
-            val: psk,
-        },
-        &TagKey {
-            tag: ZeroSalt,
-            val: zero_key(ha),
-        },
+        psk,
+        &zero_salt(ha),
     )?;
     let digest_emp = hash_empty(ha)?;
     let derived_secret = xpd(ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
     let handshake_secret = xtr(
         ha,
-        &TagKey {
-            tag: DH,
-            val: shared_secret.clone(),
-        },
+        shared_secret,
         &derived_secret,
     )?;
     let client_handshake_traffic_secret = xpd(
@@ -172,10 +181,7 @@ pub(crate) fn derive_hk_ms(
     let master_secret_ = xpd(ha, &handshake_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
     let master_secret = xtr(
         ha,
-        &TagKey {
-            tag: ZeroIKM,
-            val: zero_key(ha),
-        },
+        &zero_ikm(ha),
         &master_secret_,
     )?;
     Ok((
@@ -183,7 +189,7 @@ pub(crate) fn derive_hk_ms(
         server_write_key_iv,
         client_finished_key,
         server_finished_key,
-        master_secret.val,
+        master_secret,
     ))
 }
 
@@ -191,30 +197,29 @@ pub(crate) fn derive_hk_ms(
 pub(crate) fn derive_app_keys(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
-    master_secret: &Key,
+    master_secret: &TagKey,
     tx: &Digest,
-) -> Result<(AeadKeyIV, AeadKeyIV, Key), TLSError> {
+) -> Result<(AeadKeyIV, AeadKeyIV, TagKey), TLSError> {
     let client_application_traffic_secret_0 =
-        xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_C_AP_TRAFFIC), tx)?;
+        xpd(ha, master_secret, bytes(&LABEL_C_AP_TRAFFIC), tx)?;
     let server_application_traffic_secret_0 =
-        xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_S_AP_TRAFFIC), tx)?;
+        xpd(ha, master_secret, bytes(&LABEL_S_AP_TRAFFIC), tx)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0.val)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0.val)?;
-    let exporter_master_secret = xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_EXP_MASTER), tx)?;
+    let exporter_master_secret = xpd(ha, master_secret, bytes(&LABEL_EXP_MASTER), tx)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
-        exporter_master_secret.val,
+        exporter_master_secret,
     ))
 }
 
 pub(crate) fn derive_rms(
     ha: &HashAlgorithm,
-    master_secret: &Key,
+    master_secret: &TagKey,
     tx: &Digest,
-) -> Result<Key, TLSError> {
-    let key = xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_RES_MASTER), tx)?.val;
-    Ok(key)
+) -> Result<TagKey, TLSError> {
+    xpd(ha, master_secret, bytes(&LABEL_RES_MASTER), tx)
 }
 
 /////////////////////////////////////////////////
@@ -224,10 +229,10 @@ trait KeySchedule<N> {
     fn prnt_n(a: N) -> (Option<N>, Option<N>);
 }
 
-struct TLSkeyscheduler {}
+pub(crate) struct TLSkeyscheduler {}
 
 #[derive(Copy, Clone)]
-enum TLSnames {
+pub(crate) enum TLSnames {
     ES,
     EEM,
     CET,
@@ -281,7 +286,7 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
     }
 }
 
-enum Label {
+pub(crate) enum Label {
     RES_BINDER__,
     EXT_BINDER__,
     C_E_TRAFFIC_,
@@ -316,9 +321,9 @@ fn convert_label(label: Bytes) -> Option<Label> {
 }
 
 #[derive(Clone)]
-struct TagKey {
-    tag: TLSnames,
-    val: Key,
+pub(crate) struct TagKey {
+    pub(crate) tag: TLSnames,
+    pub(crate) val: Key,
 }
 
 pub(crate) fn xtr(alg: &HashAlgorithm, ikm: &TagKey, salt: &TagKey) -> Result<TagKey, TLSError> {

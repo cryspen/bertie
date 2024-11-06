@@ -515,7 +515,7 @@ fn test_key_schedule() {
             println!("Error: {}", x);
         }
         Ok(tx_hash) => {
-            let keys = derive_hk_ms(&ha, &ae, &shared_secret_bytes, &None, &tx_hash);
+            let keys = derive_hk_ms(&ha, &ae, &TagKey {tag: TLSnames::DH, val: shared_secret_bytes}, &None, &tx_hash);
             b = keys.is_ok();
             match keys {
                 Err(x) => {
@@ -535,7 +535,7 @@ fn test_key_schedule() {
                     );
                     println!("cfk: {}", cfk.as_hex());
                     println!("sfk: {}", sfk.as_hex());
-                    println!("ms: {}", ms.as_hex());
+                    println!("ms: {}", ms.val.as_hex());
                     let transcript = transcript
                         .concat(encrypted_extensions_bytes)
                         .concat(server_certificate_bytes)
@@ -565,7 +565,7 @@ fn test_key_schedule() {
                                         aead_key_iv2.key.bytes().as_hex(),
                                         aead_key_iv2.iv.as_hex()
                                     );
-                                    println!("exp: {}", ms.as_hex());
+                                    println!("exp: {}", ms.val.as_hex());
                                 }
                             }
                         }
