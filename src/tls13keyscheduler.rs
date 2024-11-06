@@ -35,15 +35,21 @@ fn hkdf_expand_label(
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    let (K_ES, early_secret) = xtr(PSK, ZeroSalt, ha, k, &zero_key(ha))?;
+    let early_secret = xtr(
+        ha,
+        &TagKey { tag: PSK, val: k.clone() },
+        &TagKey {
+            tag: ZeroSalt,
+            val: zero_key(ha),
+        },
+    )?;
     Ok(xpd(
-        K_ES,
         ha,
         &early_secret,
         bytes(&LABEL_RES_BINDER),
         &hash_empty(ha)?,
     )?
-    .1)
+    .val)
 }
 
 /// Derive an AEAD key and iv.
@@ -79,22 +85,17 @@ pub(crate) fn derive_0rtt_keys(
     key: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, Key), TLSError> {
-    let (K_ES, early_secret) = xtr(
-        PSK,
-        ZeroSalt,
+    let early_secret = xtr(
         hash_algorithm,
-        key,
-        &zero_key(hash_algorithm),
+        &TagKey { tag: PSK, val: key.clone() },
+        &TagKey {
+            tag: ZeroSalt,
+            val: zero_key(hash_algorithm),
+        },
     )?;
-    let (K_CET, client_early_traffic_secret) = xpd(
-        K_ES,
-        hash_algorithm,
-        &early_secret,
-        bytes(&LABEL_C_E_TRAFFIC),
-        tx,
-    )?;
-    let (K_EEM, early_exporter_master_secret) = xpd(
-        K_ES,
+    let client_early_traffic_secret =
+        xpd(hash_algorithm, &early_secret, bytes(&LABEL_C_E_TRAFFIC), tx)?;
+    let early_exporter_master_secret = xpd(
         hash_algorithm,
         &early_secret,
         bytes(&LABEL_E_EXP_MASTER),
@@ -103,9 +104,9 @@ pub(crate) fn derive_0rtt_keys(
     let sender_write_key_iv = derive_aead_key_iv(
         hash_algorithm,
         aead_algoorithm,
-        &client_early_traffic_secret,
+        &client_early_traffic_secret.val,
     )?;
-    Ok((sender_write_key_iv, early_exporter_master_secret))
+    Ok((sender_write_key_iv, early_exporter_master_secret.val))
 }
 
 pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
@@ -131,43 +132,58 @@ pub(crate) fn derive_hk_ms(
     } else {
         zero_key(ha)
     };
-    let (K_ES, early_secret) = xtr(PSK, ZeroSalt, ha, &psk, &zero_key(ha))?;
+    let early_secret = xtr(
+        ha,
+        &TagKey {
+            tag: PSK,
+            val: psk,
+        },
+        &TagKey {
+            tag: ZeroSalt,
+            val: zero_key(ha),
+        },
+    )?;
     let digest_emp = hash_empty(ha)?;
-    let (K_ESalt, derived_secret) =
-        xpd(K_ES, ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
-    let (K_HS, handshake_secret) = xtr(K_ESalt, DH, ha, shared_secret, &derived_secret)?;
-    let (K_CHT, client_handshake_traffic_secret) = xpd(
-        K_HS,
+    let derived_secret = xpd(ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
+    let handshake_secret = xtr(
+        ha,
+        &TagKey {
+            tag: DH,
+            val: shared_secret.clone(),
+        },
+        &derived_secret,
+    )?;
+    let client_handshake_traffic_secret = xpd(
         ha,
         &handshake_secret,
         bytes(&LABEL_C_HS_TRAFFIC),
         transcript_hash,
     )?;
-    let (K_SHT, server_handshake_traffic_secret) = xpd(
-        K_HS,
+    let server_handshake_traffic_secret = xpd(
         ha,
         &handshake_secret,
         bytes(&LABEL_S_HS_TRAFFIC),
         transcript_hash,
     )?;
-    let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret)?;
-    let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret)?;
-    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret)?;
-    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
-    let (K_HSalt, master_secret_) = xpd(
-        K_HS,
+    let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret.val)?;
+    let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret.val)?;
+    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret.val)?;
+    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret.val)?;
+    let master_secret_ = xpd(ha, &handshake_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
+    let master_secret = xtr(
         ha,
-        &handshake_secret,
-        bytes(&LABEL_DERIVED),
-        &digest_emp,
+        &TagKey {
+            tag: ZeroIKM,
+            val: zero_key(ha),
+        },
+        &master_secret_,
     )?;
-    let (K_AS, master_secret) = xtr(K_HSalt, ZeroIKM, ha, &zero_key(ha), &master_secret_)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
         client_finished_key,
         server_finished_key,
-        master_secret,
+        master_secret.val,
     ))
 }
 
@@ -178,17 +194,17 @@ pub(crate) fn derive_app_keys(
     master_secret: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, AeadKeyIV, Key), TLSError> {
-    let (_, client_application_traffic_secret_0) =
-        xpd(AS, ha, master_secret, bytes(&LABEL_C_AP_TRAFFIC), tx)?;
-    let (_, server_application_traffic_secret_0) =
-        xpd(AS, ha, master_secret, bytes(&LABEL_S_AP_TRAFFIC), tx)?;
-    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0)?;
-    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0)?;
-    let (_, exporter_master_secret) = xpd(AS, ha, master_secret, bytes(&LABEL_EXP_MASTER), tx)?;
+    let client_application_traffic_secret_0 =
+        xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_C_AP_TRAFFIC), tx)?;
+    let server_application_traffic_secret_0 =
+        xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_S_AP_TRAFFIC), tx)?;
+    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0.val)?;
+    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0.val)?;
+    let exporter_master_secret = xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_EXP_MASTER), tx)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
-        exporter_master_secret,
+        exporter_master_secret.val,
     ))
 }
 
@@ -197,7 +213,7 @@ pub(crate) fn derive_rms(
     master_secret: &Key,
     tx: &Digest,
 ) -> Result<Key, TLSError> {
-    let (_, key) = xpd(AS, ha, master_secret, bytes(&LABEL_RES_MASTER), tx)?;
+    let key = xpd(ha, &TagKey {tag: AS, val: master_secret.clone()}, bytes(&LABEL_RES_MASTER), tx)?.val;
     Ok(key)
 }
 
@@ -299,33 +315,35 @@ fn convert_label(label: Bytes) -> Option<Label> {
     }
 }
 
-type TagKey = (TLSnames, Key);
+#[derive(Clone)]
+struct TagKey {
+    tag: TLSnames,
+    val: Key,
+}
 
-pub(crate) fn xtr(
-    k_a: TLSnames,
-    k_b: TLSnames,
-    alg: &HashAlgorithm,
-    ikm: &Bytes,
-    salt: &Bytes,
-) -> Result<TagKey, TLSError> {
-    let k_n = match (k_a, k_b) {
+pub(crate) fn xtr(alg: &HashAlgorithm, ikm: &TagKey, salt: &TagKey) -> Result<TagKey, TLSError> {
+    let k_n = match (ikm.tag, salt.tag) {
         (PSK, ZeroSalt) => ES,
-        (ESalt, DH) => HS,
-        (HSalt, ZeroIKM) => AS,
+        // (ESalt, DH) => HS,
+        (DH, ESalt) => HS, // TODO: Should use ^ instead
+        // (HSalt, ZeroIKM) => AS,
+        (ZeroIKM, HSalt) => AS, // TODO: should use ^ instead
         _ => Err(INCORRECT_STATE)?,
     };
 
-    Ok((k_n, hkdf_extract(alg, ikm, salt)?))
+    Ok(TagKey {
+        tag: k_n,
+        val: hkdf_extract(alg, &ikm.val, &salt.val)?,
+    })
 }
 
 fn xpd(
-    k: TLSnames,
     hash_algorithm: &HashAlgorithm,
-    key: &Key,
+    key: &TagKey,
     label: Bytes,
     transcript_hash: &Digest,
 ) -> Result<TagKey, TLSError> {
-    let n: TLSnames = match (k, convert_label(label.clone())) {
+    let n: TLSnames = match (key.tag, convert_label(label.clone())) {
         (ES, Some(EXT_BINDER__ | RES_BINDER__)) => Bind,
         (Bind, None) => Binder,
         (ES, Some(C_E_TRAFFIC_)) => CET,
@@ -346,14 +364,14 @@ fn xpd(
         _ => Err(INCORRECT_STATE)?,
     };
 
-    Ok((
-        n,
-        hkdf_expand_label(
+    Ok(TagKey {
+        tag: n,
+        val: hkdf_expand_label(
             hash_algorithm,
-            key,
+            &key.val,
             label,
             transcript_hash,
             hash_algorithm.hash_len(),
         )?,
-    ))
+    })
 }
