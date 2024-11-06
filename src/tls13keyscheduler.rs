@@ -35,14 +35,15 @@ fn hkdf_expand_label(
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
+    let (K_ES, early_secret) = xtr(PSK, ZeroSalt, ha, k, &zero_key(ha))?;
     Ok(xpd(
-        ES,
+        K_ES,
         ha,
         &early_secret,
         bytes(&LABEL_RES_BINDER),
         &hash_empty(ha)?,
-    )?.1)
+    )?
+    .1)
 }
 
 /// Derive an AEAD key and iv.
@@ -78,11 +79,22 @@ pub(crate) fn derive_0rtt_keys(
     key: &Key,
     tx: &Digest,
 ) -> Result<(AeadKeyIV, Key), TLSError> {
-    let early_secret = hkdf_extract(hash_algorithm, key, &zero_key(hash_algorithm))?;
-    let (_, client_early_traffic_secret) =
-        xpd(ES, hash_algorithm, &early_secret, bytes(&LABEL_C_E_TRAFFIC), tx)?;
-    let (_, early_exporter_master_secret) = xpd(
-        ES,
+    let (K_ES, early_secret) = xtr(
+        PSK,
+        ZeroSalt,
+        hash_algorithm,
+        key,
+        &zero_key(hash_algorithm),
+    )?;
+    let (K_CET, client_early_traffic_secret) = xpd(
+        K_ES,
+        hash_algorithm,
+        &early_secret,
+        bytes(&LABEL_C_E_TRAFFIC),
+        tx,
+    )?;
+    let (K_EEM, early_exporter_master_secret) = xpd(
+        K_ES,
         hash_algorithm,
         &early_secret,
         bytes(&LABEL_E_EXP_MASTER),
@@ -119,19 +131,20 @@ pub(crate) fn derive_hk_ms(
     } else {
         zero_key(ha)
     };
-    let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
+    let (K_ES, early_secret) = xtr(PSK, ZeroSalt, ha, &psk, &zero_key(ha))?;
     let digest_emp = hash_empty(ha)?;
-    let (_, derived_secret) = xpd(ES, ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
-    let handshake_secret = hkdf_extract(ha, shared_secret, &derived_secret)?;
-    let (_, client_handshake_traffic_secret) = xpd(
-        HS,
+    let (K_ESalt, derived_secret) =
+        xpd(K_ES, ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
+    let (K_HS, handshake_secret) = xtr(K_ESalt, DH, ha, shared_secret, &derived_secret)?;
+    let (K_CHT, client_handshake_traffic_secret) = xpd(
+        K_HS,
         ha,
         &handshake_secret,
         bytes(&LABEL_C_HS_TRAFFIC),
         transcript_hash,
     )?;
-    let (_, server_handshake_traffic_secret) = xpd(
-        HS,
+    let (K_SHT, server_handshake_traffic_secret) = xpd(
+        K_HS,
         ha,
         &handshake_secret,
         bytes(&LABEL_S_HS_TRAFFIC),
@@ -141,14 +154,14 @@ pub(crate) fn derive_hk_ms(
     let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret)?;
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
-    let (_, master_secret_) = xpd(
-        HS,
+    let (K_HSalt, master_secret_) = xpd(
+        K_HS,
         ha,
         &handshake_secret,
         bytes(&LABEL_DERIVED),
         &digest_emp,
     )?;
-    let master_secret = hkdf_extract(ha, &zero_key(ha), &master_secret_)?;
+    let (K_AS, master_secret) = xtr(K_HSalt, ZeroIKM, ha, &zero_key(ha), &master_secret_)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
@@ -286,13 +299,32 @@ fn convert_label(label: Bytes) -> Option<Label> {
     }
 }
 
+type TagKey = (TLSnames, Key);
+
+pub(crate) fn xtr(
+    k_a: TLSnames,
+    k_b: TLSnames,
+    alg: &HashAlgorithm,
+    ikm: &Bytes,
+    salt: &Bytes,
+) -> Result<TagKey, TLSError> {
+    let k_n = match (k_a, k_b) {
+        (PSK, ZeroSalt) => ES,
+        (ESalt, DH) => HS,
+        (HSalt, ZeroIKM) => AS,
+        _ => Err(INCORRECT_STATE)?,
+    };
+
+    Ok((k_n, hkdf_extract(alg, ikm, salt)?))
+}
+
 fn xpd(
     k: TLSnames,
     hash_algorithm: &HashAlgorithm,
     key: &Key,
     label: Bytes,
     transcript_hash: &Digest,
-) -> Result<(TLSnames, Bytes), TLSError> {
+) -> Result<TagKey, TLSError> {
     let n: TLSnames = match (k, convert_label(label.clone())) {
         (ES, Some(EXT_BINDER__ | RES_BINDER__)) => Bind,
         (Bind, None) => Binder,
@@ -325,126 +357,3 @@ fn xpd(
         )?,
     ))
 }
-
-// fn nextKeys<T>(k : TLSnames, ha : HashAlgorithm, r: Option<T>, d: Bytes){
-//     match k {
-//         PSK => { // Es
-//     //         let _ = ES;
-//     //         let _ = hkdf-extract([0;len(H)], [0;len(H)]);
-
-//         },
-//         ES => { // Bind
-
-//         },
-//         Bind => { // Binder
-//             derive_binder_key(&ha,&d);
-//         },
-//         Es => { // Binder
-//             derive_binder_key(&ha,&d);
-//         },
-//         _ => {
-
-//         },
-//     }
-// }
-
-// struct TagKey {
-//     alg : Option<HashAlgorithm>,
-//     tag : Bytes,
-// }
-
-// fn xtr(k1: TagKey, k2: TagKey) -> Result<(), TLSError> {
-//     let alg: HashAlgorithm;
-
-//     let ut_k1 : Bytes;
-//     let ut_k2 : Bytes;
-
-//     match k1.alg {
-//         None => {
-//             alg = k2.alg?;
-//             k2 = k2.alg?;
-//             // k2 = untag(k2.unwrap())
-
-//             // let alg = k2.hash;
-//             // k2 = untag(k2);
-//         }
-//         Some(alg) => {
-//             // k1 = untag(k1);
-//         }
-//     }
-
-//     Ok(())
-//     // let key_bytes: Bytes = Bytes(Vec::new());
-//     // return hmac_tag(alg, key_bytes);
-
-//     // let k = alg.hmac_algorithm(k1, k2);
-//     // return hmac_tag(alg, k);
-// }
-
-// fn xtr_alg(k1, k2) { hmac_alg(k1, k2) }
-
-// // xpd<name, label, parent handle, other arguments>.
-
-// // n: name, l: level
-// fn xpd<const n: String, const l : usize>(h1,r,args) {
-//     let n1, _ = PrntN(n);
-//     let label = Labels(n,r);
-//     let h = xpd<n,label,h1,argrs>;
-
-// }
-
-// pub(crate) fn early_phase(k_psk : &Key, k0_salt : &Key, kres_salt) {
-//     return k_binder;
-// }
-
-// // xpd(·, [], ·) as an alias for hmac(·, ·)
-// pub(crate) fn next_keys()
-// {
-//     // Trafic secrets for
-
-//     // 0-RTT data
-//     k_cet = xpd(k_es, c e traffic, d_es);
-//     return k_cet; // Client early traffic
-
-//     // Hanshake messages
-//     return (k_cht, k_sht); // client/server handshake traffic
-
-//     // 1-RTT data
-//     return (k_cat, k_sat); // client/server application traffic
-
-//     // expoter secrets
-//     return (k_eem, k_eam); //
-// }
-
-// pub(crate) fn gen_dh()
-// {
-
-// }
-
-///////////////
-// No implementation of a Kem Scheme (except KemDem)
-// No hash algorithm
-// --
-// No signature scheme
-// No AeadAlgorithm (except Aes?)
-
-//////////////////////////
-// hmac_tag
-
-// hkdf_algorithm    = alg(.)
-// hkdf_extract      = xtr(.)
-// hkdf_expand       = xpd(.)
-
-// (a : Algorithm).hash = hash(t) ?
-
-// Algorithms: G {secp256r1, secp384r1, secp521r1, x25519, x448}
-// Given by tls13crypto::KemScheme
-
-// Extensible set of hash functions: H = {sha256, sha384, sha512} (Fips 180-2)
-// Given by tls13crypto::HashAlgorithm
-// For every alg in H, we write len(alg) for the output length of alg.
-
-// Hence we rely on collision-resistence of the functions hash-alg, xtr-alg, xpd-alg for every alg \in H.
-
-// f-alg.
-// Hash oracle takes as input a test t from the domain of f-alg and returns its digest d.
