@@ -4,37 +4,14 @@ use crate::{
     server::{lookup_db, ServerDB, ServerInfo},
     tls13cert::{cert_public_key, rsa_public_key, verification_key_from_cert},
     tls13crypto::{
-        hkdf_expand, hkdf_extract, hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign,
-        sign_rsa, verify, zero_key, AeadAlgorithm, AeadKey, AeadKeyIV, Algorithms, Digest,
-        HashAlgorithm, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
+        hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign, sign_rsa, verify,
+        Algorithms, Digest, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
+    tls13keyscheduler::*,
     tls13record::*,
     tls13utils::*,
-    tls13keyscheduler::*,
 };
-
-/* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
-
-/// HKDF expand with a `label`.
-fn hkdf_expand_label(
-    hash_algorithm: &HashAlgorithm,
-    key: &Key,
-    label: Bytes,
-    context: &Bytes,
-    len: usize,
-) -> Result<Key, TLSError> {
-    if len >= 65536 {
-        Err(PAYLOAD_TOO_LONG)
-    } else {
-        let lenb = u16_as_be_bytes(U16(len as u16));
-        let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
-        let info = encode_length_u8(tls13_label.as_raw())?
-            .concat(encode_length_u8(context.as_raw())?)
-            .prefix(&lenb);
-        hkdf_expand(hash_algorithm, key, &info, len)
-    }
-}
 
 /* Handshake State Machine */
 /* We implement a simple linear state machine:
