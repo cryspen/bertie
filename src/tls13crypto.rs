@@ -484,6 +484,7 @@ pub enum KemScheme {
     Secp384r1,
     Secp521r1,
     X25519Kyber768Draft00,
+    X25519MlKem768,
 }
 
 impl KemScheme {
@@ -493,6 +494,7 @@ impl KemScheme {
             KemScheme::X25519 => Ok(libcrux_kem::Algorithm::X25519),
             KemScheme::Secp256r1 => Ok(libcrux_kem::Algorithm::Secp256r1),
             KemScheme::X25519Kyber768Draft00 => Ok(libcrux_kem::Algorithm::X25519Kyber768Draft00),
+            KemScheme::X25519MlKem768 => Ok(libcrux_kem::Algorithm::X25519MlKem768Draft00),
             _ => tlserr(UNSUPPORTED_ALGORITHM),
         }
     }
@@ -686,6 +688,7 @@ impl Algorithms {
             KemScheme::Secp384r1 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::Secp521r1 => tlserr(UNSUPPORTED_ALGORITHM),
             KemScheme::X25519Kyber768Draft00 => Ok([0x63, 0x99].into()), // same as https://github.com/google/boringssl/blob/66d274dfbab9e4f84599f06504987c418ca087d9/include/openssl/ssl.h#L2540
+            KemScheme::X25519MlKem768 => Ok([0x11, 0xec].into()), // cf. https://datatracker.ietf.org/doc/draft-kwiatkowski-tls-ecdhe-mlkem/
         }
     }
 
@@ -750,6 +753,9 @@ impl TryFrom<&str> for Algorithms {
             "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00" => {
                 Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00)
             }
+            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKEM768" => {
+                Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768)
+            }
             _ => Err(Error::UnknownCiphersuite(format!(
                 "Invalid ciphersuite description: {}",
                 s
@@ -807,6 +813,19 @@ pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00: Al
         false,
         false,
     );
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * X25519MlKem768 for key exchange (cf. https://datatracker.ietf.org/doc/draft-kwiatkowski-tls-ecdhe-mlkem/)
+/// * EcDSA P256 SHA256 for signatures
+pub const SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768: Algorithms = Algorithms::new(
+    HashAlgorithm::SHA256,
+    AeadAlgorithm::Chacha20Poly1305,
+    SignatureScheme::EcdsaSecp256r1Sha256,
+    KemScheme::X25519MlKem768,
+    false,
+    false,
+);
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with
