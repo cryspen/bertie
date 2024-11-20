@@ -45,7 +45,7 @@ impl<T: Read + Write> TlsStream<T> for ClientState<T> {
             .map_err(|e| e.into())
     }
 
-    fn read_tls(&mut self) -> Result<Vec<u8>, BertieError> {
+    fn read_tls(&mut self) -> Result<Option<Vec<u8>>, BertieError> {
         let mut state = match self.cstate.take() {
             Some(state) => state,
             None => return Err(BertieError::InvalidState),
@@ -61,7 +61,7 @@ impl<T: Read + Write> TlsStream<T> for ClientState<T> {
             }
         };
         self.cstate = Some(state);
-        Ok(application_data.into_raw().declassify())
+        Ok(Some(application_data.into_raw().declassify()))
     }
 
     fn stream_mut(&mut self) -> &mut T {
@@ -215,7 +215,7 @@ impl BertieStream<ClientState<TcpStream>> {
     /// Read from the stream.
     ///
     /// This reads from the encrypted TLS channel
-    pub fn read(&mut self) -> Result<Vec<u8>, BertieError> {
+    pub fn read(&mut self) -> Result<Option<Vec<u8>>, BertieError> {
         self.state.read_tls()
     }
 
@@ -253,7 +253,7 @@ mod tests {
         stream
             .write(request.as_bytes())
             .expect("Error writing to Bertie stream");
-        let response = stream.read().unwrap();
+        let response = stream.read().unwrap().unwrap();
         let response_string = String::from_utf8_lossy(&response);
         eprintln!("{response_string:}");
     }

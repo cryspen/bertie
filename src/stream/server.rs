@@ -7,14 +7,9 @@ use std::{
 use rand::{CryptoRng, RngCore};
 
 use crate::{
-    server::ServerDB,
-    tls13cert::{rsa_private_key, verification_key_from_cert},
-    tls13crypto::{Algorithms, SignatureKey, SignatureScheme},
-    tls13utils::{
-        AppData, Bytes, INVALID_COMPRESSION_LIST, MISSING_KEY_SHARE, PARSE_FAILED,
-        PROTOCOL_VERSION_ALERT,
-    },
-    Server,
+    server::ServerDB, tls13cert::{rsa_private_key, verification_key_from_cert}, tls13crypto::{Algorithms, SignatureKey, SignatureScheme}, tls13utils::{
+        AppData, Bytes, INCORRECT_STATE, INVALID_COMPRESSION_LIST, MISSING_KEY_SHARE, PARSE_FAILED, PROTOCOL_VERSION_ALERT
+    }, ContentType, Server
 };
 
 use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
@@ -58,23 +53,33 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
             .map_err(|e| e.into())
     }
 
-    fn read_tls(&mut self) -> Result<Vec<u8>, BertieError> {
+    fn read_tls(&mut self) -> Result<Option<Vec<u8>>, BertieError> {
         let mut sstate = match self.sstate.take() {
             Some(state) => state,
             None => return Err(BertieError::InvalidState),
         };
 
-        let application_data = loop {
+        loop {
             let record = read_record(&mut self.read_buffer, &mut self.stream)?;
-            let ad;
-            (ad, sstate) = sstate.read(&record.into())?;
-            match ad {
-                Some(application_data) => break application_data,
-                None => continue,
+            let content_type;
+            let payload;
+            (content_type, payload, sstate) = sstate.read(&record.into())?;
+            match content_type {
+                ContentType::Alert => {println!("Got an alert: {:?}", payload); return Ok(None)}
+                ContentType::ApplicationData => {
+                    match payload {
+                        Some(application_data) => {
+                            let application_data = AppData::new(application_data);
+                            self.sstate = Some(sstate);
+                            return Ok(Some(application_data.into_raw().declassify()))
+                        },
+                        None => continue,
+                    }
+                }
+                _ => {return Err(BertieError::InvalidState)}
             }
         };
-        self.sstate = Some(sstate);
-        Ok(application_data.into_raw().declassify())
+
     }
 
     fn stream_mut(&mut self) -> &mut Stream {
@@ -119,7 +124,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// let client_handle = thread::spawn(move || {
     ///     let mut stream = BertieStream::client(host, port, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, &mut thread_rng()).expect("Error connecting to server");
     ///     stream.write(b"Hello, I'm the Bertie test client.").unwrap();
-    ///     let server_msg = stream.read().unwrap();
+    ///     let server_msg = stream.read().unwrap().unwrap();
     ///     assert_eq!(
     ///         &b"Greetings, I'm the Bertie test server.\nBy."[..],
     ///         &server_msg[..]
@@ -145,7 +150,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// // Handshake finished.
     ///
     /// // Read client application messages.
-    /// let client_msg = server.read().unwrap();
+    /// let client_msg = server.read().unwrap().unwrap();
     /// eprintln!("Client says: {}", String::from_utf8_lossy(&client_msg));
     /// assert_eq!(&b"Hello, I'm the Bertie test client."[..], &client_msg[..]);
     /// server
@@ -227,6 +232,7 @@ impl BertieStream<ServerState<TcpStream>> {
     pub fn close(mut self) -> Result<(), BertieError> {
         // send a close_notify alert
         self.write_all(&[21, 03, 03, 00, 02, 1, 00])?;
+        self.read().unwrap();
         Ok(())
     }
 
@@ -258,7 +264,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// Read from the stream.
     ///
     /// This reads from the encrypted TLS channel
-    pub fn read(&mut self) -> Result<Vec<u8>, BertieError> {
+    pub fn read(&mut self) -> Result<Option<Vec<u8>>, BertieError> {
         self.state.read_tls()
     }
 

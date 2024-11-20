@@ -78,8 +78,14 @@ pub fn main() -> anyhow::Result<()> {
         match BertieStream::server(&host, port, stream, ciphersuite, &cli.cert, &cli.key) {
             Ok(mut server) => {
                 server.connect(&mut thread_rng()).unwrap();
+                if let Some(request) = server.read().unwrap() {
+                    println!("{}", String::from_utf8(request).unwrap());                                    } else {
+                    println!("Empyt request")
+                }
+
+
                 server
-                    .write(b"Hello, this is the Bertie TLS 1.3 server.\n")
+                    .write(b"HTTP/1.1 200 OK\n\nNice to talking to you, this is Bertie speaking.")
                     .unwrap();
                 server.close().unwrap();
                 println!("Connection to {} succeeded; closed connection.", host);

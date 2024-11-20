@@ -145,7 +145,7 @@ fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
     let mut server = server.join().unwrap();
     server.write(msg).unwrap();
 
-    let data = client.read().unwrap();
+    let data = client.read().unwrap().unwrap();
     assert_eq!(data, msg);
     eprintln!("{}", std::str::from_utf8(&data).unwrap());
 

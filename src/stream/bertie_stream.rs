@@ -29,7 +29,7 @@ pub trait TlsStream<T: Write + Read> {
     fn write_tls(&mut self, bytes: &[u8]) -> Result<(), BertieError>;
 
     /// Read bytes from the TLS connection.
-    fn read_tls(&mut self) -> Result<Vec<u8>, BertieError>;
+    fn read_tls(&mut self) -> Result<Option<Vec<u8>>, BertieError>;
 
     /// Get the mutable underlying stream of type `T`.
     fn stream_mut(&mut self) -> &mut T;

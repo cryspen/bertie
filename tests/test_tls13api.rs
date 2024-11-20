@@ -166,8 +166,8 @@ fn test_full_round_trip() {
                                         let data = Bytes::from(b"Hello server, here is the client");
                                         let (ap, client) =
                                             client.write(AppData::new(data.clone())).unwrap();
-                                        let (apo, server) = server.read(&ap).unwrap();
-                                        assert!(eq(&data, apo.unwrap().as_raw()));
+                                        let (_content_type, apo, server) = server.read(&ap).unwrap();
+                                        assert!(eq(&data, &apo.unwrap()));
 
                                         // Send data from server to client.
                                         let data =

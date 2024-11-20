@@ -134,7 +134,7 @@ impl Client {
     pub fn read(self, message_bytes: &Bytes) -> Result<(Option<AppData>, Self), TLSError> {
         match self {
             Client::Client1(state, cipher1) => {
-                let (ty, hd, cipher1) = decrypt_data_or_hs(message_bytes, cipher1)?;
+                let (ty, hd, cipher1) = decrypt_content_type(message_bytes, cipher1)?;
                 match ty {
                     ContentType::ApplicationData => {
                         Ok((Some(AppData::new(hd)), Client::Client1(state, cipher1)))
@@ -265,11 +265,15 @@ impl Server {
     /// application data as bytes option, and the new [`Server`] state as the second element.
     /// If there's no application data, the first element is [`None`].
     /// If an error occurs, it returns a [`TLSError`].
-    pub fn read(self, application_data: &Bytes) -> Result<(Option<AppData>, Self), TLSError> {
+    pub fn read(self, ciphertext: &Bytes) -> Result<(ContentType, Option<Bytes>, Self), TLSError> {
         match self {
             Server::Server1(sstate, cipher1) => {
-                let (ad, cipher1) = decrypt_data(application_data, cipher1)?;
-                Ok((Some(ad), Server::Server1(sstate, cipher1)))
+                let (content_type, payload, cipher1) = decrypt_content_type(ciphertext, cipher1)?;
+                if payload.len() == 0 {
+                    Ok((content_type, None, Server::Server1(sstate, cipher1)))
+                } else {
+                    Ok((content_type, Some(payload), Server::Server1(sstate, cipher1)))
+                }
             }
             _ => Err(INCORRECT_STATE),
         }

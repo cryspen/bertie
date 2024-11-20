@@ -241,7 +241,7 @@ pub fn encrypt_data(
     Ok((rec, DuplexCipherState1(ae, kiv, n + 1, x, y, exp)))
 }
 
-pub fn decrypt_data_or_hs(
+pub fn decrypt_content_type(
     ciphertext: &Bytes,
     st: DuplexCipherState1,
 ) -> Result<(ContentType, Bytes, DuplexCipherState1), TLSError> {

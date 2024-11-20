@@ -75,7 +75,7 @@ fn main() -> anyhow::Result<()> {
     stream
         .write(request.as_bytes())
         .expect("Error writing to Bertie stream");
-    let response = stream.read().unwrap();
+    let response = stream.read().unwrap().unwrap();
     let response_string = String::from_utf8_lossy(&response);
 
     if response_string.is_empty() {
