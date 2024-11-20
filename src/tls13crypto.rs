@@ -192,7 +192,9 @@ pub(crate) fn hkdf_extract(
     ikm: &Bytes,
     salt: &Bytes,
 ) -> Result<Bytes, TLSError> {
-    Ok(hkdf::extract(hkdf_algorithm(alg)?, salt.declassify(), ikm.declassify()).into())
+    hkdf::extract(hkdf_algorithm(alg)?, salt.declassify(), ikm.declassify())
+        .map(|bytes| bytes.into())
+        .map_err(|_| CRYPTO_ERROR)
 }
 
 /// HKDF Expand.
