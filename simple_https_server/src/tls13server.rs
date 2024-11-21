@@ -2,7 +2,11 @@
 //! It waits for a connection at port 443, receives an HTTP "GET /", and prints a constant string
 //! WARNING: This code is not in hacspec since it need to use TCP etc.
 
-use std::{net::TcpListener, time::Duration};
+use std::{
+    io::{BufReader, Read},
+    net::TcpListener,
+    time::Duration,
+};
 
 use bertie::{
     stream::BertieStream, tls13crypto::Algorithms,
@@ -57,7 +61,7 @@ pub fn main() -> anyhow::Result<()> {
 
     let cli = Cli::parse();
 
-    let host = cli.host.unwrap_or("localhost".to_string());
+    let host = cli.host.unwrap_or("0.0.0.0".to_string());
     let port = cli.port.unwrap_or(443);
 
     let ciphersuite = cli
@@ -79,15 +83,16 @@ pub fn main() -> anyhow::Result<()> {
             Ok(mut server) => {
                 server.connect(&mut thread_rng()).unwrap();
                 if let Some(request) = server.read().unwrap() {
-                    println!("{}", String::from_utf8(request).unwrap());                                    } else {
-                    println!("Empyt request")
+                    println!("{}", String::from_utf8(request).unwrap());
+                } else {
+                    println!("Empty request")
                 }
 
+                let mut file = std::fs::File::open("index.html")?;
+                let mut contents = b"HTTP/1.1 200 OK\nContent-Type: text/html\n\n".to_vec();
+                file.read_to_end(&mut contents).unwrap();
+                server.write(&contents).unwrap();
 
-                server
-                    .write(b"HTTP/1.1 200 OK\n\nNice to talking to you, this is Bertie speaking.")
-                    .unwrap();
-                server.close().unwrap();
                 println!("Connection to {} succeeded; closed connection.", host);
             }
             Err(error) => {

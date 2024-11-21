@@ -17,7 +17,7 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = {version = "0.0.2-alpha.1", features = ["pre-verification", "kyber"]}
+libcrux-kem = {path = "/home/jonas/git/libcrux/libcrux-kem", features = ["pre-verification","kyber"]}
 libcrux = { version = "0.0.2-alpha.1", features = [
     "rand",
 ]}

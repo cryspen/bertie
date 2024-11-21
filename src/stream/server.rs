@@ -7,9 +7,14 @@ use std::{
 use rand::{CryptoRng, RngCore};
 
 use crate::{
-    server::ServerDB, tls13cert::{rsa_private_key, verification_key_from_cert}, tls13crypto::{Algorithms, SignatureKey, SignatureScheme}, tls13utils::{
-        AppData, Bytes, INCORRECT_STATE, INVALID_COMPRESSION_LIST, MISSING_KEY_SHARE, PARSE_FAILED, PROTOCOL_VERSION_ALERT
-    }, ContentType, Server
+    server::ServerDB,
+    tls13cert::{rsa_private_key, verification_key_from_cert},
+    tls13crypto::{Algorithms, SignatureKey, SignatureScheme},
+    tls13utils::{
+        AppData, Bytes, INCORRECT_STATE, INVALID_COMPRESSION_LIST, MISSING_KEY_SHARE, PARSE_FAILED,
+        PROTOCOL_VERSION_ALERT,
+    },
+    ContentType, Server,
 };
 
 use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
@@ -65,21 +70,21 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
             let payload;
             (content_type, payload, sstate) = sstate.read(&record.into())?;
             match content_type {
-                ContentType::Alert => {println!("Got an alert: {:?}", payload); return Ok(None)}
-                ContentType::ApplicationData => {
-                    match payload {
-                        Some(application_data) => {
-                            let application_data = AppData::new(application_data);
-                            self.sstate = Some(sstate);
-                            return Ok(Some(application_data.into_raw().declassify()))
-                        },
-                        None => continue,
-                    }
+                ContentType::Alert => {
+                    println!("Got an alert: {:?}", payload);
+                    return Ok(None);
                 }
-                _ => {return Err(BertieError::InvalidState)}
+                ContentType::ApplicationData => match payload {
+                    Some(application_data) => {
+                        let application_data = AppData::new(application_data);
+                        self.sstate = Some(sstate);
+                        return Ok(Some(application_data.into_raw().declassify()));
+                    }
+                    None => continue,
+                },
+                _ => return Err(BertieError::InvalidState),
             }
-        };
-
+        }
     }
 
     fn stream_mut(&mut self) -> &mut Stream {
@@ -231,7 +236,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// Close the connection.
     pub fn close(mut self) -> Result<(), BertieError> {
         // send a close_notify alert
-        self.write_all(&[21, 03, 03, 00, 02, 1, 00])?;
+        self.write_all(&[21, 03, 03, 00, 02, 2, 00])?;
         self.read().unwrap();
         Ok(())
     }

@@ -557,6 +557,8 @@ pub(crate) fn kem_encap(
     // event!(Level::TRACE, "  pk:  {}", pk.as_hex());
 
     let pk = into_raw(alg, pk.clone());
+    println!("Alg: {:?}", alg.libcrux_kem_algorithm()?);
+    println!("key: {:?}", pk.declassify());
     let pk = PublicKey::decode(alg.libcrux_kem_algorithm()?, &pk.declassify()).unwrap();
     let res = pk.encapsulate(rng);
     match res {
