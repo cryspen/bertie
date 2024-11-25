@@ -755,7 +755,7 @@ impl TryFrom<&str> for Algorithms {
             "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00" => {
                 Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00)
             }
-            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKEM768" => {
+            "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MLKEM768" => {
                 Ok(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768)
             }
             _ => Err(Error::UnknownCiphersuite(format!(
