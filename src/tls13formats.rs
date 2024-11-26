@@ -721,9 +721,8 @@ pub(crate) fn server_hello(
     let ks = server_key_shares(algs, gy.clone())?;
     let sv = server_supported_version(algs)?;
     let mut exts = ks.concat(sv);
-    match algs.psk_mode() {
-        true => exts = exts.concat(server_pre_shared_key(algs)?),
-        false => {}
+    if algs.psk_mode() {
+        exts = exts.concat(server_pre_shared_key(algs)?);
     }
     let encoded_extensions = encode_length_u16(exts)?;
     let sh = HandshakeData::from_bytes(
