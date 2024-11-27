@@ -1,35 +1,11 @@
 use crate::{
     tls13crypto::{
-        hkdf_expand, hkdf_extract, hmac_tag, AeadAlgorithm, AeadKey, AeadKeyIV,
-        Algorithms, Digest, HashAlgorithm, Key, MacKey, Psk,
+        hkdf_expand, hkdf_extract, hmac_tag, AeadAlgorithm, AeadKey, AeadKeyIV, Algorithms, Digest,
+        HashAlgorithm, Key, MacKey, Psk,
     },
     tls13formats::*,
     tls13utils::*,
 };
-
-/// Get an empty key of the correct size.
-pub(crate) fn zero_salt(alg: &HashAlgorithm) -> TagKey {
-    TagKey {
-        tag: ZeroSalt,
-        val: Bytes::zeroes(alg.hash_len()),
-    }
-}
-
-/// Get an empty key of the correct size.
-pub(crate) fn zero_psk(alg: &HashAlgorithm) -> TagKey {
-    TagKey {
-        tag: PSK,
-        val: Bytes::zeroes(alg.hash_len()),
-    }
-}
-
-/// Get an empty key of the correct size.
-pub(crate) fn zero_ikm(alg: &HashAlgorithm) -> TagKey {
-    TagKey {
-        tag: ZeroIKM,
-        val: Bytes::zeroes(alg.hash_len()),
-    }
-}
 
 /// Get the hash of an empty byte slice.
 fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
@@ -59,11 +35,7 @@ fn hkdf_expand_label(
 }
 
 pub fn derive_binder_key(ha: &HashAlgorithm, k: &TagKey) -> Result<MacKey, TLSError> {
-    let early_secret = xtr(
-        ha,
-        k,
-        &zero_salt(ha),
-    )?;
+    let early_secret = xtr(ha, k, &zero_salt(ha))?;
     Ok(xpd(
         ha,
         &early_secret,
@@ -99,17 +71,19 @@ pub(crate) fn derive_aead_key_iv(
     ))
 }
 
-/// Derive 0-RTT AEAD keys.
-pub(crate) fn derive_0rtt_keys(
+pub(crate) fn next_keys_c_2(
     hash_algorithm: &HashAlgorithm,
-    aead_algoorithm: &AeadAlgorithm,
+    aead_algorithm: &AeadAlgorithm,
     key: &TagKey,
     tx: &Digest,
-) -> Result<(AeadKeyIV, TagKey), TLSError> {
-    let early_secret = xtr(
+) -> Result<(TagKey, TagKey, TagKey), TLSError> {
+    let early_secret = xtr(hash_algorithm, &key, &zero_salt(hash_algorithm))?;
+    let digest_emp = hash_empty(hash_algorithm)?;
+    let derived_secret = xpd(
         hash_algorithm,
-        &key,
-        &zero_salt(hash_algorithm),
+        &early_secret,
+        bytes(&LABEL_DERIVED),
+        &digest_emp,
     )?;
     let client_early_traffic_secret =
         xpd(hash_algorithm, &early_secret, bytes(&LABEL_C_E_TRAFFIC), tx)?;
@@ -119,9 +93,25 @@ pub(crate) fn derive_0rtt_keys(
         bytes(&LABEL_E_EXP_MASTER),
         tx,
     )?;
+    Ok((
+        early_exporter_master_secret,
+        client_early_traffic_secret,
+        derived_secret,
+    ))
+}
+
+/// Derive 0-RTT AEAD keys.
+pub(crate) fn derive_0rtt_keys(
+    hash_algorithm: &HashAlgorithm,
+    aead_algorithm: &AeadAlgorithm,
+    key: &TagKey,
+    tx: &Digest,
+) -> Result<(AeadKeyIV, TagKey), TLSError> {
+    let (early_exporter_master_secret, client_early_traffic_secret, derived_secret) =
+        next_keys_c_2(hash_algorithm, aead_algorithm, key, tx)?;
     let sender_write_key_iv = derive_aead_key_iv(
         hash_algorithm,
-        aead_algoorithm,
+        aead_algorithm,
         &client_early_traffic_secret.val,
     )?;
     Ok((sender_write_key_iv, early_exporter_master_secret))
@@ -148,20 +138,12 @@ pub(crate) fn derive_hk_ms(
     let psk = if let Some(k) = psko {
         &k.clone()
     } else {
-        &zero_psk(ha)
+        &no_psk(ha)
     };
-    let early_secret = xtr(
-        ha,
-        psk,
-        &zero_salt(ha),
-    )?;
+    let early_secret = xtr(ha, psk, &zero_salt(ha))?;
     let digest_emp = hash_empty(ha)?;
     let derived_secret = xpd(ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
-    let handshake_secret = xtr(
-        ha,
-        shared_secret,
-        &derived_secret,
-    )?;
+    let handshake_secret = xtr(ha, shared_secret, &derived_secret)?;
     let client_handshake_traffic_secret = xpd(
         ha,
         &handshake_secret,
@@ -179,11 +161,7 @@ pub(crate) fn derive_hk_ms(
     let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret.val)?;
     let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret.val)?;
     let master_secret_ = xpd(ha, &handshake_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
-    let master_secret = xtr(
-        ha,
-        &zero_ikm(ha),
-        &master_secret_,
-    )?;
+    let master_secret = xtr(ha, &zero_ikm(ha), &master_secret_)?;
     Ok((
         client_write_key_iv,
         server_write_key_iv,
@@ -225,13 +203,13 @@ pub(crate) fn derive_rms(
 /////////////////////////////////////////////////
 
 trait KeySchedule<N> {
-    fn labels(a: N, b: bool) -> [u8; 12]; // Bit string of size 96 (8*12)
+    fn labels(a: N, b: bool) -> Result<Bytes, TLSError>; // Bit string of size 96 (8*12)
     fn prnt_n(a: N) -> (Option<N>, Option<N>);
 }
 
 pub(crate) struct TLSkeyscheduler {}
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub(crate) enum TLSnames {
     ES,
     EEM,
@@ -272,8 +250,9 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
         }
     }
 
-    fn labels(a: TLSnames, b: bool) -> [u8; 12] {
-        match a {
+    fn labels(a: TLSnames, b: bool) -> Result<Bytes, TLSError> {
+        // [u8; 12]
+        Ok(match a {
             // EEM => LABEL_E_EXP_MASTER,
             // CET => LABEL_C_E_TRAFFIC,
             // Binder => LABEL_RES_BINDER,
@@ -281,8 +260,9 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
             CHT => LABEL_C_HS_TRAFFIC,
             CAT => LABEL_C_AP_TRAFFIC,
             SAT => LABEL_S_AP_TRAFFIC,
-            _ => [0; 96 / 8],
+            _ => Err(INCORRECT_STATE)?,
         }
+        .into())
     }
 }
 
@@ -303,21 +283,50 @@ pub(crate) enum Label {
 use Label::*;
 
 fn convert_label(label: Bytes) -> Option<Label> {
-    match &label.declassify()[..] {
-        [101, 120, 116, 032, 098, 105, 110, 100, 101, 114] => Some(EXT_BINDER__),
-        [114, 101, 115, 032, 098, 105, 110, 100, 101, 114] => Some(RES_BINDER__),
-        [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099] => Some(C_E_TRAFFIC_),
-        [101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114] => Some(E_EXP_MASTER),
-        [099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099] => Some(C_AP_TRAFFIC),
-        [115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099] => Some(S_AP_TRAFFIC),
-        [101, 120, 112, 032, 109, 097, 115, 116, 101, 114] => Some(EXP_MASTER__),
-        [114, 101, 115, 032, 109, 097, 115, 116, 101, 114] => Some(RES_MASTER__),
-        [100, 101, 114, 105, 118, 101, 100] => Some(DERIVED_____),
-        [099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099] => Some(C_HS_TRAFFIC),
-        [115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099] => Some(S_HS_TRAFFIC),
-        [82, 69, 83, 85, 77, 80, 84, 73, 79, 78] => Some(RESUMPTION__),
-        _ => None,
+    let l = &label.declassify()[..];
+    if l == [101, 120, 116, 032, 098, 105, 110, 100, 101, 114] {
+        Some(EXT_BINDER__)
+    } else if l == [114, 101, 115, 032, 098, 105, 110, 100, 101, 114] {
+        Some(RES_BINDER__)
+    } else if l == [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099] {
+        Some(C_E_TRAFFIC_)
+    } else if l == [101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114] {
+        Some(E_EXP_MASTER)
+    } else if l == [099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099] {
+        Some(C_AP_TRAFFIC)
+    } else if l == [115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099] {
+        Some(S_AP_TRAFFIC)
+    } else if l == [101, 120, 112, 032, 109, 097, 115, 116, 101, 114] {
+        Some(EXP_MASTER__)
+    } else if l == [114, 101, 115, 032, 109, 097, 115, 116, 101, 114] {
+        Some(RES_MASTER__)
+    } else if l == [100, 101, 114, 105, 118, 101, 100] {
+        Some(DERIVED_____)
+    } else if l == [099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099] {
+        Some(C_HS_TRAFFIC)
+    } else if l == [115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099] {
+        Some(S_HS_TRAFFIC)
+    } else {
+        // if l == [82, 69, 83, 85, 77, 80, 84, 73, 79, 78] =>
+        Some(RESUMPTION__)
     }
+
+    // Matching slice unsupported..
+    // match &label.declassify()[..] {
+    //     [101, 120, 116, 032, 098, 105, 110, 100, 101, 114] => Some(EXT_BINDER__),
+    //     [114, 101, 115, 032, 098, 105, 110, 100, 101, 114] => Some(RES_BINDER__),
+    //     [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099] => Some(C_E_TRAFFIC_),
+    //     [101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114] => Some(E_EXP_MASTER),
+    //     [099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099] => Some(C_AP_TRAFFIC),
+    //     [115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099] => Some(S_AP_TRAFFIC),
+    //     [101, 120, 112, 032, 109, 097, 115, 116, 101, 114] => Some(EXP_MASTER__),
+    //     [114, 101, 115, 032, 109, 097, 115, 116, 101, 114] => Some(RES_MASTER__),
+    //     [100, 101, 114, 105, 118, 101, 100] => Some(DERIVED_____),
+    //     [099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099] => Some(C_HS_TRAFFIC),
+    //     [115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099] => Some(S_HS_TRAFFIC),
+    //     [82, 69, 83, 85, 77, 80, 84, 73, 79, 78] => Some(RESUMPTION__),
+    //     _ => None,
+    // }
 }
 
 #[derive(Clone)]
@@ -380,3 +389,132 @@ fn xpd(
         )?,
     })
 }
+
+struct Handle {
+    name: TLSnames,
+    key: Key,
+    alg: HashAlgorithm,
+    level: u8,
+}
+
+fn xpd_angle(
+    name: TLSnames,
+    label: Bytes,
+    parrent_handle: &Handle,
+    args: &Bytes,
+) -> Result<Handle, TLSError> {
+    let k = xpd(
+        &parrent_handle.alg,
+        &TagKey {
+            tag: parrent_handle.name,
+            val: parrent_handle.key.clone(),
+        },
+        label,
+        args,
+    )?;
+    Ok(Handle {
+        name: k.tag,
+        key: k.val,
+        alg: parrent_handle.alg,
+        level: parrent_handle.level,
+    })
+}
+
+// fn XPD<T, KS : KeySchedule<TLSnames>>(n : TLSnames,l: u8,h1: &Handle,r : bool,args: &Bytes) -> Result<(), TLSError>{
+//     let (n1, _) = KS::prnt_n(n);
+//     let label = KS::labels(n, r)?;
+//     let h = xpd_angle(n,label, h1, args)?;
+//     let (k1,hon) = GET(n1,l,h1);
+
+//     let mut l = l;
+//     let k : TagKey;
+
+//     if n == PSK {
+//         l = l+1;
+//         k = xpd(k1, label, args);
+//     } else {
+//         d = HASH(args);
+//         k = xpd(k1, label, d);
+//     }
+//     let h = SET(n,l,h,hon,k);
+
+//     return h
+// }
+
+// fn next_keys(keys: Vec<&TagKey>, data: Vec<Bytes>) -> Vec<&TagKey> {
+//     match keys.iter().map(|x| x.tag).collect::<Vec<_>>()[..] {
+//         [PSK] => vec![],
+//         [ES] => vec![],
+//         _ => todo!(),
+//     }
+// }
+
+/////////
+// Description from papaer
+/////////
+
+/// Get an empty key of the correct size.
+pub(crate) fn zero_salt(alg: &HashAlgorithm) -> TagKey {
+    TagKey {
+        tag: ZeroSalt,
+        val: Bytes::zeroes(alg.hash_len()),
+    }
+}
+
+/// Get an empty key of the correct size.
+pub(crate) fn no_psk(alg: &HashAlgorithm) -> TagKey {
+    TagKey {
+        tag: PSK,
+        val: Bytes::zeroes(alg.hash_len()),
+    }
+}
+
+/// Get an empty key of the correct size.
+pub(crate) fn zero_ikm(alg: &HashAlgorithm) -> TagKey {
+    TagKey {
+        tag: ZeroIKM,
+        val: Bytes::zeroes(alg.hash_len()),
+    }
+}
+
+////
+// Key package
+////
+
+// fn UNQ(n,h,hon,k) {
+
+// }
+
+// struct KPackage {
+//     n : TLSnames,
+//     l : u8,
+//     K : std::collections::HashMap<[u8; 12], (TagKey, bool)>
+// }
+
+// impl KPackage {
+//     // fn SET(self, h : &Handle, hon : bool, k_star : TagKey){
+//     //     assert!(h.name == self.n);
+//     //     assert!(h.level == self.l);
+//     //     assert!(k_star.alg == h.alg);
+//     //     if self.K[h].is_some() {
+//     //         return h;
+//     //     }
+//     //     let mut k = k_star.untag();
+//     //     assert!(h.alg.len() == k.size());
+//     //     if b {
+//     //         if hon {
+//     //             k = random_sample(h.alg.len())
+//     //         }
+//     //     }
+//     //     UNQ(n,h,hon,k);
+//     //     self.K[h] = (k, hon);
+//     //     return h;
+//     // }
+
+//     fn GET(self, n : TLSnames, l: u8, h : &Handle){
+//         assert!(self.K.contains_key(h));
+//         let (k_star, hon) = self.K[h];
+//         let k = tag(h, k_star);
+//         return (k, hon)
+//     }
+// }

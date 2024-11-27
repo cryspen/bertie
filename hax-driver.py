@@ -35,6 +35,8 @@ sub_parser = parser.add_subparsers(
     help="Extract and typecheck F* etc. from the Bertie Rust code.",
 )
 extract_parser = sub_parser.add_parser("extract-fstar")
+extract_parser = sub_parser.add_parser("extract-ssprove")
+extract_parser = sub_parser.add_parser("extract-coq")
 extract_proverif_parser = sub_parser.add_parser("extract-proverif")
 typecheck_parser = sub_parser.add_parser("typecheck")
 patch_proverif_parser = sub_parser.add_parser("patch-proverif")
@@ -98,6 +100,44 @@ if options.sub == "extract-fstar":
             "fstar",
             "--interfaces",
             "+** +!bertie::tls13crypto::** +!bertie::tls13utils::**"
+        ],
+        cwd=".",
+        env=hax_env,
+    )
+elif options.sub == "extract-ssprove":
+    # The extract sub command.
+    shell(
+        cargo_hax_into_pv
+        + [
+            "-i",
+            " ".join([
+                "-**",
+                "+~**::tls13handshake::**",
+                "+~**::server::lookup_db", # to include transitive dependency on tls13utils
+                "+~**::tls13keyscheduler::**",
+                "+~**::tls13utils::parse_failed", # transitive dependencies required
+                "+~**::tls13crypto::zero_key", # transitive dependencies required
+                ]),
+            "ssprove",
+        ],
+        cwd=".",
+        env=hax_env,
+    )
+elif options.sub == "extract-coq":
+    # The extract sub command.
+    shell(
+        cargo_hax_into_pv
+        + [
+            "-i",
+            " ".join([
+                "-**",
+                "+~**::tls13handshake::**",
+                "+~**::server::lookup_db", # to include transitive dependency on tls13utils
+                "+~**::tls13keyscheduler::**",
+                "+~**::tls13utils::parse_failed", # transitive dependencies required
+                "+~**::tls13crypto::zero_key", # transitive dependencies required
+                ]),
+            "coq",
         ],
         cwd=".",
         env=hax_env,
