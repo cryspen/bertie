@@ -47,12 +47,16 @@ struct Cli {
     ///   * SHA384_Aes256Gcm_RsaPssRsaSha256_P256
     ///   * SHA384_Aes256Gcm_RsaPssRsaSha256_X25519
     ///   * SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00
-    ///   * SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKEM76
+    ///   * SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKEM768
     ///
     /// The default value is SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519.
     #[clap(verbatim_doc_comment)]
     #[arg(short, long)]
     ciphersuite: Option<String>,
+
+    /// Path to website content.
+    #[arg(long)]
+    content: Option<String>,
 }
 
 pub fn main() -> anyhow::Result<()> {
@@ -88,11 +92,17 @@ pub fn main() -> anyhow::Result<()> {
                     println!("Empty request")
                 }
 
-                let mut file = std::fs::File::open("index.html")?;
-                let mut contents = b"HTTP/1.1 200 OK\nContent-Type: text/html\n\n".to_vec();
-                file.read_to_end(&mut contents).unwrap();
-                server.write(&contents).unwrap();
-
+                if let Some(ref path) = cli.content {
+                    let mut file = std::fs::File::open(path)?;
+                    let mut contents = b"HTTP/1.1 200 OK\nContent-Type: text/html\n\n".to_vec();
+                    file.read_to_end(&mut contents).unwrap();
+                    server.write(&contents).unwrap();
+                } else {
+                    let contents =
+                        b"HTTP/1.1 200 OK\nContent-Type: text/html\n\nHello from the Bertie Server"
+                            .to_vec();
+                    server.write(&contents).unwrap();
+                }
                 println!("Connection to {} succeeded; closed connection.", host);
             }
             Err(error) => {
