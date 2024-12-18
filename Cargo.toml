@@ -17,8 +17,8 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = {path = "/home/jonas/git/libcrux/libcrux-kem", features = ["pre-verification","kyber"]}
-libcrux = { version = "0.0.2-alpha.1", features = [
+libcrux-kem = {git = "https://github.com/cryspen/libcrux/", features = ["pre-verification","kyber"]}
+libcrux = { git = "https://github.com/cryspen/libcrux/", features = [
     "rand",
 ]}
 hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
