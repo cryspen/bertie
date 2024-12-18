@@ -55,28 +55,29 @@ pub(crate) fn lookup_db(
     sni: &Bytes,
     tkt: &Option<Bytes>,
 ) -> Result<ServerInfo, TLSError> {
-    if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
-        match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
-            (true, Some(ctkt), Some((stkt, psk))) => {
-                check_eq(ctkt, stkt)?;
-                let server = ServerInfo {
-                    cert: db.cert.clone(),
-                    sk: db.sk.clone(),
-                    psk_opt: Some(psk.clone()),
-                };
-                Ok(server)
-            }
-            (false, _, _) => {
-                let server = ServerInfo {
-                    cert: db.cert.clone(),
-                    sk: db.sk.clone(),
-                    psk_opt: None,
-                };
-                Ok(server)
-            }
-            _ => Err(PSK_MODE_MISMATCH),
+    eprintln!(
+        "get db:\n sni: {:?}\n name: {:?}",
+        String::from_utf8(sni.as_raw().to_vec()).unwrap(),
+        String::from_utf8(db.server_name.as_raw().to_vec()).unwrap()
+    );
+    match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
+        (true, Some(ctkt), Some((stkt, psk))) => {
+            check_eq(ctkt, stkt)?;
+            let server = ServerInfo {
+                cert: db.cert.clone(),
+                sk: db.sk.clone(),
+                psk_opt: Some(psk.clone()),
+            };
+            Ok(server)
         }
-    } else {
-        Err(parse_failed())
+        (false, _, _) => {
+            let server = ServerInfo {
+                cert: db.cert.clone(),
+                sk: db.sk.clone(),
+                psk_opt: None,
+            };
+            Ok(server)
+        }
+        _ => Err(PSK_MODE_MISMATCH),
     }
 }
