@@ -93,7 +93,7 @@ pub fn main() -> anyhow::Result<()> {
                 }
 
                 if let Some(ref path) = cli.content {
-                    let mut file = std::fs::File::open(path)?;
+                    let mut file = std::fs::File::open(path).expect("Could not find content file.");
                     let mut contents = b"HTTP/1.1 200 OK\nContent-Type: text/html\n\n".to_vec();
                     file.read_to_end(&mut contents).unwrap();
                     server.write(&contents).unwrap();

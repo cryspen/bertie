@@ -285,8 +285,8 @@ impl BertieStream<ServerState<TcpStream>> {
 /// Set up the server database.
 pub fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, BertieError> {
     let sni = host.as_bytes();
-    let signature_key = read_file(key_file)?;
-    let cert = read_file(cert_file)?.into();
+    let signature_key = read_file(key_file).expect("Could not find key file");
+    let cert = read_file(cert_file).expect("Could not find cert file").into();
 
     let spki = verification_key_from_cert(&cert)?;
     let raw_key = match spki.0 {
