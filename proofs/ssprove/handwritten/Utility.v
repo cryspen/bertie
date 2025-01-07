@@ -71,13 +71,35 @@ From KeyScheduleTheorem Require Import ExtraTypes.
 
 (*** Utility *)
 
-Definition get_or_fn (n : nat) (T : finType) `{Positive #|T|} (fn : raw_code T) : raw_code T :=
+Definition get_or_case_fn (n : nat) (T : finType) (A : choiceType) `{Positive #|T|}
+  (fn : raw_code A)
+  (fnSucc : ('fin #|T|) -> raw_code A)
+  : raw_code A :=
   k ← get (chOption ('fin #| T |) ; n ) ;;
   match k with
   | None =>
       fn
   | Some x =>
-      ret (otf x)
+      fnSucc x
+  end.
+
+Definition get_or_fn (n : nat) (T : finType) `{Positive #|T|} (fn : raw_code ('fin #|T|)) : raw_code ('fin #|T|) :=
+  k ← get (chOption ('fin #| T |) ; n ) ;;
+  match k with
+  | None =>
+      fn
+  | Some x =>
+      ret x
+  end.
+
+Definition get_or_fail (n : nat) (T : finType) `{Positive #|T|} : raw_code ('fin #|T|) :=
+  k ← get (chOption ('fin #| T |) ; n ) ;;
+  match k with
+  | None =>
+      @fail ('fin #|T|) ;;
+      ret (chCanonical 'fin #|T|)
+  | Some x =>
+      ret x
   end.
 
 Definition get_has (n : nat) (T : finType) `{Positive #|T|} : raw_code 'bool :=
@@ -93,11 +115,11 @@ Definition set_at (n : nat) (T : finType) `{Positive #|T|} (x : T)
   : raw_code 'unit :=
   #put (chOption ('fin #| T |) ; n ) := Some (fto x) ;; ret Datatypes.tt.
 
-Definition get_or_sample (n : nat) (T : finType) `{Positive #|T|} : raw_code T :=
+Definition get_or_sample (n : nat) (T : finType) `{Positive #|T|} : raw_code ('fin #|T|) :=
   get_or_fn n T (
       x ← sample uniform #| T | ;;
       #put (chOption ('fin #| T |) ; n ) := Some x ;;
-      ret (otf x)
+      ret x
     ).
 
 Definition untag : chKey -> chKey := id.
@@ -107,15 +129,7 @@ Axiom xpn_eq : name -> name -> bool.
 Axiom nfto : chName -> name.
 
 Axiom len : chKey -> chNat (* TODO: should be key *).
-Definition alg : chKey -> chHash := fst (* TODO: should be key *).
+Definition alg : chKey -> chHash := (fun x => fto (fst (otf x))). (* TODO: should be key *)
 Axiom alg2 : chHandle -> chName (* TODO: should be key *).
-Definition tag : chHash -> chName -> chKey (* TODO: should be key *) := pair.
-
-Instance pos_unit : Positive #|'unit| :=
-  eq_ind_r [eta Positive] (erefl : Positive 1) card_unit.
-
-Instance pos_chName : Positive #|chName| :=
-  eq_ind_r [eta Positive] (erefl : Positive 7) (card_ord 7).
-
-Instance pos_chHandle : Positive #|chHandle| :=
-  eq_ind_r [eta Positive] (erefl : Positive calc_handle_size) (card_ord calc_handle_size).
+Definition tag : chHash -> chName -> chKey (* TODO: should be key *) :=
+  fun x y => fto (pair (otf x) (otf y)).

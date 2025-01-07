@@ -75,37 +75,37 @@ From KeyScheduleTheorem Require Import Utility.
 Definition SET_psk (i : nat) : nat := 10.
 
 Axiom chGroup : choice_type.
-Notation " 'chDHGENinp' " :=
+#[global] Notation " 'chDHGENinp' " :=
   (chGroup)
     (in custom pack_type at level 2).
-Notation " 'chDHGENout' " :=
+#[global] Notation " 'chDHGENout' " :=
   (chGroup)
     (in custom pack_type at level 2).
 Definition DHGEN : nat := 11.
 
-Notation " 'chDHEXPinp' " :=
+#[global] Notation " 'chDHEXPinp' " :=
   (chGroup × chGroup)
     (in custom pack_type at level 2).
-Notation " 'chDHEXPout' " :=
+#[global] Notation " 'chDHEXPout' " :=
   (chHandle)
     (in custom pack_type at level 2).
 Definition DHEXP : nat := 12.
 
-Notation " 'chSETinp' " :=
+#[global] Notation " 'chSETinp' " :=
   (chHandle × 'bool × chKey)
     (in custom pack_type at level 2).
-Notation " 'chSETout' " :=
+#[global] Notation " 'chSETout' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Definition SET := 1%nat.
+Definition SET (n : name) (ℓ : nat) := 1%nat.
 
-Notation " 'chGETinp' " :=
+#[global] Notation " 'chGETinp' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Notation " 'chGETout' " :=
+#[global] Notation " 'chGETout' " :=
   (chKey × 'bool)
     (in custom pack_type at level 2).
-Definition GET := 0%nat.
+Definition GET (n : name) (ℓ : nat) := 0%nat.
 
 Definition GET_o_star (n : O_star) (ℓ : nat) : nat := 13.
 
@@ -137,7 +137,7 @@ Definition DH
   package
     fset0
     [interface
-      #val #[ SET ] : chSETinp → chSETout
+      #val #[ SET DH 0 ] : chSETinp → chSETout
     ]
     [interface
        #val #[ DHGEN ] : chDHGENinp → chDHGENout ;
