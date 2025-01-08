@@ -30,9 +30,9 @@ jobs:
         run: cargo update
 
       - name: 🔨 OCaml Setup
-        uses: ocaml/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v3
         with:
-          ocaml-compiler: 4.14.1
+          ocaml-compiler: 5.2.0
 
       - name: ⤵ Clone hax repository
         uses: actions/checkout@v4
