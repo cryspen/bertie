@@ -42,7 +42,7 @@ pub fn info_record(record: &[u8]) {
 
 pub struct Hex<'a>(pub &'a [u8]);
 
-impl<'a> Display for Hex<'a> {
+impl Display for Hex<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", hex::encode(self.0))
     }
