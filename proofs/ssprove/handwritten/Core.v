@@ -90,167 +90,143 @@ Definition Simulator d :=
     ]
   ).
 
+Lemma idents_interface_hierachy2 :
+  forall g f d,
+    (forall x, idents g :#: idents (f x)) ->
+    idents g :#: idents (interface_hierarchy f d).
+Proof.
+  clear ; intros.
+  unfold idents.
+  induction d ; simpl.
+  - rewrite <- !fset0E.
+    rewrite imfset0.
+    apply fdisjoints0.
+  - rewrite imfsetU.
+    rewrite fdisjointUr.
+    rewrite IHd.
+    + intros.
+      rewrite Bool.andb_true_r.
+      apply H.
+Qed.
+
 Axiom Gcore_ki : package fset0 [interface] [interface].
 Axiom Gcore_hyb : forall (d : nat), package f_parameter_cursor_loc
     (GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[HASH] : chHASHout → chHASHout ]
      :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
     (GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[HASH] : chHASHout → chHASHout ]
      :|: (GET_XTR d.+1 :|: SET_XTR d.+1)
-     :|: [interface #val #[SET ExtraTypes.DH 0] : chKinp → chXPDout ]).
+     :|: [interface #val #[SET_DH] : chKinp → chXPDout ]).
 
 Context (PrntN: name -> code fset0 fset0 (chName × chName)).
 Context (Labels : name -> bool -> code fset0 fset0 chLabel).
 
-Program Definition Gcore_real (d : nat) :
+Lemma xpd_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
+    domm (pack (XPD_packages d)) :#: domm (pack (DH_package ord E)) = true.
+Proof.
+  intros.
+  unfold pack.
+
+  erewrite <- (trimmed_xpd_package d).
+  rewrite <- (trimmed_dh).
+
+  apply domm_trim_disjoint_is_ident.
+  unfold XPD_n_ℓ.
+  rewrite fdisjointC.
+  apply idents_interface_hierachy2.
+  intros.
+  rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
+  unfold idents.
+  unfold DHEXP, DHGEN, XPD, XPR, serialize_name.
+  simpl.
+  solve_imfset_disjoint.
+Qed.
+
+Lemma xtr_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
+    domm (pack (XTR_packages d)) :#: domm (pack (DH_package ord E)) = true.
+Proof.
+  intros.
+  unfold pack.
+
+  erewrite <- (trimmed_xtr_package d).
+  rewrite <- (trimmed_dh).
+
+  apply domm_trim_disjoint_is_ident.
+  rewrite fdisjointC.
+  apply idents_interface_hierachy2.
+  intros.
+  rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
+  unfold idents.
+  unfold DHEXP, DHGEN, XTR, serialize_name.
+  simpl.
+  solve_imfset_disjoint.
+Qed.
+
+Definition Gcore_real {ord : chGroup → nat}
+  {E : nat -> nat} (d : nat) :
     package fset0
       ((GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-      (XPD_n_ℓ d.+1 :|: XTR_n_ℓ d.+1
+      (XPD_n_ℓ d :|: XTR_n_ℓ d
        :|: [interface #val #[DHGEN] : chDHGENout → chDHGENout ; #val #[DHEXP] : chDHEXPinp → chXPDout ])
       (* ([interface #val #[SET_psk 0] : chSETinp → chSETout ; *)
       (*   #val #[DHGEN] : 'unit → 'unit ; *)
       (*   #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|: XPD_n_ℓ d :|:  *)
       (*    GET_o_star_ℓ d) *)
-  :=
-  {package (par (par (XPD_packages d) (XTR_packages d)) DH_package) ∘ Gcore_hyb d}.
-Next Obligation.
-  intros.
+.
+Proof.
+  refine {package (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ Gcore_hyb d}.
+
   ssprove_valid.
-  1:{
-    unfold FDisjoint.
-    rewrite domm_union.
-    simpl.
-    erewrite <- (trimmed_xtr_level _ d).
-    erewrite <- (trimmed_xpd_level _ d).
-
-    admit.
-  }
-  1:{
-    unfold FDisjoint.
-
-    assert (forall d1 d2, domm (xpd_level_raw d1) :#: domm (xtr_level_raw d2)).
-    {
-      clear ; intros.
-      unfold xpd_level_raw.
-      unfold xtr_level_raw.
-      unfold XTR_names.
-      unfold XPR.
-      unfold "++".
-      unfold parallel_raw.
-      unfold List.map.
-      unfold List.fold_left.
-      rewrite !domm_union.
-      unfold domm.
-      simpl.
-      rewrite !fdisjointUr.
-      rewrite !fdisjointUl.
-      rewrite  <- !fset1E.
-      rewrite !fdisjoints1.
-      unfold "\notin" ; rewrite !ifF ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ].
-    }
-
-    induction d.
-    - simpl.
-      unfold par ; rewrite !unionm0.
-      apply H.
-    - simpl.
-      rewrite domm_union.
-      set (temp := _ :|: _).
-      rewrite domm_union.
-      subst temp.
-      rewrite !fdisjointUl.
-      rewrite !fdisjointUr.
-      rewrite IHd.
-      rewrite Bool.andb_true_r.
-      simpl.
-      rewrite H.
-      simpl.
-
-      rewrite (domm_union (xtr_level_raw d)).
-      rewrite fdisjointUr.
-      rewrite (domm_union (xpd_level_raw d)).
-      rewrite fdisjointUl.
-      rewrite !H.
-      simpl.
-
-
-      assert (forall (d n : nat), n >= d -> domm (xpd_level_raw n) :#: domm (ℓ_raw_packages [eta xtr_level_raw] d)).
-      {
-        clear -H.
-        induction d ; intros.
-        - simpl.
-          unfold domm.
-          rewrite <- fset0E.
-          now rewrite fdisjoints0.
-        - simpl.
-          set (temp := domm _).
-          rewrite domm_union.
-          subst temp.
-          rewrite fdisjointUr.
-          rewrite H.
-          now rewrite IHd ; [ | Lia.lia ].
-      }
-      (* rewrite H0. *)
-
-      assert (forall (d n : nat), n >= d -> domm (ℓ_raw_packages [eta xpd_level_raw] d) :#: domm (xtr_level_raw n)).
-      {
-        clear -H.
-        induction d ; intros.
-        - simpl.
-          unfold domm.
-          rewrite <- fset0E.
-          now rewrite fdisjoint0s.
-        - simpl.
-          rewrite domm_union.
-          rewrite fdisjointUl.
-          rewrite H.
-          now rewrite IHd ; [ | Lia.lia ].
-      }
-
-      rewrite H0 ; [ | Lia.lia].
-      rewrite H1 ; [ | Lia.lia].
-      reflexivity.
-  }
-  4:{
+  6:{
     rewrite fsetU0.
     apply fsubsetxx.
   }
-  7,6: apply fsubsetxx.
-  1: rewrite fset0U; apply fsubsetxx.
-  1:{
-    apply fsubsetxx.
-  }
-  1:{
-    apply fsubsetxx.
-  }
-  1:{
-    apply fsubsetxx.
-  }
-  1:{
-    apply fsubsetxx.
-  }
-  Unshelve.
-  1,2: apply d.
+  8,7: apply fsubsetxx.
+  3: rewrite fset0U; apply fsubsetxx.
+  3,4,6: try apply fsubsetxx.
 
-  (* all: try solve_Parable ; unfold idents ; solve_imfset_disjoint. *)
-  (* all: try (apply valid_trim ; apply Xpd). *)
-  (* all: try (rewrite fsetU0 ; apply fsubsetxx). *)
-  (* all: try apply fsubsetxx. *)
+  1:{
+    unfold FDisjoint.
+    rewrite domm_union.
+    rewrite fdisjointUl.
 
-Admit Obligations.
+    rewrite xpd_dh.
+    rewrite xtr_dh.
+    reflexivity.
+  }
+  1:{
+    unfold FDisjoint.
+    rewrite <- trimmed_xtr_package.
+    rewrite <- trimmed_xpd_package.
+    apply domm_trim_disjoint_is_ident.
+
+    apply idents_interface_hierachy2.
+    intros.
+    rewrite fdisjointC.
+    apply idents_interface_hierachy2.
+    intros.
+
+    simpl.
+    unfold idents, XPD, XTR, serialize_name.
+    solve_imfset_disjoint.
+  }
+  {
+    solve_in_fset.
+  }
+Defined.
 Fail Next Obligation.
 
-Program Definition Gcore_ideal (d : nat) (Score : Simulator d) :
-  package
-    fset0
-    ([interface
-       #val #[ SET_psk 0 ] : chSETinp → chSETout ;
-       #val #[ DHGEN ] : 'unit → 'unit ;
-       #val #[ DHEXP ] : 'unit → 'unit
-    ] :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d :|:
-    GET_o_star_ℓ d)
-    [interface
-    ] := {package (Score ∘ Key_o_star_ideal d) }.
-Admit Obligations.
-Fail Next Obligation.
+(* Program Definition Gcore_ideal (d : nat) (Score : Simulator d) : *)
+(*   package *)
+(*     fset0 *)
+(*     ([interface *)
+(*        #val #[ SET_psk 0 ] : chSETinp → chSETout ; *)
+(*        #val #[ DHGEN ] : 'unit → 'unit ; *)
+(*        #val #[ DHEXP ] : 'unit → 'unit *)
+(*     ] :|: *)
+(*     XTR_n_ℓ d :|: *)
+(*     XPD_n_ℓ d :|: *)
+(*     GET_o_star_ℓ d) *)
+(*     [interface *)
+(*     ] := {package (Score ∘ Key_o_star_ideal d) }. *)
+(* Admit Obligations. *)
+(* Fail Next Obligation. *)

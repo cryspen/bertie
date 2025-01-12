@@ -74,23 +74,6 @@ From KeyScheduleTheorem Require Import Utility.
 
 Definition SET_psk (i : nat) : nat := 10.
 
-Axiom chGroup : choice_type.
-#[global] Notation " 'chDHGENinp' " :=
-  (chGroup)
-    (in custom pack_type at level 2).
-#[global] Notation " 'chDHGENout' " :=
-  (chGroup)
-    (in custom pack_type at level 2).
-Definition DHGEN : nat := 11.
-
-#[global] Notation " 'chDHEXPinp' " :=
-  (chGroup × chGroup)
-    (in custom pack_type at level 2).
-#[global] Notation " 'chDHEXPout' " :=
-  (chHandle)
-    (in custom pack_type at level 2).
-Definition DHEXP : nat := 12.
-
 #[global] Notation " 'chSETinp' " :=
   (chHandle × 'bool × chKey)
     (in custom pack_type at level 2).
@@ -128,33 +111,3 @@ Definition HASH := 1%nat.
 
 
 Definition len_ {n} (_ : 'I_ n) := n.
-
-Axiom Group : Type.
-Definition DH
-  (G : Type) (ord : G → nat)
-  (E : nat -> nat)
-  :
-  package
-    fset0
-    [interface
-      #val #[ SET DH 0 ] : chSETinp → chSETout
-    ]
-    [interface
-       #val #[ DHGEN ] : chDHGENinp → chDHGENout ;
-       #val #[ DHEXP ] : chDHEXPinp → chDHEXPout
-    ].
-  refine [package
-      #def #[ DHGEN ] (grp : chDHGENinp) : chDHGENout {
-        _
-      } ;
-      #def #[ DHEXP ] ('(X,Y) : chDHEXPinp) : chDHEXPout {
-        _
-      }
-    ].
-Admitted.
-Admit Obligations.
-Fail Next Obligation.
-
-Program Definition DH_package := DH _ _ _.
-Admit Obligations.
-Fail Next Obligation.

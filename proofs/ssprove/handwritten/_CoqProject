@@ -11,7 +11,7 @@ KeyPackages.v
 XTR_XPD.v
 
 Core.v
-# KeySchedulePackages.v
+KeySchedulePackages.v
 # MapPackage.v
 
 # ./CoreTheorem.v

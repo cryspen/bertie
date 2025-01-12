@@ -78,17 +78,19 @@ From KeyScheduleTheorem Require Import Core.
 
 (*** Key schedule packages *)
 
+Context (PrntN: name -> code fset0 fset0 (chName × chName)).
+Context (Labels : name -> bool -> code fset0 fset0 chLabel).
+Context (ord : chGroup → nat) (E : nat -> nat).
+
 (* Fig.11, p.17 *)
 Program Definition Gks_real (d : nat)
-  (PrntN : name -> raw_code (chName × chName))
-  (Labels : name -> bool -> raw_code label_ty)
 :
   package
     fset0
     ([interface
        #val #[ SET_psk 0 ] : chSETinp → chSETout ;
-      #val #[ SET ] : chSETinp → chSETout ;
-      #val #[ GET ] : chGETinp → chGETout
+      #val #[ SET _ _ ] : chSETinp → chSETout ;
+      #val #[ GET _ _ ] : chGETinp → chGETout
     ] :|:
     (* XTR_n_ℓ d :|: *)
     (* XPD_n_ℓ d :|: *)
@@ -99,11 +101,11 @@ Program Definition Gks_real (d : nat)
     ]
   :=
   {package
-     (par (par (XPD_packages d PrntN Labels) (XTR_packages d PrntN Labels)) DH_package) ∘
-     Gcore_real d PrntN Labels
+     (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
+     @Gcore_real ord E d
   }
   (* [package *)
-  (* ] *).
+(* ] *).
 Admit Obligations.
 Fail Next Obligation.
 
@@ -122,8 +124,6 @@ Program Definition Gks_ideal d
     [interface
     ]
   )
-  (PrntN : name -> raw_code (chName × chName))
-  (Labels : name -> bool -> raw_code label_ty)
  :
   package
     fset0
@@ -139,7 +139,7 @@ Program Definition Gks_ideal d
     ]
   :=
   {package
-     (par (par (XPD_packages d PrntN Labels) (XTR_packages d PrntN Labels)) DH_package) ∘
+     (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘
      S ∘ Key_o_star_ideal d
   }.
 Admit Obligations.

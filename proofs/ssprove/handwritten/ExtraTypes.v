@@ -174,11 +174,11 @@ Definition chKey := chFin (mkpos #|fin_key|).
 Definition chKey_to_chName (h : chKey) : chName :=
   fto (snd (otf h)).
 
-Axiom xpd_angle : name -> chLabel -> chHandle -> bitvec -> raw_code chHandle.
+(* Axiom xpd_angle : name -> chLabel -> chHandle -> bitvec -> raw_code chHandle. *)
 
-Inductive XPR :=
-| XPR_N
-| XPR_PSK
-| XPR_ESALT.
+(* Inductive XPR := *)
+(* | XPR_N *)
+(* | XPR_PSK *)
+(* | XPR_ESALT. *)
 
 Inductive O_star := TODO.

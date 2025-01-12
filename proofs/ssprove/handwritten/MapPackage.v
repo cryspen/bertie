@@ -77,152 +77,263 @@ From KeyScheduleTheorem Require Import XTR_XPD.
 From KeyScheduleTheorem Require Import Core.
 From KeyScheduleTheorem Require Import KeySchedulePackages.
 
+(*** Helper definitions *)
+
 (*** Package *)
 
-Axiom PrntIdx : name -> bitvec -> name × name.
+Context (L_M : {fset Location} ).
+Axiom PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName).
 
 Axiom XTR_LABAL_from_index : nat -> name.
+Axiom level : chHandle -> code fset0 [interface] (chOption chNat).
 
-Program Definition R_ch_map_XTR_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
-  package fset0 (XTR_n_ℓ ℓ)
+(* fig. 29 *)
+Definition R_ch_map_XTR_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
+  (List.In n XTR_names) ->
+  (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
+  package L_M (XTR_n_ℓ ℓ.+1)
     [interface
        #val #[ XTR n ℓ ] : chXTRinp → chXTRout
-    ]
-  :=
-  [package
+    ].
+Proof.
+  intros.
+  refine [package
      #def #[ XTR n ℓ ] ('(h1,h2) : chXTRinp) : chXTRout {
-        '(i1,i2) ← ret (_ : chProd chName chName) (* (PrntIdx n d') *) ;;
-        temp1 ← get_or_fn (M (nfto i1) h1) chHandle (@fail _ ;; ret _) ;;
-        temp2 ← get_or_fn (M (nfto i2) h2) chHandle (@fail _ ;; ret _) ;;
-        ℓ' ← (*choos*) ret ((ℓ-1)%nat : 'nat (* TODO *)) ;;
+        '(i1,i2) ← PrntIdx n ℓ ;;
+        temp1 ← get_or_fn (M (nfto i1) h1) fin_handle (@fail chHandle ;; ret (chCanonical _)) ;;
+        temp2 ← get_or_fn (M (nfto i2) h2) fin_handle (@fail chHandle ;; ret (chCanonical _)) ;;
+
+        (* choose = assign first if not ⊥, otherwise second *)
+        ℓ_temp ← level temp1 ;;
+        ℓ' ← match ℓ_temp with
+          | Some ℓ => ret ℓ
+          | None =>
+            ℓ_temp2 ← level temp2 ;;
+            (match ℓ_temp2 with
+            | Some ℓ => ret ℓ
+            | None => @fail 'nat ;; ret (chCanonical 'nat) (* fail? *)
+            end)
+          end ;;
+        (* *)
+
+        assertD (ℓ' <? ℓ)%nat (fun H =>
         #import {sig #[ XTR n ℓ' ] : chXTRinp → chXTRout }
         as XTR_fn ;;
-        h ← xtr_angle n h1 h2 ;;
-        h' ← XTR_fn (fto temp1, fto temp2) ;;
-        set_at (M n h) chHandle h' ;;
+        h ← XTR_XPD.xtr_angle n h1 h2 ;;
+        h' ← XTR_fn (temp1, temp2) ;;
+        set_at (H := pos_handle) (M n h) fin_handle (otf h') ;;
         ret h
+          )
       }
-  ].
-Admit Obligations.
+    ].
+  ssprove_valid.
+  {
+    apply valid_scheme.
+    apply PrntIdx.
+  }
+  {
+    unfold get_or_fn.
+    ssprove_valid.
+  }
+  {
+    unfold get_or_fn.
+    ssprove_valid.
+  }
+  {
+    apply valid_scheme.
+    apply level.
+  }
+  {
+    apply valid_scheme.
+    apply level.
+  }
+  {
+    apply valid_scheme.
+    rewrite <- fset0E.
+    apply XTR_XPD.xtr_angle.
+  }
+  {
+    unfold XTR_n_ℓ.
+    set (o := mkopsig _ _ _) ; pattern x2 in o ; subst o.
+    apply lower_level_in_interface.
+    2: Lia.lia.
+
+    simpl.
+    unfold XTR, serialize_name.
+    unfold mkopsig.
+    destruct n.
+    all: try (unfold XTR_names in H ; repeat (destruct H ; [ discriminate | ] || contradiction)).
+    all : rewrite <- !fset_cat ; simpl ; rewrite !in_fset ; unfold "\in" ; simpl ; rewrite eqxx.
+    all: simpl.
+    all: try reflexivity.
+    all: now rewrite !Bool.orb_true_r.
+  }
+  {
+    unfold set_at.
+    ssprove_valid.
+  }
+Defined.
 Fail Next Obligation.
 
-Program Fixpoint R_ch_map_XTR_packages (d : nat) (M : chHandle -> nat) :
-  package fset0 (XTR_n_ℓ d) (XTR_n_ℓ d) :=
-  match d with
-  | O => [package]
-  | S d' => (fun x => _) (R_ch_map_XTR_packages d' M)
-      (* {package (par _ )} *)
-  end.
-Next Obligation.
-  intros.
-  refine {package (par _ x)}.
+Definition R_ch_map_XTR_packages (d : nat) (M : chHandle -> nat) (H_inLM : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) :
+  package L_M (XTR_n_ℓ d) (XTR_n_ℓ d).
+  refine (ℓ_packages
+            d
+    (fun ℓ H => {package parallel_raw (map_with_in XTR_names (fun x H0 => pack (R_ch_map_XTR_package d x (fun _ => M) H0 H_inLM))) #with _ })
+    _ _ _ ).
   Unshelve.
-  2:{
-    epose (R_ch_map_XTR_package d' ES (fun _ => M)).
-    epose (R_ch_map_XTR_package d' AS (fun _ => M)).
-    epose (R_ch_map_XTR_package d' HS (fun _ => M)).
 
-    epose (par (par p p0) p1).
-    refine f.
-  }
-  unfold pack.
-  eapply valid_par_upto.
-  - admit.
-  - eapply valid_par_upto.
-    + admit.
-    + eapply valid_par_upto.
-      * admit.
-      * apply (R_ch_map_XTR_package d' ES (λ _, M)).
-      * apply (R_ch_map_XTR_package d' AS (λ _, M)).
-      * solve_in_fset.
-      * apply fsubsetxx.
-      * apply fsubsetxx.
-    + apply (R_ch_map_XTR_package d' HS (λ _, M)).
-    + apply fsubsetxx.
-    + apply fsubsetxx.
-    + apply fsubsetxx.
-  - apply x.
-  - rewrite !fsetU0.
-    apply fsubsetxx.
-  - rewrite !fsetUid.
-    unfold XTR_n_ℓ ; fold XTR_n_ℓ.
-    apply fsubsetUr.
-  - rewrite <- !fset_cat. simpl.
-    apply fsubsetxx.
+  - intros.
+    unfold pack.
+    admit.
+  - intros.
+    unfold pack.
+    unfold XTR_names.
+    unfold List.map.
+    unfold parallel_raw.
+    unfold List.fold_left.
+    admit.
+  - intros.
+    simpl.
+    unfold XTR, serialize_name.
+    solve_imfset_disjoint.
+
+    Unshelve.
+    ssprove_valid.
+    admit.
 Admitted.
 Fail Next Obligation.
 
+
+Context (PrntN: name -> code fset0 fset0 (chName × chName)).
+Context (Labels : name -> bool -> code fset0 [interface] chLabel).
 
 Axiom XPN_LABAL_from_index : nat -> name.
 
-Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) (M_ℓ : name -> nat -> chHandle -> nat) (Labels : name -> bool -> raw_code label_ty) :
-  package fset0 (XPD_n_ℓ ℓ)
+Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) (M_ℓ : name -> nat -> chHandle -> nat) :
+  (List.In n XPR) ->
+  (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
+  (forall s1 s k, ('option ('fin #|fin_handle|); M_ℓ s1 s k) \in L_M) ->
+  package L_M (XPD_n_ℓ ℓ.+1)
     [interface
        #val #[ XPD n ℓ ] : chXPDinp → chXPDout
     ].
+  intros.
   refine [package
      #def #[ XPD n ℓ ] ('(h1,r,args) : chXPDinp) : chXPDout {
-        '(i1,_) ← ret (_ : chProd chName chName) (* (PrntIdx n d') *) ;;
-        temp ← get_or_fn (M (nfto i1) h1) chHandle (@fail _ ;; ret (chCanonical chHandle)) ;;
-        ℓ1 ← (*choos*) ret ((ℓ-1)%nat : 'nat (* TODO *)) ;;
-        #import {sig #[ XPD n ℓ1 ] : chXPDinp → chXPDout }
-        as XPD_fn ;;
+        '(i1,_) ← PrntIdx n ℓ ;;
+        temp ← get_or_fn (M (nfto i1) h1) fin_handle (@fail chHandle ;; ret (chCanonical chHandle)) ;;
         label ← Labels n r ;;
-        h ← xpd_angle n label h1 args ;;
-        h' ← XPD_fn (temp, r, args) ;;
-        ℓ ← ret (if xpn_eq n PSK then (ℓ + 1)%nat else ℓ) ;;
-        set_at (M_ℓ n ℓ h) chHandle (h') ;;
-        ret h
+
+        (*  *)
+        ℓ_temp ← level temp ;;
+        ℓ1 ← (match ℓ_temp with
+            | Some ℓ => ret ℓ
+            | None => @fail 'nat ;; ret (chCanonical 'nat) (* fail? *)
+            end) ;;
+        (* *)
+        assertD (ℓ1 < ℓ)%nat (fun H =>
+            h ← XTR_XPD.xpd_angle n label h1 args ;;
+
+            #import {sig #[ XPD n ℓ1 ] : chXPDinp → chXPDout }
+            as XPD_fn ;;
+            h' ← XPD_fn (temp, r, args) ;;
+            ℓ ← ret (if xpn_eq n PSK then (ℓ + 1)%nat else ℓ) ;;
+            set_at (M_ℓ n ℓ h) fin_handle (otf h') ;;
+            ret h
+          )
       }
     ].
-Admitted.
-Admit Obligations.
+  unfold get_or_fn.
+  unfold set_at.
+  ssprove_valid.
+  - apply valid_scheme.
+    apply PrntIdx.
+  - apply valid_scheme.
+    apply Labels.
+  - apply valid_scheme.
+    apply level.
+  - apply valid_scheme. rewrite <- fset0E. apply (prog_valid (XTR_XPD.xpd_angle _ _ _ _)).
+  - unfold XPD_n_ℓ.
+    set (o := mkopsig _ _ _) ; pattern x2 in o ; subst o.
+    apply lower_level_in_interface.
+    2: Lia.lia.
+
+    simpl.
+    unfold XPD, serialize_name.
+    unfold mkopsig.
+    destruct n.
+    all: try (unfold XPR in H ; repeat (destruct H ; [ discriminate | ] || contradiction)).
+    all : rewrite <- !fset_cat ; simpl ; rewrite !in_fset ; unfold "\in" ; simpl ; rewrite eqxx.
+    all: simpl.
+    all: try reflexivity.
+    all: now rewrite !Bool.orb_true_r.
+Defined.
 Fail Next Obligation.
 
-Program Fixpoint R_ch_map_XPD_packages (d : nat) (M : chHandle -> nat) (Labels : name -> bool -> raw_code label_ty) :
-  package fset0 (XPD_n_ℓ d) (XPD_n_ℓ d) :=
-  match d with
-  | O => [package]
-  | S d' =>
-      _ (R_ch_map_XPD_packages d' M Labels)
-      (* {package (par _ (R_ch_map_XPD_packages d' M)) #with valid_par_upto _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ } *)
-      (* {package (par _ )} *)
-  end.
-Next Obligation.
+Lemma trimmed_R_ch_map_XPD_package : forall n d M1 M2 A B C, trimmed [interface
+       #val #[ XPD n d ] : chXPDinp → chXPDout
+    ] (R_ch_map_XPD_package d n M1 M2 A B C).
+Proof.
   intros.
-  refine {package (par _ x)}.
-  Unshelve.
-  2:{
-    epose (R_ch_map_XPD_package d' N (fun _ => M) (fun _ _ => M) Labels).
-    epose (R_ch_map_XPD_package d' PSK (fun _ => M) (fun _ _ => M) Labels).
-    epose (R_ch_map_XPD_package d' ESALT (fun _ => M) (fun _ _ => M) Labels).
 
-    epose (par (par p p0) p1).
-    refine f.
-  }
+  unfold R_ch_map_XPD_package.
   unfold pack.
-  eapply valid_par_upto.
-  - admit.
-  - eapply valid_par_upto.
-    + admit.
-    + eapply valid_par_upto.
-      * admit.
-      * apply (R_ch_map_XPD_package d' N (λ _, M) (λ _ _, M)).
-      * apply (R_ch_map_XPD_package d' PSK (λ _, M) (λ _ _, M)).
-      * solve_in_fset.
-      * apply fsubsetxx.
-      * apply fsubsetxx.
-    + apply (R_ch_map_XPD_package d' ESALT (λ _, M) (λ _ _, M)).
-    + apply fsubsetxx.
-    + apply fsubsetxx.
-    + apply fsubsetxx.
-  - apply x.
-  - rewrite !fsetU0.
-    apply fsubsetxx.
-  - rewrite !fsetUid.
-    apply fsubsetUr.
-  - rewrite <- !fset_cat. simpl.
-    apply fsubsetxx.
+  apply trimmed_package_cons.
+  apply trimmed_empty_package.
+Qed.
+
+Lemma trimmed_parallel_raw_R_ch_map_XPD :
+  forall (d : nat),
+  forall (M : chHandle → nat),
+  forall (H_L_M : ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M),
+    trimmed (interface_foreach (fun n => [interface
+       #val #[ XPD n d ] : chXPDinp → chXPDout
+    ]) XPR) (parallel_raw
+       (map_with_in XPR
+          (λ (x : name) (H0 : List.In x XPR),
+             pack (R_ch_map_XPD_package d x (λ _ : name, M) (λ (_ : name) (_ : nat), M) H0
+                     (λ _ : name, H_L_M) (λ (_ : name) (_ : nat), H_L_M))))).
+Proof.
+  intros.
+
+  apply trimmed_parallel_raw.
+  {
+    simpl.
+    repeat split.
+    all: unfold XPD, serialize_name, idents.
+    all: solve_imfset_disjoint.
+  }
+  {
+    (* unfold XPD, serialize_name, idents. *)
+    unfold XPR.
+    unfold "++".
+    unfold List.map.
+    unfold map_with_in.
+    unfold eq_ind.
+    unfold trimmed_pairs.
+
+    repeat split.
+    all: apply trimmed_R_ch_map_XPD_package.
+  }
+Qed.
+
+Definition R_ch_map_XPD_packages (d : nat) (M : chHandle -> nat) :
+  (forall s, ('option ('fin #|fin_handle|); M s) \in L_M) ->
+  package fset0 (XPD_n_ℓ d) (XPD_n_ℓ d).
+  intros H_L_M.
+  refine (ℓ_packages
+            d (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H => pack (R_ch_map_XPD_package ℓ x (fun _ => M) (fun _ _ => M) H (fun _ => H_L_M) (fun _ _ => H_L_M)))) #with _ })
+    _ _ _).
+
+  2: intros ; apply trimmed_parallel_raw_R_ch_map_XPD.
+  2: now apply interface_foreach_idents_XPD.
+
+  intros.
+  ssprove_valid.
+
+  Unshelve.
+  admit.
 Admitted.
 
 (* R_ch_map, fig.25, Fig. 27, Fig. 29 *)
