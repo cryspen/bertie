@@ -21,16 +21,14 @@ libcrux-kem = {version = "0.0.2-alpha.1", features = ["pre-verification", "kyber
 libcrux = { version = "0.0.2-alpha.1", features = [
     "rand",
 ]}
-hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
-hax-lib = { git = "https://github.com/hacspec/hax" }
+hax-lib = { git = "https://github.com/hacspec/hax/", branch= "pq11-fstar-libs" }
+
 
 [features]
 default = ["api"]
 test_utils = []
 secret_integers = []
 api = []                           # The streaming Rust API that everyone should use but is not hacspec.
-hax-fstar = ["dep:hax-lib-macros"]
-hax-pv = ["dep:hax-lib-macros"]
 
 [dev-dependencies]
 bertie = { path = ".", features = ["test_utils"] }

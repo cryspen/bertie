@@ -1,6 +1,3 @@
-#[cfg(feature = "hax-pv")]
-use hax_lib_macros::{pv_constructor, pv_handwritten};
-
 use crate::tls13utils::{
     bytes1, check_eq, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes,
     TLSError, U8,
@@ -81,7 +78,7 @@ impl HandshakeData {
 
     /// Returns a new [`HandshakeData`] that contains the bytes of
     /// `other` appended to the bytes of `self`.
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
     pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
         let mut message1 = self.to_bytes();
         let message2 = other.to_bytes();
@@ -135,7 +132,7 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake messages. Returns a [TLSError]
     /// if parsing of either message fails or if the payload is not fully consumed
     /// by parsing two messages.
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
+    #[hax_lib::pv_handwritten]
     pub(crate) fn to_two(&self) -> Result<(HandshakeData, HandshakeData), TLSError> {
         let (message1, payload_rest) = self.next_handshake_message()?;
         let (message2, payload_rest) = payload_rest.next_handshake_message()?;
@@ -151,7 +148,7 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake messages. Returns a [TLSError]
     /// if parsing of any message fails or if the payload is not fully consumed
     /// by parsing four messages.
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
+    #[hax_lib::pv_handwritten]
     pub(crate) fn to_four(
         &self,
     ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {

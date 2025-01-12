@@ -1,8 +1,5 @@
 use core::ops::Range;
 
-#[cfg(feature = "hax-fstar")]
-use hax_lib_macros::{attributes, requires};
-
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
     // let bt = backtrace::Backtrace::new();
@@ -45,12 +42,17 @@ pub(crate) fn error_string(c: u8) -> String {
     format!("{}", c)
 }
 
+#[cfg(not(test))]
+pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
+    Err(err)
+}
+
+#[cfg(test)]
 pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     let bt = backtrace::Backtrace::new();
     println!("{:?}", bt);
     Err(err)
 }
-
 /*
 pub(crate) fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
     if s1 == s2 {Ok(())}
@@ -191,7 +193,7 @@ impl From<Vec<u8>> for Bytes {
 
 impl Bytes {
     /// Add a prefix to these bytes and return it.
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
+    #[hax_lib::pv_handwritten]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -258,7 +260,7 @@ impl U32 {
         self.0
     }
 }
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
     #[cfg(not(feature = "secret_integers"))]
     let val = val.to_be_bytes();
@@ -289,24 +291,41 @@ pub(crate) fn u32_from_be_bytes(val: [U8; 4]) -> U32 {
     U32(val)
 }
 
+#[hax_lib::ensures(|result| result.len() == x.len())]
 pub(crate) fn bytes(x: &[u8]) -> Bytes {
     x.into()
 }
+
+#[hax_lib::ensures(|result| result.len() == 1)]
 pub(crate) fn bytes1(x: u8) -> Bytes {
     [x].into()
 }
+
+#[hax_lib::ensures(|result| result.len() == 2)]
 pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
-#[cfg_attr(feature = "hax-fstar", attributes)]
+#[hax_lib::attributes]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
-    #[cfg_attr(feature = "hax-fstar", requires(x < self.0.len()))]
+    #[requires(x < self.0.len())]
     fn index(&self, x: usize) -> &U8 {
         &self.0[x]
     }
 }
+
+#[cfg(hax)]
+#[hax_lib::fstar::before(interface, "[@@ FStar.Tactics.Typeclasses.tcinstance]
+let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
+   {
+     super_index = impl_21;
+     update_at = fun s (i:usize{v i < Seq.length s._0}) x -> Bytes (Seq.upd s._0 (v i) x)
+   }")]
+fn update_at_usize_bytes_test(b:&mut Bytes) {
+   if b.len() > 0 {b[0] = 0};
+}
+
 
 mod non_hax {
     use super::*;
@@ -323,18 +342,19 @@ mod non_hax {
     }
 }
 
-#[cfg_attr(feature = "hax-fstar", attributes)]
+#[hax_lib::attributes]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
-    #[cfg_attr(feature = "hax-fstar", requires(x.start <= self.0.len() && x.end <= self.0.len()))]
+    #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
 }
 
+#[hax_lib::attributes]
 impl Bytes {
     /// Create new [`Bytes`].
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
     pub(crate) fn new() -> Bytes {
         Bytes(Vec::new())
     }
@@ -345,7 +365,7 @@ impl Bytes {
     }
 
     /// Generate `len` bytes of `0`.
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
@@ -410,7 +430,8 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
+    #[hax_lib::pv_handwritten]
+    #[ensures(|result| fstar!("Seq.length result._0 == Seq.length self._0 + Seq.length other._0"))]
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
         self
@@ -457,9 +478,6 @@ macro_rules! bytes_concat {
     };
 }
 pub(crate) use bytes_concat;
-
-#[cfg(feature = "hax-pv")]
-use hax_lib_macros::{pv_constructor, pv_handwritten};
 
 impl Bytes {
     /// Get a hex representation of self as [`String`].
@@ -519,7 +537,7 @@ pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
 // TODO: This function should short-circuit once hax supports returns within loops
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     eq_slice(&b1.0, &b2.0)
 }
@@ -560,7 +578,7 @@ pub(crate) fn check_eq_with_slice(
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_slice(b1.as_raw(), b2.as_raw())
 }
@@ -592,7 +610,7 @@ pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// On success, return a new [Bytes] slice such that its first byte encodes the
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
