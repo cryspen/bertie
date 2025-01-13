@@ -54,7 +54,7 @@ pub use tls13formats::{
     bench_parse_server_hello, HandshakeData,
 };
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod test_tls13traces_internal;
 
 // === Public API that is NOT in hacspec
