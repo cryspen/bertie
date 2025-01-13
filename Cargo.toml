@@ -17,15 +17,20 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = {version = "0.0.2-alpha.1", features = ["pre-verification", "kyber"]}
-libcrux = { version = "0.0.2-alpha.1", features = [
+# libcrux-kem = {version = "0.0.2-alpha.1", features = ["pre-verification", "kyber"]}
+# libcrux = { version = "0.0.2-alpha.1", features = [
+#     "rand",
+# ]}
+libcrux-kem = { git = "https://github.com/cryspen/libcrux", branch = "jonas/no-std", features = ["pre-verification", "kyber"]}
+libcrux = {  git = "https://github.com/cryspen/libcrux", branch = "jonas/no-std", features = [
     "rand",
-]}
+], default-features = false }
 hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
 hax-lib = { git = "https://github.com/hacspec/hax" }
 
 [features]
-default = ["api"]
+default = ["api", "std"]
+std = []
 test_utils = []
 secret_integers = []
 api = []                           # The streaming Rust API that everyone should use but is not hacspec.

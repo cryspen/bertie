@@ -26,6 +26,13 @@
 // FIXME(performance)
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::zero_prefixed_literal)]
+#![no_std]
+
+#[cfg(feature = "std")]
+extern crate std;
+
+#[cfg(not(feature = "std"))]
+extern crate alloc;
 
 mod tls13formats;
 mod tls13handshake;
@@ -52,7 +59,7 @@ mod test_tls13traces_internal;
 
 // === Public API that is NOT in hacspec
 
-#[cfg(feature = "api")]
+#[cfg(all(feature = "api", feature = "std"))]
 pub mod stream;
 
 #[cfg(feature = "test_utils")]

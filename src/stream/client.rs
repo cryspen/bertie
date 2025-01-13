@@ -4,8 +4,13 @@
 
 use rand::{CryptoRng, RngCore};
 use std::{
+    eprintln,
     io::{Read, Write},
     net::TcpStream,
+    println,
+    string::ToString,
+    vec,
+    vec::Vec,
 };
 // use tracing::{event, Level};
 

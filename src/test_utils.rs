@@ -1,4 +1,9 @@
 use rand::{CryptoRng, RngCore};
+#[cfg(feature = "std")]
+use std::vec::Vec;
+
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 pub struct TestRng {
     bytes: Vec<u8>,
