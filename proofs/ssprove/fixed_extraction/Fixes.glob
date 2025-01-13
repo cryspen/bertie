@@ -1,0 +1,1155 @@
+DIGEST 3948869ff01c691ef5edd8402065a38d
+FBertieExtraction.Fixes
+R126:136 Crypt.choice_type <> <> lib
+R138:144 Crypt.Package <> <> lib
+R146:152 Crypt.Prelude <> <> lib
+R162:176 Crypt.package.pkg_notation PackageNotation <> mod
+R211:213 extructures.ord <> <> lib
+R215:218 extructures.fset <> <> lib
+R250:258 mathcomp.word.word_ssrZ <> <> lib
+R260:263 mathcomp.word.word <> <> lib
+R330:335 Coq.ZArith.ZArith <> <> lib
+R362:375 Coq.Strings.String <> <> lib
+R385:402 Coq.Lists.List ListNotations <> mod
+R500:513 Hacspec.ChoiceEquality <> <> lib
+R544:558 Hacspec.LocationUtility <> <> lib
+R589:610 Hacspec.Hacspec_Lib_Comparable <> <> lib
+R641:655 Hacspec.Hacspec_Lib_Pre <> <> lib
+R686:696 Hacspec.Hacspec_Lib <> <> lib
+R733:753 mathcomp.ssreflect.choice Choice.Exports <> mod
+ax 832:839 <> t_String
+R843:853 Crypt.choice_type <> choice_type ind
+inst 866:875 <> sized_int8
+R879:885 Hacspec.Hacspec_Lib_TODO <> t_Sized class
+R887:890 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R897:901 Hacspec.Hacspec_Lib_TODO <> Sized def
+R906:907 Coq.Init.Datatypes <> id def
+inst 921:931 <> sized_int32
+R935:941 Hacspec.Hacspec_Lib_TODO <> t_Sized class
+R943:947 Hacspec.Hacspec_Lib_Pre <> int32 abbrev
+R954:958 Hacspec.Hacspec_Lib_TODO <> Sized def
+R963:964 Coq.Init.Datatypes <> id def
+inst 978:986 <> sized_any
+binder 989:989 <> A:2
+R994:1000 Hacspec.Hacspec_Lib_TODO <> t_Sized class
+R1002:1002 BertieExtraction.Fixes <> A:2 var
+R1009:1013 Hacspec.Hacspec_Lib_TODO <> Sized def
+R1018:1019 Coq.Init.Datatypes <> id def
+ax 1031:1045 <> string_from_int
+R1058:1061 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1049:1052 Hacspec.ChoiceEquality <> both rec
+R1054:1057 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R1062:1065 Hacspec.ChoiceEquality <> both rec
+R1067:1074 BertieExtraction.Fixes <> t_String prfax
+def 1089:1112 <> impl__u32__from_be_bytes
+binder 1114:1116 <> val:4
+R1121:1129 Hacspec.ChoiceEquality <> bind_both def
+R1135:1154 Hacspec.Hacspec_Lib_Coercions <> uint32_from_be_bytes def
+R1131:1133 BertieExtraction.Fixes <> val:4 var
+def 1168:1189 <> impl__u32__to_be_bytes
+binder 1191:1193 <> val:5
+R1198:1206 Hacspec.ChoiceEquality <> bind_both def
+R1212:1229 Hacspec.Hacspec_Lib_Coercions <> uint32_to_be_bytes def
+R1208:1210 BertieExtraction.Fixes <> val:5 var
+def 1244:1265 <> impl__u16__to_be_bytes
+binder 1267:1269 <> val:6
+R1274:1282 Hacspec.ChoiceEquality <> bind_both def
+R1288:1305 Hacspec.Hacspec_Lib_Coercions <> uint16_to_be_bytes def
+R1284:1286 BertieExtraction.Fixes <> val:6 var
+ax 1472:1494 <> impl__Bytes__declassify
+R1524:1527 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1498:1501 Hacspec.ChoiceEquality <> both rec
+R1504:1508 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R1510:1513 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R1515:1522 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R1528:1531 Hacspec.ChoiceEquality <> both rec
+R1534:1538 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R1540:1543 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R1545:1552 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+abbrev 1565:1571 <> f_deref
+R1576:1577 Coq.Init.Datatypes <> id def
+def 1592:1600 <> impl__new
+R1607:1617 Crypt.choice_type <> choice_type ind
+binder 1603:1603 <> A:8
+R1622:1625 Hacspec.ChoiceEquality <> both rec
+R1628:1632 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R1634:1634 BertieExtraction.Fixes <> A:8 var
+R1636:1643 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R1651:1658 Hacspec.ChoiceEquality <> ret_both def
+R1666:1671 Crypt.choice_type <> chList constr
+R1673:1673 BertieExtraction.Fixes <> A:8 var
+R1661:1662 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 1689:1707 <> impl__with_capacity
+R1714:1724 Crypt.choice_type <> choice_type ind
+binder 1710:1710 <> A:9
+R1732:1735 Hacspec.ChoiceEquality <> both rec
+R1737:1745 Hacspec.Hacspec_Lib_Pre <> uint_size def
+binder 1728:1728 <> n:10
+R1752:1760 BertieExtraction.Fixes <> impl__new def
+R1762:1762 BertieExtraction.Fixes <> A:9 var
+mod 1773:1778 <> Digest
+def 1792:1802 Digest t_Algorithm
+R1806:1816 Crypt.choice_type <> choice_type ind
+R1919:1923 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1909:1913 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1899:1903 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1889:1893 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1879:1883 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1869:1873 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1859:1863 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1849:1853 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1839:1843 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1829:1833 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R1824:1828 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1834:1838 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1844:1848 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1854:1858 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1864:1868 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1874:1878 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1884:1888 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1894:1898 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1904:1908 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1914:1918 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1924:1928 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R1970:1972 Coq.Init.Datatypes <> inl constr
+R1975:1977 Coq.Init.Datatypes <> inl constr
+R1980:1982 Coq.Init.Datatypes <> inl constr
+R1985:1987 Coq.Init.Datatypes <> inl constr
+R1990:1992 Coq.Init.Datatypes <> inl constr
+R1995:1997 Coq.Init.Datatypes <> inl constr
+R2000:2002 Coq.Init.Datatypes <> inl constr
+R2005:2007 Coq.Init.Datatypes <> inl constr
+R2010:2012 Coq.Init.Datatypes <> inl constr
+R2015:2017 Coq.Init.Datatypes <> inl constr
+R2019:2020 Coq.Init.Datatypes <> tt constr
+not 1942:1942 Digest :::'Algorithm_Sha1_case'
+def 2058:2071 Digest Algorithm_Sha1
+R2075:2078 Hacspec.ChoiceEquality <> both rec
+R2080:2090 BertieExtraction.Fixes Digest t_Algorithm def
+R2097:2110 BertieExtraction.Fixes <> Algorithm_Sha1:12 def
+R2218:2221 Hacspec.ChoiceEquality <> both rec
+R2223:2233 BertieExtraction.Fixes Digest t_Algorithm def
+R2120:2127 Hacspec.ChoiceEquality <> ret_both def
+R2203:2213 BertieExtraction.Fixes Digest t_Algorithm def
+R2130:2132 Coq.Init.Datatypes <> inl constr
+R2135:2137 Coq.Init.Datatypes <> inl constr
+R2140:2142 Coq.Init.Datatypes <> inl constr
+R2145:2147 Coq.Init.Datatypes <> inl constr
+R2150:2152 Coq.Init.Datatypes <> inl constr
+R2155:2157 Coq.Init.Datatypes <> inl constr
+R2160:2162 Coq.Init.Datatypes <> inl constr
+R2165:2167 Coq.Init.Datatypes <> inl constr
+R2170:2172 Coq.Init.Datatypes <> inl constr
+R2175:2177 Coq.Init.Datatypes <> inl constr
+R2185:2189 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2180:2181 Coq.Init.Datatypes <> tt constr
+R2297:2299 Coq.Init.Datatypes <> inl constr
+R2302:2304 Coq.Init.Datatypes <> inl constr
+R2307:2309 Coq.Init.Datatypes <> inl constr
+R2312:2314 Coq.Init.Datatypes <> inl constr
+R2317:2319 Coq.Init.Datatypes <> inl constr
+R2322:2324 Coq.Init.Datatypes <> inl constr
+R2327:2329 Coq.Init.Datatypes <> inl constr
+R2332:2334 Coq.Init.Datatypes <> inl constr
+R2337:2339 Coq.Init.Datatypes <> inl constr
+R2342:2344 Coq.Init.Datatypes <> inr constr
+R2346:2347 Coq.Init.Datatypes <> tt constr
+not 2267:2267 Digest :::'Algorithm_Sha224_case'
+def 2385:2400 Digest Algorithm_Sha224
+R2404:2407 Hacspec.ChoiceEquality <> both rec
+R2409:2419 BertieExtraction.Fixes Digest t_Algorithm def
+R2426:2441 BertieExtraction.Fixes <> Algorithm_Sha224:14 def
+R2549:2552 Hacspec.ChoiceEquality <> both rec
+R2554:2564 BertieExtraction.Fixes Digest t_Algorithm def
+R2451:2458 Hacspec.ChoiceEquality <> ret_both def
+R2534:2544 BertieExtraction.Fixes Digest t_Algorithm def
+R2461:2463 Coq.Init.Datatypes <> inl constr
+R2466:2468 Coq.Init.Datatypes <> inl constr
+R2471:2473 Coq.Init.Datatypes <> inl constr
+R2476:2478 Coq.Init.Datatypes <> inl constr
+R2481:2483 Coq.Init.Datatypes <> inl constr
+R2486:2488 Coq.Init.Datatypes <> inl constr
+R2491:2493 Coq.Init.Datatypes <> inl constr
+R2496:2498 Coq.Init.Datatypes <> inl constr
+R2501:2503 Coq.Init.Datatypes <> inl constr
+R2506:2508 Coq.Init.Datatypes <> inr constr
+R2516:2520 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2511:2512 Coq.Init.Datatypes <> tt constr
+R2628:2630 Coq.Init.Datatypes <> inl constr
+R2633:2635 Coq.Init.Datatypes <> inl constr
+R2638:2640 Coq.Init.Datatypes <> inl constr
+R2643:2645 Coq.Init.Datatypes <> inl constr
+R2648:2650 Coq.Init.Datatypes <> inl constr
+R2653:2655 Coq.Init.Datatypes <> inl constr
+R2658:2660 Coq.Init.Datatypes <> inl constr
+R2663:2665 Coq.Init.Datatypes <> inl constr
+R2668:2670 Coq.Init.Datatypes <> inr constr
+R2672:2673 Coq.Init.Datatypes <> tt constr
+not 2598:2598 Digest :::'Algorithm_Sha256_case'
+def 2710:2725 Digest Algorithm_Sha256
+R2729:2732 Hacspec.ChoiceEquality <> both rec
+R2734:2744 BertieExtraction.Fixes Digest t_Algorithm def
+R2751:2766 BertieExtraction.Fixes <> Algorithm_Sha256:16 def
+R2868:2871 Hacspec.ChoiceEquality <> both rec
+R2873:2883 BertieExtraction.Fixes Digest t_Algorithm def
+R2776:2783 Hacspec.ChoiceEquality <> ret_both def
+R2853:2863 BertieExtraction.Fixes Digest t_Algorithm def
+R2786:2788 Coq.Init.Datatypes <> inl constr
+R2791:2793 Coq.Init.Datatypes <> inl constr
+R2796:2798 Coq.Init.Datatypes <> inl constr
+R2801:2803 Coq.Init.Datatypes <> inl constr
+R2806:2808 Coq.Init.Datatypes <> inl constr
+R2811:2813 Coq.Init.Datatypes <> inl constr
+R2816:2818 Coq.Init.Datatypes <> inl constr
+R2821:2823 Coq.Init.Datatypes <> inl constr
+R2826:2828 Coq.Init.Datatypes <> inr constr
+R2836:2840 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2831:2832 Coq.Init.Datatypes <> tt constr
+R2947:2949 Coq.Init.Datatypes <> inl constr
+R2952:2954 Coq.Init.Datatypes <> inl constr
+R2957:2959 Coq.Init.Datatypes <> inl constr
+R2962:2964 Coq.Init.Datatypes <> inl constr
+R2967:2969 Coq.Init.Datatypes <> inl constr
+R2972:2974 Coq.Init.Datatypes <> inl constr
+R2977:2979 Coq.Init.Datatypes <> inl constr
+R2982:2984 Coq.Init.Datatypes <> inr constr
+R2986:2987 Coq.Init.Datatypes <> tt constr
+not 2917:2917 Digest :::'Algorithm_Sha384_case'
+def 3023:3038 Digest Algorithm_Sha384
+R3042:3045 Hacspec.ChoiceEquality <> both rec
+R3047:3057 BertieExtraction.Fixes Digest t_Algorithm def
+R3064:3079 BertieExtraction.Fixes <> Algorithm_Sha384:18 def
+R3175:3178 Hacspec.ChoiceEquality <> both rec
+R3180:3190 BertieExtraction.Fixes Digest t_Algorithm def
+R3089:3096 Hacspec.ChoiceEquality <> ret_both def
+R3160:3170 BertieExtraction.Fixes Digest t_Algorithm def
+R3099:3101 Coq.Init.Datatypes <> inl constr
+R3104:3106 Coq.Init.Datatypes <> inl constr
+R3109:3111 Coq.Init.Datatypes <> inl constr
+R3114:3116 Coq.Init.Datatypes <> inl constr
+R3119:3121 Coq.Init.Datatypes <> inl constr
+R3124:3126 Coq.Init.Datatypes <> inl constr
+R3129:3131 Coq.Init.Datatypes <> inl constr
+R3134:3136 Coq.Init.Datatypes <> inr constr
+R3144:3148 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R3139:3140 Coq.Init.Datatypes <> tt constr
+R3254:3256 Coq.Init.Datatypes <> inl constr
+R3259:3261 Coq.Init.Datatypes <> inl constr
+R3264:3266 Coq.Init.Datatypes <> inl constr
+R3269:3271 Coq.Init.Datatypes <> inl constr
+R3274:3276 Coq.Init.Datatypes <> inl constr
+R3279:3281 Coq.Init.Datatypes <> inl constr
+R3284:3286 Coq.Init.Datatypes <> inr constr
+R3288:3289 Coq.Init.Datatypes <> tt constr
+not 3224:3224 Digest :::'Algorithm_Sha512_case'
+def 3324:3339 Digest Algorithm_Sha512
+R3343:3346 Hacspec.ChoiceEquality <> both rec
+R3348:3358 BertieExtraction.Fixes Digest t_Algorithm def
+R3365:3380 BertieExtraction.Fixes <> Algorithm_Sha512:20 def
+R3470:3473 Hacspec.ChoiceEquality <> both rec
+R3475:3485 BertieExtraction.Fixes Digest t_Algorithm def
+R3390:3397 Hacspec.ChoiceEquality <> ret_both def
+R3455:3465 BertieExtraction.Fixes Digest t_Algorithm def
+R3400:3402 Coq.Init.Datatypes <> inl constr
+R3405:3407 Coq.Init.Datatypes <> inl constr
+R3410:3412 Coq.Init.Datatypes <> inl constr
+R3415:3417 Coq.Init.Datatypes <> inl constr
+R3420:3422 Coq.Init.Datatypes <> inl constr
+R3425:3427 Coq.Init.Datatypes <> inl constr
+R3430:3432 Coq.Init.Datatypes <> inr constr
+R3440:3444 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R3435:3436 Coq.Init.Datatypes <> tt constr
+R3550:3552 Coq.Init.Datatypes <> inl constr
+R3555:3557 Coq.Init.Datatypes <> inl constr
+R3560:3562 Coq.Init.Datatypes <> inl constr
+R3565:3567 Coq.Init.Datatypes <> inl constr
+R3570:3572 Coq.Init.Datatypes <> inl constr
+R3575:3577 Coq.Init.Datatypes <> inr constr
+R3579:3580 Coq.Init.Datatypes <> tt constr
+not 3519:3519 Digest :::'Algorithm_Blake2s_case'
+def 3614:3630 Digest Algorithm_Blake2s
+R3634:3637 Hacspec.ChoiceEquality <> both rec
+R3639:3649 BertieExtraction.Fixes Digest t_Algorithm def
+R3656:3672 BertieExtraction.Fixes <> Algorithm_Blake2s:22 def
+R3756:3759 Hacspec.ChoiceEquality <> both rec
+R3761:3771 BertieExtraction.Fixes Digest t_Algorithm def
+R3682:3689 Hacspec.ChoiceEquality <> ret_both def
+R3741:3751 BertieExtraction.Fixes Digest t_Algorithm def
+R3692:3694 Coq.Init.Datatypes <> inl constr
+R3697:3699 Coq.Init.Datatypes <> inl constr
+R3702:3704 Coq.Init.Datatypes <> inl constr
+R3707:3709 Coq.Init.Datatypes <> inl constr
+R3712:3714 Coq.Init.Datatypes <> inl constr
+R3717:3719 Coq.Init.Datatypes <> inr constr
+R3727:3731 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R3722:3723 Coq.Init.Datatypes <> tt constr
+R3836:3838 Coq.Init.Datatypes <> inl constr
+R3841:3843 Coq.Init.Datatypes <> inl constr
+R3846:3848 Coq.Init.Datatypes <> inl constr
+R3851:3853 Coq.Init.Datatypes <> inl constr
+R3856:3858 Coq.Init.Datatypes <> inr constr
+R3860:3861 Coq.Init.Datatypes <> tt constr
+not 3805:3805 Digest :::'Algorithm_Blake2b_case'
+def 3894:3910 Digest Algorithm_Blake2b
+R3914:3917 Hacspec.ChoiceEquality <> both rec
+R3919:3929 BertieExtraction.Fixes Digest t_Algorithm def
+R3936:3952 BertieExtraction.Fixes <> Algorithm_Blake2b:24 def
+R4030:4033 Hacspec.ChoiceEquality <> both rec
+R4035:4045 BertieExtraction.Fixes Digest t_Algorithm def
+R3962:3969 Hacspec.ChoiceEquality <> ret_both def
+R4015:4025 BertieExtraction.Fixes Digest t_Algorithm def
+R3972:3974 Coq.Init.Datatypes <> inl constr
+R3977:3979 Coq.Init.Datatypes <> inl constr
+R3982:3984 Coq.Init.Datatypes <> inl constr
+R3987:3989 Coq.Init.Datatypes <> inl constr
+R3992:3994 Coq.Init.Datatypes <> inr constr
+R4002:4006 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R3997:3998 Coq.Init.Datatypes <> tt constr
+R4111:4113 Coq.Init.Datatypes <> inl constr
+R4116:4118 Coq.Init.Datatypes <> inl constr
+R4121:4123 Coq.Init.Datatypes <> inl constr
+R4126:4128 Coq.Init.Datatypes <> inr constr
+R4130:4131 Coq.Init.Datatypes <> tt constr
+not 4079:4079 Digest :::'Algorithm_Sha3_224_case'
+def 4163:4180 Digest Algorithm_Sha3_224
+R4184:4187 Hacspec.ChoiceEquality <> both rec
+R4189:4199 BertieExtraction.Fixes Digest t_Algorithm def
+R4206:4223 BertieExtraction.Fixes <> Algorithm_Sha3_224:26 def
+R4295:4298 Hacspec.ChoiceEquality <> both rec
+R4300:4310 BertieExtraction.Fixes Digest t_Algorithm def
+R4233:4240 Hacspec.ChoiceEquality <> ret_both def
+R4280:4290 BertieExtraction.Fixes Digest t_Algorithm def
+R4243:4245 Coq.Init.Datatypes <> inl constr
+R4248:4250 Coq.Init.Datatypes <> inl constr
+R4253:4255 Coq.Init.Datatypes <> inl constr
+R4258:4260 Coq.Init.Datatypes <> inr constr
+R4268:4272 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4263:4264 Coq.Init.Datatypes <> tt constr
+R4376:4378 Coq.Init.Datatypes <> inl constr
+R4381:4383 Coq.Init.Datatypes <> inl constr
+R4386:4388 Coq.Init.Datatypes <> inr constr
+R4390:4391 Coq.Init.Datatypes <> tt constr
+not 4344:4344 Digest :::'Algorithm_Sha3_256_case'
+def 4422:4439 Digest Algorithm_Sha3_256
+R4443:4446 Hacspec.ChoiceEquality <> both rec
+R4448:4458 BertieExtraction.Fixes Digest t_Algorithm def
+R4465:4482 BertieExtraction.Fixes <> Algorithm_Sha3_256:28 def
+R4548:4551 Hacspec.ChoiceEquality <> both rec
+R4553:4563 BertieExtraction.Fixes Digest t_Algorithm def
+R4492:4499 Hacspec.ChoiceEquality <> ret_both def
+R4533:4543 BertieExtraction.Fixes Digest t_Algorithm def
+R4502:4504 Coq.Init.Datatypes <> inl constr
+R4507:4509 Coq.Init.Datatypes <> inl constr
+R4512:4514 Coq.Init.Datatypes <> inr constr
+R4522:4526 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4517:4518 Coq.Init.Datatypes <> tt constr
+R4629:4631 Coq.Init.Datatypes <> inl constr
+R4634:4636 Coq.Init.Datatypes <> inr constr
+R4638:4639 Coq.Init.Datatypes <> tt constr
+not 4597:4597 Digest :::'Algorithm_Sha3_384_case'
+def 4669:4686 Digest Algorithm_Sha3_384
+R4690:4693 Hacspec.ChoiceEquality <> both rec
+R4695:4705 BertieExtraction.Fixes Digest t_Algorithm def
+R4712:4729 BertieExtraction.Fixes <> Algorithm_Sha3_384:30 def
+R4789:4792 Hacspec.ChoiceEquality <> both rec
+R4794:4804 BertieExtraction.Fixes Digest t_Algorithm def
+R4739:4746 Hacspec.ChoiceEquality <> ret_both def
+R4774:4784 BertieExtraction.Fixes Digest t_Algorithm def
+R4749:4751 Coq.Init.Datatypes <> inl constr
+R4754:4756 Coq.Init.Datatypes <> inr constr
+R4764:4768 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4759:4760 Coq.Init.Datatypes <> tt constr
+R4870:4872 Coq.Init.Datatypes <> inr constr
+R4874:4875 Coq.Init.Datatypes <> tt constr
+not 4838:4838 Digest :::'Algorithm_Sha3_512_case'
+def 4904:4921 Digest Algorithm_Sha3_512
+R4925:4928 Hacspec.ChoiceEquality <> both rec
+R4930:4940 BertieExtraction.Fixes Digest t_Algorithm def
+R4947:4964 BertieExtraction.Fixes <> Algorithm_Sha3_512:32 def
+R5018:5021 Hacspec.ChoiceEquality <> both rec
+R5023:5033 BertieExtraction.Fixes Digest t_Algorithm def
+R4974:4981 Hacspec.ChoiceEquality <> ret_both def
+R5003:5013 BertieExtraction.Fixes Digest t_Algorithm def
+R4984:4986 Coq.Init.Datatypes <> inr constr
+R4994:4998 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4989:4990 Coq.Init.Datatypes <> tt constr
+def 5070:5080 Digest digest_size
+R5089:5092 Hacspec.ChoiceEquality <> both rec
+R5094:5104 BertieExtraction.Fixes Digest t_Algorithm def
+binder 5082:5085 <> mode:33
+R5109:5112 Hacspec.ChoiceEquality <> both rec
+R5114:5122 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R5129:5135 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5140:5149 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5169:5172 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5184:5188 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5210:5213 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5225:5229 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5251:5254 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5266:5270 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5292:5295 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5307:5311 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5333:5336 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5348:5352 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5375:5378 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5390:5394 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5417:5420 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5432:5436 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5460:5463 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5475:5479 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5503:5506 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5518:5522 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5546:5549 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5561:5565 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5589:5592 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5604:5609 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5136:5139 BertieExtraction.Fixes <> mode:33 var
+R5150:5168 BertieExtraction.Fixes Digest :::'Algorithm_Sha1_case' not
+binder 5150:5168 <> pat:34
+R5173:5180 Hacspec.ChoiceEquality <> ret_both def
+R5189:5209 BertieExtraction.Fixes Digest :::'Algorithm_Sha224_case' not
+binder 5189:5209 <> pat:35
+R5214:5221 Hacspec.ChoiceEquality <> ret_both def
+R5230:5250 BertieExtraction.Fixes Digest :::'Algorithm_Sha256_case' not
+binder 5230:5250 <> pat:36
+R5255:5262 Hacspec.ChoiceEquality <> ret_both def
+R5271:5291 BertieExtraction.Fixes Digest :::'Algorithm_Sha384_case' not
+binder 5271:5291 <> pat:37
+R5296:5303 Hacspec.ChoiceEquality <> ret_both def
+R5312:5332 BertieExtraction.Fixes Digest :::'Algorithm_Sha512_case' not
+binder 5312:5332 <> pat:38
+R5337:5344 Hacspec.ChoiceEquality <> ret_both def
+R5353:5374 BertieExtraction.Fixes Digest :::'Algorithm_Blake2s_case' not
+binder 5353:5374 <> pat:39
+R5379:5386 Hacspec.ChoiceEquality <> ret_both def
+R5395:5416 BertieExtraction.Fixes Digest :::'Algorithm_Blake2b_case' not
+binder 5395:5416 <> pat:40
+R5421:5428 Hacspec.ChoiceEquality <> ret_both def
+R5437:5459 BertieExtraction.Fixes Digest :::'Algorithm_Sha3_224_case' not
+binder 5437:5459 <> pat:41
+R5464:5471 Hacspec.ChoiceEquality <> ret_both def
+R5480:5502 BertieExtraction.Fixes Digest :::'Algorithm_Sha3_256_case' not
+binder 5480:5502 <> pat:42
+R5507:5514 Hacspec.ChoiceEquality <> ret_both def
+R5523:5545 BertieExtraction.Fixes Digest :::'Algorithm_Sha3_384_case' not
+binder 5523:5545 <> pat:43
+R5550:5557 Hacspec.ChoiceEquality <> ret_both def
+R5566:5588 BertieExtraction.Fixes Digest :::'Algorithm_Sha3_512_case' not
+binder 5566:5588 <> pat:44
+R5593:5600 Hacspec.ChoiceEquality <> ret_both def
+ax 5619:5622 Digest hash
+R5639:5642 Hacspec.ChoiceEquality <> both rec
+R5644:5654 BertieExtraction.Fixes Digest t_Algorithm def
+binder 5634:5636 <> alg:45
+R5667:5670 Hacspec.ChoiceEquality <> both rec
+R5673:5677 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R5679:5682 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R5684:5691 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 5658:5664 <> payload:46
+R5696:5699 Hacspec.ChoiceEquality <> both rec
+R5702:5706 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R5708:5711 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R5713:5720 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R6989:6994 BertieExtraction.Fixes Digest <> mod
+mod 7005:7008 <> Hkdf
+def 7022:7032 Hkdf t_Algorithm
+R7036:7046 Crypt.choice_type <> choice_type ind
+R7069:7073 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R7059:7063 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R7054:7058 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7064:7068 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7074:7078 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7122:7124 Coq.Init.Datatypes <> inl constr
+R7127:7129 Coq.Init.Datatypes <> inl constr
+R7131:7132 Coq.Init.Datatypes <> tt constr
+not 7092:7092 Hkdf :::'Algorithm_Sha256_case'
+def 7162:7177 Hkdf Algorithm_Sha256
+R7181:7184 Hacspec.ChoiceEquality <> both rec
+R7186:7196 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7203:7218 BertieExtraction.Fixes <> Algorithm_Sha256:49 def
+R7278:7281 Hacspec.ChoiceEquality <> both rec
+R7283:7293 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7228:7235 Hacspec.ChoiceEquality <> ret_both def
+R7263:7273 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7238:7240 Coq.Init.Datatypes <> inl constr
+R7243:7245 Coq.Init.Datatypes <> inl constr
+R7253:7257 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7248:7249 Coq.Init.Datatypes <> tt constr
+R7357:7359 Coq.Init.Datatypes <> inl constr
+R7362:7364 Coq.Init.Datatypes <> inr constr
+R7366:7367 Coq.Init.Datatypes <> tt constr
+not 7327:7327 Hkdf :::'Algorithm_Sha384_case'
+def 7397:7412 Hkdf Algorithm_Sha384
+R7416:7419 Hacspec.ChoiceEquality <> both rec
+R7421:7431 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7438:7453 BertieExtraction.Fixes <> Algorithm_Sha384:51 def
+R7513:7516 Hacspec.ChoiceEquality <> both rec
+R7518:7528 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7463:7470 Hacspec.ChoiceEquality <> ret_both def
+R7498:7508 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7473:7475 Coq.Init.Datatypes <> inl constr
+R7478:7480 Coq.Init.Datatypes <> inr constr
+R7488:7492 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7483:7484 Coq.Init.Datatypes <> tt constr
+R7592:7594 Coq.Init.Datatypes <> inr constr
+R7596:7597 Coq.Init.Datatypes <> tt constr
+not 7562:7562 Hkdf :::'Algorithm_Sha512_case'
+def 7626:7641 Hkdf Algorithm_Sha512
+R7645:7648 Hacspec.ChoiceEquality <> both rec
+R7650:7660 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7667:7682 BertieExtraction.Fixes <> Algorithm_Sha512:53 def
+R7736:7739 Hacspec.ChoiceEquality <> both rec
+R7741:7751 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7692:7699 Hacspec.ChoiceEquality <> ret_both def
+R7721:7731 BertieExtraction.Fixes Hkdf t_Algorithm def
+R7702:7704 Coq.Init.Datatypes <> inr constr
+R7712:7716 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7707:7708 Coq.Init.Datatypes <> tt constr
+def 7788:7794 Hkdf t_Error
+R7798:7808 Crypt.choice_type <> choice_type ind
+R7813:7817 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7866:7868 Coq.Init.Datatypes <> inl constr
+R7871:7873 Coq.Init.Datatypes <> inl constr
+R7875:7876 Coq.Init.Datatypes <> tt constr
+not 7829:7829 Hkdf :::'Error_OkmLengthTooLarge_case'
+def 7906:7928 Hkdf Error_OkmLengthTooLarge
+R7932:7935 Hacspec.ChoiceEquality <> both rec
+R7937:7943 BertieExtraction.Fixes Hkdf t_Error def
+R7950:7972 BertieExtraction.Fixes <> Error_OkmLengthTooLarge:55 def
+R8018:8021 Hacspec.ChoiceEquality <> both rec
+R8023:8029 BertieExtraction.Fixes Hkdf t_Error def
+R7982:7989 Hacspec.ChoiceEquality <> ret_both def
+R8007:8013 BertieExtraction.Fixes Hkdf t_Error def
+R7998:8002 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7993:7994 Coq.Init.Datatypes <> tt constr
+ax 8061:8066 Hkdf expand
+R8084:8087 Hacspec.ChoiceEquality <> both rec
+R8089:8099 BertieExtraction.Fixes Hkdf t_Algorithm def
+binder 8078:8080 <> alg:56
+R8109:8112 Hacspec.ChoiceEquality <> both rec
+R8115:8119 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R8121:8124 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R8126:8133 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 8103:8105 <> prk:57
+R8145:8148 Hacspec.ChoiceEquality <> both rec
+R8151:8155 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R8157:8160 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R8162:8169 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 8138:8141 <> info:58
+R8184:8187 Hacspec.ChoiceEquality <> both rec
+R8189:8197 Hacspec.Hacspec_Lib_Pre <> uint_size def
+binder 8174:8180 <> okm_len:59
+R8201:8204 Hacspec.ChoiceEquality <> both rec
+R8207:8214 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R8217:8221 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R8223:8226 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R8228:8235 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R8239:8245 BertieExtraction.Fixes Hkdf t_Error def
+ax 9373:9379 Hkdf extract
+R9397:9400 Hacspec.ChoiceEquality <> both rec
+R9402:9412 BertieExtraction.Fixes Hkdf t_Algorithm def
+binder 9391:9393 <> alg:61
+R9423:9426 Hacspec.ChoiceEquality <> both rec
+R9429:9433 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R9435:9438 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9440:9447 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 9416:9419 <> salt:62
+R9458:9461 Hacspec.ChoiceEquality <> both rec
+R9464:9468 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R9470:9473 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9475:9482 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 9452:9454 <> ikm:63
+R9487:9490 Hacspec.ChoiceEquality <> both rec
+R9493:9500 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R9503:9507 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R9509:9512 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9514:9521 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R9525:9531 BertieExtraction.Fixes Hkdf t_Error def
+R10271:10274 BertieExtraction.Fixes Hkdf <> mod
+mod 10286:10294 <> Signature
+def 10308:10324 Signature t_DigestAlgorithm
+R10328:10338 Crypt.choice_type <> choice_type ind
+R10361:10365 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R10351:10355 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R10346:10350 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R10356:10360 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R10366:10370 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R10419:10421 Coq.Init.Datatypes <> inl constr
+R10424:10426 Coq.Init.Datatypes <> inl constr
+R10428:10429 Coq.Init.Datatypes <> tt constr
+not 10383:10383 Signature :::'DigestAlgorithm_Sha256_case'
+def 10459:10480 Signature DigestAlgorithm_Sha256
+R10484:10487 Hacspec.ChoiceEquality <> both rec
+R10489:10505 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R10512:10533 BertieExtraction.Fixes <> DigestAlgorithm_Sha256:66 def
+R10599:10602 Hacspec.ChoiceEquality <> both rec
+R10604:10620 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R10543:10550 Hacspec.ChoiceEquality <> ret_both def
+R10578:10594 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R10553:10555 Coq.Init.Datatypes <> inl constr
+R10558:10560 Coq.Init.Datatypes <> inl constr
+R10568:10572 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R10563:10564 Coq.Init.Datatypes <> tt constr
+R10690:10692 Coq.Init.Datatypes <> inl constr
+R10695:10697 Coq.Init.Datatypes <> inr constr
+R10699:10700 Coq.Init.Datatypes <> tt constr
+not 10654:10654 Signature :::'DigestAlgorithm_Sha384_case'
+def 10730:10751 Signature DigestAlgorithm_Sha384
+R10755:10758 Hacspec.ChoiceEquality <> both rec
+R10760:10776 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R10783:10804 BertieExtraction.Fixes <> DigestAlgorithm_Sha384:68 def
+R10870:10873 Hacspec.ChoiceEquality <> both rec
+R10875:10891 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R10814:10821 Hacspec.ChoiceEquality <> ret_both def
+R10849:10865 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R10824:10826 Coq.Init.Datatypes <> inl constr
+R10829:10831 Coq.Init.Datatypes <> inr constr
+R10839:10843 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R10834:10835 Coq.Init.Datatypes <> tt constr
+R10961:10963 Coq.Init.Datatypes <> inr constr
+R10965:10966 Coq.Init.Datatypes <> tt constr
+not 10925:10925 Signature :::'DigestAlgorithm_Sha512_case'
+def 10995:11016 Signature DigestAlgorithm_Sha512
+R11020:11023 Hacspec.ChoiceEquality <> both rec
+R11025:11041 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R11048:11069 BertieExtraction.Fixes <> DigestAlgorithm_Sha512:70 def
+R11129:11132 Hacspec.ChoiceEquality <> both rec
+R11134:11150 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R11079:11086 Hacspec.ChoiceEquality <> ret_both def
+R11108:11124 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R11089:11091 Coq.Init.Datatypes <> inr constr
+R11099:11103 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R11094:11095 Coq.Init.Datatypes <> tt constr
+def 11188:11198 Signature t_Algorithm
+R11202:11212 Crypt.choice_type <> choice_type ind
+R11247:11251 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R11237:11241 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R11220:11236 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R11242:11246 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R11252:11268 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+R11316:11318 Coq.Init.Datatypes <> inl constr
+R11321:11323 Coq.Init.Datatypes <> inl constr
+not 11281:11281 Signature :::'Algorithm_EcDsaP256_case'_x
+def 11355:11373 Signature Algorithm_EcDsaP256
+R11380:11383 Hacspec.ChoiceEquality <> both rec
+R11385:11401 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+binder 11376:11376 <> x:71
+R11406:11409 Hacspec.ChoiceEquality <> both rec
+R11411:11421 BertieExtraction.Fixes Signature t_Algorithm def
+R11428:11446 BertieExtraction.Fixes <> Algorithm_EcDsaP256:74 def
+R11448:11448 BertieExtraction.Fixes <> x:73 var
+R11523:11526 Hacspec.ChoiceEquality <> both rec
+R11528:11538 BertieExtraction.Fixes Signature t_Algorithm def
+R11457:11465 Hacspec.ChoiceEquality <> bind_both def
+binder 11474:11474 <> x:75
+R11483:11490 Hacspec.ChoiceEquality <> ret_both def
+R11507:11517 BertieExtraction.Fixes Signature t_Algorithm def
+R11493:11495 Coq.Init.Datatypes <> inl constr
+R11498:11500 Coq.Init.Datatypes <> inl constr
+R11502:11502 BertieExtraction.Fixes <> x:75 var
+R11602:11604 Coq.Init.Datatypes <> inl constr
+R11607:11609 Coq.Init.Datatypes <> inr constr
+R11611:11612 Coq.Init.Datatypes <> tt constr
+not 11572:11572 Signature :::'Algorithm_RsaPss_case'
+def 11642:11658 Signature Algorithm_Ed25519
+R11662:11665 Hacspec.ChoiceEquality <> both rec
+R11667:11677 BertieExtraction.Fixes Signature t_Algorithm def
+R11684:11700 BertieExtraction.Fixes <> Algorithm_Ed25519:77 def
+R11759:11762 Hacspec.ChoiceEquality <> both rec
+R11764:11774 BertieExtraction.Fixes Signature t_Algorithm def
+R11709:11716 Hacspec.ChoiceEquality <> ret_both def
+R11744:11754 BertieExtraction.Fixes Signature t_Algorithm def
+R11719:11721 Coq.Init.Datatypes <> inl constr
+R11724:11726 Coq.Init.Datatypes <> inr constr
+R11734:11738 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R11729:11730 Coq.Init.Datatypes <> tt constr
+R11840:11842 Coq.Init.Datatypes <> inr constr
+not 11808:11808 Signature :::'Algorithm_RsaPss_case'_x
+def 11873:11888 Signature Algorithm_RsaPss
+R11895:11898 Hacspec.ChoiceEquality <> both rec
+R11900:11916 BertieExtraction.Fixes Signature t_DigestAlgorithm def
+binder 11891:11891 <> x:78
+R11921:11924 Hacspec.ChoiceEquality <> both rec
+R11926:11936 BertieExtraction.Fixes Signature t_Algorithm def
+R11943:11958 BertieExtraction.Fixes <> Algorithm_RsaPss:81 def
+R11960:11960 BertieExtraction.Fixes <> x:80 var
+R12029:12032 Hacspec.ChoiceEquality <> both rec
+R12034:12044 BertieExtraction.Fixes Signature t_Algorithm def
+R11969:11977 Hacspec.ChoiceEquality <> bind_both def
+binder 11986:11986 <> x:82
+R11995:12002 Hacspec.ChoiceEquality <> ret_both def
+R12013:12023 BertieExtraction.Fixes Signature t_Algorithm def
+R12005:12007 Coq.Init.Datatypes <> inr constr
+R12009:12009 BertieExtraction.Fixes <> x:82 var
+R12073:12081 BertieExtraction.Fixes Signature <> mod
+mod 12092:12102 <> Libcrux_kem
+def 12116:12126 Libcrux_kem t_Algorithm
+R12130:12140 Crypt.choice_type <> choice_type ind
+R12253:12257 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12243:12247 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12233:12237 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12223:12227 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12213:12217 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12203:12207 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12193:12197 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12183:12187 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12173:12177 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12163:12167 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12153:12157 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R12148:12152 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12158:12162 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12168:12172 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12178:12182 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12188:12192 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12198:12202 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12208:12212 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12218:12222 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12228:12232 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12238:12242 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12248:12252 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12258:12262 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12306:12308 Coq.Init.Datatypes <> inl constr
+R12311:12313 Coq.Init.Datatypes <> inl constr
+R12316:12318 Coq.Init.Datatypes <> inl constr
+R12321:12323 Coq.Init.Datatypes <> inl constr
+R12326:12328 Coq.Init.Datatypes <> inl constr
+R12331:12333 Coq.Init.Datatypes <> inl constr
+R12336:12338 Coq.Init.Datatypes <> inl constr
+R12341:12343 Coq.Init.Datatypes <> inl constr
+R12346:12348 Coq.Init.Datatypes <> inl constr
+R12351:12353 Coq.Init.Datatypes <> inl constr
+R12356:12358 Coq.Init.Datatypes <> inl constr
+R12360:12361 Coq.Init.Datatypes <> tt constr
+not 12276:12276 Libcrux_kem :::'Algorithm_X25519_case'
+def 12400:12415 Libcrux_kem Algorithm_X25519
+R12419:12422 Hacspec.ChoiceEquality <> both rec
+R12424:12434 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12441:12456 BertieExtraction.Fixes <> Algorithm_X25519:84 def
+R12570:12573 Hacspec.ChoiceEquality <> both rec
+R12575:12585 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12466:12473 Hacspec.ChoiceEquality <> ret_both def
+R12555:12565 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12476:12478 Coq.Init.Datatypes <> inl constr
+R12481:12483 Coq.Init.Datatypes <> inl constr
+R12486:12488 Coq.Init.Datatypes <> inl constr
+R12491:12493 Coq.Init.Datatypes <> inl constr
+R12496:12498 Coq.Init.Datatypes <> inl constr
+R12501:12503 Coq.Init.Datatypes <> inl constr
+R12506:12508 Coq.Init.Datatypes <> inl constr
+R12511:12513 Coq.Init.Datatypes <> inl constr
+R12516:12518 Coq.Init.Datatypes <> inl constr
+R12521:12523 Coq.Init.Datatypes <> inl constr
+R12526:12528 Coq.Init.Datatypes <> inl constr
+R12536:12540 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12531:12532 Coq.Init.Datatypes <> tt constr
+R12647:12649 Coq.Init.Datatypes <> inl constr
+R12652:12654 Coq.Init.Datatypes <> inl constr
+R12657:12659 Coq.Init.Datatypes <> inl constr
+R12662:12664 Coq.Init.Datatypes <> inl constr
+R12667:12669 Coq.Init.Datatypes <> inl constr
+R12672:12674 Coq.Init.Datatypes <> inl constr
+R12677:12679 Coq.Init.Datatypes <> inl constr
+R12682:12684 Coq.Init.Datatypes <> inl constr
+R12687:12689 Coq.Init.Datatypes <> inl constr
+R12692:12694 Coq.Init.Datatypes <> inl constr
+R12697:12699 Coq.Init.Datatypes <> inr constr
+R12701:12702 Coq.Init.Datatypes <> tt constr
+not 12619:12619 Libcrux_kem :::'Algorithm_X448_case'
+def 12741:12754 Libcrux_kem Algorithm_X448
+R12758:12761 Hacspec.ChoiceEquality <> both rec
+R12763:12773 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12780:12793 BertieExtraction.Fixes <> Algorithm_X448:86 def
+R12907:12910 Hacspec.ChoiceEquality <> both rec
+R12912:12922 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12803:12810 Hacspec.ChoiceEquality <> ret_both def
+R12892:12902 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12813:12815 Coq.Init.Datatypes <> inl constr
+R12818:12820 Coq.Init.Datatypes <> inl constr
+R12823:12825 Coq.Init.Datatypes <> inl constr
+R12828:12830 Coq.Init.Datatypes <> inl constr
+R12833:12835 Coq.Init.Datatypes <> inl constr
+R12838:12840 Coq.Init.Datatypes <> inl constr
+R12843:12845 Coq.Init.Datatypes <> inl constr
+R12848:12850 Coq.Init.Datatypes <> inl constr
+R12853:12855 Coq.Init.Datatypes <> inl constr
+R12858:12860 Coq.Init.Datatypes <> inl constr
+R12863:12865 Coq.Init.Datatypes <> inr constr
+R12873:12877 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R12868:12869 Coq.Init.Datatypes <> tt constr
+R12989:12991 Coq.Init.Datatypes <> inl constr
+R12994:12996 Coq.Init.Datatypes <> inl constr
+R12999:13001 Coq.Init.Datatypes <> inl constr
+R13004:13006 Coq.Init.Datatypes <> inl constr
+R13009:13011 Coq.Init.Datatypes <> inl constr
+R13014:13016 Coq.Init.Datatypes <> inl constr
+R13019:13021 Coq.Init.Datatypes <> inl constr
+R13024:13026 Coq.Init.Datatypes <> inl constr
+R13029:13031 Coq.Init.Datatypes <> inl constr
+R13034:13036 Coq.Init.Datatypes <> inr constr
+R13038:13039 Coq.Init.Datatypes <> tt constr
+not 12956:12956 Libcrux_kem :::'Algorithm_Secp256r1_case'
+def 13077:13095 Libcrux_kem Algorithm_Secp256r1
+R13099:13102 Hacspec.ChoiceEquality <> both rec
+R13104:13114 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13121:13139 BertieExtraction.Fixes <> Algorithm_Secp256r1:88 def
+R13247:13250 Hacspec.ChoiceEquality <> both rec
+R13252:13262 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13149:13156 Hacspec.ChoiceEquality <> ret_both def
+R13232:13242 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13159:13161 Coq.Init.Datatypes <> inl constr
+R13164:13166 Coq.Init.Datatypes <> inl constr
+R13169:13171 Coq.Init.Datatypes <> inl constr
+R13174:13176 Coq.Init.Datatypes <> inl constr
+R13179:13181 Coq.Init.Datatypes <> inl constr
+R13184:13186 Coq.Init.Datatypes <> inl constr
+R13189:13191 Coq.Init.Datatypes <> inl constr
+R13194:13196 Coq.Init.Datatypes <> inl constr
+R13199:13201 Coq.Init.Datatypes <> inl constr
+R13204:13206 Coq.Init.Datatypes <> inr constr
+R13214:13218 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R13209:13210 Coq.Init.Datatypes <> tt constr
+R13329:13331 Coq.Init.Datatypes <> inl constr
+R13334:13336 Coq.Init.Datatypes <> inl constr
+R13339:13341 Coq.Init.Datatypes <> inl constr
+R13344:13346 Coq.Init.Datatypes <> inl constr
+R13349:13351 Coq.Init.Datatypes <> inl constr
+R13354:13356 Coq.Init.Datatypes <> inl constr
+R13359:13361 Coq.Init.Datatypes <> inl constr
+R13364:13366 Coq.Init.Datatypes <> inl constr
+R13369:13371 Coq.Init.Datatypes <> inr constr
+R13373:13374 Coq.Init.Datatypes <> tt constr
+not 13296:13296 Libcrux_kem :::'Algorithm_Secp384r1_case'
+def 13411:13429 Libcrux_kem Algorithm_Secp384r1
+R13433:13436 Hacspec.ChoiceEquality <> both rec
+R13438:13448 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13455:13473 BertieExtraction.Fixes <> Algorithm_Secp384r1:90 def
+R13575:13578 Hacspec.ChoiceEquality <> both rec
+R13580:13590 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13483:13490 Hacspec.ChoiceEquality <> ret_both def
+R13560:13570 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13493:13495 Coq.Init.Datatypes <> inl constr
+R13498:13500 Coq.Init.Datatypes <> inl constr
+R13503:13505 Coq.Init.Datatypes <> inl constr
+R13508:13510 Coq.Init.Datatypes <> inl constr
+R13513:13515 Coq.Init.Datatypes <> inl constr
+R13518:13520 Coq.Init.Datatypes <> inl constr
+R13523:13525 Coq.Init.Datatypes <> inl constr
+R13528:13530 Coq.Init.Datatypes <> inl constr
+R13533:13535 Coq.Init.Datatypes <> inr constr
+R13543:13547 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R13538:13539 Coq.Init.Datatypes <> tt constr
+R13657:13659 Coq.Init.Datatypes <> inl constr
+R13662:13664 Coq.Init.Datatypes <> inl constr
+R13667:13669 Coq.Init.Datatypes <> inl constr
+R13672:13674 Coq.Init.Datatypes <> inl constr
+R13677:13679 Coq.Init.Datatypes <> inl constr
+R13682:13684 Coq.Init.Datatypes <> inl constr
+R13687:13689 Coq.Init.Datatypes <> inl constr
+R13692:13694 Coq.Init.Datatypes <> inr constr
+R13696:13697 Coq.Init.Datatypes <> tt constr
+not 13624:13624 Libcrux_kem :::'Algorithm_Secp521r1_case'
+def 13733:13751 Libcrux_kem Algorithm_Secp521r1
+R13755:13758 Hacspec.ChoiceEquality <> both rec
+R13760:13770 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13777:13795 BertieExtraction.Fixes <> Algorithm_Secp521r1:92 def
+R13891:13894 Hacspec.ChoiceEquality <> both rec
+R13896:13906 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13805:13812 Hacspec.ChoiceEquality <> ret_both def
+R13876:13886 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R13815:13817 Coq.Init.Datatypes <> inl constr
+R13820:13822 Coq.Init.Datatypes <> inl constr
+R13825:13827 Coq.Init.Datatypes <> inl constr
+R13830:13832 Coq.Init.Datatypes <> inl constr
+R13835:13837 Coq.Init.Datatypes <> inl constr
+R13840:13842 Coq.Init.Datatypes <> inl constr
+R13845:13847 Coq.Init.Datatypes <> inl constr
+R13850:13852 Coq.Init.Datatypes <> inr constr
+R13860:13864 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R13855:13856 Coq.Init.Datatypes <> tt constr
+R13972:13974 Coq.Init.Datatypes <> inl constr
+R13977:13979 Coq.Init.Datatypes <> inl constr
+R13982:13984 Coq.Init.Datatypes <> inl constr
+R13987:13989 Coq.Init.Datatypes <> inl constr
+R13992:13994 Coq.Init.Datatypes <> inl constr
+R13997:13999 Coq.Init.Datatypes <> inl constr
+R14002:14004 Coq.Init.Datatypes <> inr constr
+R14006:14007 Coq.Init.Datatypes <> tt constr
+not 13940:13940 Libcrux_kem :::'Algorithm_MlKem512_case'
+def 14042:14059 Libcrux_kem Algorithm_MlKem512
+R14063:14066 Hacspec.ChoiceEquality <> both rec
+R14068:14078 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14085:14102 BertieExtraction.Fixes <> Algorithm_MlKem512:94 def
+R14192:14195 Hacspec.ChoiceEquality <> both rec
+R14197:14207 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14112:14119 Hacspec.ChoiceEquality <> ret_both def
+R14177:14187 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14122:14124 Coq.Init.Datatypes <> inl constr
+R14127:14129 Coq.Init.Datatypes <> inl constr
+R14132:14134 Coq.Init.Datatypes <> inl constr
+R14137:14139 Coq.Init.Datatypes <> inl constr
+R14142:14144 Coq.Init.Datatypes <> inl constr
+R14147:14149 Coq.Init.Datatypes <> inl constr
+R14152:14154 Coq.Init.Datatypes <> inr constr
+R14162:14166 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R14157:14158 Coq.Init.Datatypes <> tt constr
+R14273:14275 Coq.Init.Datatypes <> inl constr
+R14278:14280 Coq.Init.Datatypes <> inl constr
+R14283:14285 Coq.Init.Datatypes <> inl constr
+R14288:14290 Coq.Init.Datatypes <> inl constr
+R14293:14295 Coq.Init.Datatypes <> inl constr
+R14298:14300 Coq.Init.Datatypes <> inr constr
+R14302:14303 Coq.Init.Datatypes <> tt constr
+not 14241:14241 Libcrux_kem :::'Algorithm_MlKem768_case'
+def 14337:14354 Libcrux_kem Algorithm_MlKem768
+R14358:14361 Hacspec.ChoiceEquality <> both rec
+R14363:14373 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14380:14397 BertieExtraction.Fixes <> Algorithm_MlKem768:96 def
+R14481:14484 Hacspec.ChoiceEquality <> both rec
+R14486:14496 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14407:14414 Hacspec.ChoiceEquality <> ret_both def
+R14466:14476 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14417:14419 Coq.Init.Datatypes <> inl constr
+R14422:14424 Coq.Init.Datatypes <> inl constr
+R14427:14429 Coq.Init.Datatypes <> inl constr
+R14432:14434 Coq.Init.Datatypes <> inl constr
+R14437:14439 Coq.Init.Datatypes <> inl constr
+R14442:14444 Coq.Init.Datatypes <> inr constr
+R14452:14456 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R14447:14448 Coq.Init.Datatypes <> tt constr
+R14575:14577 Coq.Init.Datatypes <> inl constr
+R14580:14582 Coq.Init.Datatypes <> inl constr
+R14585:14587 Coq.Init.Datatypes <> inl constr
+R14590:14592 Coq.Init.Datatypes <> inl constr
+R14595:14597 Coq.Init.Datatypes <> inr constr
+R14599:14600 Coq.Init.Datatypes <> tt constr
+not 14530:14530 Libcrux_kem :::'Algorithm_X25519MlKem768Draft00_case'
+def 14633:14663 Libcrux_kem Algorithm_X25519MlKem768Draft00
+R14667:14670 Hacspec.ChoiceEquality <> both rec
+R14672:14682 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14689:14719 BertieExtraction.Fixes <> Algorithm_X25519MlKem768Draft00:98 def
+R14797:14800 Hacspec.ChoiceEquality <> both rec
+R14802:14812 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14729:14736 Hacspec.ChoiceEquality <> ret_both def
+R14782:14792 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14739:14741 Coq.Init.Datatypes <> inl constr
+R14744:14746 Coq.Init.Datatypes <> inl constr
+R14749:14751 Coq.Init.Datatypes <> inl constr
+R14754:14756 Coq.Init.Datatypes <> inl constr
+R14759:14761 Coq.Init.Datatypes <> inr constr
+R14769:14773 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R14764:14765 Coq.Init.Datatypes <> tt constr
+R14885:14887 Coq.Init.Datatypes <> inl constr
+R14890:14892 Coq.Init.Datatypes <> inl constr
+R14895:14897 Coq.Init.Datatypes <> inl constr
+R14900:14902 Coq.Init.Datatypes <> inr constr
+R14904:14905 Coq.Init.Datatypes <> tt constr
+not 14846:14846 Libcrux_kem :::'Algorithm_XWingKemDraft02_case'
+def 14937:14961 Libcrux_kem Algorithm_XWingKemDraft02
+R14965:14968 Hacspec.ChoiceEquality <> both rec
+R14970:14980 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R14987:15011 BertieExtraction.Fixes <> Algorithm_XWingKemDraft02:100 def
+R15083:15086 Hacspec.ChoiceEquality <> both rec
+R15088:15098 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15021:15028 Hacspec.ChoiceEquality <> ret_both def
+R15068:15078 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15031:15033 Coq.Init.Datatypes <> inl constr
+R15036:15038 Coq.Init.Datatypes <> inl constr
+R15041:15043 Coq.Init.Datatypes <> inl constr
+R15046:15048 Coq.Init.Datatypes <> inr constr
+R15056:15060 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R15051:15052 Coq.Init.Datatypes <> tt constr
+R15177:15179 Coq.Init.Datatypes <> inl constr
+R15182:15184 Coq.Init.Datatypes <> inl constr
+R15187:15189 Coq.Init.Datatypes <> inr constr
+R15191:15192 Coq.Init.Datatypes <> tt constr
+not 15132:15132 Libcrux_kem :::'Algorithm_X25519Kyber768Draft00_case'
+def 15223:15253 Libcrux_kem Algorithm_X25519Kyber768Draft00
+R15257:15260 Hacspec.ChoiceEquality <> both rec
+R15262:15272 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15279:15309 BertieExtraction.Fixes <> Algorithm_X25519Kyber768Draft00:102 def
+R15375:15378 Hacspec.ChoiceEquality <> both rec
+R15380:15390 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15319:15326 Hacspec.ChoiceEquality <> ret_both def
+R15360:15370 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15329:15331 Coq.Init.Datatypes <> inl constr
+R15334:15336 Coq.Init.Datatypes <> inl constr
+R15339:15341 Coq.Init.Datatypes <> inr constr
+R15349:15353 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R15344:15345 Coq.Init.Datatypes <> tt constr
+R15465:15467 Coq.Init.Datatypes <> inl constr
+R15470:15472 Coq.Init.Datatypes <> inr constr
+R15474:15475 Coq.Init.Datatypes <> tt constr
+not 15424:15424 Libcrux_kem :::'Algorithm_XWingKyberDraft02_case'
+def 15505:15531 Libcrux_kem Algorithm_XWingKyberDraft02
+R15535:15538 Hacspec.ChoiceEquality <> both rec
+R15540:15550 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15557:15583 BertieExtraction.Fixes <> Algorithm_XWingKyberDraft02:104 def
+R15643:15646 Hacspec.ChoiceEquality <> both rec
+R15648:15658 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15593:15600 Hacspec.ChoiceEquality <> ret_both def
+R15628:15638 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15603:15605 Coq.Init.Datatypes <> inl constr
+R15608:15610 Coq.Init.Datatypes <> inr constr
+R15618:15622 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R15613:15614 Coq.Init.Datatypes <> tt constr
+R15725:15727 Coq.Init.Datatypes <> inr constr
+R15729:15730 Coq.Init.Datatypes <> tt constr
+not 15692:15692 Libcrux_kem :::'Algorithm_MlKem1024_case'
+def 15759:15777 Libcrux_kem Algorithm_MlKem1024
+R15781:15784 Hacspec.ChoiceEquality <> both rec
+R15786:15796 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15803:15821 BertieExtraction.Fixes <> Algorithm_MlKem1024:106 def
+R15875:15878 Hacspec.ChoiceEquality <> both rec
+R15880:15890 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15831:15838 Hacspec.ChoiceEquality <> ret_both def
+R15860:15870 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R15841:15843 Coq.Init.Datatypes <> inr constr
+R15851:15855 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R15846:15847 Coq.Init.Datatypes <> tt constr
+R15920:15930 BertieExtraction.Fixes Libcrux_kem <> mod
+rec 15940:15948 <> t_TryFrom
+proj 15977:15983 <> f_Error
+proj 16005:16014 <> f_try_from
+R15957:15967 Crypt.choice_type <> choice_type ind
+binder 15951:15951 <> A:107
+binder 15953:15953 <> B:108
+R15987:15997 Crypt.choice_type <> choice_type ind
+R16024:16027 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16018:16021 Hacspec.ChoiceEquality <> both rec
+R16023:16023 BertieExtraction.Fixes <> B:108 var
+R16028:16031 Hacspec.ChoiceEquality <> both rec
+R16034:16041 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R16043:16043 BertieExtraction.Fixes <> A:107 var
+R16045:16045 BertieExtraction.Fixes <> B:108 var
+ind 16058:16061 <> Into
+constr 16070:16075 <> f_into
+rec 16058:16061 <> Into
+proj 16070:16075 <> f_into
+binder 16063:16063 <> A:112
+binder 16065:16065 <> B:113
+R16085:16088 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16079:16082 Hacspec.ChoiceEquality <> both rec
+R16084:16084 BertieExtraction.Fixes <> A:112 var
+R16089:16092 Hacspec.ChoiceEquality <> both rec
+R16094:16094 BertieExtraction.Fixes <> B:113 var
+inst 16106:16113 <> into_any
+binder 16116:16116 <> A:116
+binder 16118:16118 <> B:117
+R16123:16126 BertieExtraction.Fixes <> Into class
+R16130:16130 BertieExtraction.Fixes <> B:117 var
+R16128:16128 BertieExtraction.Fixes <> A:116 var
+def 16155:16165 <> Option_Some
+binder 16168:16168 <> A:118
+R16174:16183 Hacspec.ChoiceEquality <> lift1_both def
+binder 16190:16190 <> x:119
+R16205:16212 Crypt.package.pkg_notation PackageNotation ::package_scope:'''option'_x not
+R16213:16213 BertieExtraction.Fixes <> A:118 var
+R16196:16199 Coq.Init.Datatypes <> Some constr
+R16201:16201 BertieExtraction.Fixes <> x:119 var
+def 16229:16239 <> Option_None
+binder 16242:16242 <> A:120
+R16248:16255 Hacspec.ChoiceEquality <> ret_both def
+R16265:16272 Crypt.package.pkg_notation PackageNotation ::package_scope:'''option'_x not
+R16273:16273 BertieExtraction.Fixes <> A:120 var
+R16258:16261 Coq.Init.Datatypes <> None constr
+def 16289:16302 <> impl_1__append
+binder 16305:16305 <> A:121
+R16313:16316 Hacspec.ChoiceEquality <> both rec
+R16319:16323 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16325:16325 BertieExtraction.Fixes <> A:121 var
+R16327:16334 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16309:16309 <> a:122
+R16343:16346 Hacspec.ChoiceEquality <> both rec
+R16349:16353 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16355:16355 BertieExtraction.Fixes <> A:121 var
+R16357:16364 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16339:16339 <> b:123
+R16370:16373 Hacspec.ChoiceEquality <> both rec
+R16392:16395 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R16376:16380 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16382:16382 BertieExtraction.Fixes <> A:121 var
+R16384:16391 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16396:16400 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16402:16402 BertieExtraction.Fixes <> A:121 var
+R16404:16411 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16419:16428 Hacspec.ChoiceEquality <> lift2_both def
+R16521:16521 BertieExtraction.Fixes <> b:123 var
+R16519:16519 BertieExtraction.Fixes <> a:122 var
+R16442:16446 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16448:16448 BertieExtraction.Fixes <> A:121 var
+R16450:16457 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16436:16436 <> x:124
+binder 16438:16438 <> y:125
+R16496:16499 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R16480:16484 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16486:16486 BertieExtraction.Fixes <> A:121 var
+R16488:16495 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16500:16504 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16506:16506 BertieExtraction.Fixes <> A:121 var
+R16508:16515 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16464:16464 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16467:16468 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16476:16476 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R16465:16466 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R16469:16471 Coq.Init.Datatypes <> app def
+R16475:16475 BertieExtraction.Fixes <> y:125 var
+R16473:16473 BertieExtraction.Fixes <> x:124 var
+def 16536:16547 <> impl_1__push
+binder 16550:16550 <> A:126
+R16558:16561 Hacspec.ChoiceEquality <> both rec
+R16564:16568 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16570:16570 BertieExtraction.Fixes <> A:126 var
+R16572:16579 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16554:16554 <> a:127
+R16588:16591 Hacspec.ChoiceEquality <> both rec
+R16593:16593 BertieExtraction.Fixes <> A:126 var
+binder 16584:16584 <> x:128
+R16598:16601 Hacspec.ChoiceEquality <> both rec
+R16604:16608 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16610:16610 BertieExtraction.Fixes <> A:126 var
+R16612:16619 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16627:16636 Hacspec.ChoiceEquality <> lift2_both def
+R16712:16712 BertieExtraction.Fixes <> x:128 var
+R16710:16710 BertieExtraction.Fixes <> a:127 var
+R16648:16652 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16654:16654 BertieExtraction.Fixes <> A:126 var
+R16656:16663 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16644:16644 <> x:129
+R16671:16671 BertieExtraction.Fixes <> A:126 var
+binder 16667:16667 <> y:130
+R16691:16695 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16697:16697 BertieExtraction.Fixes <> A:126 var
+R16699:16706 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16679:16682 Coq.Init.Datatypes <> cons constr
+R16686:16686 BertieExtraction.Fixes <> x:129 var
+R16684:16684 BertieExtraction.Fixes <> y:130 var
+def 16727:16751 <> impl_2__extend_from_slice
+binder 16754:16754 <> A:131
+R16762:16765 Hacspec.ChoiceEquality <> both rec
+R16768:16772 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16774:16774 BertieExtraction.Fixes <> A:131 var
+R16776:16783 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16758:16758 <> a:132
+R16792:16795 Hacspec.ChoiceEquality <> both rec
+R16798:16802 Hacspec.Hacspec_Lib_TODO <> t_Seq abbrev
+R16804:16804 BertieExtraction.Fixes <> A:131 var
+binder 16788:16788 <> b:133
+R16810:16813 Hacspec.ChoiceEquality <> both rec
+R16816:16820 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16822:16822 BertieExtraction.Fixes <> A:131 var
+R16824:16831 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16839:16848 Hacspec.ChoiceEquality <> lift2_both def
+R16918:16928 Hacspec.Hacspec_Lib_TODO <> seq_to_list def
+R16930:16930 BertieExtraction.Fixes <> b:133 var
+R16915:16915 BertieExtraction.Fixes <> a:132 var
+R16862:16866 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16868:16868 BertieExtraction.Fixes <> A:131 var
+R16870:16877 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 16856:16856 <> x:134
+binder 16858:16858 <> y:135
+R16896:16900 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R16902:16902 BertieExtraction.Fixes <> A:131 var
+R16904:16911 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+R16885:16887 Coq.Init.Datatypes <> app def
+R16891:16891 BertieExtraction.Fixes <> y:135 var
+R16889:16889 BertieExtraction.Fixes <> x:134 var

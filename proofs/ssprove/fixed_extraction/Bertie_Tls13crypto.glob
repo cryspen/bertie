@@ -1,0 +1,1397 @@
+DIGEST 59f44f33fca3b0387454cd5dcb9ea195
+FBertieExtraction.Bertie_Tls13crypto
+R126:136 Crypt.choice_type <> <> lib
+R138:144 Crypt.Package <> <> lib
+R146:152 Crypt.Prelude <> <> lib
+R162:176 Crypt.package.pkg_notation PackageNotation <> mod
+R211:213 extructures.ord <> <> lib
+R215:218 extructures.fset <> <> lib
+R250:258 mathcomp.word.word_ssrZ <> <> lib
+R260:263 mathcomp.word.word <> <> lib
+R330:335 Coq.ZArith.ZArith <> <> lib
+R362:375 Coq.Strings.String <> <> lib
+R385:402 Coq.Lists.List ListNotations <> mod
+R500:513 Hacspec.ChoiceEquality <> <> lib
+R544:558 Hacspec.LocationUtility <> <> lib
+R589:610 Hacspec.Hacspec_Lib_Comparable <> <> lib
+R641:655 Hacspec.Hacspec_Lib_Pre <> <> lib
+R686:696 Hacspec.Hacspec_Lib <> <> lib
+R733:753 mathcomp.ssreflect.choice Choice.Exports <> mod
+R1822:1838 BertieExtraction.Bertie_Tls13utils <> <> lib
+R2139:2143 BertieExtraction.Fixes <> <> lib
+def 2158:2172 <> t_AeadAlgorithm
+R2176:2186 Crypt.choice_type <> choice_type ind
+R2209:2213 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R2199:2203 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R2194:2198 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2204:2208 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2214:2218 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2275:2277 Coq.Init.Datatypes <> inl constr
+R2280:2282 Coq.Init.Datatypes <> inl constr
+R2284:2285 Coq.Init.Datatypes <> tt constr
+not 2231:2231 <> :::'AeadAlgorithm_Chacha20Poly1305_case'
+def 2315:2344 <> AeadAlgorithm_Chacha20Poly1305
+R2348:2351 Hacspec.ChoiceEquality <> both rec
+R2353:2367 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2374:2403 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Chacha20Poly1305:2 def
+R2467:2470 Hacspec.ChoiceEquality <> both rec
+R2472:2486 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2413:2420 Hacspec.ChoiceEquality <> ret_both def
+R2448:2462 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2423:2425 Coq.Init.Datatypes <> inl constr
+R2428:2430 Coq.Init.Datatypes <> inl constr
+R2438:2442 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2433:2434 Coq.Init.Datatypes <> tt constr
+R2557:2559 Coq.Init.Datatypes <> inl constr
+R2562:2564 Coq.Init.Datatypes <> inr constr
+R2566:2567 Coq.Init.Datatypes <> tt constr
+not 2520:2520 <> :::'AeadAlgorithm_Aes128Gcm_case'
+def 2597:2619 <> AeadAlgorithm_Aes128Gcm
+R2623:2626 Hacspec.ChoiceEquality <> both rec
+R2628:2642 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2649:2671 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes128Gcm:4 def
+R2735:2738 Hacspec.ChoiceEquality <> both rec
+R2740:2754 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2681:2688 Hacspec.ChoiceEquality <> ret_both def
+R2716:2730 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2691:2693 Coq.Init.Datatypes <> inl constr
+R2696:2698 Coq.Init.Datatypes <> inr constr
+R2706:2710 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2701:2702 Coq.Init.Datatypes <> tt constr
+R2825:2827 Coq.Init.Datatypes <> inr constr
+R2829:2830 Coq.Init.Datatypes <> tt constr
+not 2788:2788 <> :::'AeadAlgorithm_Aes256Gcm_case'
+def 2859:2881 <> AeadAlgorithm_Aes256Gcm
+R2885:2888 Hacspec.ChoiceEquality <> both rec
+R2890:2904 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2911:2933 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes256Gcm:6 def
+R2991:2994 Hacspec.ChoiceEquality <> both rec
+R2996:3010 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2943:2950 Hacspec.ChoiceEquality <> ret_both def
+R2972:2986 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R2953:2955 Coq.Init.Datatypes <> inr constr
+R2963:2967 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R2958:2959 Coq.Init.Datatypes <> tt constr
+def 3046:3072 <> impl__AeadAlgorithm__iv_len
+R3082:3085 Hacspec.ChoiceEquality <> both rec
+R3087:3101 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+binder 3075:3078 <> self:7
+R3106:3109 Hacspec.ChoiceEquality <> both rec
+R3111:3119 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3126:3152 BertieExtraction.Bertie_Tls13crypto <> impl__AeadAlgorithm__iv_len:10 def
+R3154:3157 BertieExtraction.Bertie_Tls13crypto <> self:9 var
+R3414:3417 Hacspec.ChoiceEquality <> both rec
+R3419:3427 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3167:3173 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3178:3189 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3225:3235 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3261:3267 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3296:3306 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3332:3338 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3367:3377 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3403:3410 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3190:3224 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Chacha20Poly1305_case' not
+binder 3190:3224 <> pat:11
+R3236:3243 Hacspec.ChoiceEquality <> ret_both def
+R3251:3259 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3268:3295 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Aes128Gcm_case' not
+binder 3268:3295 <> pat:12
+R3307:3314 Hacspec.ChoiceEquality <> ret_both def
+R3322:3330 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3339:3366 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Aes256Gcm_case' not
+binder 3339:3366 <> pat:13
+R3378:3385 Hacspec.ChoiceEquality <> ret_both def
+R3393:3401 Hacspec.Hacspec_Lib_Pre <> uint_size def
+def 3463:3490 <> impl__AeadAlgorithm__key_len
+R3500:3503 Hacspec.ChoiceEquality <> both rec
+R3505:3519 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+binder 3493:3496 <> self:14
+R3524:3527 Hacspec.ChoiceEquality <> both rec
+R3529:3537 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3544:3571 BertieExtraction.Bertie_Tls13crypto <> impl__AeadAlgorithm__key_len:17 def
+R3573:3576 BertieExtraction.Bertie_Tls13crypto <> self:16 var
+R3833:3836 Hacspec.ChoiceEquality <> both rec
+R3838:3846 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3586:3592 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3597:3608 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3644:3654 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3680:3686 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3715:3725 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3751:3757 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3786:3796 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3822:3829 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R3609:3643 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Chacha20Poly1305_case' not
+binder 3609:3643 <> pat:18
+R3655:3662 Hacspec.ChoiceEquality <> ret_both def
+R3670:3678 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3687:3714 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Aes128Gcm_case' not
+binder 3687:3714 <> pat:19
+R3726:3733 Hacspec.ChoiceEquality <> ret_both def
+R3741:3749 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3758:3785 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Aes256Gcm_case' not
+binder 3758:3785 <> pat:20
+R3797:3804 Hacspec.ChoiceEquality <> ret_both def
+R3812:3820 Hacspec.Hacspec_Lib_Pre <> uint_size def
+def 3882:3909 <> t_AeadAlgorithm_cast_to_repr
+R3916:3919 Hacspec.ChoiceEquality <> both rec
+R3921:3935 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+binder 3912:3912 <> x:21
+R3940:3943 Hacspec.ChoiceEquality <> both rec
+R3945:3953 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3960:3987 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm_cast_to_repr:24 def
+R3989:3989 BertieExtraction.Bertie_Tls13crypto <> x:23 var
+R4240:4243 Hacspec.ChoiceEquality <> both rec
+R4245:4253 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R3999:4005 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4007:4018 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4054:4064 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4089:4095 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4124:4134 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4159:4165 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4194:4204 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4229:4236 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R4019:4053 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Chacha20Poly1305_case' not
+binder 4019:4053 <> pat:25
+R4065:4072 Hacspec.ChoiceEquality <> ret_both def
+R4079:4087 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R4096:4123 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Aes128Gcm_case' not
+binder 4096:4123 <> pat:26
+R4135:4142 Hacspec.ChoiceEquality <> ret_both def
+R4149:4157 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R4166:4193 BertieExtraction.Bertie_Tls13crypto <> :::'AeadAlgorithm_Aes256Gcm_case' not
+binder 4166:4193 <> pat:27
+R4205:4212 Hacspec.ChoiceEquality <> ret_both def
+R4219:4227 Hacspec.Hacspec_Lib_Pre <> uint_size def
+def 4290:4304 <> t_HashAlgorithm
+R4308:4318 Crypt.choice_type <> choice_type ind
+R4341:4345 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R4331:4335 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R4326:4330 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4336:4340 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4346:4350 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4397:4399 Coq.Init.Datatypes <> inl constr
+R4402:4404 Coq.Init.Datatypes <> inl constr
+R4406:4407 Coq.Init.Datatypes <> tt constr
+not 4363:4363 <> :::'HashAlgorithm_SHA256_case'
+def 4437:4456 <> HashAlgorithm_SHA256
+R4460:4463 Hacspec.ChoiceEquality <> both rec
+R4465:4479 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4486:4505 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256:29 def
+R4569:4572 Hacspec.ChoiceEquality <> both rec
+R4574:4588 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4515:4522 Hacspec.ChoiceEquality <> ret_both def
+R4550:4564 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4525:4527 Coq.Init.Datatypes <> inl constr
+R4530:4532 Coq.Init.Datatypes <> inl constr
+R4540:4544 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4535:4536 Coq.Init.Datatypes <> tt constr
+R4656:4658 Coq.Init.Datatypes <> inl constr
+R4661:4663 Coq.Init.Datatypes <> inr constr
+R4665:4666 Coq.Init.Datatypes <> tt constr
+not 4622:4622 <> :::'HashAlgorithm_SHA384_case'
+def 4696:4715 <> HashAlgorithm_SHA384
+R4719:4722 Hacspec.ChoiceEquality <> both rec
+R4724:4738 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4745:4764 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA384:31 def
+R4828:4831 Hacspec.ChoiceEquality <> both rec
+R4833:4847 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4774:4781 Hacspec.ChoiceEquality <> ret_both def
+R4809:4823 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4784:4786 Coq.Init.Datatypes <> inl constr
+R4789:4791 Coq.Init.Datatypes <> inr constr
+R4799:4803 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R4794:4795 Coq.Init.Datatypes <> tt constr
+R4915:4917 Coq.Init.Datatypes <> inr constr
+R4919:4920 Coq.Init.Datatypes <> tt constr
+not 4881:4881 <> :::'HashAlgorithm_SHA512_case'
+def 4949:4968 <> HashAlgorithm_SHA512
+R4972:4975 Hacspec.ChoiceEquality <> both rec
+R4977:4991 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R4998:5017 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA512:33 def
+R5075:5078 Hacspec.ChoiceEquality <> both rec
+R5080:5094 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R5027:5034 Hacspec.ChoiceEquality <> ret_both def
+R5056:5070 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R5037:5039 Coq.Init.Datatypes <> inr constr
+R5047:5051 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5042:5043 Coq.Init.Datatypes <> tt constr
+def 5130:5157 <> t_HashAlgorithm_cast_to_repr
+R5164:5167 Hacspec.ChoiceEquality <> both rec
+R5169:5183 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 5160:5160 <> x:34
+R5188:5191 Hacspec.ChoiceEquality <> both rec
+R5193:5201 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R5208:5235 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm_cast_to_repr:37 def
+R5237:5237 BertieExtraction.Bertie_Tls13crypto <> x:36 var
+R5472:5475 Hacspec.ChoiceEquality <> both rec
+R5477:5485 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R5247:5253 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5255:5266 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5292:5302 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5327:5333 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5359:5369 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5394:5400 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5426:5436 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5461:5468 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R5267:5291 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA256_case' not
+binder 5267:5291 <> pat:38
+R5303:5310 Hacspec.ChoiceEquality <> ret_both def
+R5317:5325 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R5334:5358 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA384_case' not
+binder 5334:5358 <> pat:39
+R5370:5377 Hacspec.ChoiceEquality <> ret_both def
+R5384:5392 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R5401:5425 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA512_case' not
+binder 5401:5425 <> pat:40
+R5437:5444 Hacspec.ChoiceEquality <> ret_both def
+R5451:5459 Hacspec.Hacspec_Lib_Pre <> uint_size def
+def 5522:5532 <> t_KemScheme
+R5536:5546 Crypt.choice_type <> choice_type ind
+R5599:5603 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R5589:5593 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R5579:5583 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R5569:5573 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R5559:5563 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R5554:5558 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5564:5568 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5574:5578 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5584:5588 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5594:5598 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5604:5608 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5651:5653 Coq.Init.Datatypes <> inl constr
+R5656:5658 Coq.Init.Datatypes <> inl constr
+R5661:5663 Coq.Init.Datatypes <> inl constr
+R5666:5668 Coq.Init.Datatypes <> inl constr
+R5671:5673 Coq.Init.Datatypes <> inl constr
+R5675:5676 Coq.Init.Datatypes <> tt constr
+not 5621:5621 <> :::'KemScheme_X25519_case'
+def 5709:5724 <> KemScheme_X25519
+R5728:5731 Hacspec.ChoiceEquality <> both rec
+R5733:5743 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R5750:5765 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519:42 def
+R5843:5846 Hacspec.ChoiceEquality <> both rec
+R5848:5858 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R5775:5782 Hacspec.ChoiceEquality <> ret_both def
+R5828:5838 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R5785:5787 Coq.Init.Datatypes <> inl constr
+R5790:5792 Coq.Init.Datatypes <> inl constr
+R5795:5797 Coq.Init.Datatypes <> inl constr
+R5800:5802 Coq.Init.Datatypes <> inl constr
+R5805:5807 Coq.Init.Datatypes <> inl constr
+R5815:5819 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R5810:5811 Coq.Init.Datatypes <> tt constr
+R5925:5927 Coq.Init.Datatypes <> inl constr
+R5930:5932 Coq.Init.Datatypes <> inl constr
+R5935:5937 Coq.Init.Datatypes <> inl constr
+R5940:5942 Coq.Init.Datatypes <> inl constr
+R5945:5947 Coq.Init.Datatypes <> inr constr
+R5949:5950 Coq.Init.Datatypes <> tt constr
+not 5892:5892 <> :::'KemScheme_Secp256r1_case'
+def 5983:6001 <> KemScheme_Secp256r1
+R6005:6008 Hacspec.ChoiceEquality <> both rec
+R6010:6020 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6027:6045 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1:44 def
+R6123:6126 Hacspec.ChoiceEquality <> both rec
+R6128:6138 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6055:6062 Hacspec.ChoiceEquality <> ret_both def
+R6108:6118 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6065:6067 Coq.Init.Datatypes <> inl constr
+R6070:6072 Coq.Init.Datatypes <> inl constr
+R6075:6077 Coq.Init.Datatypes <> inl constr
+R6080:6082 Coq.Init.Datatypes <> inl constr
+R6085:6087 Coq.Init.Datatypes <> inr constr
+R6095:6099 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R6090:6091 Coq.Init.Datatypes <> tt constr
+R6200:6202 Coq.Init.Datatypes <> inl constr
+R6205:6207 Coq.Init.Datatypes <> inl constr
+R6210:6212 Coq.Init.Datatypes <> inl constr
+R6215:6217 Coq.Init.Datatypes <> inr constr
+R6219:6220 Coq.Init.Datatypes <> tt constr
+not 6172:6172 <> :::'KemScheme_X448_case'
+def 6252:6265 <> KemScheme_X448
+R6269:6272 Hacspec.ChoiceEquality <> both rec
+R6274:6284 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6291:6304 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X448:46 def
+R6376:6379 Hacspec.ChoiceEquality <> both rec
+R6381:6391 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6314:6321 Hacspec.ChoiceEquality <> ret_both def
+R6361:6371 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6324:6326 Coq.Init.Datatypes <> inl constr
+R6329:6331 Coq.Init.Datatypes <> inl constr
+R6334:6336 Coq.Init.Datatypes <> inl constr
+R6339:6341 Coq.Init.Datatypes <> inr constr
+R6349:6353 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R6344:6345 Coq.Init.Datatypes <> tt constr
+R6458:6460 Coq.Init.Datatypes <> inl constr
+R6463:6465 Coq.Init.Datatypes <> inl constr
+R6468:6470 Coq.Init.Datatypes <> inr constr
+R6472:6473 Coq.Init.Datatypes <> tt constr
+not 6425:6425 <> :::'KemScheme_Secp384r1_case'
+def 6504:6522 <> KemScheme_Secp384r1
+R6526:6529 Hacspec.ChoiceEquality <> both rec
+R6531:6541 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6548:6566 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp384r1:48 def
+R6632:6635 Hacspec.ChoiceEquality <> both rec
+R6637:6647 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6576:6583 Hacspec.ChoiceEquality <> ret_both def
+R6617:6627 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6586:6588 Coq.Init.Datatypes <> inl constr
+R6591:6593 Coq.Init.Datatypes <> inl constr
+R6596:6598 Coq.Init.Datatypes <> inr constr
+R6606:6610 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R6601:6602 Coq.Init.Datatypes <> tt constr
+R6714:6716 Coq.Init.Datatypes <> inl constr
+R6719:6721 Coq.Init.Datatypes <> inr constr
+R6723:6724 Coq.Init.Datatypes <> tt constr
+not 6681:6681 <> :::'KemScheme_Secp521r1_case'
+def 6754:6772 <> KemScheme_Secp521r1
+R6776:6779 Hacspec.ChoiceEquality <> both rec
+R6781:6791 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6798:6816 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp521r1:50 def
+R6876:6879 Hacspec.ChoiceEquality <> both rec
+R6881:6891 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6826:6833 Hacspec.ChoiceEquality <> ret_both def
+R6861:6871 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R6836:6838 Coq.Init.Datatypes <> inl constr
+R6841:6843 Coq.Init.Datatypes <> inr constr
+R6851:6855 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R6846:6847 Coq.Init.Datatypes <> tt constr
+R6970:6972 Coq.Init.Datatypes <> inr constr
+R6974:6975 Coq.Init.Datatypes <> tt constr
+not 6925:6925 <> :::'KemScheme_X25519Kyber768Draft00_case'
+def 7004:7034 <> KemScheme_X25519Kyber768Draft00
+R7038:7041 Hacspec.ChoiceEquality <> both rec
+R7043:7053 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R7060:7090 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519Kyber768Draft00:52 def
+R7144:7147 Hacspec.ChoiceEquality <> both rec
+R7149:7159 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R7100:7107 Hacspec.ChoiceEquality <> ret_both def
+R7129:7139 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R7110:7112 Coq.Init.Datatypes <> inr constr
+R7120:7124 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7115:7116 Coq.Init.Datatypes <> tt constr
+def 7195:7218 <> t_KemScheme_cast_to_repr
+R7225:7228 Hacspec.ChoiceEquality <> both rec
+R7230:7240 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+binder 7221:7221 <> x:53
+R7245:7248 Hacspec.ChoiceEquality <> both rec
+R7250:7258 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7265:7288 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme_cast_to_repr:56 def
+R7290:7290 BertieExtraction.Bertie_Tls13crypto <> x:55 var
+R7726:7729 Hacspec.ChoiceEquality <> both rec
+R7731:7739 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7300:7306 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7308:7319 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7341:7351 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7376:7382 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7407:7417 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7442:7448 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7468:7478 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7503:7509 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7534:7544 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7569:7575 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7600:7610 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7636:7642 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7679:7689 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7715:7722 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R7320:7340 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_X25519_case' not
+binder 7320:7340 <> pat:57
+R7352:7359 Hacspec.ChoiceEquality <> ret_both def
+R7366:7374 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7383:7406 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_Secp256r1_case' not
+binder 7383:7406 <> pat:58
+R7418:7425 Hacspec.ChoiceEquality <> ret_both def
+R7432:7440 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7449:7467 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_X448_case' not
+binder 7449:7467 <> pat:59
+R7479:7486 Hacspec.ChoiceEquality <> ret_both def
+R7493:7501 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7510:7533 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_Secp384r1_case' not
+binder 7510:7533 <> pat:60
+R7545:7552 Hacspec.ChoiceEquality <> ret_both def
+R7559:7567 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7576:7599 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_Secp521r1_case' not
+binder 7576:7599 <> pat:61
+R7611:7618 Hacspec.ChoiceEquality <> ret_both def
+R7626:7634 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R7643:7678 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_X25519Kyber768Draft00_case' not
+binder 7643:7678 <> pat:62
+R7690:7697 Hacspec.ChoiceEquality <> ret_both def
+R7705:7713 Hacspec.Hacspec_Lib_Pre <> uint_size def
+def 7776:7792 <> t_SignatureScheme
+R7796:7806 Crypt.choice_type <> choice_type ind
+R7829:7833 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R7819:7823 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'∐'_x not
+R7814:7818 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7824:7828 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7834:7838 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R7896:7898 Coq.Init.Datatypes <> inl constr
+R7901:7903 Coq.Init.Datatypes <> inl constr
+R7905:7906 Coq.Init.Datatypes <> tt constr
+not 7851:7851 <> :::'SignatureScheme_RsaPssRsaSha256_case'
+def 7936:7966 <> SignatureScheme_RsaPssRsaSha256
+R7970:7973 Hacspec.ChoiceEquality <> both rec
+R7975:7991 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R7998:8028 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256:64 def
+R8094:8097 Hacspec.ChoiceEquality <> both rec
+R8099:8115 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8038:8045 Hacspec.ChoiceEquality <> ret_both def
+R8073:8089 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8048:8050 Coq.Init.Datatypes <> inl constr
+R8053:8055 Coq.Init.Datatypes <> inl constr
+R8063:8067 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R8058:8059 Coq.Init.Datatypes <> tt constr
+R8199:8201 Coq.Init.Datatypes <> inl constr
+R8204:8206 Coq.Init.Datatypes <> inr constr
+R8208:8209 Coq.Init.Datatypes <> tt constr
+not 8149:8149 <> :::'SignatureScheme_EcdsaSecp256r1Sha256_case'
+def 8239:8274 <> SignatureScheme_EcdsaSecp256r1Sha256
+R8278:8281 Hacspec.ChoiceEquality <> both rec
+R8283:8299 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8306:8341 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256:66 def
+R8407:8410 Hacspec.ChoiceEquality <> both rec
+R8412:8428 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8351:8358 Hacspec.ChoiceEquality <> ret_both def
+R8386:8402 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8361:8363 Coq.Init.Datatypes <> inl constr
+R8366:8368 Coq.Init.Datatypes <> inr constr
+R8376:8380 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R8371:8372 Coq.Init.Datatypes <> tt constr
+R8499:8501 Coq.Init.Datatypes <> inr constr
+R8503:8504 Coq.Init.Datatypes <> tt constr
+not 8462:8462 <> :::'SignatureScheme_ED25519_case'
+def 8533:8555 <> SignatureScheme_ED25519
+R8559:8562 Hacspec.ChoiceEquality <> both rec
+R8564:8580 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8587:8609 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_ED25519:68 def
+R8669:8672 Hacspec.ChoiceEquality <> both rec
+R8674:8690 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8619:8626 Hacspec.ChoiceEquality <> ret_both def
+R8648:8664 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R8629:8631 Coq.Init.Datatypes <> inr constr
+R8639:8643 Crypt.package.pkg_notation PackageNotation ::package_scope:'''unit' not
+R8634:8635 Coq.Init.Datatypes <> tt constr
+def 8726:8755 <> t_SignatureScheme_cast_to_repr
+R8762:8765 Hacspec.ChoiceEquality <> both rec
+R8767:8783 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+binder 8758:8758 <> x:69
+R8788:8791 Hacspec.ChoiceEquality <> both rec
+R8793:8801 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R8808:8837 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme_cast_to_repr:72 def
+R8839:8839 BertieExtraction.Bertie_Tls13crypto <> x:71 var
+R9104:9107 Hacspec.ChoiceEquality <> both rec
+R9109:9117 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R8849:8855 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R8857:8868 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R8905:8915 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R8940:8946 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R8988:8998 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9023:9029 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9058:9068 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9093:9100 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R8869:8904 BertieExtraction.Bertie_Tls13crypto <> :::'SignatureScheme_RsaPssRsaSha256_case' not
+binder 8869:8904 <> pat:73
+R8916:8923 Hacspec.ChoiceEquality <> ret_both def
+R8930:8938 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R8947:8987 BertieExtraction.Bertie_Tls13crypto <> :::'SignatureScheme_EcdsaSecp256r1Sha256_case' not
+binder 8947:8987 <> pat:74
+R8999:9006 Hacspec.ChoiceEquality <> ret_both def
+R9013:9021 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R9030:9057 BertieExtraction.Bertie_Tls13crypto <> :::'SignatureScheme_ED25519_case' not
+binder 9030:9057 <> pat:75
+R9069:9076 Hacspec.ChoiceEquality <> ret_both def
+R9083:9091 Hacspec.Hacspec_Lib_Pre <> uint_size def
+def 9153:9170 <> valid_rsa_exponent
+R9177:9180 Hacspec.ChoiceEquality <> both rec
+R9183:9187 Hacspec.Hacspec_Lib_TODO <> t_Vec def
+R9189:9192 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9194:9201 Hacspec.Hacspec_Lib_TODO <> t_Global constr
+binder 9173:9173 <> e:76
+R9207:9210 Hacspec.ChoiceEquality <> both rec
+R9212:9216 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R9223:9240 BertieExtraction.Bertie_Tls13crypto <> valid_rsa_exponent:79 def
+R9242:9242 BertieExtraction.Bertie_Tls13crypto <> e:78 var
+R9525:9528 Hacspec.ChoiceEquality <> both rec
+R9530:9534 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R9252:9255 Hacspec.Hacspec_Lib_TODO <> andb def
+R9258:9261 Hacspec.Hacspec_Lib_TODO <> andb def
+R9264:9267 Hacspec.Hacspec_Lib_TODO <> andb def
+R9270:9270 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9301:9307 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9332:9332 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9271:9298 Hacspec.Hacspec_Lib_TODO <> len def
+R9308:9315 Hacspec.ChoiceEquality <> ret_both def
+R9322:9330 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R9336:9336 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9368:9374 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9394:9394 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9338:9341 Hacspec.Hacspec_Lib_TODO <> :::x_'.a['_x_']' not
+R9366:9367 Hacspec.Hacspec_Lib_TODO <> :::x_'.a['_x_']' not
+R9342:9349 Hacspec.ChoiceEquality <> ret_both def
+R9356:9364 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R9375:9382 Hacspec.ChoiceEquality <> ret_both def
+R9389:9392 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9399:9399 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9431:9437 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9457:9457 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9401:9404 Hacspec.Hacspec_Lib_TODO <> :::x_'.a['_x_']' not
+R9429:9430 Hacspec.Hacspec_Lib_TODO <> :::x_'.a['_x_']' not
+R9405:9412 Hacspec.ChoiceEquality <> ret_both def
+R9419:9427 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R9438:9445 Hacspec.ChoiceEquality <> ret_both def
+R9452:9455 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9462:9462 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9494:9500 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9520:9520 Hacspec.Hacspec_Lib_Notation <> ::hacspec_scope:x_'=.?'_x not
+R9464:9467 Hacspec.Hacspec_Lib_TODO <> :::x_'.a['_x_']' not
+R9492:9493 Hacspec.Hacspec_Lib_TODO <> :::x_'.a['_x_']' not
+R9468:9475 Hacspec.ChoiceEquality <> ret_both def
+R9482:9490 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R9501:9508 Hacspec.ChoiceEquality <> ret_both def
+R9515:9518 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+def 9570:9607 <> impl__HashAlgorithm__libcrux_algorithm
+R9617:9620 Hacspec.ChoiceEquality <> both rec
+R9622:9636 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 9610:9613 <> self:80
+R9641:9644 Hacspec.ChoiceEquality <> both rec
+R9647:9654 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R9656:9673 BertieExtraction.Fixes Digest t_Algorithm def
+R9675:9678 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9686:9723 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__libcrux_algorithm:83 def
+R9725:9728 BertieExtraction.Bertie_Tls13crypto <> self:82 var
+R9993:9996 Hacspec.ChoiceEquality <> both rec
+R9999:10006 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R10008:10025 BertieExtraction.Fixes Digest t_Algorithm def
+R10027:10030 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R9738:9744 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9749:9760 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9786:9796 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9830:9836 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9862:9872 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9906:9912 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9938:9948 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9982:9989 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R9761:9785 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA256_case' not
+binder 9761:9785 <> pat:84
+R9797:9805 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R9807:9829 BertieExtraction.Fixes Digest Algorithm_Sha256 def
+R9837:9861 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA384_case' not
+binder 9837:9861 <> pat:85
+R9873:9881 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R9883:9905 BertieExtraction.Fixes Digest Algorithm_Sha384 def
+R9913:9937 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA512_case' not
+binder 9913:9937 <> pat:86
+R9949:9957 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R9959:9981 BertieExtraction.Fixes Digest Algorithm_Sha512 def
+def 10067:10095 <> impl__HashAlgorithm__hash_len
+R10105:10108 Hacspec.ChoiceEquality <> both rec
+R10110:10124 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 10098:10101 <> self:87
+R10129:10132 Hacspec.ChoiceEquality <> both rec
+R10134:10142 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R10149:10177 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__hash_len:90 def
+R10179:10182 BertieExtraction.Bertie_Tls13crypto <> self:89 var
+R10474:10477 Hacspec.ChoiceEquality <> both rec
+R10479:10487 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R10192:10198 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10203:10214 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10240:10250 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10293:10299 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10325:10335 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10378:10384 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10410:10420 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10463:10470 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10215:10239 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA256_case' not
+binder 10215:10239 <> pat:91
+R10251:10268 BertieExtraction.Fixes Digest digest_size def
+R10270:10292 BertieExtraction.Fixes Digest Algorithm_Sha256 def
+R10300:10324 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA384_case' not
+binder 10300:10324 <> pat:92
+R10336:10353 BertieExtraction.Fixes Digest digest_size def
+R10355:10377 BertieExtraction.Fixes Digest Algorithm_Sha384 def
+R10385:10409 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA512_case' not
+binder 10385:10409 <> pat:93
+R10421:10438 BertieExtraction.Fixes Digest digest_size def
+R10440:10462 BertieExtraction.Fixes Digest Algorithm_Sha512 def
+def 10523:10555 <> impl__HashAlgorithm__hmac_tag_len
+R10565:10568 Hacspec.ChoiceEquality <> both rec
+R10570:10584 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 10558:10561 <> self:94
+R10589:10592 Hacspec.ChoiceEquality <> both rec
+R10594:10602 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R10609:10641 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__hmac_tag_len:97 def
+R10643:10646 BertieExtraction.Bertie_Tls13crypto <> self:96 var
+R10693:10696 Hacspec.ChoiceEquality <> both rec
+R10698:10706 Hacspec.Hacspec_Lib_Pre <> uint_size def
+R10656:10684 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__hash_len def
+def 10742:10755 <> hkdf_algorithm
+R10764:10767 Hacspec.ChoiceEquality <> both rec
+R10769:10783 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 10758:10760 <> alg:98
+R10788:10791 Hacspec.ChoiceEquality <> both rec
+R10794:10801 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R10803:10818 BertieExtraction.Fixes Hkdf t_Algorithm def
+R10820:10823 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R10831:10844 BertieExtraction.Bertie_Tls13crypto <> hkdf_algorithm:101 def
+R10846:10848 BertieExtraction.Bertie_Tls13crypto <> alg:100 var
+R11106:11109 Hacspec.ChoiceEquality <> both rec
+R11112:11119 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R11121:11136 BertieExtraction.Fixes Hkdf t_Algorithm def
+R11138:11141 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R10858:10864 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10868:10879 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10905:10915 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10947:10953 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10979:10989 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11021:11027 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11053:11063 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11095:11102 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R10880:10904 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA256_case' not
+binder 10880:10904 <> pat:102
+R10916:10924 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R10926:10946 BertieExtraction.Fixes Hkdf Algorithm_Sha256 def
+R10954:10978 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA384_case' not
+binder 10954:10978 <> pat:103
+R10990:10998 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R11000:11020 BertieExtraction.Fixes Hkdf Algorithm_Sha384 def
+R11028:11052 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA512_case' not
+binder 11028:11052 <> pat:104
+R11064:11072 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R11074:11094 BertieExtraction.Fixes Hkdf Algorithm_Sha512 def
+def 11178:11212 <> impl__HashAlgorithm__hmac_algorithm
+R11222:11225 Hacspec.ChoiceEquality <> both rec
+R11227:11241 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 11215:11218 <> self:105
+R11246:11249 Hacspec.ChoiceEquality <> both rec
+R11252:11259 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R11261:11278 BertieExtraction.Fixes Digest t_Algorithm def
+R11280:11283 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R11291:11325 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__hmac_algorithm:108 def
+R11327:11330 BertieExtraction.Bertie_Tls13crypto <> self:107 var
+R11595:11598 Hacspec.ChoiceEquality <> both rec
+R11601:11608 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R11610:11627 BertieExtraction.Fixes Digest t_Algorithm def
+R11629:11632 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R11340:11346 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11351:11362 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11388:11398 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11432:11438 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11464:11474 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11508:11514 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11540:11550 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11584:11591 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11363:11387 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA256_case' not
+binder 11363:11387 <> pat:109
+R11399:11407 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R11409:11431 BertieExtraction.Fixes Digest Algorithm_Sha256 def
+R11439:11463 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA384_case' not
+binder 11439:11463 <> pat:110
+R11475:11483 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R11485:11507 BertieExtraction.Fixes Digest Algorithm_Sha384 def
+R11515:11539 BertieExtraction.Bertie_Tls13crypto <> :::'HashAlgorithm_SHA512_case' not
+binder 11515:11539 <> pat:111
+R11551:11559 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R11561:11583 BertieExtraction.Fixes Digest Algorithm_Sha512 def
+def 11669:11705 <> impl__SignatureScheme__libcrux_scheme
+R11715:11718 Hacspec.ChoiceEquality <> both rec
+R11720:11736 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+binder 11708:11711 <> self:112
+R11741:11744 Hacspec.ChoiceEquality <> both rec
+R11747:11754 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R11756:11776 BertieExtraction.Fixes Signature t_Algorithm def
+R11778:11781 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R11789:11825 BertieExtraction.Bertie_Tls13crypto <> impl__SignatureScheme__libcrux_scheme:115 def
+R11827:11830 BertieExtraction.Bertie_Tls13crypto <> self:114 var
+R12208:12211 Hacspec.ChoiceEquality <> both rec
+R12214:12221 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R12223:12243 BertieExtraction.Fixes Signature t_Algorithm def
+R12245:12248 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R11840:11846 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11851:11862 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11899:11909 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11981:11987 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12016:12026 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12064:12070 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12112:12122 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12197:12204 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R11863:11898 BertieExtraction.Bertie_Tls13crypto <> :::'SignatureScheme_RsaPssRsaSha256_case' not
+binder 11863:11898 <> pat:116
+R11910:11918 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R11921:11946 BertieExtraction.Fixes Signature Algorithm_RsaPss def
+R11948:11979 BertieExtraction.Fixes Signature DigestAlgorithm_Sha256 def
+R11988:12015 BertieExtraction.Bertie_Tls13crypto <> :::'SignatureScheme_ED25519_case' not
+binder 11988:12015 <> pat:117
+R12027:12035 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R12037:12063 BertieExtraction.Fixes Signature Algorithm_Ed25519 def
+R12071:12111 BertieExtraction.Bertie_Tls13crypto <> :::'SignatureScheme_EcdsaSecp256r1Sha256_case' not
+binder 12071:12111 <> pat:118
+R12123:12131 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R12134:12162 BertieExtraction.Fixes Signature Algorithm_EcDsaP256 def
+R12164:12195 BertieExtraction.Fixes Signature DigestAlgorithm_Sha256 def
+def 12285:12322 <> impl__KemScheme__libcrux_kem_algorithm
+R12332:12335 Hacspec.ChoiceEquality <> both rec
+R12337:12347 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+binder 12325:12328 <> self:119
+R12352:12355 Hacspec.ChoiceEquality <> both rec
+R12358:12365 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R12367:12389 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12391:12394 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R12402:12439 BertieExtraction.Bertie_Tls13crypto <> impl__KemScheme__libcrux_kem_algorithm:122 def
+R12441:12444 BertieExtraction.Bertie_Tls13crypto <> self:121 var
+R12796:12799 Hacspec.ChoiceEquality <> both rec
+R12802:12809 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R12811:12833 BertieExtraction.Fixes Libcrux_kem t_Algorithm def
+R12835:12838 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R12454:12460 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12465:12476 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12498:12508 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12547:12553 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12578:12588 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12630:12636 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12673:12683 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12737:12743 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12745:12754 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12785:12792 Hacspec.Hacspec_Lib_TODO <> :::'matchb'_x_'with'_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'|'_x_'=>'_x_'end' not
+R12477:12497 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_X25519_case' not
+binder 12477:12497 <> pat:123
+R12509:12517 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R12519:12546 BertieExtraction.Fixes Libcrux_kem Algorithm_X25519 def
+R12554:12577 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_Secp256r1_case' not
+binder 12554:12577 <> pat:124
+R12589:12597 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R12599:12629 BertieExtraction.Fixes Libcrux_kem Algorithm_Secp256r1 def
+R12637:12672 BertieExtraction.Bertie_Tls13crypto <> :::'KemScheme_X25519Kyber768Draft00_case' not
+binder 12637:12672 <> pat:125
+R12684:12692 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R12694:12736 BertieExtraction.Fixes Libcrux_kem Algorithm_X25519Kyber768Draft00 def
+binder 12744:12744 <> pat:126
+R12755:12760 BertieExtraction.Bertie_Tls13utils <> tlserr def
+R12762:12784 BertieExtraction.Bertie_Tls13utils <> v_UNSUPPORTED_ALGORITHM def
+def 12876:12887 <> t_Algorithms
+R12891:12901 Crypt.choice_type <> choice_type ind
+R12988:12991 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R12979:12982 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R12964:12967 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R12943:12946 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R12924:12927 Crypt.package.pkg_notation PackageNotation ::package_scope:x_'×'_x not
+R12909:12923 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R12928:12942 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R12947:12963 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R12968:12978 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R12983:12987 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R12992:12996 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+def 13010:13015 <> f_hash
+R13022:13025 Hacspec.ChoiceEquality <> both rec
+R13027:13038 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 13018:13018 <> s:127
+R13043:13046 Hacspec.ChoiceEquality <> both rec
+R13048:13062 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R13069:13074 BertieExtraction.Bertie_Tls13crypto <> f_hash:130 def
+R13076:13076 BertieExtraction.Bertie_Tls13crypto <> s:129 var
+R13176:13179 Hacspec.ChoiceEquality <> both rec
+R13181:13195 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R13086:13094 Hacspec.ChoiceEquality <> bind_both def
+binder 13103:13103 <> x:131
+R13114:13121 Hacspec.ChoiceEquality <> ret_both def
+R13156:13170 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R13124:13126 Coq.Init.Datatypes <> fst def
+R13129:13131 Coq.Init.Datatypes <> fst def
+R13134:13136 Coq.Init.Datatypes <> fst def
+R13139:13141 Coq.Init.Datatypes <> fst def
+R13144:13146 Coq.Init.Datatypes <> fst def
+R13148:13148 BertieExtraction.Bertie_Tls13crypto <> x:131 var
+def 13230:13235 <> f_aead
+R13242:13245 Hacspec.ChoiceEquality <> both rec
+R13247:13258 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 13238:13238 <> s:132
+R13263:13266 Hacspec.ChoiceEquality <> both rec
+R13268:13282 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R13289:13294 BertieExtraction.Bertie_Tls13crypto <> f_aead:135 def
+R13296:13296 BertieExtraction.Bertie_Tls13crypto <> s:134 var
+R13396:13399 Hacspec.ChoiceEquality <> both rec
+R13401:13415 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R13306:13314 Hacspec.ChoiceEquality <> bind_both def
+binder 13323:13323 <> x:136
+R13334:13341 Hacspec.ChoiceEquality <> ret_both def
+R13376:13390 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R13344:13346 Coq.Init.Datatypes <> snd def
+R13349:13351 Coq.Init.Datatypes <> fst def
+R13354:13356 Coq.Init.Datatypes <> fst def
+R13359:13361 Coq.Init.Datatypes <> fst def
+R13364:13366 Coq.Init.Datatypes <> fst def
+R13368:13368 BertieExtraction.Bertie_Tls13crypto <> x:136 var
+def 13450:13460 <> f_signature
+R13467:13470 Hacspec.ChoiceEquality <> both rec
+R13472:13483 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 13463:13463 <> s:137
+R13488:13491 Hacspec.ChoiceEquality <> both rec
+R13493:13509 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R13516:13526 BertieExtraction.Bertie_Tls13crypto <> f_signature:140 def
+R13528:13528 BertieExtraction.Bertie_Tls13crypto <> s:139 var
+R13624:13627 Hacspec.ChoiceEquality <> both rec
+R13629:13645 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R13538:13546 Hacspec.ChoiceEquality <> bind_both def
+binder 13555:13555 <> x:141
+R13566:13573 Hacspec.ChoiceEquality <> ret_both def
+R13602:13618 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R13576:13578 Coq.Init.Datatypes <> snd def
+R13581:13583 Coq.Init.Datatypes <> fst def
+R13586:13588 Coq.Init.Datatypes <> fst def
+R13591:13593 Coq.Init.Datatypes <> fst def
+R13595:13595 BertieExtraction.Bertie_Tls13crypto <> x:141 var
+def 13680:13684 <> f_kem
+R13691:13694 Hacspec.ChoiceEquality <> both rec
+R13696:13707 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 13687:13687 <> s:142
+R13712:13715 Hacspec.ChoiceEquality <> both rec
+R13717:13727 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R13734:13738 BertieExtraction.Bertie_Tls13crypto <> f_kem:145 def
+R13740:13740 BertieExtraction.Bertie_Tls13crypto <> s:144 var
+R13824:13827 Hacspec.ChoiceEquality <> both rec
+R13829:13839 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R13750:13758 Hacspec.ChoiceEquality <> bind_both def
+binder 13767:13767 <> x:146
+R13778:13785 Hacspec.ChoiceEquality <> ret_both def
+R13808:13818 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R13788:13790 Coq.Init.Datatypes <> snd def
+R13793:13795 Coq.Init.Datatypes <> fst def
+R13798:13800 Coq.Init.Datatypes <> fst def
+R13802:13802 BertieExtraction.Bertie_Tls13crypto <> x:146 var
+def 13874:13883 <> f_psk_mode
+R13890:13893 Hacspec.ChoiceEquality <> both rec
+R13895:13906 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 13886:13886 <> s:147
+R13911:13914 Hacspec.ChoiceEquality <> both rec
+R13916:13920 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R13927:13936 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode:150 def
+R13938:13938 BertieExtraction.Bertie_Tls13crypto <> s:149 var
+R14010:14013 Hacspec.ChoiceEquality <> both rec
+R14015:14019 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R13948:13956 Hacspec.ChoiceEquality <> bind_both def
+binder 13965:13965 <> x:151
+R13976:13983 Hacspec.ChoiceEquality <> ret_both def
+R14000:14004 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R13986:13988 Coq.Init.Datatypes <> snd def
+R13991:13993 Coq.Init.Datatypes <> fst def
+R13995:13995 BertieExtraction.Bertie_Tls13crypto <> x:151 var
+def 14054:14063 <> f_zero_rtt
+R14070:14073 Hacspec.ChoiceEquality <> both rec
+R14075:14086 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 14066:14066 <> s:152
+R14091:14094 Hacspec.ChoiceEquality <> both rec
+R14096:14100 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R14107:14116 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt:155 def
+R14118:14118 BertieExtraction.Bertie_Tls13crypto <> s:154 var
+R14184:14187 Hacspec.ChoiceEquality <> both rec
+R14189:14193 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R14128:14136 Hacspec.ChoiceEquality <> bind_both def
+binder 14145:14145 <> x:156
+R14156:14163 Hacspec.ChoiceEquality <> ret_both def
+R14174:14178 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R14166:14168 Coq.Init.Datatypes <> snd def
+R14170:14170 BertieExtraction.Bertie_Tls13crypto <> x:156 var
+def 14228:14245 <> Build_t_Algorithms
+R14257:14260 Hacspec.ChoiceEquality <> both rec
+R14262:14276 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 14248:14253 <> f_hash:157
+R14289:14292 Hacspec.ChoiceEquality <> both rec
+R14294:14308 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+binder 14280:14285 <> f_aead:158
+R14326:14329 Hacspec.ChoiceEquality <> both rec
+R14331:14347 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+binder 14312:14322 <> f_signature:159
+R14359:14362 Hacspec.ChoiceEquality <> both rec
+R14364:14374 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+binder 14351:14355 <> f_kem:160
+R14391:14394 Hacspec.ChoiceEquality <> both rec
+R14396:14400 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+binder 14378:14387 <> f_psk_mode:161
+R14417:14420 Hacspec.ChoiceEquality <> both rec
+R14422:14426 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+binder 14404:14413 <> f_zero_rtt:162
+R14431:14434 Hacspec.ChoiceEquality <> both rec
+R14437:14448 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R14456:14473 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms:164 def
+R14857:14860 Hacspec.ChoiceEquality <> both rec
+R14863:14874 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R14483:14491 Hacspec.ChoiceEquality <> bind_both def
+binder 14509:14518 <> f_zero_rtt:165
+R14529:14537 Hacspec.ChoiceEquality <> bind_both def
+binder 14555:14564 <> f_psk_mode:166
+R14577:14585 Hacspec.ChoiceEquality <> bind_both def
+binder 14598:14602 <> f_kem:167
+R14617:14625 Hacspec.ChoiceEquality <> bind_both def
+binder 14644:14654 <> f_signature:168
+R14671:14679 Hacspec.ChoiceEquality <> bind_both def
+binder 14693:14698 <> f_aead:169
+R14717:14725 Hacspec.ChoiceEquality <> bind_both def
+binder 14739:14744 <> f_hash:170
+R14765:14772 Hacspec.ChoiceEquality <> ret_both def
+R14834:14845 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R14775:14775 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14782:14782 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14789:14789 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14801:14801 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14807:14807 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14818:14818 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14829:14829 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14776:14781 BertieExtraction.Bertie_Tls13crypto <> f_hash:170 var
+R14783:14788 BertieExtraction.Bertie_Tls13crypto <> f_aead:169 var
+R14790:14800 BertieExtraction.Bertie_Tls13crypto <> f_signature:168 var
+R14802:14806 BertieExtraction.Bertie_Tls13crypto <> f_kem:167 var
+R14808:14817 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode:166 var
+R14819:14828 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt:165 var
+R14970:14987 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+R15118:15127 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt def
+R15089:15098 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode def
+R15065:15069 BertieExtraction.Bertie_Tls13crypto <> f_kem def
+R15040:15050 BertieExtraction.Bertie_Tls13crypto <> f_signature def
+R15014:15019 BertieExtraction.Bertie_Tls13crypto <> f_aead def
+not 14909:14909 <> :::'Build_t_Algorithms'_'['_x_']'_'('_'f_hash'_':='_x_')'
+R15204:15221 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+R15352:15361 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt def
+R15323:15332 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode def
+R15299:15303 BertieExtraction.Bertie_Tls13crypto <> f_kem def
+R15274:15284 BertieExtraction.Bertie_Tls13crypto <> f_signature def
+R15234:15239 BertieExtraction.Bertie_Tls13crypto <> f_hash def
+not 15143:15143 <> :::'Build_t_Algorithms'_'['_x_']'_'('_'f_aead'_':='_x_')'
+R15443:15460 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+R15586:15595 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt def
+R15557:15566 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode def
+R15533:15537 BertieExtraction.Bertie_Tls13crypto <> f_kem def
+R15494:15499 BertieExtraction.Bertie_Tls13crypto <> f_aead def
+R15473:15478 BertieExtraction.Bertie_Tls13crypto <> f_hash def
+not 15377:15377 <> :::'Build_t_Algorithms'_'['_x_']'_'('_'f_signature'_':='_x_')'
+R15671:15688 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+R15820:15829 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt def
+R15791:15800 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode def
+R15748:15758 BertieExtraction.Bertie_Tls13crypto <> f_signature def
+R15722:15727 BertieExtraction.Bertie_Tls13crypto <> f_aead def
+R15701:15706 BertieExtraction.Bertie_Tls13crypto <> f_hash def
+not 15611:15611 <> :::'Build_t_Algorithms'_'['_x_']'_'('_'f_kem'_':='_x_')'
+R15910:15927 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+R16054:16063 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt def
+R16012:16016 BertieExtraction.Bertie_Tls13crypto <> f_kem def
+R15987:15997 BertieExtraction.Bertie_Tls13crypto <> f_signature def
+R15961:15966 BertieExtraction.Bertie_Tls13crypto <> f_aead def
+R15940:15945 BertieExtraction.Bertie_Tls13crypto <> f_hash def
+not 15845:15845 <> :::'Build_t_Algorithms'_'['_x_']'_'('_'f_psk_mode'_':='_x_')'
+R16144:16161 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+R16270:16279 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode def
+R16246:16250 BertieExtraction.Bertie_Tls13crypto <> f_kem def
+R16221:16231 BertieExtraction.Bertie_Tls13crypto <> f_signature def
+R16195:16200 BertieExtraction.Bertie_Tls13crypto <> f_aead def
+R16174:16179 BertieExtraction.Bertie_Tls13crypto <> f_hash def
+not 16079:16079 <> :::'Build_t_Algorithms'_'['_x_']'_'('_'f_zero_rtt'_':='_x_')'
+def 16315:16336 <> impl__Algorithms__aead
+R16346:16349 Hacspec.ChoiceEquality <> both rec
+R16351:16362 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 16339:16342 <> self:171
+R16367:16370 Hacspec.ChoiceEquality <> both rec
+R16372:16386 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R16393:16414 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__aead:174 def
+R16416:16419 BertieExtraction.Bertie_Tls13crypto <> self:173 var
+R16443:16446 Hacspec.ChoiceEquality <> both rec
+R16448:16462 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+R16429:16434 BertieExtraction.Bertie_Tls13crypto <> f_aead def
+def 16498:16519 <> impl__Algorithms__hash
+R16529:16532 Hacspec.ChoiceEquality <> both rec
+R16534:16545 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 16522:16525 <> self:175
+R16550:16553 Hacspec.ChoiceEquality <> both rec
+R16555:16569 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R16576:16597 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__hash:178 def
+R16599:16602 BertieExtraction.Bertie_Tls13crypto <> self:177 var
+R16626:16629 Hacspec.ChoiceEquality <> both rec
+R16631:16645 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+R16612:16617 BertieExtraction.Bertie_Tls13crypto <> f_hash def
+def 16681:16701 <> impl__Algorithms__kem
+R16711:16714 Hacspec.ChoiceEquality <> both rec
+R16716:16727 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 16704:16707 <> self:179
+R16732:16735 Hacspec.ChoiceEquality <> both rec
+R16737:16747 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R16754:16774 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__kem:182 def
+R16776:16779 BertieExtraction.Bertie_Tls13crypto <> self:181 var
+R16802:16805 Hacspec.ChoiceEquality <> both rec
+R16807:16817 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+R16789:16793 BertieExtraction.Bertie_Tls13crypto <> f_kem def
+def 16853:16873 <> impl__Algorithms__new
+R16883:16886 Hacspec.ChoiceEquality <> both rec
+R16888:16902 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 16876:16879 <> hash:183
+R16913:16916 Hacspec.ChoiceEquality <> both rec
+R16918:16932 BertieExtraction.Bertie_Tls13crypto <> t_AeadAlgorithm def
+binder 16906:16909 <> aead:184
+R16942:16945 Hacspec.ChoiceEquality <> both rec
+R16947:16963 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+binder 16936:16938 <> sig:185
+R16973:16976 Hacspec.ChoiceEquality <> both rec
+R16978:16988 BertieExtraction.Bertie_Tls13crypto <> t_KemScheme def
+binder 16967:16969 <> kem:186
+R16998:17001 Hacspec.ChoiceEquality <> both rec
+R17003:17007 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+binder 16992:16994 <> psk:187
+R17022:17025 Hacspec.ChoiceEquality <> both rec
+R17027:17031 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+binder 17011:17018 <> zero_rtt:188
+R17036:17039 Hacspec.ChoiceEquality <> both rec
+R17041:17052 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R17059:17079 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new:196 def
+R17103:17110 BertieExtraction.Bertie_Tls13crypto <> zero_rtt:195 var
+R17099:17101 BertieExtraction.Bertie_Tls13crypto <> psk:193 var
+R17095:17097 BertieExtraction.Bertie_Tls13crypto <> kem:192 var
+R17091:17093 BertieExtraction.Bertie_Tls13crypto <> sig:194 var
+R17086:17089 BertieExtraction.Bertie_Tls13crypto <> aead:190 var
+R17081:17084 BertieExtraction.Bertie_Tls13crypto <> hash:191 var
+R17256:17259 Hacspec.ChoiceEquality <> both rec
+R17261:17272 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R17120:17137 BertieExtraction.Bertie_Tls13crypto <> Build_t_Algorithms def
+def 17308:17333 <> impl__Algorithms__psk_mode
+R17343:17346 Hacspec.ChoiceEquality <> both rec
+R17348:17359 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 17336:17339 <> self:197
+R17364:17367 Hacspec.ChoiceEquality <> both rec
+R17369:17373 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R17380:17405 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__psk_mode:200 def
+R17407:17410 BertieExtraction.Bertie_Tls13crypto <> self:199 var
+R17438:17441 Hacspec.ChoiceEquality <> both rec
+R17443:17447 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R17420:17429 BertieExtraction.Bertie_Tls13crypto <> f_psk_mode def
+def 17483:17509 <> impl__Algorithms__signature
+R17519:17522 Hacspec.ChoiceEquality <> both rec
+R17524:17535 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 17512:17515 <> self:201
+R17540:17543 Hacspec.ChoiceEquality <> both rec
+R17545:17561 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R17568:17594 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__signature:204 def
+R17596:17599 BertieExtraction.Bertie_Tls13crypto <> self:203 var
+R17628:17631 Hacspec.ChoiceEquality <> both rec
+R17633:17649 BertieExtraction.Bertie_Tls13crypto <> t_SignatureScheme def
+R17609:17619 BertieExtraction.Bertie_Tls13crypto <> f_signature def
+def 17685:17710 <> impl__Algorithms__zero_rtt
+R17720:17723 Hacspec.ChoiceEquality <> both rec
+R17725:17736 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+binder 17713:17716 <> self:205
+R17741:17744 Hacspec.ChoiceEquality <> both rec
+R17746:17750 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R17757:17782 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__zero_rtt:208 def
+R17784:17787 BertieExtraction.Bertie_Tls13crypto <> self:207 var
+R17815:17818 Hacspec.ChoiceEquality <> both rec
+R17820:17824 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R17797:17806 BertieExtraction.Bertie_Tls13crypto <> f_zero_rtt def
+def 18678:18721 <> v_SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256
+R18725:18728 Hacspec.ChoiceEquality <> both rec
+R18730:18741 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R18748:18791 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256:210 def
+R18981:18984 Hacspec.ChoiceEquality <> both rec
+R18986:18997 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R18801:18821 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R18953:18960 Hacspec.ChoiceEquality <> ret_both def
+R18971:18975 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R18963:18967 Coq.Init.Datatypes <> false constr
+R18926:18933 Hacspec.ChoiceEquality <> ret_both def
+R18944:18948 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R18936:18940 Coq.Init.Datatypes <> false constr
+R18905:18923 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1 def
+R18868:18903 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R18844:18866 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes128Gcm def
+R18823:18842 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 19033:19078 <> v_SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519
+R19082:19085 Hacspec.ChoiceEquality <> both rec
+R19087:19098 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R19105:19150 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519:212 def
+R19337:19340 Hacspec.ChoiceEquality <> both rec
+R19342:19353 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R19160:19180 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R19309:19316 Hacspec.ChoiceEquality <> ret_both def
+R19327:19331 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R19319:19323 Coq.Init.Datatypes <> false constr
+R19282:19289 Hacspec.ChoiceEquality <> ret_both def
+R19300:19304 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R19292:19296 Coq.Init.Datatypes <> false constr
+R19264:19279 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519 def
+R19227:19262 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R19203:19225 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes128Gcm def
+R19182:19201 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 19389:19427 <> v_SHA256_Aes128Gcm_RsaPssRsaSha256_P256
+R19431:19434 Hacspec.ChoiceEquality <> both rec
+R19436:19447 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R19454:19492 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Aes128Gcm_RsaPssRsaSha256_P256:214 def
+R19677:19680 Hacspec.ChoiceEquality <> both rec
+R19682:19693 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R19502:19522 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R19649:19656 Hacspec.ChoiceEquality <> ret_both def
+R19667:19671 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R19659:19663 Coq.Init.Datatypes <> false constr
+R19622:19629 Hacspec.ChoiceEquality <> ret_both def
+R19640:19644 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R19632:19636 Coq.Init.Datatypes <> false constr
+R19601:19619 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1 def
+R19569:19599 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256 def
+R19545:19567 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes128Gcm def
+R19524:19543 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 19729:19769 <> v_SHA256_Aes128Gcm_RsaPssRsaSha256_X25519
+R19773:19776 Hacspec.ChoiceEquality <> both rec
+R19778:19789 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R19796:19836 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Aes128Gcm_RsaPssRsaSha256_X25519:216 def
+R20018:20021 Hacspec.ChoiceEquality <> both rec
+R20023:20034 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R19846:19866 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R19990:19997 Hacspec.ChoiceEquality <> ret_both def
+R20008:20012 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R20000:20004 Coq.Init.Datatypes <> false constr
+R19963:19970 Hacspec.ChoiceEquality <> ret_both def
+R19981:19985 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R19973:19977 Coq.Init.Datatypes <> false constr
+R19945:19960 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519 def
+R19913:19943 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256 def
+R19889:19911 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes128Gcm def
+R19868:19887 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 20070:20120 <> v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256
+R20124:20127 Hacspec.ChoiceEquality <> both rec
+R20129:20140 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R20147:20197 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256:218 def
+R20394:20397 Hacspec.ChoiceEquality <> both rec
+R20399:20410 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R20207:20227 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R20366:20373 Hacspec.ChoiceEquality <> ret_both def
+R20384:20388 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R20376:20380 Coq.Init.Datatypes <> false constr
+R20339:20346 Hacspec.ChoiceEquality <> ret_both def
+R20357:20361 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R20349:20353 Coq.Init.Datatypes <> false constr
+R20318:20336 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1 def
+R20281:20316 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R20250:20279 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Chacha20Poly1305 def
+R20229:20248 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 20446:20498 <> v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
+R20502:20505 Hacspec.ChoiceEquality <> both rec
+R20507:20518 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R20525:20577 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519:220 def
+R20771:20774 Hacspec.ChoiceEquality <> both rec
+R20776:20787 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R20587:20607 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R20743:20750 Hacspec.ChoiceEquality <> ret_both def
+R20761:20765 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R20753:20757 Coq.Init.Datatypes <> false constr
+R20716:20723 Hacspec.ChoiceEquality <> ret_both def
+R20734:20738 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R20726:20730 Coq.Init.Datatypes <> false constr
+R20698:20713 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519 def
+R20661:20696 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R20630:20659 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Chacha20Poly1305 def
+R20609:20628 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 20823:20890 <> v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00
+R20894:20897 Hacspec.ChoiceEquality <> both rec
+R20899:20910 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R20917:20984 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00:222 def
+R21193:21196 Hacspec.ChoiceEquality <> both rec
+R21198:21209 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R20994:21014 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R21165:21172 Hacspec.ChoiceEquality <> ret_both def
+R21183:21187 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R21175:21179 Coq.Init.Datatypes <> false constr
+R21138:21145 Hacspec.ChoiceEquality <> ret_both def
+R21156:21160 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R21148:21152 Coq.Init.Datatypes <> false constr
+R21105:21135 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519Kyber768Draft00 def
+R21068:21103 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R21037:21066 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Chacha20Poly1305 def
+R21016:21035 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 21245:21290 <> v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
+R21294:21297 Hacspec.ChoiceEquality <> both rec
+R21299:21310 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R21317:21362 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256:224 def
+R21554:21557 Hacspec.ChoiceEquality <> both rec
+R21559:21570 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R21372:21392 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R21526:21533 Hacspec.ChoiceEquality <> ret_both def
+R21544:21548 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R21536:21540 Coq.Init.Datatypes <> false constr
+R21499:21506 Hacspec.ChoiceEquality <> ret_both def
+R21517:21521 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R21509:21513 Coq.Init.Datatypes <> false constr
+R21478:21496 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1 def
+R21446:21476 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256 def
+R21415:21444 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Chacha20Poly1305 def
+R21394:21413 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 21606:21653 <> v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
+R21657:21660 Hacspec.ChoiceEquality <> both rec
+R21662:21673 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R21680:21727 BertieExtraction.Bertie_Tls13crypto <> v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519:226 def
+R21916:21919 Hacspec.ChoiceEquality <> both rec
+R21921:21932 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R21737:21757 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R21888:21895 Hacspec.ChoiceEquality <> ret_both def
+R21906:21910 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R21898:21902 Coq.Init.Datatypes <> false constr
+R21861:21868 Hacspec.ChoiceEquality <> ret_both def
+R21879:21883 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R21871:21875 Coq.Init.Datatypes <> false constr
+R21843:21858 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519 def
+R21811:21841 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256 def
+R21780:21809 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Chacha20Poly1305 def
+R21759:21778 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA256 def
+def 21968:22011 <> v_SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256
+R22015:22018 Hacspec.ChoiceEquality <> both rec
+R22020:22031 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R22038:22081 BertieExtraction.Bertie_Tls13crypto <> v_SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256:228 def
+R22271:22274 Hacspec.ChoiceEquality <> both rec
+R22276:22287 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R22091:22111 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R22243:22250 Hacspec.ChoiceEquality <> ret_both def
+R22261:22265 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R22253:22257 Coq.Init.Datatypes <> false constr
+R22216:22223 Hacspec.ChoiceEquality <> ret_both def
+R22234:22238 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R22226:22230 Coq.Init.Datatypes <> false constr
+R22195:22213 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1 def
+R22158:22193 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R22134:22156 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes256Gcm def
+R22113:22132 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA384 def
+def 22323:22368 <> v_SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519
+R22372:22375 Hacspec.ChoiceEquality <> both rec
+R22377:22388 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R22395:22440 BertieExtraction.Bertie_Tls13crypto <> v_SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519:230 def
+R22627:22630 Hacspec.ChoiceEquality <> both rec
+R22632:22643 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R22450:22470 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R22599:22606 Hacspec.ChoiceEquality <> ret_both def
+R22617:22621 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R22609:22613 Coq.Init.Datatypes <> false constr
+R22572:22579 Hacspec.ChoiceEquality <> ret_both def
+R22590:22594 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R22582:22586 Coq.Init.Datatypes <> false constr
+R22554:22569 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519 def
+R22517:22552 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_EcdsaSecp256r1Sha256 def
+R22493:22515 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes256Gcm def
+R22472:22491 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA384 def
+def 22679:22717 <> v_SHA384_Aes256Gcm_RsaPssRsaSha256_P256
+R22721:22724 Hacspec.ChoiceEquality <> both rec
+R22726:22737 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R22744:22782 BertieExtraction.Bertie_Tls13crypto <> v_SHA384_Aes256Gcm_RsaPssRsaSha256_P256:232 def
+R22967:22970 Hacspec.ChoiceEquality <> both rec
+R22972:22983 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R22792:22812 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R22939:22946 Hacspec.ChoiceEquality <> ret_both def
+R22957:22961 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R22949:22953 Coq.Init.Datatypes <> false constr
+R22912:22919 Hacspec.ChoiceEquality <> ret_both def
+R22930:22934 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R22922:22926 Coq.Init.Datatypes <> false constr
+R22891:22909 BertieExtraction.Bertie_Tls13crypto <> KemScheme_Secp256r1 def
+R22859:22889 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256 def
+R22835:22857 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes256Gcm def
+R22814:22833 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA384 def
+def 23019:23059 <> v_SHA384_Aes256Gcm_RsaPssRsaSha256_X25519
+R23063:23066 Hacspec.ChoiceEquality <> both rec
+R23068:23079 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R23086:23126 BertieExtraction.Bertie_Tls13crypto <> v_SHA384_Aes256Gcm_RsaPssRsaSha256_X25519:234 def
+R23308:23311 Hacspec.ChoiceEquality <> both rec
+R23313:23324 BertieExtraction.Bertie_Tls13crypto <> t_Algorithms def
+R23136:23156 BertieExtraction.Bertie_Tls13crypto <> impl__Algorithms__new def
+R23280:23287 Hacspec.ChoiceEquality <> ret_both def
+R23298:23302 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R23290:23294 Coq.Init.Datatypes <> false constr
+R23253:23260 Hacspec.ChoiceEquality <> ret_both def
+R23271:23275 Crypt.package.pkg_notation PackageNotation ::package_scope:'''bool' not
+R23263:23267 Coq.Init.Datatypes <> false constr
+R23235:23250 BertieExtraction.Bertie_Tls13crypto <> KemScheme_X25519 def
+R23203:23233 BertieExtraction.Bertie_Tls13crypto <> SignatureScheme_RsaPssRsaSha256 def
+R23179:23201 BertieExtraction.Bertie_Tls13crypto <> AeadAlgorithm_Aes256Gcm def
+R23158:23177 BertieExtraction.Bertie_Tls13crypto <> HashAlgorithm_SHA384 def
+def 23360:23384 <> impl__HashAlgorithm__hash
+R23394:23397 Hacspec.ChoiceEquality <> both rec
+R23399:23413 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 23387:23390 <> self:235
+R23424:23427 Hacspec.ChoiceEquality <> both rec
+R23429:23435 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+binder 23417:23420 <> data:236
+R23440:23443 Hacspec.ChoiceEquality <> both rec
+R23446:23453 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R23455:23461 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+R23463:23466 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R23474:23498 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__hash:240 def
+R23505:23508 BertieExtraction.Bertie_Tls13crypto <> data:238 var
+R23500:23503 BertieExtraction.Bertie_Tls13crypto <> self:239 var
+R23797:23800 Hacspec.ChoiceEquality <> both rec
+R23803:23810 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R23812:23818 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+R23820:23823 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R23529:23533 Hacspec.Hacspec_Lib_Controlflow <> :::'letm['_x_']'_x_':='_x_'in'_x not
+R23572:23573 Hacspec.Hacspec_Lib_Controlflow <> :::'letm['_x_']'_x_':='_x_'in'_x not
+R23581:23584 Hacspec.Hacspec_Lib_Controlflow <> :::'letm['_x_']'_x_':='_x_'in'_x not
+R23628:23652 Hacspec.Hacspec_Lib_Controlflow <> :::'letm['_x_']'_x_':='_x_'in'_x not
+R23792:23792 Hacspec.Hacspec_Lib_Controlflow <> :::'letm['_x_']'_x_':='_x_'in'_x not
+R23534:23566 Hacspec.Hacspec_Lib_Monad choice_typeMonad result_bind_code inst
+R23568:23571 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R23585:23622 BertieExtraction.Bertie_Tls13crypto <> impl__HashAlgorithm__libcrux_algorithm def
+binder 23574:23580 <> hoist28:241
+binder 23574:23580 <> hoist28:242
+R23653:23657 Hacspec.ChoiceEquality <> :::'letb'_x_':='_x_'in'_x not
+R23665:23668 Hacspec.ChoiceEquality <> :::'letb'_x_':='_x_'in'_x not
+R23729:23736 Hacspec.ChoiceEquality <> :::'letb'_x_':='_x_'in'_x not
+R23669:23679 BertieExtraction.Fixes Digest hash prfax
+R23681:23687 BertieExtraction.Bertie_Tls13crypto <> hoist28:241 var
+R23690:23696 BertieExtraction.Fixes <> f_deref abbrev
+R23699:23721 BertieExtraction.Fixes <> impl__Bytes__declassify prfax
+binder 23658:23664 <> hoist29:243
+binder 23658:23664 <> hoist29:244
+R23737:23741 Hacspec.ChoiceEquality <> :::'letb'_x_':='_x_'in'_x not
+R23749:23752 Hacspec.ChoiceEquality <> :::'letb'_x_':='_x_'in'_x not
+R23767:23774 Hacspec.ChoiceEquality <> :::'letb'_x_':='_x_'in'_x not
+R23753:23758 BertieExtraction.Fixes <> f_into def
+R23760:23766 BertieExtraction.Bertie_Tls13crypto <> hoist29:243 var
+binder 23742:23748 <> hoist30:245
+binder 23742:23748 <> hoist30:246
+R23775:23783 Hacspec.Hacspec_Lib_TODO <> Result_Ok abbrev
+R23785:23791 BertieExtraction.Bertie_Tls13crypto <> hoist30:245 var
+def 23860:23870 <> hkdf_expand
+R23879:23882 Hacspec.ChoiceEquality <> both rec
+R23884:23898 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 23873:23875 <> alg:247
+R23908:23911 Hacspec.ChoiceEquality <> both rec
+R23913:23919 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+binder 23902:23904 <> prk:248
+R23930:23933 Hacspec.ChoiceEquality <> both rec
+R23935:23941 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+binder 23923:23926 <> info:249
+R23951:23954 Hacspec.ChoiceEquality <> both rec
+R23956:23964 Hacspec.Hacspec_Lib_Pre <> uint_size def
+binder 23945:23947 <> len:250
+R23969:23972 Hacspec.ChoiceEquality <> both rec
+R23975:23982 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R23984:23990 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+R23992:23995 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R24003:24013 BertieExtraction.Bertie_Tls13crypto <> hkdf_expand:256 def
+R24028:24030 BertieExtraction.Bertie_Tls13crypto <> len:254 var
+R24023:24026 BertieExtraction.Bertie_Tls13crypto <> info:253 var
+R24019:24021 BertieExtraction.Bertie_Tls13crypto <> prk:255 var
+R24015:24017 BertieExtraction.Bertie_Tls13crypto <> alg:252 var
+R24592:24595 Hacspec.ChoiceEquality <> both rec
+R24598:24605 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R24607:24613 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+R24615:24618 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+def 24674:24685 <> hkdf_extract
+R24694:24697 Hacspec.ChoiceEquality <> both rec
+R24699:24713 BertieExtraction.Bertie_Tls13crypto <> t_HashAlgorithm def
+binder 24688:24690 <> alg:257
+R24723:24726 Hacspec.ChoiceEquality <> both rec
+R24728:24734 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+binder 24717:24719 <> ikm:258
+R24745:24748 Hacspec.ChoiceEquality <> both rec
+R24750:24756 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+binder 24738:24741 <> salt:259
+R24761:24764 Hacspec.ChoiceEquality <> both rec
+R24767:24774 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R24776:24782 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+R24784:24787 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
+R24795:24806 BertieExtraction.Bertie_Tls13crypto <> hkdf_extract:264 def
+R24816:24819 BertieExtraction.Bertie_Tls13crypto <> salt:263 var
+R24812:24814 BertieExtraction.Bertie_Tls13crypto <> ikm:262 var
+R24808:24810 BertieExtraction.Bertie_Tls13crypto <> alg:261 var
+R25122:25125 Hacspec.ChoiceEquality <> both rec
+R25128:25135 Hacspec.Hacspec_Lib_TODO <> t_Result def
+R25137:25143 BertieExtraction.Bertie_Tls13utils <> t_Bytes def
+R25145:25148 Hacspec.Hacspec_Lib_Pre <> int8 abbrev
