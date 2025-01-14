@@ -1014,7 +1014,7 @@ impl ContentType {
 }
 
 #[hax_lib::ensures(|result| match result {
-                            Result::Ok(d) => d.len() == 3 + p.0.len(),
+                            Result::Ok(d) => (p.0.len() < 65536 && d.len() == 3 + p.0.len()),
                             _ => true})]
 pub(crate) fn handshake_record(p: HandshakeData) -> Result<Bytes, TLSError> {
     let ty = bytes1(ContentType::Handshake as u8);

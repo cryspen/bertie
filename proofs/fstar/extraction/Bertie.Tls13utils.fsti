@@ -20,9 +20,6 @@ val impl__Bytes__into_raw (self: t_Bytes)
 /// Extend `self` with the bytes `x`.
 val impl__Bytes__append (self x: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-/// Get the length of these [`Bytes`].
-val impl__Bytes__len (self: t_Bytes) : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
-
 /// Create new [`Bytes`].
 val impl__Bytes__new: Prims.unit -> Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
@@ -117,7 +114,7 @@ val impl__Bytes__from_slice (s: t_Slice u8)
 val impl__Bytes__zeroes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 class t_Declassify (v_Self: Type0) (v_T: Type0) = {
-  f_declassify_pre:v_Self -> Type0;
+  f_declassify_pre:self___: v_Self -> pred: Type0{true ==> pred};
   f_declassify_post:v_Self -> v_T -> Type0;
   f_declassify:x0: v_Self
     -> Prims.Pure v_T (f_declassify_pre x0) (fun result -> f_declassify_post x0 result)
@@ -151,9 +148,6 @@ val u16_as_be_bytes (v_val: u16)
 val u32_as_be_bytes (v_val: u32)
     : Prims.Pure (t_Array u8 (sz 4)) Prims.l_True (fun _ -> Prims.l_True)
 
-val tlserr (#v_T: Type0) (err: u8)
-    : Prims.Pure (Core.Result.t_Result v_T u8) Prims.l_True (fun _ -> Prims.l_True)
-
 /// Convert the bool `b` into a Result.
 val check (b: bool)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -162,32 +156,6 @@ val check (b: bool)
 /// returning a [TLSError] otherwise.
 val check_eq1 (b1 b2: u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Attempt to TLS encode the `bytes` with [`u16`] length.
-/// On success, return a new [Bytes] slice such that its first two bytes encode the
-/// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
-/// the length of `bytes` exceeds what can be encoded in two bytes.
-val encode_length_u16 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Attempt to TLS encode the `bytes` with [`u24`] length.
-/// On success, return a new [Bytes] slice such that its first three bytes encode the
-/// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
-/// the length of `bytes` exceeds what can be encoded in three bytes.
-val encode_length_u24 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Add a prefix to these bytes and return it.
-val impl__Bytes__prefix (self: t_Bytes) (prefix: t_Slice u8)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-val bytes (x: t_Slice u8)
-    : Prims.Pure t_Bytes
-      Prims.l_True
-      (ensures
-        fun result ->
-          let result:t_Bytes = result in
-          (impl__Bytes__len result <: usize) =. (Core.Slice.impl__len #u8 x <: usize))
 
 /// Attempt to TLS encode the `bytes` with [`u8`] length.
 /// On success, return a new [Bytes] slice such that its first byte encodes the
@@ -218,7 +186,16 @@ val length_u16_encoded (bytes: t_Slice u8)
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 val length_u24_encoded (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok l ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 3 &&
+            ((Core.Slice.impl__len #u8 bytes <: usize) -! sz 3 <: usize) >=. l
+          | _ -> true)
 
 /// Check if `bytes[1..]` is at least as long as the length encoded by
 /// `bytes[0]` in big-endian order.
@@ -251,21 +228,16 @@ let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
         (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self___._0 <: usize) &&
         x.Core.Ops.Range.f_end <=.
         (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self___._0 <: usize));
-    f_index_post = (fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) (out: t_Slice u8) -> true);
+    f_index_post
+    =
+    (fun (self___: t_Bytes) (x: Core.Ops.Range.t_Range usize) (result: t_Slice u8) ->
+        if x.Core.Ops.Range.f_end >=. x.Core.Ops.Range.f_start
+        then
+          (Core.Slice.impl__len #u8 result <: usize) =.
+          (x.Core.Ops.Range.f_end -! x.Core.Ops.Range.f_start <: usize)
+        else (Core.Slice.impl__len #u8 result <: usize) =. sz 0);
     f_index = fun (self: t_Bytes) (x: Core.Ops.Range.t_Range usize) -> self._0.[ x ]
   }
-
-/// Get a slice of the given `range`.
-val impl__Bytes__raw_slice (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)
-    : Prims.Pure (t_Slice u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
-val impl__Bytes__slice (self: t_Bytes) (start len: usize)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get a new copy of the given `range` as [`Bytes`].
-val impl__Bytes__slice_range (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 /// Declassify these bytes and return a copy of [`u8`].
 val impl__Bytes__declassify (self: t_Bytes)
@@ -273,6 +245,97 @@ val impl__Bytes__declassify (self: t_Bytes)
 
 val impl__Bytes__declassify_array (v_C: usize) (self: t_Bytes)
     : Prims.Pure (Core.Result.t_Result (t_Array u8 v_C) u8) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Concatenate `other` with these bytes and return a copy as [`Bytes`].
+val impl__Bytes__concat (self other: t_Bytes)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          Seq.length result._0 == Seq.length self._0 + Seq.length other._0)
+
+/// Get the length of these [`Bytes`].
+val impl__Bytes__len (self: t_Bytes)
+    : Prims.Pure usize
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:usize = result in
+          v result == Seq.length self._0)
+
+/// Add a prefix to these bytes and return it.
+val impl__Bytes__prefix (self: t_Bytes) (prefix: t_Slice u8)
+    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Get a slice of the given `range`.
+val impl__Bytes__raw_slice (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)
+    : Prims.Pure (t_Slice u8)
+      (requires
+        v range.Core.Ops.Range.f_start <= Seq.length self._0 &&
+        v range.Core.Ops.Range.f_end <= Seq.length self._0)
+      (ensures
+        fun result ->
+          let result:t_Slice u8 = result in
+          if range.Core.Ops.Range.f_end >=. range.Core.Ops.Range.f_start
+          then
+            (Core.Slice.impl__len #u8 result <: usize) =.
+            (range.Core.Ops.Range.f_end -! range.Core.Ops.Range.f_start <: usize)
+          else (Core.Slice.impl__len #u8 result <: usize) =. sz 0)
+
+/// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
+val impl__Bytes__slice (self: t_Bytes) (start len: usize)
+    : Prims.Pure t_Bytes
+      (requires v start <= Seq.length self._0 && v start + v len <= Seq.length self._0)
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =. len)
+
+/// Get a new copy of the given `range` as [`Bytes`].
+val impl__Bytes__slice_range (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)
+    : Prims.Pure t_Bytes
+      (requires
+        v range.Core.Ops.Range.f_start <= Seq.length self._0 &&
+        v range.Core.Ops.Range.f_end <= Seq.length self._0)
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          if range.Core.Ops.Range.f_end >=. range.Core.Ops.Range.f_start
+          then
+            (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =.
+            (range.Core.Ops.Range.f_end -! range.Core.Ops.Range.f_start <: usize)
+          else (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =. sz 0)
+
+val bytes (x: t_Slice u8)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          (impl__Bytes__len result <: usize) =. (Core.Slice.impl__len #u8 x <: usize))
+
+/// Attempt to TLS encode the `bytes` with [`u16`] length.
+/// On success, return a new [Bytes] slice such that its first two bytes encode the
+/// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
+/// the length of `bytes` exceeds what can be encoded in two bytes.
+val encode_length_u16 (bytes: t_Bytes)
+    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Attempt to TLS encode the `bytes` with [`u24`] length.
+/// On success, return a new [Bytes] slice such that its first three bytes encode the
+/// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
+/// the length of `bytes` exceeds what can be encoded in three bytes.
+val encode_length_u24 (bytes: t_Bytes)
+    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
+
+val tlserr (#v_T: Type0) (err: u8)
+    : Prims.Pure (Core.Result.t_Result v_T u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result v_T u8 = result in
+          not (Core.Result.Result_Ok? result))
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
@@ -283,15 +346,6 @@ let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
 
 val update_at_usize_bytes_test (b: t_Bytes)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-val impl__Bytes__concat (self other: t_Bytes)
-    : Prims.Pure t_Bytes
-      Prims.l_True
-      (ensures
-        fun result ->
-          let result:t_Bytes = result in
-          Seq.length result._0 == Seq.length self._0 + Seq.length other._0)
 
 val random_bytes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 

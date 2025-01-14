@@ -66,30 +66,30 @@ val t_HandshakeType_cast_to_repr (x: t_HandshakeType)
 /// Hadshake data of the TLS handshake.
 type t_HandshakeData = | HandshakeData : Bertie.Tls13utils.t_Bytes -> t_HandshakeData
 
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
+
 /// Returns the length, in bytes.
 val impl__HandshakeData__len (self: t_HandshakeData)
     : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_1:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
 
 val get_hs_type (t: u8)
     : Prims.Pure (Core.Result.t_Result t_HandshakeType u8) Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_2:Core.Clone.t_Clone t_HandshakeType
+val impl_1:Core.Clone.t_Clone t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_3:Core.Marker.t_Copy t_HandshakeType
+val impl_2:Core.Marker.t_Copy t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_4:Core.Fmt.t_Debug t_HandshakeType
+val impl_3:Core.Fmt.t_Debug t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Marker.t_StructuralPartialEq t_HandshakeType
+val impl_4:Core.Marker.t_StructuralPartialEq t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
+val impl_5:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
 
 /// Returns the handshake data bytes.
 val impl__HandshakeData__to_bytes (self: t_HandshakeData)
@@ -108,7 +108,22 @@ val impl__HandshakeData__concat (self other: t_HandshakeData)
 val impl__HandshakeData__next_handshake_message (self: t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
+          match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
+          | Core.Result.Result_Ok (m, _) -> (impl__HandshakeData__len m <: usize) >=. sz 4
+          | _ -> true)
+
+/// Attempt to parse exactly one handshake message of the `expected_type` from
+/// `payload`.
+/// If successful, returns the parsed handshake message. Returns a [TLSError] if
+/// parsing is unsuccessful or the type of the parsed message disagrees with the
+/// expected type.
+val impl__HandshakeData__as_handshake_message
+      (self: t_HandshakeData)
+      (expected_type: t_HandshakeType)
+    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Attempt to parse exactly four handshake messages from `payload`.
 /// If successful, returns the parsed handshake messages. Returns a [TLSError]
@@ -134,20 +149,11 @@ val impl__HandshakeData__from_bytes
       (handshake_bytes: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
 
-/// Attempt to parse exactly one handshake message of the `expected_type` from
-/// `payload`.
-/// If successful, returns the parsed handshake message. Returns a [TLSError] if
-/// parsing is unsuccessful or the type of the parsed message disagrees with the
-/// expected type.
-val impl__HandshakeData__as_handshake_message
-      (self: t_HandshakeData)
-      (expected_type: t_HandshakeType)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
-
 /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
 /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
 val impl__HandshakeData__find_handshake_message
       (self: t_HandshakeData)
       (handshake_type: t_HandshakeType)
       (start: usize)
-    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure bool (requires Seq.length self._0._0 >= v start) (fun _ -> Prims.l_True)
+      (decreases (Seq.length self._0._0 - v start))

@@ -986,6 +986,174 @@ let process_psk_binder_zero_rtt
     <:
     Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8
 
+let put_client_finished
+      (cfin: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (st: t_ServerPostServerFinished)
+     =
+  let ServerPostServerFinished cr sr algs ms cfk tx:t_ServerPostServerFinished = st in
+  match
+    Bertie.Tls13formats.impl__Transcript__transcript_hash tx
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  with
+  | Core.Result.Result_Ok th ->
+    (match
+        Bertie.Tls13formats.parse_finished cfin <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+      with
+      | Core.Result.Result_Ok vd ->
+        (match
+            Bertie.Tls13crypto.hmac_verify (Bertie.Tls13crypto.impl__Algorithms__hash algs
+                <:
+                Bertie.Tls13crypto.t_HashAlgorithm)
+              cfk
+              th
+              vd
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            let tx:Bertie.Tls13formats.t_Transcript =
+              Bertie.Tls13formats.impl__Transcript__add tx cfin
+            in
+            (match
+                Bertie.Tls13formats.impl__Transcript__transcript_hash tx
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok th ->
+                (match
+                    derive_rms (Bertie.Tls13crypto.impl__Algorithms__hash algs
+                        <:
+                        Bertie.Tls13crypto.t_HashAlgorithm)
+                      ms
+                      th
+                    <:
+                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                  with
+                  | Core.Result.Result_Ok rms ->
+                    Core.Result.Result_Ok
+                    (ServerPostClientFinished cr sr algs rms tx <: t_ServerPostClientFinished)
+                    <:
+                    Core.Result.t_Result t_ServerPostClientFinished u8
+                  | Core.Result.Result_Err err ->
+                    Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8
+                )
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8
+
+let put_server_finished
+      (server_finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (handshake_state: t_ClientPostCertificateVerify)
+     =
+  let
+  ClientPostCertificateVerify
+    client_random
+    server_random
+    algorithms
+    master_secret
+    client_finished_key
+    server_finished_key
+    transcript:t_ClientPostCertificateVerify =
+    handshake_state
+  in
+  let
+  { Bertie.Tls13crypto.f_hash = hash ;
+    Bertie.Tls13crypto.f_aead = aead ;
+    Bertie.Tls13crypto.f_signature = signature ;
+    Bertie.Tls13crypto.f_kem = kem ;
+    Bertie.Tls13crypto.f_psk_mode = psk_mode ;
+    Bertie.Tls13crypto.f_zero_rtt = zero_rtt }:Bertie.Tls13crypto.t_Algorithms =
+    algorithms
+  in
+  match
+    Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+    <:
+    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  with
+  | Core.Result.Result_Ok transcript_hash ->
+    (match
+        Bertie.Tls13formats.parse_finished server_finished
+        <:
+        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+      with
+      | Core.Result.Result_Ok verify_data ->
+        (match
+            Bertie.Tls13crypto.hmac_verify hash server_finished_key transcript_hash verify_data
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            let transcript:Bertie.Tls13formats.t_Transcript =
+              Bertie.Tls13formats.impl__Transcript__add transcript server_finished
+            in
+            (match
+                Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok transcript_hash_server_finished ->
+                (match
+                    derive_app_keys hash aead master_secret transcript_hash_server_finished
+                    <:
+                    Core.Result.t_Result
+                      (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
+                        Bertie.Tls13utils.t_Bytes) u8
+                  with
+                  | Core.Result.Result_Ok (cak, sak, exp) ->
+                    let cipher1:Bertie.Tls13record.t_DuplexCipherState1 =
+                      Bertie.Tls13record.duplex_cipher_state1 aead cak 0uL sak 0uL exp
+                    in
+                    Core.Result.Result_Ok
+                    (cipher1,
+                      (ClientPostServerFinished client_random
+                          server_random
+                          algorithms
+                          master_secret
+                          client_finished_key
+                          transcript
+                        <:
+                        t_ClientPostServerFinished)
+                      <:
+                      (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished))
+                    <:
+                    Core.Result.t_Result
+                      (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
+                  | Core.Result.Result_Err err ->
+                    Core.Result.Result_Err err
+                    <:
+                    Core.Result.t_Result
+                      (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err
+                <:
+                Core.Result.t_Result
+                  (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err
+            <:
+            Core.Result.t_Result
+              (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
+          u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
+
+let server_finish
+      (cf: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (st: t_ServerPostServerFinished)
+     = put_client_finished cf st
+
 let get_rsa_signature
       (#impl_916461611_: Type0)
       (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng impl_916461611_)
@@ -1348,67 +1516,6 @@ let get_skip_server_signature (st: t_ServerPostServerHello) =
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8
 
-let put_client_finished
-      (cfin: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-      (st: t_ServerPostServerFinished)
-     =
-  let ServerPostServerFinished cr sr algs ms cfk tx:t_ServerPostServerFinished = st in
-  match
-    Bertie.Tls13formats.impl__Transcript__transcript_hash tx
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  with
-  | Core.Result.Result_Ok th ->
-    (match
-        Bertie.Tls13formats.parse_finished cfin <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-      with
-      | Core.Result.Result_Ok vd ->
-        (match
-            Bertie.Tls13crypto.hmac_verify (Bertie.Tls13crypto.impl__Algorithms__hash algs
-                <:
-                Bertie.Tls13crypto.t_HashAlgorithm)
-              cfk
-              th
-              vd
-            <:
-            Core.Result.t_Result Prims.unit u8
-          with
-          | Core.Result.Result_Ok _ ->
-            let tx:Bertie.Tls13formats.t_Transcript =
-              Bertie.Tls13formats.impl__Transcript__add tx cfin
-            in
-            (match
-                Bertie.Tls13formats.impl__Transcript__transcript_hash tx
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-              with
-              | Core.Result.Result_Ok th ->
-                (match
-                    derive_rms (Bertie.Tls13crypto.impl__Algorithms__hash algs
-                        <:
-                        Bertie.Tls13crypto.t_HashAlgorithm)
-                      ms
-                      th
-                    <:
-                    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-                  with
-                  | Core.Result.Result_Ok rms ->
-                    Core.Result.Result_Ok
-                    (ServerPostClientFinished cr sr algs rms tx <: t_ServerPostClientFinished)
-                    <:
-                    Core.Result.t_Result t_ServerPostClientFinished u8
-                  | Core.Result.Result_Err err ->
-                    Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8
-                )
-              | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8
-
 let put_psk_skip_server_signature
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (handshake_state: t_ClientPostServerHello)
@@ -1453,108 +1560,6 @@ let put_psk_skip_server_signature
     Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
     <:
     Core.Result.t_Result t_ClientPostCertificateVerify u8
-
-let put_server_finished
-      (server_finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-      (handshake_state: t_ClientPostCertificateVerify)
-     =
-  let
-  ClientPostCertificateVerify
-    client_random
-    server_random
-    algorithms
-    master_secret
-    client_finished_key
-    server_finished_key
-    transcript:t_ClientPostCertificateVerify =
-    handshake_state
-  in
-  let
-  { Bertie.Tls13crypto.f_hash = hash ;
-    Bertie.Tls13crypto.f_aead = aead ;
-    Bertie.Tls13crypto.f_signature = signature ;
-    Bertie.Tls13crypto.f_kem = kem ;
-    Bertie.Tls13crypto.f_psk_mode = psk_mode ;
-    Bertie.Tls13crypto.f_zero_rtt = zero_rtt }:Bertie.Tls13crypto.t_Algorithms =
-    algorithms
-  in
-  match
-    Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  with
-  | Core.Result.Result_Ok transcript_hash ->
-    (match
-        Bertie.Tls13formats.parse_finished server_finished
-        <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-      with
-      | Core.Result.Result_Ok verify_data ->
-        (match
-            Bertie.Tls13crypto.hmac_verify hash server_finished_key transcript_hash verify_data
-            <:
-            Core.Result.t_Result Prims.unit u8
-          with
-          | Core.Result.Result_Ok _ ->
-            let transcript:Bertie.Tls13formats.t_Transcript =
-              Bertie.Tls13formats.impl__Transcript__add transcript server_finished
-            in
-            (match
-                Bertie.Tls13formats.impl__Transcript__transcript_hash transcript
-                <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-              with
-              | Core.Result.Result_Ok transcript_hash_server_finished ->
-                (match
-                    derive_app_keys hash aead master_secret transcript_hash_server_finished
-                    <:
-                    Core.Result.t_Result
-                      (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
-                        Bertie.Tls13utils.t_Bytes) u8
-                  with
-                  | Core.Result.Result_Ok (cak, sak, exp) ->
-                    let cipher1:Bertie.Tls13record.t_DuplexCipherState1 =
-                      Bertie.Tls13record.duplex_cipher_state1 aead cak 0uL sak 0uL exp
-                    in
-                    Core.Result.Result_Ok
-                    (cipher1,
-                      (ClientPostServerFinished client_random
-                          server_random
-                          algorithms
-                          master_secret
-                          client_finished_key
-                          transcript
-                        <:
-                        t_ClientPostServerFinished)
-                      <:
-                      (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished))
-                    <:
-                    Core.Result.t_Result
-                      (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
-                  | Core.Result.Result_Err err ->
-                    Core.Result.Result_Err err
-                    <:
-                    Core.Result.t_Result
-                      (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
-              | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err
-                <:
-                Core.Result.t_Result
-                  (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err
-            <:
-            Core.Result.t_Result
-              (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
-        <:
-        Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
-          u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
-    <:
-    Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
 
 let put_server_signature
       (encrypted_extensions server_certificate server_certificate_verify:
@@ -1835,11 +1840,6 @@ let client_finish
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ClientPostClientFinished) u8
-
-let server_finish
-      (cf: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-      (st: t_ServerPostServerFinished)
-     = put_client_finished cf st
 
 let build_client_hello
       (#impl_916461611_: Type0)

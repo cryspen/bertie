@@ -98,7 +98,7 @@ val impl__Client__connect
 /// The function returns a [`Result`].
 /// When successful, the function returns a tuple with the first element the
 /// application data as bytes option, and the new [`Server`] state as the second element.
-/// If there's no application data, the first element is [`None`].
+/// If there\'s no application data, the first element is [`None`].
 /// If an error occurs, it returns a [`TLSError`].
 val impl__Server__read (self: t_Server) (application_data: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
@@ -170,5 +170,5 @@ val impl__Server__accept
     : Prims.Pure
       (impl_916461611_ &
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8)
-      Prims.l_True
+      (requires (Bertie.Tls13utils.impl__Bytes__len client_hello <: usize) >=. sz 5)
       (fun _ -> Prims.l_True)

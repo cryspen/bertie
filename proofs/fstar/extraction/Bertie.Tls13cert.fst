@@ -1,5 +1,5 @@
 module Bertie.Tls13cert
-#set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
+#set-options "--fuel 0 --ifuel 1 --z3rlimit 15 --admit_smt_queries true"
 open Core
 open FStar.Mul
 
@@ -17,61 +17,73 @@ let check_success (v_val: bool) =
   else asn1_error #Prims.unit v_ASN1_ERROR
 
 let check_tag (b: Bertie.Tls13utils.t_Bytes) (offset: usize) (value: u8) =
-  if
-    (Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
-      <:
-      u8) =.
-    value
-  then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
+  if (Bertie.Tls13utils.impl__Bytes__len b <: usize) >. offset
+  then
+    if
+      (Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
+        <:
+        u8) =.
+      value
+    then Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
+    else asn1_error #Prims.unit v_ASN1_INVALID_TAG
   else asn1_error #Prims.unit v_ASN1_INVALID_TAG
 
 let length_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
-  if
-    ((Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
-        <:
-        u8) >>!
-      7l
-      <:
-      u8) =.
-    1uy
+  if (Bertie.Tls13utils.impl__Bytes__len b <: usize) >. offset
   then
-    cast ((Bertie.Tls13utils.f_declassify #u8
-            #u8
-            #FStar.Tactics.Typeclasses.solve
-            (b.[ offset ] <: u8)
+    if
+      ((Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
           <:
-          u8) &.
-        127uy
+          u8) >>!
+        7l
         <:
-        u8)
-    <:
-    usize
-  else sz 0
+        u8) =.
+      1uy
+    then
+      Core.Result.Result_Ok
+      (cast ((Bertie.Tls13utils.f_declassify #u8
+                #u8
+                #FStar.Tactics.Typeclasses.solve
+                (b.[ offset ] <: u8)
+              <:
+              u8) &.
+            127uy
+            <:
+            u8)
+        <:
+        usize)
+      <:
+      Core.Result.t_Result usize u8
+    else Core.Result.Result_Ok (sz 0) <: Core.Result.t_Result usize u8
+  else asn1_error #usize v_ASN1_ERROR
 
 let short_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
-  if
-    ((Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
-        <:
-        u8) &.
-      128uy
-      <:
-      u8) =.
-    0uy
+  if (Bertie.Tls13utils.impl__Bytes__len b <: usize) >. offset
   then
-    Core.Result.Result_Ok
-    (cast ((Bertie.Tls13utils.f_declassify #u8
-              #u8
-              #FStar.Tactics.Typeclasses.solve
-              (b.[ offset ] <: u8)
-            <:
-            u8) &.
-          127uy
+    if
+      ((Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
           <:
-          u8)
+          u8) &.
+        128uy
+        <:
+        u8) =.
+      0uy
+    then
+      Core.Result.Result_Ok
+      (cast ((Bertie.Tls13utils.f_declassify #u8
+                #u8
+                #FStar.Tactics.Typeclasses.solve
+                (b.[ offset ] <: u8)
+              <:
+              u8) &.
+            127uy
+            <:
+            u8)
+        <:
+        usize)
       <:
-      usize)
-    <:
-    Core.Result.t_Result usize u8
+      Core.Result.t_Result usize u8
+    else asn1_error #usize v_ASN1_ERROR
   else asn1_error #usize v_ASN1_ERROR
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
@@ -101,18 +113,22 @@ let read_octet_header (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
   match check_tag b offset 4uy <: Core.Result.t_Result Prims.unit u8 with
   | Core.Result.Result_Ok _ ->
     let offset:usize = offset +! sz 1 in
-    let length_length:usize = length_length b offset in
-    let offset:usize = (offset +! length_length <: usize) +! sz 1 in
-    Core.Result.Result_Ok offset <: Core.Result.t_Result usize u8
+    (match length_length b offset <: Core.Result.t_Result usize u8 with
+      | Core.Result.Result_Ok length_length ->
+        let offset:usize = (offset +! length_length <: usize) +! sz 1 in
+        Core.Result.Result_Ok offset <: Core.Result.t_Result usize u8
+      | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8)
   | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8
 
 let read_sequence_header (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
   match check_tag b offset 48uy <: Core.Result.t_Result Prims.unit u8 with
   | Core.Result.Result_Ok _ ->
     let offset:usize = offset +! sz 1 in
-    let length_length:usize = length_length b offset in
-    let offset:usize = (offset +! length_length <: usize) +! sz 1 in
-    Core.Result.Result_Ok offset <: Core.Result.t_Result usize u8
+    (match length_length b offset <: Core.Result.t_Result usize u8 with
+      | Core.Result.Result_Ok length_length ->
+        let offset:usize = (offset +! length_length <: usize) +! sz 1 in
+        Core.Result.Result_Ok offset <: Core.Result.t_Result usize u8
+      | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8)
   | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result usize u8
 
 let read_version_number (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
@@ -129,68 +145,80 @@ let long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize) =
   if len >. sz 4
   then asn1_error #usize v_ASN1_SEQUENCE_TOO_LONG
   else
-    let u32word:t_Array u8 (sz 4) =
-      Rust_primitives.Hax.repeat (Bertie.Tls13utils.v_U8 0uy <: u8) (sz 4)
-    in
-    let u32word:t_Array u8 (sz 4) =
-      Rust_primitives.Hax.Monomorphized_update_at.update_at_range u32word
-        ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = len }
-          <:
-          Core.Ops.Range.t_Range usize)
-        (Core.Slice.impl__copy_from_slice #u8
-            (u32word.[ { Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = len }
-                <:
-                Core.Ops.Range.t_Range usize ]
-              <:
-              t_Slice u8)
-            (b.[ { Core.Ops.Range.f_start = offset; Core.Ops.Range.f_end = offset +! len <: usize }
-                <:
-                Core.Ops.Range.t_Range usize ]
-              <:
-              t_Slice u8)
-          <:
-          t_Slice u8)
-    in
-    Core.Result.Result_Ok
-    ((cast (Bertie.Tls13utils.f_declassify #u32
-              #u32
-              #FStar.Tactics.Typeclasses.solve
-              (Bertie.Tls13utils.u32_from_be_bytes u32word <: u32)
+    if (Bertie.Tls13utils.impl__Bytes__len b <: usize) >=. (offset +! len <: usize)
+    then
+      let u32word:t_Array u8 (sz 4) =
+        Rust_primitives.Hax.repeat (Bertie.Tls13utils.v_U8 0uy <: u8) (sz 4)
+      in
+      let u32word:t_Array u8 (sz 4) =
+        Rust_primitives.Hax.Monomorphized_update_at.update_at_range u32word
+          ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = len }
             <:
-            u32)
-        <:
-        usize) >>!
-      ((sz 4 -! len <: usize) *! sz 8 <: usize))
-    <:
-    Core.Result.t_Result usize u8
+            Core.Ops.Range.t_Range usize)
+          (Core.Slice.impl__copy_from_slice #u8
+              (u32word.[ { Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = len }
+                  <:
+                  Core.Ops.Range.t_Range usize ]
+                <:
+                t_Slice u8)
+              (b.[ {
+                    Core.Ops.Range.f_start = offset;
+                    Core.Ops.Range.f_end = offset +! len <: usize
+                  }
+                  <:
+                  Core.Ops.Range.t_Range usize ]
+                <:
+                t_Slice u8)
+            <:
+            t_Slice u8)
+      in
+      Core.Result.Result_Ok
+      ((cast (Bertie.Tls13utils.f_declassify #u32
+                #u32
+                #FStar.Tactics.Typeclasses.solve
+                (Bertie.Tls13utils.u32_from_be_bytes u32word <: u32)
+              <:
+              u32)
+          <:
+          usize) >>!
+        ((sz 4 -! len <: usize) *! sz 8 <: usize))
+      <:
+      Core.Result.t_Result usize u8
+    else asn1_error #usize v_ASN1_ERROR
 
 let length (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
-  if
-    ((Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
-        <:
-        u8) &.
-      128uy
-      <:
-      u8) =.
-    0uy
+  if (Bertie.Tls13utils.impl__Bytes__len b <: usize) >. offset
   then
-    match short_length b offset <: Core.Result.t_Result usize u8 with
-    | Core.Result.Result_Ok len ->
-      Core.Result.Result_Ok (offset +! sz 1, len <: (usize & usize))
-      <:
-      Core.Result.t_Result (usize & usize) u8
-    | Core.Result.Result_Err err ->
-      Core.Result.Result_Err err <: Core.Result.t_Result (usize & usize) u8
-  else
-    let len:usize = length_length b offset in
-    let offset:usize = offset +! sz 1 in
-    match long_length b offset len <: Core.Result.t_Result usize u8 with
-    | Core.Result.Result_Ok v_end ->
-      Core.Result.Result_Ok (offset +! len, v_end <: (usize & usize))
-      <:
-      Core.Result.t_Result (usize & usize) u8
-    | Core.Result.Result_Err err ->
-      Core.Result.Result_Err err <: Core.Result.t_Result (usize & usize) u8
+    if
+      ((Bertie.Tls13utils.f_declassify #u8 #u8 #FStar.Tactics.Typeclasses.solve (b.[ offset ] <: u8)
+          <:
+          u8) &.
+        128uy
+        <:
+        u8) =.
+      0uy
+    then
+      match short_length b offset <: Core.Result.t_Result usize u8 with
+      | Core.Result.Result_Ok len ->
+        Core.Result.Result_Ok (offset +! sz 1, len <: (usize & usize))
+        <:
+        Core.Result.t_Result (usize & usize) u8
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result (usize & usize) u8
+    else
+      match length_length b offset <: Core.Result.t_Result usize u8 with
+      | Core.Result.Result_Ok len ->
+        let offset:usize = offset +! sz 1 in
+        (match long_length b offset len <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok v_end ->
+            Core.Result.Result_Ok (offset +! len, v_end <: (usize & usize))
+            <:
+            Core.Result.t_Result (usize & usize) u8
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result (usize & usize) u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result (usize & usize) u8
+  else asn1_error #(usize & usize) v_ASN1_ERROR
 
 let read_integer (b: Bertie.Tls13utils.t_Bytes) (offset: usize) =
   match check_tag b offset 2uy <: Core.Result.t_Result Prims.unit u8 with

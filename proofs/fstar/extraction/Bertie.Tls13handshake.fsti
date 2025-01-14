@@ -239,6 +239,27 @@ val process_psk_binder_zero_rtt
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+val put_client_finished
+      (cfin: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (st: t_ServerPostServerFinished)
+    : Prims.Pure (Core.Result.t_Result t_ServerPostClientFinished u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val put_server_finished
+      (server_finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (handshake_state: t_ClientPostCertificateVerify)
+    : Prims.Pure
+      (Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
+          u8) Prims.l_True (fun _ -> Prims.l_True)
+
+val server_finish
+      (cf: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+      (st: t_ServerPostServerFinished)
+    : Prims.Pure (Core.Result.t_Result t_ServerPostClientFinished u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
 val get_rsa_signature
       (#impl_916461611_: Type0)
       {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
@@ -291,26 +312,12 @@ val get_skip_server_signature (st: t_ServerPostServerHello)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-val put_client_finished
-      (cfin: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-      (st: t_ServerPostServerFinished)
-    : Prims.Pure (Core.Result.t_Result t_ServerPostClientFinished u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val put_psk_skip_server_signature
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (handshake_state: t_ClientPostServerHello)
     : Prims.Pure (Core.Result.t_Result t_ClientPostCertificateVerify u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
-
-val put_server_finished
-      (server_finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-      (handshake_state: t_ClientPostCertificateVerify)
-    : Prims.Pure
-      (Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val put_server_signature
       (encrypted_extensions server_certificate server_certificate_verify:
@@ -328,13 +335,6 @@ val client_finish
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ClientPostClientFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
-
-val server_finish
-      (cf: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-      (st: t_ServerPostServerFinished)
-    : Prims.Pure (Core.Result.t_Result t_ServerPostClientFinished u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
 
 val build_client_hello
       (#impl_916461611_: Type0)

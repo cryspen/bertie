@@ -43,6 +43,7 @@ pub(crate) fn error_string(c: u8) -> String {
 }
 
 #[cfg(not(test))]
+#[hax_lib::ensures(|result| fstar!("not (Core.Result.Result_Ok? result)"))]
 pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     Err(err)
 }
@@ -83,7 +84,9 @@ impl U8 {
     }
 }
 
+#[hax_lib::attributes]
 pub(crate) trait Declassify<T> {
+    #[requires(true)]
     fn declassify(self) -> T;
 }
 
@@ -346,6 +349,7 @@ mod non_hax {
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
     #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
+    #[ensures(|result| if x.end >= x.start {result.len() == x.end - x.start} else {result.len() == 0})]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
@@ -371,6 +375,7 @@ impl Bytes {
     }
 
     /// Get the length of these [`Bytes`].
+    #[hax_lib::ensures(|result| fstar!("v result == Seq.length self._0"))]
     pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
@@ -415,16 +420,22 @@ impl Bytes {
     }
 
     /// Get a slice of the given `range`.
+    #[hax_lib::requires(fstar!(r#"v ${range.start} <= Seq.length self._0 && v ${range.end} <= Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| if range.end >= range.start {result.len() == range.end - range.start} else {result.len() == 0})]
     pub(crate) fn raw_slice(&self, range: Range<usize>) -> &[U8] {
         &self.0[range]
     }
 
     /// Get a new copy of the given `range` as [`Bytes`].
+    #[hax_lib::requires(fstar!(r#"v ${range.start} <= Seq.length self._0 && v ${range.end} <= Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| if range.end >= range.start {result.0.len() == range.end - range.start} else {result.0.len() == 0})]
     pub(crate) fn slice_range(&self, range: Range<usize>) -> Bytes {
         self.0[range].into()
     }
 
     /// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
+    #[hax_lib::requires(fstar!(r#"v $start <= Seq.length self._0 && v $start + v len <= Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| result.0.len() == len)]
     pub(crate) fn slice(&self, start: usize, len: usize) -> Bytes {
         self.0[start..start + len].into()
     }
@@ -720,6 +731,10 @@ pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 3
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(l) => bytes.len() >= 3 && bytes.len() - 3 >= l,
+                                _ => true
+                            })]
 pub(crate) fn length_u24_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.len() < 3 {
         Err(parse_failed())

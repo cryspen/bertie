@@ -406,12 +406,22 @@ val impl__Transcript__transcript_hash_without_client_hello
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+val parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
 val set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (binder: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (client_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (trunc_len: Core.Option.t_Option usize)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -524,16 +534,6 @@ val parse_encrypted_extensions
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-val parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val check_handshake_record (p: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
       (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
@@ -553,6 +553,8 @@ val handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
           let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
           match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
           | Core.Result.Result_Ok d ->
+            (Bertie.Tls13utils.impl__Bytes__len p.Bertie.Tls13formats.Handshake_data._0 <: usize) <.
+            sz 65536 &&
             (Bertie.Tls13utils.impl__Bytes__len d <: usize) =.
             (sz 3 +!
               (Bertie.Tls13utils.impl__Bytes__len p.Bertie.Tls13formats.Handshake_data._0 <: usize)

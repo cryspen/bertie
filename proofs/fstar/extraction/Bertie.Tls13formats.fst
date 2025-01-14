@@ -318,6 +318,20 @@ let impl__Transcript__transcript_hash_without_client_hello
       <:
       Bertie.Tls13utils.t_Bytes)
 
+let parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
+  match
+    Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message finished
+      (Bertie.Tls13formats.Handshake_data.HandshakeType_Finished
+        <:
+        Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+    <:
+    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+  with
+  | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData fin) ->
+    Core.Result.Result_Ok fin <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+
 let set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (binder: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
@@ -363,6 +377,96 @@ let set_client_hello_binder
   | _, _ ->
     Bertie.Tls13utils.tlserr #Bertie.Tls13formats.Handshake_data.t_HandshakeData
       (Bertie.Tls13utils.parse_failed () <: u8)
+
+let parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
+  match
+    Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message certificate
+      (Bertie.Tls13formats.Handshake_data.HandshakeType_Certificate
+        <:
+        Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+    <:
+    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+  with
+  | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData sc) ->
+    let next:usize = sz 0 in
+    (match
+        Bertie.Tls13utils.length_u8_encoded (sc.[ {
+                Core.Ops.Range.f_start = sz 0;
+                Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+              }
+              <:
+              Core.Ops.Range.t_Range usize ]
+            <:
+            t_Slice u8)
+        <:
+        Core.Result.t_Result usize u8
+      with
+      | Core.Result.Result_Ok creqlen ->
+        let next:usize = (next +! sz 1 <: usize) +! creqlen in
+        (match
+            Bertie.Tls13utils.check_length_encoding_u24 (Bertie.Tls13utils.impl__Bytes__raw_slice sc
+                  ({
+                      Core.Ops.Range.f_start = next;
+                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize)
+                <:
+                t_Slice u8)
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            let next:usize = next +! sz 3 in
+            (match
+                Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__raw_slice sc
+                      ({
+                          Core.Ops.Range.f_start = next;
+                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+                        }
+                        <:
+                        Core.Ops.Range.t_Range usize)
+                    <:
+                    t_Slice u8)
+                <:
+                Core.Result.t_Result usize u8
+              with
+              | Core.Result.Result_Ok crtlen ->
+                let next:usize = next +! sz 3 in
+                let crt:Bertie.Tls13utils.t_Bytes =
+                  Bertie.Tls13utils.impl__Bytes__slice_range sc
+                    ({
+                        Core.Ops.Range.f_start = next;
+                        Core.Ops.Range.f_end = next +! crtlen <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize)
+                in
+                let next:usize = next +! crtlen in
+                (match
+                    Bertie.Tls13utils.length_u16_encoded (sc.[ {
+                            Core.Ops.Range.f_start = next;
+                            Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize ]
+                        <:
+                        t_Slice u8)
+                    <:
+                    Core.Result.t_Result usize u8
+                  with
+                  | Core.Result.Result_Ok v__extlen ->
+                    Core.Result.Result_Ok crt <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                  | Core.Result.Result_Err err ->
+                    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
   match Bertie.Tls13utils.length_u16_encoded ch <: Core.Result.t_Result usize u8 with
@@ -1446,110 +1550,6 @@ let parse_encrypted_extensions
         <:
         t_Slice u8)
   | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8
-
-let parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
-  match
-    Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message finished
-      (Bertie.Tls13formats.Handshake_data.HandshakeType_Finished
-        <:
-        Bertie.Tls13formats.Handshake_data.t_HandshakeType)
-    <:
-    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
-  with
-  | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData fin) ->
-    Core.Result.Result_Ok fin <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-
-let parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
-  match
-    Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message certificate
-      (Bertie.Tls13formats.Handshake_data.HandshakeType_Certificate
-        <:
-        Bertie.Tls13formats.Handshake_data.t_HandshakeType)
-    <:
-    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
-  with
-  | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData sc) ->
-    let next:usize = sz 0 in
-    (match
-        Bertie.Tls13utils.length_u8_encoded (sc.[ {
-                Core.Ops.Range.f_start = sz 0;
-                Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
-              }
-              <:
-              Core.Ops.Range.t_Range usize ]
-            <:
-            t_Slice u8)
-        <:
-        Core.Result.t_Result usize u8
-      with
-      | Core.Result.Result_Ok creqlen ->
-        let next:usize = (next +! sz 1 <: usize) +! creqlen in
-        (match
-            Bertie.Tls13utils.check_length_encoding_u24 (Bertie.Tls13utils.impl__Bytes__raw_slice sc
-                  ({
-                      Core.Ops.Range.f_start = next;
-                      Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
-                    }
-                    <:
-                    Core.Ops.Range.t_Range usize)
-                <:
-                t_Slice u8)
-            <:
-            Core.Result.t_Result Prims.unit u8
-          with
-          | Core.Result.Result_Ok _ ->
-            let next:usize = next +! sz 3 in
-            (match
-                Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__raw_slice sc
-                      ({
-                          Core.Ops.Range.f_start = next;
-                          Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
-                        }
-                        <:
-                        Core.Ops.Range.t_Range usize)
-                    <:
-                    t_Slice u8)
-                <:
-                Core.Result.t_Result usize u8
-              with
-              | Core.Result.Result_Ok crtlen ->
-                let next:usize = next +! sz 3 in
-                let crt:Bertie.Tls13utils.t_Bytes =
-                  Bertie.Tls13utils.impl__Bytes__slice_range sc
-                    ({
-                        Core.Ops.Range.f_start = next;
-                        Core.Ops.Range.f_end = next +! crtlen <: usize
-                      }
-                      <:
-                      Core.Ops.Range.t_Range usize)
-                in
-                let next:usize = next +! crtlen in
-                (match
-                    Bertie.Tls13utils.length_u16_encoded (sc.[ {
-                            Core.Ops.Range.f_start = next;
-                            Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
-                          }
-                          <:
-                          Core.Ops.Range.t_Range usize ]
-                        <:
-                        t_Slice u8)
-                    <:
-                    Core.Result.t_Result usize u8
-                  with
-                  | Core.Result.Result_Ok v__extlen ->
-                    Core.Result.Result_Ok crt <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-                  | Core.Result.Result_Err err ->
-                    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-              | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
   if (Bertie.Tls13utils.impl__Bytes__len p <: usize) <. sz 5
