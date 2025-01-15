@@ -3,11 +3,7 @@ use core::ops::Range;
 #[cfg(feature = "hax-fstar")]
 use hax_lib_macros::{attributes, requires};
 
-#[cfg(feature = "std")]
-use std::{format, string::String, vec, vec::Vec};
-
-#[cfg(not(feature = "std"))]
-use alloc::{format, string::String, vec, vec::Vec};
+use crate::std::{format, string::String, vec, vec::Vec};
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {

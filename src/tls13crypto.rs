@@ -7,13 +7,9 @@ use libcrux::{
 use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use rand::{CryptoRng, RngCore};
 
-#[cfg(feature = "std")]
-use std::{format, vec::Vec};
+use crate::std::{format, vec::Vec};
 
-#[cfg(not(feature = "std"))]
-use alloc::{format, vec::Vec};
-
-use std::fmt::Display;
+use crate::std::fmt::Display;
 
 use crate::tls13utils::{
     check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
