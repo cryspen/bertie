@@ -157,13 +157,6 @@ val check (b: bool)
 val check_eq1 (b1 b2: u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
-/// Attempt to TLS encode the `bytes` with [`u8`] length.
-/// On success, return a new [Bytes] slice such that its first byte encodes the
-/// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
-/// the length of `bytes` exceeds what can be encoded in one byte.
-val encode_length_u8 (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
-
 /// Check if `bytes[2..]` is at least as long as the length encoded by `bytes[0..2]`
 /// in big-endian order.
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 2
@@ -351,14 +344,52 @@ val bytes (x: t_Slice u8)
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in two bytes.
 val encode_length_u16 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result t_Bytes u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_Bytes u8 = result in
+          match result <: Core.Result.t_Result t_Bytes u8 with
+          | Core.Result.Result_Ok lenb ->
+            (impl__Bytes__len bytes <: usize) <. sz 65536 &&
+            (impl__Bytes__len lenb <: usize) >=. sz 2 &&
+            ((impl__Bytes__len lenb <: usize) -! sz 2 <: usize) =. (impl__Bytes__len bytes <: usize)
+          | _ -> true)
 
 /// Attempt to TLS encode the `bytes` with [`u24`] length.
 /// On success, return a new [Bytes] slice such that its first three bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in three bytes.
 val encode_length_u24 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result t_Bytes u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_Bytes u8 = result in
+          match result <: Core.Result.t_Result t_Bytes u8 with
+          | Core.Result.Result_Ok lenb ->
+            (impl__Bytes__len bytes <: usize) <. sz 16777216 &&
+            (impl__Bytes__len lenb <: usize) >=. sz 3 &&
+            ((impl__Bytes__len lenb <: usize) -! sz 3 <: usize) =. (impl__Bytes__len bytes <: usize)
+          | _ -> true)
+
+/// Attempt to TLS encode the `bytes` with [`u8`] length.
+/// On success, return a new [Bytes] slice such that its first byte encodes the
+/// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
+/// the length of `bytes` exceeds what can be encoded in one byte.
+val encode_length_u8 (bytes: t_Slice u8)
+    : Prims.Pure (Core.Result.t_Result t_Bytes u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_Bytes u8 = result in
+          match result <: Core.Result.t_Result t_Bytes u8 with
+          | Core.Result.Result_Ok lenb ->
+            (Core.Slice.impl__len #u8 bytes <: usize) <. sz 256 &&
+            (impl__Bytes__len lenb <: usize) >=. sz 1 &&
+            ((impl__Bytes__len lenb <: usize) -! sz 1 <: usize) =.
+            (Core.Slice.impl__len #u8 bytes <: usize)
+          | _ -> true)
 
 val tlserr (#v_T: Type0) (err: u8)
     : Prims.Pure (Core.Result.t_Result v_T u8)
@@ -416,30 +447,75 @@ val impl__Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (b
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 val check_length_encoding_u16_slice (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 2 &&
+            (Core.Slice.impl__len #u8 bytes <: usize) <=. sz 65537
+          | _ -> true)
 
 /// Check if `bytes` contains exactly as many bytes of content as encoded by its
 /// first two bytes.
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
 val check_length_encoding_u16 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ ->
+            (impl__Bytes__len bytes <: usize) >=. sz 2 &&
+            (impl__Bytes__len bytes <: usize) <=. sz 65537
+          | _ -> true)
 
 /// Check if `bytes` contains exactly as many bytes of content as encoded by its
 /// first three bytes.
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
 val check_length_encoding_u24 (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 3 &&
+            (Core.Slice.impl__len #u8 bytes <: usize) <=. sz 16777218
+          | _ -> true)
 
 val check_length_encoding_u8_slice (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 1 &&
+            (Core.Slice.impl__len #u8 bytes <: usize) <=. sz 256
+          | _ -> true)
 
 /// Check if `bytes` contains exactly the TLS `u8` length encoded content.
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
 val check_length_encoding_u8 (bytes: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ ->
+            (impl__Bytes__len bytes <: usize) >=. sz 1 &&
+            (impl__Bytes__len bytes <: usize) <=. sz 256
+          | _ -> true)
 
 /// Check if [U8] slices `b1` and `b2` are of the same
 /// length and agree on all positions.

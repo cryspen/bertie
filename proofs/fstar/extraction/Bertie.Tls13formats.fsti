@@ -427,6 +427,14 @@ val set_client_hello_binder
           | _ -> true))
       (fun _ -> Prims.l_True)
 
+/// Check the server name for the sni extension.
+/// Returns the value for the server name indicator when successful, and a `[TLSError`]
+/// otherwise.
+val check_server_name (extension: t_Slice u8)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
 val parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
@@ -443,14 +451,6 @@ val build_server_name (name: Bertie.Tls13utils.t_Bytes)
 
 val check_psk_key_exchange_modes (client_hello: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Check the server name for the sni extension.
-/// Returns the value for the server name indicator when successful, and a `[TLSError`]
-/// otherwise.
-val check_server_name (extension: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
 
 val check_server_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -482,10 +482,23 @@ val check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+/// For termination, needs: (decreases Seq.length b)
 val check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+            u8 =
+            result
+          in
+          match
+            result
+            <:
+            Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+          with
+          | Core.Result.Result_Ok (len, out) -> len >=. sz 4
+          | _ -> true)
 
 val check_signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -563,7 +576,7 @@ val handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
             (Bertie.Tls13utils.impl__Bytes__len p.Bertie.Tls13formats.Handshake_data._0 <: usize) <.
             sz 65536 &&
             (Bertie.Tls13utils.impl__Bytes__len d <: usize) =.
-            (sz 3 +!
+            (sz 5 +!
               (Bertie.Tls13utils.impl__Bytes__len p.Bertie.Tls13formats.Handshake_data._0 <: usize)
               <:
               usize)
@@ -766,6 +779,7 @@ val check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice 
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+/// Needs decreases clause
 val find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True

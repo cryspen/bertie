@@ -172,7 +172,9 @@ impl HandshakeData {
     ///
     /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
     /// 
-    /// For termination proof in F*: (decreases (Seq.length self._0._0 - v start))
+    /// For termination proof in F*: we need to hand-edit and add:
+    /// (decreases (Seq.length self._0._0 - v start))
+    /// https://github.com/cryspen/hax/issues/1233
     #[hax_lib::requires(fstar!(r#"Seq.length self._0._0 >= v start"#))]
     pub(crate) fn find_handshake_message(
         &self,

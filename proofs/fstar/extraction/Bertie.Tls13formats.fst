@@ -378,6 +378,57 @@ let set_client_hello_binder
     Bertie.Tls13utils.tlserr #Bertie.Tls13formats.Handshake_data.t_HandshakeData
       (Bertie.Tls13utils.parse_failed () <: u8)
 
+let check_server_name (extension: t_Slice u8) =
+  match
+    Bertie.Tls13utils.check_length_encoding_u16_slice extension
+    <:
+    Core.Result.t_Result Prims.unit u8
+  with
+  | Core.Result.Result_Ok _ ->
+    if (Core.Slice.impl__len #u8 extension <: usize) >. sz 3
+    then
+      match
+        Bertie.Tls13utils.check_eq1 (Bertie.Tls13utils.v_U8 0uy <: u8) (extension.[ sz 2 ] <: u8)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        (match
+            Bertie.Tls13utils.check_length_encoding_u16_slice (extension.[ {
+                    Core.Ops.Range.f_start = sz 3;
+                    Core.Ops.Range.f_end = Core.Slice.impl__len #u8 extension <: usize
+                  }
+                  <:
+                  Core.Ops.Range.t_Range usize ]
+                <:
+                t_Slice u8)
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            Core.Result.Result_Ok
+            (Core.Convert.f_into #(t_Slice u8)
+                #Bertie.Tls13utils.t_Bytes
+                #FStar.Tactics.Typeclasses.solve
+                (extension.[ {
+                      Core.Ops.Range.f_start = sz 5;
+                      Core.Ops.Range.f_end = Core.Slice.impl__len #u8 extension <: usize
+                    }
+                    <:
+                    Core.Ops.Range.t_Range usize ]
+                  <:
+                  t_Slice u8))
+            <:
+            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    else
+      Bertie.Tls13utils.tlserr #Bertie.Tls13utils.t_Bytes (Bertie.Tls13utils.parse_failed () <: u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+
 let parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
   match
     Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message certificate
@@ -586,60 +637,6 @@ let check_psk_key_exchange_modes (client_hello: t_Slice u8) =
       (sz 2)
   | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8
 
-let check_server_name (extension: t_Slice u8) =
-  match
-    Bertie.Tls13utils.check_length_encoding_u16_slice extension
-    <:
-    Core.Result.t_Result Prims.unit u8
-  with
-  | Core.Result.Result_Ok _ ->
-    (match
-        Bertie.Tls13utils.check_eq_with_slice ((let list = [Bertie.Tls13utils.v_U8 0uy] in
-              FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
-              Rust_primitives.Hax.array_of_list 1 list)
-            <:
-            t_Slice u8)
-          extension
-          (sz 2)
-          (sz 3)
-        <:
-        Core.Result.t_Result Prims.unit u8
-      with
-      | Core.Result.Result_Ok _ ->
-        (match
-            Bertie.Tls13utils.check_length_encoding_u16_slice (extension.[ {
-                    Core.Ops.Range.f_start = sz 3;
-                    Core.Ops.Range.f_end = Core.Slice.impl__len #u8 extension <: usize
-                  }
-                  <:
-                  Core.Ops.Range.t_Range usize ]
-                <:
-                t_Slice u8)
-            <:
-            Core.Result.t_Result Prims.unit u8
-          with
-          | Core.Result.Result_Ok _ ->
-            Core.Result.Result_Ok
-            (Core.Convert.f_into #(t_Slice u8)
-                #Bertie.Tls13utils.t_Bytes
-                #FStar.Tactics.Typeclasses.solve
-                (extension.[ {
-                      Core.Ops.Range.f_start = sz 5;
-                      Core.Ops.Range.f_end = Core.Slice.impl__len #u8 extension <: usize
-                    }
-                    <:
-                    Core.Ops.Range.t_Range usize ]
-                  <:
-                  t_Slice u8))
-            <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-
 let check_server_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   Bertie.Tls13utils.check_eq_slice ((let list =
           [Bertie.Tls13utils.v_U8 0uy; Bertie.Tls13utils.v_U8 0uy]
@@ -772,56 +769,61 @@ let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
 let check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
-  match
-    Bertie.Tls13crypto.impl__Algorithms__supported_group algs
-    <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-  with
-  | Core.Result.Result_Ok hoist87 ->
-    (match
-        Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw hoist87
-            <:
-            t_Slice u8)
-          b
-          (sz 0)
-          (sz 2)
-        <:
-        Core.Result.t_Result Prims.unit u8
-      with
-      | Core.Result.Result_Ok _ ->
-        (match
-            Bertie.Tls13utils.check_length_encoding_u16_slice (b.[ {
-                    Core.Ops.Range.f_start = sz 2;
-                    Core.Ops.Range.f_end = Core.Slice.impl__len #u8 b <: usize
-                  }
-                  <:
-                  Core.Ops.Range.t_Range usize ]
-                <:
-                t_Slice u8)
-            <:
-            Core.Result.t_Result Prims.unit u8
-          with
-          | Core.Result.Result_Ok _ ->
-            Core.Result.Result_Ok
-            (Core.Convert.f_from #Bertie.Tls13utils.t_Bytes
-                #(t_Slice u8)
-                #FStar.Tactics.Typeclasses.solve
-                (b.[ {
-                      Core.Ops.Range.f_start = sz 4;
+  if (Core.Slice.impl__len #u8 b <: usize) >=. sz 2
+  then
+    match
+      Bertie.Tls13crypto.impl__Algorithms__supported_group algs
+      <:
+      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    with
+    | Core.Result.Result_Ok hoist87 ->
+      (match
+          Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw hoist87
+              <:
+              t_Slice u8)
+            b
+            (sz 0)
+            (sz 2)
+          <:
+          Core.Result.t_Result Prims.unit u8
+        with
+        | Core.Result.Result_Ok _ ->
+          (match
+              Bertie.Tls13utils.check_length_encoding_u16_slice (b.[ {
+                      Core.Ops.Range.f_start = sz 2;
                       Core.Ops.Range.f_end = Core.Slice.impl__len #u8 b <: usize
                     }
                     <:
                     Core.Ops.Range.t_Range usize ]
                   <:
-                  t_Slice u8))
-            <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                  t_Slice u8)
+              <:
+              Core.Result.t_Result Prims.unit u8
+            with
+            | Core.Result.Result_Ok _ ->
+              Core.Result.Result_Ok
+              (Core.Convert.f_from #Bertie.Tls13utils.t_Bytes
+                  #(t_Slice u8)
+                  #FStar.Tactics.Typeclasses.solve
+                  (b.[ {
+                        Core.Ops.Range.f_start = sz 4;
+                        Core.Ops.Range.f_end = Core.Slice.impl__len #u8 b <: usize
+                      }
+                      <:
+                      Core.Ops.Range.t_Range usize ]
+                    <:
+                    t_Slice u8))
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            | Core.Result.Result_Err err ->
+              Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        | Core.Result.Result_Err err ->
+          Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    | Core.Result.Result_Err err ->
+      Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+  else Bertie.Tls13utils.tlserr #Bertie.Tls13utils.t_Bytes (Bertie.Tls13utils.parse_failed () <: u8)
+
+#push-options "--admit_smt_queries true"
 
 let check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   if (Core.Slice.impl__len #u8 b <: usize) <. sz 4
@@ -939,6 +941,8 @@ let check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u
       Core.Result.Result_Err err
       <:
       Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+
+#pop-options
 
 let check_signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
   match
@@ -1414,6 +1418,8 @@ let parse_ecdsa_signature (sig: Bertie.Tls13utils.t_Bytes) =
     | Core.Result.Result_Err err ->
       Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
+#push-options "--admit_smt_queries true"
+
 let parse_certificate_verify
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (certificate_verify: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -1510,6 +1516,10 @@ let parse_certificate_verify
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
+#pop-options
+
+#push-options "--admit_smt_queries true"
+
 let parse_encrypted_extensions
       (v__algs: Bertie.Tls13crypto.t_Algorithms)
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -1550,6 +1560,8 @@ let parse_encrypted_extensions
         <:
         t_Slice u8)
   | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8
+
+#pop-options
 
 let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
   if (Bertie.Tls13utils.impl__Bytes__len p <: usize) <. sz 5
@@ -1982,6 +1994,8 @@ let server_supported_version (v__algorithms: Bertie.Tls13crypto.t_Algorithms) =
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
+#push-options "--admit_smt_queries true"
+
 let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes) =
   let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
   match
@@ -2160,6 +2174,8 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
     <:
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
+#pop-options
+
 let signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms) =
   match
     Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs
@@ -2192,6 +2208,8 @@ let signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms) =
         Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+
+#push-options "--admit_smt_queries true"
 
 let client_hello
       (algorithms: Bertie.Tls13crypto.t_Algorithms)
@@ -2444,6 +2462,8 @@ let client_hello
     <:
     Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
 
+#pop-options
+
 let rec check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
   match
     check_server_extension algs b
@@ -2480,7 +2500,9 @@ let rec check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Sl
     <:
     Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
 
-let rec find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
+#push-options "--admit_smt_queries true"
+
+let find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
   if (Core.Slice.impl__len #u8 ch <: usize) <. sz 4
   then Bertie.Tls13utils.tlserr #Bertie.Tls13utils.t_Bytes (Bertie.Tls13utils.parse_failed () <: u8)
   else
@@ -2543,6 +2565,8 @@ let rec find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8) =
             t_Slice u8)
       | Core.Result.Result_Err err ->
         Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+
+#pop-options
 
 let check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
   match

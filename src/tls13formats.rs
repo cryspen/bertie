@@ -8,7 +8,7 @@ use crate::{
         zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
     tls13utils::{
-        bytes1, bytes2, bytes_concat, check, check_eq, check_eq_slice, check_eq_with_slice,
+        bytes1, bytes2, bytes_concat, check, check_eq, check_eq1, check_eq_slice, check_eq_with_slice,
         check_length_encoding_u16, check_length_encoding_u16_slice, check_length_encoding_u24,
         check_length_encoding_u8, check_length_encoding_u8_slice, check_mem, encode_length_u16,
         encode_length_u24, encode_length_u8, eq_slice, length_u16_encoded,
@@ -74,9 +74,13 @@ fn build_server_name(name: &Bytes) -> Result<Bytes, TLSError> {
 /// otherwise.
 fn check_server_name(extension: &[U8]) -> Result<Bytes, TLSError> {
     check_length_encoding_u16_slice(extension)?;
-    check_eq_with_slice(&[U8(0)], extension, 2, 3)?;
-    check_length_encoding_u16_slice(&extension[3..extension.len()])?;
-    Ok(extension[5..extension.len()].into())
+    if extension.len() > 3 {
+        check_eq1(U8(0), extension[2])?;
+        check_length_encoding_u16_slice(&extension[3..extension.len()])?;
+        Ok(extension[5..extension.len()].into())
+    } else {
+        tlserr(parse_failed())
+    }
 }
 
 /// Build the supported versions bytes for the client hello.
@@ -139,6 +143,8 @@ fn key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(encode_length_u16(encode_length_u16(ks)?)?.prefix(PREFIX))
 }
 
+/// Needs decreases clause
+#[hax_lib::fstar::verification_status(lax)]
 fn find_key_share(g: &Bytes, ch: &[U8]) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         tlserr(parse_failed())
@@ -162,10 +168,14 @@ fn server_key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
 }
 
 fn check_server_key_share(algs: &Algorithms, b: &[U8]) -> Result<Bytes, TLSError> {
-    check_eq_with_slice(algs.supported_group()?.as_raw(), b, 0, 2)?;
-    check_length_encoding_u16_slice(&b[2..b.len()])?;
-    // XXX Performance: These conversions aren't necessary. A slice would suffice.
-    Ok(Bytes::from(&b[4..b.len()]))
+    if b.len() >= 2 {
+        check_eq_with_slice(algs.supported_group()?.as_raw(), b, 0, 2)?;
+        check_length_encoding_u16_slice(&b[2..b.len()])?;
+        // XXX Performance: These conversions aren't necessary. A slice would suffice.
+        Ok(Bytes::from(&b[4..b.len()]))
+    } else { 
+        tlserr(parse_failed())
+    }
 }
 
 fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, usize), TLSError> {
@@ -295,6 +305,11 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
     }
 }
 
+/// For termination, needs: (decreases Seq.length b)
+#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok((len,out)) => len >= 4,
+                                    _ => true})]
 fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<Bytes>), TLSError> {
     if b.len() < 4 {
         Err(parse_failed())
@@ -512,6 +527,7 @@ fn get_psk_extensions(
 
 /// Build a ClientHello message.
 #[hax_lib::pv_constructor]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
@@ -708,6 +724,7 @@ pub(super) fn parse_client_hello(
 
 /// Build the server hello message.
 #[hax_lib::pv_constructor]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     sr: Random,
@@ -798,6 +815,7 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
 }
 
 #[hax_lib::pv_handwritten]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_encrypted_extensions(
     _algs: &Algorithms,
     encrypted_extensions: &HandshakeData,
@@ -919,6 +937,7 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
 }
 
 #[hax_lib::pv_handwritten]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_certificate_verify(
     algs: &Algorithms,
     certificate_verify: &HandshakeData,
@@ -1017,7 +1036,7 @@ impl ContentType {
 }
 
 #[hax_lib::ensures(|result| match result {
-                            Result::Ok(d) => (p.0.len() < 65536 && d.len() == 3 + p.0.len()),
+                            Result::Ok(d) => (p.0.len() < 65536 && d.len() == 5 + p.0.len()),
                             _ => true})]
 pub(crate) fn handshake_record(p: HandshakeData) -> Result<Bytes, TLSError> {
     let ty = bytes1(ContentType::Handshake as u8);

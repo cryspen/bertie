@@ -622,6 +622,9 @@ pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
 #[hax_lib::pv_constructor]
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(lenb) => bytes.len() < 256 && lenb.len() >= 1 && lenb.len() - 1 == bytes.len(),
+                                    _ => true})]
 pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
@@ -639,6 +642,9 @@ pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first two bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in two bytes.
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(lenb) => bytes.len() < 65536 && lenb.len() >= 2 && lenb.len() - 2 == bytes.len(),
+                                    _ => true})]
 pub(crate) fn encode_length_u16(mut bytes: Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 65536 {
@@ -658,6 +664,9 @@ pub(crate) fn encode_length_u16(mut bytes: Bytes) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first three bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in three bytes.
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(lenb) => bytes.len() < 16777216 && lenb.len() >= 3 && lenb.len() - 3 == bytes.len(),
+                                    _ => true})]
 pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 16777216 {
@@ -764,6 +773,9 @@ pub(crate) fn length_u24_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     }
 }
 
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(_) => bytes.len() >= 1 && bytes.len() <= 256,
+                                    _ => true})]
 pub(crate) fn check_length_encoding_u8_slice(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u8_encoded(bytes)? + 1 != bytes.len() {
         Err(parse_failed())
@@ -776,11 +788,17 @@ pub(crate) fn check_length_encoding_u8_slice(bytes: &[U8]) -> Result<(), TLSErro
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(_) => bytes.len() >= 1 && bytes.len() <= 256,
+                                    _ => true})]
 pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
     check_length_encoding_u8_slice(bytes.as_raw())
 }
 
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(_) => bytes.len() >= 2 && bytes.len() <= 65537,
+                                    _ => true})]
 pub(crate) fn check_length_encoding_u16_slice(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u16_encoded(bytes)? + 2 != bytes.len() {
         Err(parse_failed())
@@ -794,6 +812,9 @@ pub(crate) fn check_length_encoding_u16_slice(bytes: &[U8]) -> Result<(), TLSErr
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(_) => bytes.len() >= 2 && bytes.len() <= 65537,
+                                _ => true})]
 pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
     check_length_encoding_u16_slice(bytes.as_raw())
 }
@@ -803,6 +824,9 @@ pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(_) => bytes.len() >= 3 && bytes.len() <= 16777218,
+                                _ => true})]
 pub(crate) fn check_length_encoding_u24(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u24_encoded(bytes)? + 3 != bytes.len() {
         Err(parse_failed())
