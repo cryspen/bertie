@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: DeterminateSystems/nix-installer-action@v12
+        with:
+          source-tag: v0.32.3 # revert when https://github.com/DeterminateSystems/nix-installer-action/issues/133 is closed
       - uses: DeterminateSystems/magic-nix-cache-action@v7
       - name: Install & configure Cachix
         shell: bash
