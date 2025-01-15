@@ -138,93 +138,93 @@ let merge_opts (#v_T: Type0) (o1 o2: Core.Option.t_Option v_T) =
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_6': Core.Clone.t_Clone t_AlertLevel
+val impl_5': Core.Clone.t_Clone t_AlertLevel
+
+let impl_5 = impl_5'
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+assume
+val impl_6': Core.Marker.t_Copy t_AlertLevel
 
 let impl_6 = impl_6'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_7': Core.Marker.t_Copy t_AlertLevel
+val impl_7': Core.Fmt.t_Debug t_AlertLevel
 
 let impl_7 = impl_7'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_8': Core.Fmt.t_Debug t_AlertLevel
+val impl_8': Core.Marker.t_StructuralPartialEq t_AlertLevel
 
 let impl_8 = impl_8'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_9': Core.Marker.t_StructuralPartialEq t_AlertLevel
+val impl_9': Core.Cmp.t_PartialEq t_AlertLevel t_AlertLevel
 
 let impl_9 = impl_9'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_10': Core.Cmp.t_PartialEq t_AlertLevel t_AlertLevel
+val impl_10': Core.Clone.t_Clone t_AlertDescription
 
 let impl_10 = impl_10'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_11': Core.Clone.t_Clone t_AlertDescription
+val impl_11': Core.Marker.t_Copy t_AlertDescription
 
 let impl_11 = impl_11'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_12': Core.Marker.t_Copy t_AlertDescription
+val impl_12': Core.Fmt.t_Debug t_AlertDescription
 
 let impl_12 = impl_12'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_13': Core.Fmt.t_Debug t_AlertDescription
+val impl_13': Core.Marker.t_StructuralPartialEq t_AlertDescription
 
 let impl_13 = impl_13'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_14': Core.Marker.t_StructuralPartialEq t_AlertDescription
+val impl_14': Core.Cmp.t_PartialEq t_AlertDescription t_AlertDescription
 
 let impl_14 = impl_14'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_15': Core.Cmp.t_PartialEq t_AlertDescription t_AlertDescription
+val impl_15': Core.Clone.t_Clone t_ContentType
 
 let impl_15 = impl_15'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_16': Core.Clone.t_Clone t_ContentType
+val impl_16': Core.Marker.t_Copy t_ContentType
 
 let impl_16 = impl_16'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_17': Core.Marker.t_Copy t_ContentType
+val impl_17': Core.Fmt.t_Debug t_ContentType
 
 let impl_17 = impl_17'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_18': Core.Fmt.t_Debug t_ContentType
+val impl_18': Core.Marker.t_StructuralPartialEq t_ContentType
 
 let impl_18 = impl_18'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_19': Core.Marker.t_StructuralPartialEq t_ContentType
+val impl_19': Core.Cmp.t_PartialEq t_ContentType t_ContentType
 
 let impl_19 = impl_19'
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-assume
-val impl_20': Core.Cmp.t_PartialEq t_ContentType t_ContentType
-
-let impl_20 = impl_20'
 
 let impl__Transcript__add
       (self: t_Transcript)
@@ -355,7 +355,7 @@ let set_client_hello_binder
     (Core.Option.t_Option Bertie.Tls13utils.t_Bytes & Core.Option.t_Option usize)
   with
   | Core.Option.Option_Some m, Core.Option.Option_Some trunc_len ->
-    if (chlen -! hlen <: usize) =. trunc_len
+    if (chlen -! trunc_len <: usize) =. hlen
     then
       Core.Result.Result_Ok
       (Bertie.Tls13formats.Handshake_data.HandshakeData

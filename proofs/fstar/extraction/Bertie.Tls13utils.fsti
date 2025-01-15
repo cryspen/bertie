@@ -170,7 +170,17 @@ val encode_length_u8 (bytes: t_Slice u8)
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 val length_u16_encoded_slice (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok l ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 2 &&
+            ((Core.Slice.impl__len #u8 bytes <: usize) -! sz 2 <: usize) >=. l &&
+            l <. sz 65536
+          | _ -> true)
 
 /// Check if `bytes[2..]` is at least as long as the length encoded by `bytes[0..2]`
 /// in big-endian order.
@@ -178,7 +188,17 @@ val length_u16_encoded_slice (bytes: t_Slice u8)
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 val length_u16_encoded (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok l ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 2 &&
+            ((Core.Slice.impl__len #u8 bytes <: usize) -! sz 2 <: usize) >=. l &&
+            l <. sz 65536
+          | _ -> true)
 
 /// Check if `bytes[3..]` is at least as long as the length encoded by `bytes[0..3]`
 /// in big-endian order.
@@ -194,7 +214,8 @@ val length_u24_encoded (bytes: t_Slice u8)
           match result <: Core.Result.t_Result usize u8 with
           | Core.Result.Result_Ok l ->
             (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 3 &&
-            ((Core.Slice.impl__len #u8 bytes <: usize) -! sz 3 <: usize) >=. l
+            ((Core.Slice.impl__len #u8 bytes <: usize) -! sz 3 <: usize) >=. l &&
+            l <. sz 16777216
           | _ -> true)
 
 /// Check if `bytes[1..]` is at least as long as the length encoded by
@@ -203,7 +224,17 @@ val length_u24_encoded (bytes: t_Slice u8)
 /// empty or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 val length_u8_encoded (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok l ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. sz 1 &&
+            ((Core.Slice.impl__len #u8 bytes <: usize) -! sz 1 <: usize) >=. l &&
+            l <. sz 256
+          | _ -> true)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let impl_21: Core.Ops.Index.t_Index t_Bytes usize =

@@ -77,6 +77,7 @@ pub(crate) fn duplex_cipher_state1(
 }
 
 /// Derive the AEAD IV with counter `n`
+#[hax_lib::requires(iv.len() >= 8)]
 fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
     let counter: Bytes = n.to_be_bytes().into();
     let mut iv_ctr = AeadIV::zeroes(iv.len());

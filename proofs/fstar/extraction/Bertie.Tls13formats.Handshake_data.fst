@@ -322,35 +322,3 @@ let impl__HandshakeData__from_bytes
     Core.Result.t_Result t_HandshakeData u8
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
-
-let rec impl__HandshakeData__find_handshake_message
-      (self: t_HandshakeData)
-      (handshake_type: t_HandshakeType)
-      (start: usize)
-     =
-  if ((impl__HandshakeData__len self <: usize) -! start <: usize) <. sz 4
-  then false
-  else
-    match
-      Bertie.Tls13utils.length_u24_encoded (Bertie.Tls13utils.impl__Bytes__raw_slice self._0
-            ({
-                Core.Ops.Range.f_start = start +! sz 1 <: usize;
-                Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len self._0 <: usize
-              }
-              <:
-              Core.Ops.Range.t_Range usize)
-          <:
-          t_Slice u8)
-      <:
-      Core.Result.t_Result usize u8
-    with
-    | Core.Result.Result_Err _ -> false
-    | Core.Result.Result_Ok len ->
-      if
-        Bertie.Tls13utils.eq1 (self._0.[ start ] <: u8)
-          (Bertie.Tls13utils.v_U8 (t_HandshakeType_cast_to_repr handshake_type <: u8) <: u8)
-      then true
-      else
-        impl__HandshakeData__find_handshake_message self
-          handshake_type
-          ((start +! sz 4 <: usize) +! len <: usize)

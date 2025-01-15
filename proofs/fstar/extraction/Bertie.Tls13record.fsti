@@ -79,7 +79,9 @@ val server_cipher_state0
 
 /// Derive the AEAD IV with counter `n`
 val derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes
+      (requires (Bertie.Tls13utils.impl__Bytes__len iv <: usize) >=. sz 8)
+      (fun _ -> Prims.l_True)
 
 /// Encrypt the record `payload` with the given `key_iv`.
 val encrypt_record_payload

@@ -336,49 +336,49 @@ val merge_opts (#v_T: Type0) (o1 o2: Core.Option.t_Option v_T)
       (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Clone.t_Clone t_AlertLevel
+val impl_5:Core.Clone.t_Clone t_AlertLevel
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Marker.t_Copy t_AlertLevel
+val impl_6:Core.Marker.t_Copy t_AlertLevel
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8:Core.Fmt.t_Debug t_AlertLevel
+val impl_7:Core.Fmt.t_Debug t_AlertLevel
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Marker.t_StructuralPartialEq t_AlertLevel
+val impl_8:Core.Marker.t_StructuralPartialEq t_AlertLevel
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Cmp.t_PartialEq t_AlertLevel t_AlertLevel
+val impl_9:Core.Cmp.t_PartialEq t_AlertLevel t_AlertLevel
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Clone.t_Clone t_AlertDescription
+val impl_10:Core.Clone.t_Clone t_AlertDescription
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Marker.t_Copy t_AlertDescription
+val impl_11:Core.Marker.t_Copy t_AlertDescription
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Fmt.t_Debug t_AlertDescription
+val impl_12:Core.Fmt.t_Debug t_AlertDescription
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_14:Core.Marker.t_StructuralPartialEq t_AlertDescription
+val impl_13:Core.Marker.t_StructuralPartialEq t_AlertDescription
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_15:Core.Cmp.t_PartialEq t_AlertDescription t_AlertDescription
+val impl_14:Core.Cmp.t_PartialEq t_AlertDescription t_AlertDescription
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_16:Core.Clone.t_Clone t_ContentType
+val impl_15:Core.Clone.t_Clone t_ContentType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_17:Core.Marker.t_Copy t_ContentType
+val impl_16:Core.Marker.t_Copy t_ContentType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_18:Core.Fmt.t_Debug t_ContentType
+val impl_17:Core.Fmt.t_Debug t_ContentType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_19:Core.Marker.t_StructuralPartialEq t_ContentType
+val impl_18:Core.Marker.t_StructuralPartialEq t_ContentType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_20:Core.Cmp.t_PartialEq t_ContentType t_ContentType
+val impl_19:Core.Cmp.t_PartialEq t_ContentType t_ContentType
 
 /// Add the [`HandshakeData`] `msg` to this transcript.
 val impl__Transcript__add
@@ -403,7 +403,9 @@ val impl__Transcript__transcript_hash_without_client_hello
       (client_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (trunc_len: usize)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (requires
+        trunc_len <=.
+        (Bertie.Tls13formats.Handshake_data.impl__HandshakeData__len client_hello <: usize))
       (fun _ -> Prims.l_True)
 
 val parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -417,7 +419,12 @@ val set_client_hello_binder
       (client_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (trunc_len: Core.Option.t_Option usize)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      Prims.l_True
+      (requires
+        (match trunc_len <: Core.Option.t_Option usize with
+          | Core.Option.Option_Some tl ->
+            tl <=.
+            (Bertie.Tls13formats.Handshake_data.impl__HandshakeData__len client_hello <: usize)
+          | _ -> true))
       (fun _ -> Prims.l_True)
 
 val parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData)

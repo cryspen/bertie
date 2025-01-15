@@ -558,6 +558,9 @@ pub(crate) fn client_hello(
 }
 
 #[hax_lib::pv_handwritten]
+#[hax_lib::requires(match trunc_len {
+                     Option::Some(tl) => tl <= client_hello.len(),
+                     _ => true})]
 pub(crate) fn set_client_hello_binder(
     ciphersuite: &Algorithms,
     binder: &Option<Hmac>,
@@ -569,7 +572,7 @@ pub(crate) fn set_client_hello_binder(
     let hlen = ciphersuite.hash().hash_len();
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
-            if chlen - hlen == trunc_len {
+            if chlen - trunc_len == hlen {
                 Ok(HandshakeData(ch.update_slice(trunc_len, m, 0, hlen)))
             } else {
                 tlserr(parse_failed())
@@ -1065,6 +1068,7 @@ pub(crate) struct Transcript {
     transcript: HandshakeData,
 }
 
+#[hax_lib::attributes]
 impl Transcript {
     pub(crate) fn new(hash_algorithm: HashAlgorithm) -> Self {
         Self {
@@ -1088,6 +1092,7 @@ impl Transcript {
 
     /// Get the hash of this transcript without the client hello
     #[hax_lib::pv_constructor]
+    #[hax_lib::requires(trunc_len <= client_hello.len())]
     pub(crate) fn transcript_hash_without_client_hello(
         &self,
         client_hello: &HandshakeData,

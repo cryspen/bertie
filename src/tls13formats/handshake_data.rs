@@ -68,6 +68,7 @@ impl HandshakeData {
     }
 
     /// Returns the length, in bytes.
+    #[hax_lib::ensures(|result| fstar!("v result == Seq.length self._0._0"))]
     pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
@@ -170,6 +171,8 @@ impl HandshakeData {
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
     ///
     /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
+    /// 
+    /// For termination proof in F*: (decreases (Seq.length self._0._0 - v start))
     #[hax_lib::requires(fstar!(r#"Seq.length self._0._0 >= v start"#))]
     pub(crate) fn find_handshake_message(
         &self,

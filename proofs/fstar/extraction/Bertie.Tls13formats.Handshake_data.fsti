@@ -71,7 +71,12 @@ val impl:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
 
 /// Returns the length, in bytes.
 val impl__HandshakeData__len (self: t_HandshakeData)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure usize
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:usize = result in
+          v result == Seq.length self._0._0)
 
 val get_hs_type (t: u8)
     : Prims.Pure (Core.Result.t_Result t_HandshakeType u8) Prims.l_True (fun _ -> Prims.l_True)

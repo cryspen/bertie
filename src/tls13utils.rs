@@ -679,6 +679,10 @@ pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is
 /// empty or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => bytes.len() >= 1 && bytes.len() - 1 >= l && l < 256,
+    _ => true
+})]
 pub(crate) fn length_u8_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.is_empty() {
         Err(parse_failed())
@@ -699,6 +703,10 @@ pub(crate) fn length_u8_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => bytes.len() >= 2 && bytes.len() - 2 >= l && l < 65536,
+    _ => true
+})]
 pub(crate) fn length_u16_encoded_slice(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.len() < 2 {
         Err(parse_failed())
@@ -721,6 +729,10 @@ pub(crate) fn length_u16_encoded_slice(bytes: &[U8]) -> Result<usize, TLSError> 
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => bytes.len() >= 2 && bytes.len() - 2 >= l && l < 65536,
+    _ => true
+})]
 pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     length_u16_encoded_slice(bytes)
 }
@@ -731,8 +743,9 @@ pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 3
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
+#[inline(always)]
 #[hax_lib::ensures(|result| match result {
-                                Result::Ok(l) => bytes.len() >= 3 && bytes.len() - 3 >= l,
+                                Result::Ok(l) => bytes.len() >= 3 && bytes.len() - 3 >= l && l < 16777216,
                                 _ => true
                             })]
 pub(crate) fn length_u24_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
