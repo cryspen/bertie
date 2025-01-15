@@ -349,10 +349,10 @@ pub(crate) fn rsa_public_key(
 }
 
 /// Debug print a slice.
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 #[allow(dead_code)]
 fn debug_print(tag: &str, bytes: &Bytes, offset: usize) {
-    eprintln!(
+    std::eprintln!(
         "{}: {}",
         tag,
         bytes.slice(offset, bytes.len() - offset).as_hex()
@@ -420,10 +420,12 @@ mod unit_test {
         match spki {
             Ok(spki) => {
                 let pk = cert_public_key(cert, &spki).expect("Error reading public key from cert");
-                println!("Got pk {:?}", pk);
+                #[cfg(feature = "std")]
+                std::println!("Got pk {:?}", pk);
             }
             Err(e) => {
-                println!("verif key extraction error {}", e);
+                #[cfg(feature = "std")]
+                std::println!("verif key extraction error {}", e);
                 panic!()
             }
         }
@@ -443,13 +445,14 @@ mod unit_test {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn read_cert() {
         let files = fs::read_dir("test_certs").expect("Error listing files.");
         for file in files {
             let file = file.expect("Error reading file ...").path();
             let mut f = fs::File::open(file.clone())
                 .unwrap_or_else(|_| panic!("Didn't find the file {}.", file.display()));
-            let mut bytes = Vec::new();
+            let mut bytes = std::vec::Vec::new();
             f.read_to_end(&mut bytes)
                 .unwrap_or_else(|_| panic!("Error reading file {}", file.display()));
             test(&bytes.into());

@@ -1,3 +1,4 @@
+use crate::std::vec::Vec;
 use rand::{CryptoRng, RngCore};
 
 pub struct TestRng {
