@@ -7,9 +7,11 @@ use libcrux::{
 use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use rand::{CryptoRng, RngCore};
 
-use crate::std::{format, vec::Vec};
-
-use crate::std::fmt::Display;
+use crate::std::{
+    fmt::Display,
+    format,
+    vec::Vec,
+};
 
 use crate::tls13utils::{
     check_mem, eq, length_u16_encoded, tlserr, Bytes, Error, TLSError, CRYPTO_ERROR,
@@ -770,7 +772,7 @@ impl TryFrom<&str> for Algorithms {
 }
 
 impl Display for Algorithms {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut crate::std::fmt::Formatter<'_>) -> crate::std::fmt::Result {
         write!(
             f,
             "TLS_{:?}_{:?} w/ {:?} | {:?}",
