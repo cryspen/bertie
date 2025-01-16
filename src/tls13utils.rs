@@ -314,6 +314,7 @@ impl core::ops::Index<usize> for Bytes {
     }
 }
 
+/// This is needed only for hax, so should likely be guarded by a feature flag.
 #[hax_lib::fstar::before(
     interface,
     "[@@ FStar.Tactics.Typeclasses.tcinstance]
