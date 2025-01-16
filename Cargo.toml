@@ -17,15 +17,16 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = {version = "0.0.2-alpha.1", features = ["pre-verification", "kyber"]}
-libcrux = { version = "0.0.2-alpha.1", features = [
+libcrux-kem = { git = "https://github.com/cryspen/libcrux", features = ["kyber"]}
+libcrux = { git = "https://github.com/cryspen/libcrux", features = [
     "rand",
 ]}
 hax-lib = { git = "https://github.com/hacspec/hax/", branch= "pq11-fstar-libs" }
 
 
 [features]
-default = ["api"]
+default = ["api", "std"]
+std = []
 test_utils = []
 secret_integers = []
 api = []                           # The streaming Rust API that everyone should use but is not hacspec.
@@ -64,9 +65,6 @@ default-members = [
     "bogo_shim",
     "integration_tests",
 ]
-
-[patch.crates-io]
-libcrux = { git = "https://github.com/cryspen/libcrux" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)'] }

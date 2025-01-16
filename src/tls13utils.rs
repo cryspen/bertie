@@ -1,5 +1,7 @@
 use core::ops::Range;
 
+use crate::std::{format, string::String, vec, vec::Vec};
+
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
 pub(crate) fn parse_failed() -> TLSError {
     // let bt = backtrace::Backtrace::new();
@@ -51,14 +53,8 @@ pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
 #[cfg(test)]
 pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     let bt = backtrace::Backtrace::new();
-    println!("{:?}", bt);
     Err(err)
 }
-/*
-pub(crate) fn check_eq_size(s1: TLSError, s2: usize) -> Result<()> {
-    if s1 == s2 {Ok(())}
-    else {Err(parse_failed())}
-}*/
 
 #[cfg(feature = "secret_integers")]
 #[derive(Clone, Copy, PartialEq, Debug)]

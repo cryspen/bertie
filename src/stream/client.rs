@@ -4,8 +4,13 @@
 
 use rand::{CryptoRng, RngCore};
 use std::{
+    eprintln,
     io::{Read, Write},
     net::TcpStream,
+    println,
+    string::ToString,
+    vec,
+    vec::Vec,
 };
 // use tracing::{event, Level};
 
@@ -235,6 +240,7 @@ mod tests {
     use crate::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
 
     use super::*;
+    use std::{format, string::String};
 
     #[test]
     fn client() {
