@@ -49,14 +49,12 @@ pub(crate) fn asn1_error<T>(err: Asn1Error) -> Result<T, Asn1Error> {
 fn long_length(b: &Bytes, offset: usize, len: usize) -> Result<usize, Asn1Error> {
     if len > 4 {
         asn1_error(ASN1_SEQUENCE_TOO_LONG)
+    } else if b.len() >= offset + len {
+        let mut u32word = [U8(0); 4];
+        u32word[0..len].copy_from_slice(&b[offset..offset + len]);
+        Ok(u32_from_be_bytes(u32word).declassify() as usize >> ((4 - len) * 8))
     } else {
-        if b.len() >= offset + len {
-            let mut u32word = [U8(0); 4];
-            u32word[0..len].copy_from_slice(&b[offset..offset + len]);
-            Ok(u32_from_be_bytes(u32word).declassify() as usize >> ((4 - len) * 8))
-        } else {
-            asn1_error(ASN1_ERROR)
-        }
+        asn1_error(ASN1_ERROR)
     }
 }
 
