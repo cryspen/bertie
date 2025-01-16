@@ -326,7 +326,7 @@ let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
 )]
 fn _update_at_usize_bytes_test(b: &mut Bytes) {
     if b.len() > 0 {
-        b[0] = 0
+        b[0] = U8(0)
     };
 }
 
