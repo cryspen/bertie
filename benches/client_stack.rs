@@ -108,10 +108,9 @@ fn protocol() {
                     "./tests/assets/p256_cert.der",
                     "./tests/assets/p256_key.der",
                 ),
-                SignatureScheme::RsaPssRsaSha256 => (
-                    "./tests/assets/rsa_cert.der",
-                    "./tests/assets/rsa_key.der",
-                ),
+                SignatureScheme::RsaPssRsaSha256 => {
+                    ("./tests/assets/rsa_cert.der", "./tests/assets/rsa_key.der")
+                }
                 _ => unreachable!("Unknown ciphersuite {:?}", ciphersuite),
             };
             let mut server =
