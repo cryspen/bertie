@@ -8,14 +8,15 @@ use crate::{
         zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
     tls13utils::{
-        bytes1, bytes2, bytes_concat, check, check_eq, check_eq1, check_eq_slice, check_eq_with_slice,
-        check_length_encoding_u16, check_length_encoding_u16_slice, check_length_encoding_u24,
-        check_length_encoding_u8, check_length_encoding_u8_slice, check_mem, encode_length_u16,
-        encode_length_u24, encode_length_u8, eq_slice, length_u16_encoded,
-        length_u16_encoded_slice, length_u24_encoded, length_u8_encoded, parse_failed, tlserr,
-        u32_as_be_bytes, Bytes, TLSError, APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR,
-        INVALID_COMPRESSION_LIST, INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT,
-        PSK_MODE_MISMATCH, U32, U8, UNSUPPORTED_ALGORITHM,
+        bytes1, bytes2, bytes_concat, check, check_eq, check_eq1, check_eq_slice,
+        check_eq_with_slice, check_length_encoding_u16, check_length_encoding_u16_slice,
+        check_length_encoding_u24, check_length_encoding_u8, check_length_encoding_u8_slice,
+        check_mem, encode_length_u16, encode_length_u24, encode_length_u8, eq_slice,
+        length_u16_encoded, length_u16_encoded_slice, length_u24_encoded, length_u8_encoded,
+        parse_failed, tlserr, u32_as_be_bytes, Bytes, TLSError,
+        APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
+        INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
+        UNSUPPORTED_ALGORITHM,
     },
 };
 
@@ -173,7 +174,7 @@ fn check_server_key_share(algs: &Algorithms, b: &[U8]) -> Result<Bytes, TLSError
         check_length_encoding_u16_slice(&b[2..b.len()])?;
         // XXX Performance: These conversions aren't necessary. A slice would suffice.
         Ok(Bytes::from(&b[4..b.len()]))
-    } else { 
+    } else {
         tlserr(parse_failed())
     }
 }

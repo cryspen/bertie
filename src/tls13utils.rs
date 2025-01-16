@@ -315,16 +315,20 @@ impl core::ops::Index<usize> for Bytes {
 }
 
 #[cfg(hax)]
-#[hax_lib::fstar::before(interface, "[@@ FStar.Tactics.Typeclasses.tcinstance]
+#[hax_lib::fstar::before(
+    interface,
+    "[@@ FStar.Tactics.Typeclasses.tcinstance]
 let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
    {
      super_index = impl_21;
      update_at = fun s (i:usize{v i < Seq.length s._0}) x -> Bytes (Seq.upd s._0 (v i) x)
-   }")]
-fn update_at_usize_bytes_test(b:&mut Bytes) {
-   if b.len() > 0 {b[0] = 0};
+   }"
+)]
+fn update_at_usize_bytes_test(b: &mut Bytes) {
+    if b.len() > 0 {
+        b[0] = 0
+    };
 }
-
 
 mod non_hax {
     use super::*;

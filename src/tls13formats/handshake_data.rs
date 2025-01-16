@@ -1,6 +1,6 @@
 use crate::tls13utils::{
-    check_eq1, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes,
-    TLSError, U8,
+    check_eq1, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes, TLSError,
+    U8,
 };
 
 /// ```TLS
@@ -171,7 +171,7 @@ impl HandshakeData {
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
     ///
     /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
-    /// 
+    ///
     /// For termination proof in F*: we need to hand-edit and add:
     /// (decreases (Seq.length self._0._0 - v start))
     /// https://github.com/cryspen/hax/issues/1233

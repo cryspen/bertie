@@ -54,8 +54,7 @@ fn long_length(b: &Bytes, offset: usize, len: usize) -> Result<usize, Asn1Error>
             let mut u32word = [U8(0); 4];
             u32word[0..len].copy_from_slice(&b[offset..offset + len]);
             Ok(u32_from_be_bytes(u32word).declassify() as usize >> ((4 - len) * 8))
-        }
-        else {
+        } else {
             asn1_error(ASN1_ERROR)
         }
     }
@@ -73,8 +72,7 @@ fn length_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
         } else {
             Ok(0)
         }
-    }
-    else {
+    } else {
         asn1_error(ASN1_ERROR)
     }
 }
@@ -92,8 +90,7 @@ fn short_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
         } else {
             asn1_error(ASN1_ERROR)
         }
-    }
-    else {
+    } else {
         asn1_error(ASN1_ERROR)
     }
 }
@@ -117,8 +114,7 @@ fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
             let end = long_length(b, offset, len)?;
             Ok((offset + len, end))
         }
-    }
-    else {
+    } else {
         asn1_error(ASN1_ERROR)
     }
 }
@@ -161,8 +157,9 @@ fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
             // eprintln!("Got tag {:x}, expected {:x}", b[offset].declassify(), value);
             asn1_error(ASN1_INVALID_TAG)
         }
+    } else {
+        asn1_error(ASN1_INVALID_TAG)
     }
-    else { asn1_error(ASN1_INVALID_TAG) }
 }
 
 /// Skip a sequence.
