@@ -104,7 +104,7 @@ impl HandshakeData {
             tlserr(parse_failed())
         } else {
             let HandshakeData(tagged_message_bytes) = message;
-            check_eq1(expected_type as u8, tagged_message_bytes[0])?;
+            check_eq1(U8(expected_type as u8), tagged_message_bytes[0])?;
             Ok(HandshakeData(
                 tagged_message_bytes.slice_range(4..tagged_message_bytes.len()),
             ))
