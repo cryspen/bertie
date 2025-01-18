@@ -70,6 +70,8 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 From KeyScheduleTheorem Require Import BasePackages.
 
 (* (** Extra imports *) *)
@@ -78,13 +80,16 @@ From KeyScheduleTheorem Require Import BasePackages.
 (*** XTR / XPD *)
 
 Section XTR_XPD.
+
+  Context {DepInstance : Dependencies}.
+  Existing Instance DepInstance.
   
-Context {PrntN: name -> code fset0 fset0 (chName × chName)}.
-Context {Labels : name -> bool -> code fset0 fset0 chLabel}.
+(* Context {PrntN: name -> code fset0 fset0 (chName × chName)}. *)
+(* Context {Labels : name -> bool -> code fset0 fset0 chLabel}. *)
 
 (* p. 5,6 *)
-Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}.
-Context {xtr : chKey -> chKey -> code fset0 fset0 chKey}.
+(* Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}. *)
+(* Context {xtr : chKey -> chKey -> code fset0 fset0 chKey}. *)
 
 (* Xtr *)
 
@@ -137,6 +142,8 @@ Definition Xtr
       }
     ].
   ssprove_valid ; ssprove_valid'_2.
+  Unshelve.
+  all: apply DepInstance.
 Defined.
 Fail Next Obligation.
 
@@ -265,8 +272,8 @@ Defined.
 
 (* Xpd *)
 
-Context {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey}.
-Context {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}.
+(* Context {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey}. *)
+(* Context {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}. *)
 
 Notation " 'chXPDinp' " :=
   (chHandle × 'bool × bitvec)
@@ -316,6 +323,8 @@ Definition Xpd
       }
     ].
   ssprove_valid ; ssprove_valid'_2.
+  Unshelve.
+  all: apply DepInstance.
 Defined.
 Fail Next Obligation.
 
@@ -536,8 +545,6 @@ Defined.
 
 (** ****************** *)
 
-Axiom chGroup : choice_type.
-Axiom chGroup_is_finGroup : FinGroup chGroup.
 Definition chFinGroup : finGroupType :=
   {| FinGroup.sort := chGroup; FinGroup.class := chGroup_is_finGroup |}.
 
@@ -557,19 +564,16 @@ Notation " 'chDHEXPout' " :=
     (in custom pack_type at level 2).
 Definition DHEXP : nat := 12.
 
-Axiom gen : chGroup -> code fset0 fset0 chGroup.
 Definition SET_DH : nat := 13.
-
-Axiom DHGEN_function : forall (ord : chGroup → nat) (E : nat -> nat), chGroup -> code fset0 fset0 chGroup.
-Axiom DHEXP_function : forall (ord : chGroup → nat) (E : nat -> nat), chGroup -> chGroup -> code fset0 fset0 chHandle.
 
 Definition DH_interface := [interface #val #[DHGEN] : chDHGENout → chDHGENout ; #val #[DHEXP] : chDHEXPinp → chXPDout ].
 Definition DH_Set_interface := [interface #val #[ SET_DH ] : chSETinp → chSETout].
 
+Axiom DHGEN_function : chGroup -> code fset0 fset0 chGroup.
+Axiom DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle.
+
 Definition DH_package :
   (* (G : {fset finGroupType}) *)
-  forall (ord : chGroup → nat)
-  (E : nat -> nat),
   package
     fset0
     DH_Set_interface
@@ -577,13 +581,15 @@ Definition DH_package :
   intros.
   refine [package
       #def #[ DHGEN ] (grp : chDHGENinp) : chDHGENout {
-        DHGEN_function ord E grp
+        DHGEN_function grp
       } ;
       #def #[ DHEXP ] ('(X,Y) : chDHEXPinp) : chDHEXPout {
-        DHEXP_function ord E X Y
+        DHEXP_function X Y
       }
     ].
   ssprove_valid ; ssprove_valid'_2.
+  Unshelve.
+  all: apply DepInstance.
 Defined.
 Admit Obligations.
 Fail Next Obligation.
@@ -607,8 +613,7 @@ Fail Next Obligation.
 (* Admit Obligations. *)
 (* Fail Next Obligation. *)
 
-Lemma trimmed_dh :
-  forall {ord E}, trimmed DH_interface (pack (DH_package ord E)).
+Lemma trimmed_dh : trimmed DH_interface (pack (DH_package)).
 Proof.
   intros.
   unfold DH_package.

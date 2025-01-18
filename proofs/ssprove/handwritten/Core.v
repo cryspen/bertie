@@ -70,6 +70,8 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 From KeyScheduleTheorem Require Import BasePackages.
 From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
@@ -77,6 +79,11 @@ From KeyScheduleTheorem Require Import XTR_XPD.
 (*** Core *)
 
 Section Core.
+
+  Context {DepInstance : Dependencies}.
+  Existing Instance DepInstance.
+
+
   Definition Simulator d :=
   (package
     fset0
@@ -109,28 +116,28 @@ Proof.
       apply H.
 Qed.
 
-Context {O_star : list name}.
+(* Context {O_star : list name}. *)
 
 Axiom Gcore_ki : package fset0 [interface] [interface].
 Axiom Gcore_hyb : forall (d : nat), package f_parameter_cursor_loc
     ((GET_XPD d.+1 :|: SET_XPD d.+1 :|: DH_Set_interface :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-    (SET_O_star_ℓ (O_star := O_star) d :|: GET_O_star_ℓ (O_star := O_star) d).
+    (SET_O_star_ℓ d :|: GET_O_star_ℓ d).
 
-Context
-  {PrntN: name -> code fset0 fset0 (chName × chName)}
-    {Labels : name -> bool -> code fset0 fset0 chLabel}
-    {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey}
-    {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}.
+(* Context *)
+(*   {PrntN: name -> code fset0 fset0 (chName × chName)} *)
+(*     {Labels : name -> bool -> code fset0 fset0 chLabel} *)
+(*     {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey} *)
+(*     {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}. *)
 
-Context
-  {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}
-  {xtr : chKey -> chKey -> code fset0 fset0 chKey}.
+(* Context *)
+(*   {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle} *)
+(*   {xtr : chKey -> chKey -> code fset0 fset0 chKey}. *)
 
-Check XTR_packages.
-Notation XTR_packages := (XTR_packages (PrntN := PrntN) (Labels := Labels) (xtr := xtr) (xtr_angle := xtr_angle)).
+(* Check XTR_packages. *)
+(* Notation XTR_packages := (XTR_packages (PrntN := PrntN) (Labels := Labels) (xtr := xtr) (xtr_angle := xtr_angle)). *)
 
-Lemma xtr_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
-    domm (pack (XTR_packages d)) :#: domm (pack (DH_package ord E)) = true.
+Lemma xtr_dh : forall (d : nat),
+    domm (pack (XTR_packages d)) :#: domm (pack (DH_package)) = true.
 Proof.
   intros.
   unfold pack.
@@ -149,10 +156,10 @@ Proof.
   solve_imfset_disjoint.
 Qed.
 
-Notation XPD_packages := (XPD_packages (PrntN := PrntN) (Labels := Labels) (xtr := xtr) (xtr_angle := xtr_angle) (xpd := xpd) (xpd_angle := xpd_angle)).
+(* Notation XPD_packages := (XPD_packages (PrntN := PrntN) (Labels := Labels) (xtr := xtr) (xtr_angle := xtr_angle) (xpd := xpd) (xpd_angle := xpd_angle)). *)
 
-Lemma xpd_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
-    domm (pack (XPD_packages d)) :#: domm (pack (DH_package ord E)) = true.
+Lemma xpd_dh : forall (d : nat),
+    domm (pack (XPD_packages d)) :#: domm (pack (DH_package)) = true.
 Proof.
   intros.
   unfold pack.
@@ -173,17 +180,16 @@ Proof.
 Qed.
 
 Obligation Tactic := (* try timeout 8 *) idtac.
-Program Definition Gcore_real {ord : chGroup → nat}
-  {E : nat -> nat} (d : nat) (K_table : chHandle -> nat) :
+Program Definition Gcore_real (d : nat) :
     package fset0
       ((GET_XPD d.+1 :|: SET_XPD d.+1 :|: DH_Set_interface :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-      (SET_O_star_ℓ (O_star := O_star) d :|: GET_O_star_ℓ (O_star := O_star) d)
+      (SET_O_star_ℓ d :|: GET_O_star_ℓ d)
       (* ([interface #val #[SET_psk 0] : chSETinp → chSETout ; *)
       (*   #val #[DHGEN] : 'unit → 'unit ; *)
       (*   #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|: XPD_n_ℓ d :|:  *)
       (*    GET_o_star_ℓ d) *)
   :=
-  {package ((par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ Gcore_hyb d) ∘ (K_O_star (O_star := O_star) d false K_table)}.
+  {package ((par (par (XPD_packages d) (XTR_packages d)) (DH_package)) ∘ Gcore_hyb d) ∘ (K_O_star d false)}.
 Next Obligation.
   intros.
   (* ssprove_valid. *)
@@ -235,7 +241,7 @@ Admitted.
 (* Admitted. *)
 Fail Next Obligation.
 
-Program Definition Gcore_ideal (d : nat) (Score : Simulator d) (K_table : chHandle -> nat) :
+Program Definition Gcore_ideal (d : nat) (Score : Simulator d) :
   package
     fset0
     ([interface
@@ -243,9 +249,9 @@ Program Definition Gcore_ideal (d : nat) (Score : Simulator d) (K_table : chHand
     ] :|: DH_interface :|:
     XTR_n_ℓ d :|:
     XPD_n_ℓ d :|:
-    GET_O_star_ℓ (O_star := O_star) d)
-    (GET_O_star_ℓ (O_star := O_star) d) :=
-  {package (K_O_star (O_star := O_star) d true K_table  ∘ Score) }.
+    GET_O_star_ℓ d)
+    (GET_O_star_ℓ d) :=
+  {package (K_O_star d true  ∘ Score) }.
 Final Obligation.
 intros.
 ssprove_valid.

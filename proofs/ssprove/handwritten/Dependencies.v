@@ -70,73 +70,39 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
-From KeyScheduleTheorem Require Import Dependencies.
+(* From KeyScheduleTheorem Require Import ssp_helper. *)
 
-From KeyScheduleTheorem Require Import BasePackages.
-From KeyScheduleTheorem Require Import KeyPackages.
-From KeyScheduleTheorem Require Import XTR_XPD.
+(* From KeyScheduleTheorem Require Import BasePackages. *)
+(* From KeyScheduleTheorem Require Import KeyPackages. *)
+(* From KeyScheduleTheorem Require Import XTR_XPD. *)
 
-From KeyScheduleTheorem Require Import Core.
+(* From KeyScheduleTheorem Require Import Core. *)
+(* From KeyScheduleTheorem Require Import MapPackage. *)
 
-(*** Key schedule packages *)
+Axiom chGroup : choice_type.
+Axiom chGroup_is_finGroup : FinGroup chGroup.
+Axiom gen : chGroup -> code fset0 fset0 chGroup.
 
-Section KeySchedulePackages.
+Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool.
+Definition chK_table := 'fin #|fin_K_table|.
 
-  Context {Dependencies : Dependencies}.
-  Existing Instance Dependencies.
+Class Dependencies := {
+    PrntN: name -> code fset0 fset0 (chName × chName) ;
+    Labels : name -> bool -> code fset0 fset0 chLabel ;
+    O_star : list name ;
+    xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey ;
+    xtr : chKey -> chKey -> code fset0 fset0 chKey ;
+    xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle ;
+    xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle ;
+    PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName) ;
+    ord : chGroup → nat ;
+    E : nat -> nat ;
 
-Definition key_schedule_interface d :=
-  ([interface
-      #val #[ SET PSK 0 d ] : chSETinp → chSETout
-    ]
-     :|: DH_interface (* DHEXP, DHGEN *)
-     :|: XTR_n_ℓ d (* {ES,HS,AS},  0..d *)
-     :|: XPD_n_ℓ d (* XPN,         0..d *)
-     :|: GET_O_star_ℓ d).
+    L_K : {fset Location} ;
+    K_table : chHandle -> nat ;
+    in_K_table : forall x, ('option chK_table; K_table x) \in L_K ;
 
-Definition key_schedule_export d :=
-  GET_O_star_ℓ d :|: SET_O_star_ℓ d.
-
-(* Context {ord : chGroup → nat} {E : nat -> nat}. *)
-
-(* Fig.11, p.17 *)
-Obligation Tactic := (* try timeout 8 *) idtac.
-Program Definition Gks_real (d : nat) :
-  package
-    fset0
-    (GET_XPD d.+1 :|: SET_XPD d.+1 :|: DH_Set_interface :|: [interface #val #[HASH] : chHASHout → chHASHout ] :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-    (SET_O_star_ℓ d :|: GET_O_star_ℓ d)
-    (* ] *) :=
-  {package
-     (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-     Gcore_real d
-     #with
-    _
+    L_M : {fset Location} ;
+    M : chHandle -> nat ;
+    H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M
   }.
-Fail Next Obligation.
-
-(* Look into the use nominal sets (PR - Markus?)! *)
-
-Program Definition Gks_ideal d (S : Simulator d) :
-  package
-    fset0
-    (key_schedule_interface d)
-    [interface
-    ]
-  :=
-  {package
-     (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-     K_O_star d true ∘ S
-  }.
-Final Obligation.
-intros.
-ssprove_valid.
-1:{
-  eapply valid_package_inject_import.
-  2:{
-    epose (K_O_star d true).
-    admit.
-  }
-Admitted.
-
-End KeySchedulePackages.

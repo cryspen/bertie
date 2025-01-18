@@ -70,6 +70,8 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 From KeyScheduleTheorem Require Import ssp_helper.
 
 From KeyScheduleTheorem Require Import BasePackages.
@@ -80,6 +82,11 @@ From KeyScheduleTheorem Require Import Core.
 From KeyScheduleTheorem Require Import MapPackage.
 
 (*** Core theorem *)
+
+Section CoreTheorem.
+
+  Context {DepInstance : Dependencies}.
+  Existing Instance DepInstance.
 
 Axiom R_cr : package fset0 [interface] [interface].
 Axiom R_Z : package fset0 [interface] [interface].
@@ -102,27 +109,16 @@ Axiom R_sodh : package fset0 [interface] [interface].
 
 Axiom Gcore_sodh : package fset0 [interface] [interface].
 
-Context {PrntN: name -> code fset0 fset0 (chName × chName)}
-  {Labels : name -> bool -> code fset0 fset0 chLabel}.
-Context (L_M : {fset Location} ).
-
-Context {O_star : list name}.
-Context {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey}.
-Context {xtr : chKey -> chKey -> code fset0 fset0 chKey}.
-Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}.
-Context {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}.
-Context {PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName)}.
-
 Lemma core_theorem :
-  forall (d : nat) (M : chHandle -> nat) (K_table : chHandle -> nat)  (H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) {ord : chGroup → nat} {E : nat -> nat},
+  forall (d : nat),
   forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
-       (Gcore_real (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) (ord := ord) (E := E) d K_table)
-       (Gcore_ideal (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) d Score K_table) (A (* ∘ R d M H *))
+       (Gcore_real d)
+       (Gcore_ideal d Score) (A (* ∘ R d M H *))
      <= sumR_l [R_cr; R_Z; R_D] (fun R => Advantage Gacr (A ∘ R))
-     +maxR (fun i => Advantage Gsodh (Ai A i ∘ R_sodh) + AdvantageE Gcore_sodh (Gcore_ideal  (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) d Score K_table) (Ai A i))
+     +maxR (fun i => Advantage Gsodh (Ai A i ∘ R_sodh) + AdvantageE Gcore_sodh (Gcore_ideal d Score) (Ai A i))
     )%R.
 Proof. Admitted.
 
@@ -132,7 +128,7 @@ Lemma equation20_lhs :
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
-    (AdvantageE Gcore_sodh (Gcore_hyb (O_star := O_star) 0) (Ai A i) = 0)%R.
+    (AdvantageE Gcore_sodh (Gcore_hyb 0) (Ai A i) = 0)%R.
 Proof. Admitted.
 
 Lemma equation20_rhs :
@@ -141,7 +137,7 @@ Lemma equation20_rhs :
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
-    (AdvantageE Gcore_ki (Gcore_hyb (O_star := O_star) d) (Ai A i) = 0)%R.
+    (AdvantageE Gcore_ki (Gcore_hyb d) (Ai A i) = 0)%R.
 Proof. Admitted.
 
 Lemma hyb_telescope :
@@ -151,8 +147,8 @@ Lemma hyb_telescope :
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
-      (AdvantageE (Gcore_hyb (O_star := O_star) 0) (Gcore_hyb (O_star := O_star) d) (Ai A i)
-       = sumR 0 (d-1) (fun ℓ => AdvantageE (Gcore_hyb (O_star := O_star) ℓ) (Gcore_hyb (O_star := O_star) (ℓ+1)) (Ai A i))
+      (AdvantageE (Gcore_hyb 0) (Gcore_hyb d) (Ai A i)
+       = sumR 0 (d-1) (fun ℓ => AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ+1)) (Ai A i))
       )%R.
 Proof. Admitted.
 
@@ -163,15 +159,15 @@ Lemma equation20_eq :
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
-    (AdvantageE Gcore_sodh (Gcore_ideal  (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) d Score K_table) (Ai A i)
-     <= AdvantageE Gcore_ki (Gcore_ideal  (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) d Score K_table) (Ai A i)
-     +sumR 0 (d-1) (fun ℓ => AdvantageE (Gcore_hyb (O_star := O_star) ℓ) (Gcore_hyb (O_star := O_star) (ℓ + 1)) (Ai A i))
+    (AdvantageE Gcore_sodh (Gcore_ideal d Score) (Ai A i)
+     <= AdvantageE Gcore_ki (Gcore_ideal d Score) (Ai A i)
+     +sumR 0 (d-1) (fun ℓ => AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ + 1)) (Ai A i))
     )%R.
 Proof.
   intros.
 
   eapply Order.le_trans ; [ apply Advantage_triangle | ].
-  instantiate (1 := (Gcore_hyb (O_star := O_star) 0)).
+  instantiate (1 := (Gcore_hyb 0)).
   rewrite (equation20_lhs d Score).
   rewrite add0r.
 
@@ -181,7 +177,7 @@ Proof.
   apply Num.Theory.lerD ; [ easy | ].
 
   eapply Order.le_trans ; [ apply Advantage_triangle | ].
-  instantiate (1 := (Gcore_hyb (O_star := O_star) d)).
+  instantiate (1 := (Gcore_hyb d)).
 
   epose (e := equation20_rhs d Score).
   setoid_rewrite (Advantage_sym _ _) in e.
@@ -190,3 +186,5 @@ Proof.
 
   setoid_rewrite <- hyb_telescope ; easy.
 Qed.
+
+End CoreTheorem.

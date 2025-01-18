@@ -6,6 +6,8 @@ Utility.v
 
 ssp_helper.v
 
+Dependencies.v
+
 BasePackages.v
 KeyPackages.v
 XTR_XPD.v

@@ -70,13 +70,16 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 From KeyScheduleTheorem Require Import BasePackages.
 
 (*** Key packages *)
 
 Section KeyPackages.
 
-Context {O_star : list name}.
+  Context {DepInstance : Dependencies}.
+  Existing Instance DepInstance.
 
 Notation " 'chUNQinp' " :=
   (chHandle × 'bool × chKey)
@@ -144,16 +147,16 @@ Fail Next Obligation.
 
 (* Fig 14 *)
 
-Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool.
-Definition chK_table := chFin (mkpos #|fin_K_table|).
+(* Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool. *)
+(* Definition chK_table := chFin (mkpos #|fin_K_table|). *)
 
-Definition fset_K_table (K_table : chHandle -> nat) : {fset Location}. Admitted.
-Lemma in_K_table : forall K_table x, ('option chK_table; K_table x) \in fset_K_table K_table.
-Proof. Admitted.
+(* Definition fset_K_table : {fset Location}. Admitted. *)
+(* Lemma in_K_table : forall x, ('option chK_table; K_table x) \in fset_K_table. *)
+(* Proof. Admitted. *)
 
-Definition K_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) (b : bool) (K_table : chHandle -> nat) :
+Definition K_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) (b : bool) :
   package
-    (fset_K_table K_table)
+    L_K
     [interface
        #val #[ UNQ n ] : chUNQinp → chUNQout
     ]
@@ -194,7 +197,7 @@ Definition K_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) (b : 
   unfold get_or_case_fn.
   unfold set_at.
 
-  ssprove_valid ; try apply (in_K_table K_table _).
+  ssprove_valid ; try apply (in_K_table _).
   simpl.
   unfold SET.
   unfold GET.
@@ -208,12 +211,12 @@ Defined.
 Fail Next Obligation.
 
 Obligation Tactic := (* try timeout 8 *) idtac.
-Program Definition K_O_star (d : nat) (b : bool) (K_table : chHandle -> nat) :
+Program Definition K_O_star (d : nat) (b : bool) :
   package
-  (fset_K_table K_table)
+  (L_K)
   (UNQ_O_star)
   (SET_O_star_ℓ d :|: GET_O_star_ℓ d) :=
-  eq_rect_r [eta package (fset_K_table K_table) UNQ_O_star] (ℓ_packages d (fun n H => {package parallel_raw (List.map (fun y => pack (K_package y n d H b K_table)) O_star) #with valid_parable _ _ _ _ _ _ _ _ _}) _ _ _)
+  eq_rect_r [eta package L_K UNQ_O_star] (ℓ_packages d (fun n H => {package parallel_raw (List.map (fun y => pack (K_package y n d H b)) O_star) #with valid_parable _ _ _ _ _ _ _ _ _}) _ _ _)
         (interface_hierarchy_foreachU
            (λ (n : name) (ℓ : nat), [interface #val #[SET n ℓ d] : chUNQinp → chUNQout ])
            (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ d] : chUNQout → chGETout ]) O_star d).
@@ -243,9 +246,9 @@ Fail Next Obligation.
 
 (* Fig 15 *)
 
-Definition Nk_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) (K_table : chHandle -> nat) :
+Definition Nk_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) :
   package
-    (fset_K_table K_table)
+    L_K
     [interface
        #val #[ UNQ n ] : chUNQinp → chUNQout
     ]
@@ -277,7 +280,7 @@ Definition Nk_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) (K_t
   unfold get_or_fail.
   unfold set_at.
 
-  ssprove_valid ; try apply (in_K_table K_table _).
+  ssprove_valid ; try apply (in_K_table _).
   apply serialize_name_notin_different_index.
   all: easy.
 Defined.
@@ -295,15 +298,15 @@ Definition K (n : chName) (ℓ : nat) := 10%nat.
 
 (**** *)
 
-Definition K_psk_1_0 K_table := K_package PSK 0 true K_table.
+Definition K_psk_1_0 := K_package PSK 0 true.
 Obligation Tactic := (* try timeout 8 *) idtac.
-Program Definition K_psk_0_d (K_table : chHandle -> nat) (Sd : nat) :
-  package (fset_K_table K_table) [interface #val #[UNQ PSK] : chKinp → chKout ]
+Program Definition K_psk_0_d (Sd : nat) :
+  package (L_K) [interface #val #[UNQ PSK] : chKinp → chKout ]
        (interface_hierarchy
           (λ n : nat,
              [interface #val #[SET PSK n Sd] : chKinp → chKout ; #val #[GET PSK n Sd] : chKout → chGETout ])
           Sd) :=
-  (ℓ_packages Sd (fun n H => K_package PSK n Sd H false K_table) _ _ _).
+  (ℓ_packages Sd (fun n H => K_package PSK n Sd H false) _ _ _).
 Next Obligation.
   intros.
   admit.

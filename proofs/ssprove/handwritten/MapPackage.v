@@ -70,6 +70,8 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 From KeyScheduleTheorem Require Import BasePackages.
 From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
@@ -83,10 +85,13 @@ From KeyScheduleTheorem Require Import KeySchedulePackages.
 
 Section MapPackages.
 
-Context {L_M : {fset Location} }.
-Context {PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName)}.
-Context {PrntN: name -> code fset0 fset0 (chName × chName)}.
-Context {Labels : name -> bool -> code fset0 fset0 chLabel}.
+  Context {DepInstance : Dependencies}.
+  Existing Instance DepInstance.
+
+(* Context {L_M : {fset Location} }. *)
+(* Context {PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName)}. *)
+(* Context {PrntN: name -> code fset0 fset0 (chName × chName)}. *)
+(* Context {Labels : name -> bool -> code fset0 fset0 chLabel}. *)
 
 Axiom XTR_LABAL_from_index : nat -> name.
 Axiom XPN_LABAL_from_index : nat -> name.
@@ -98,7 +103,7 @@ Notation " 'chXTRinp' " :=
 Notation " 'chXTRout' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}.
+(* Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}. *)
 
 (* fig. 29 *)
 Definition R_ch_map_XTR_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
@@ -224,7 +229,7 @@ Notation " 'chXPDinp' " :=
 Notation " 'chXPDout' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Context {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}.
+(* Context {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}. *)
 
 Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) (M_ℓ : name -> nat -> chHandle -> nat) :
   (List.In n XPR) ->
@@ -355,7 +360,7 @@ Admitted.
 
 (* R_ch_map, fig.25, Fig. 27, Fig. 29 *)
 (* GET_o_star_ℓ d *)
-Definition R_ch_map (d : nat) (M : chHandle -> nat) (H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) :
+Definition R_ch_map (d : nat) :
   package L_M
     ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout ;
@@ -420,30 +425,23 @@ Definition R_ch_map (d : nat) (M : chHandle -> nat) (H : name → ∀ s : chHand
   {
     solve_in_fset.
   }
-  
-  
-  Unshelve.
-  admit.
+
 Admitted.
 Admit Obligations.
 Fail Next Obligation.
 
-Context {O_star : list name}.
-Context {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey}.
-Context {xtr : chKey -> chKey -> code fset0 fset0 chKey}.
-
-Program Definition Gks_real_map (d : nat) (M : chHandle -> nat)(H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) (ord : chGroup → nat) (E : nat -> nat)(K_table : chHandle -> nat) :
+Program Definition Gks_real_map (d : nat) :
   package
     fset0
     ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout
     ] :|:
-    GET_O_star_ℓ (O_star := O_star) d)
+    GET_O_star_ℓ d)
     [interface] :=
-  {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) R_ch_map d M H ∘ Gcore_real (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (ord := ord) (E := E) (O_star := O_star) d K_table) }.
+  {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) R_ch_map d ∘ Gcore_real d) }.
 Fail Next Obligation.
 
-Program Definition Gks_ideal_map (d : nat) (M : chHandle -> nat) (H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) (Score : Simulator d) (* (ord : chGroup → nat) (E : nat -> nat) *) (K_table : chHandle -> nat) :
+Program Definition Gks_ideal_map (d : nat) (Score : Simulator d) :
   package
     fset0
     ([interface
@@ -453,24 +451,19 @@ Program Definition Gks_ideal_map (d : nat) (M : chHandle -> nat) (H : name → �
     ] :|:
     XTR_n_ℓ d :|:
     XPD_n_ℓ d :|:
-    GET_O_star_ℓ (O_star := O_star) d)
+    GET_O_star_ℓ d)
     [interface
-    ] := {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) d Score K_table ∘ R_ch_map d M H) }.
+    ] := {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal d Score ∘ R_ch_map d) }.
 Fail Next Obligation.
 
-Check Gks_real.
-
 Lemma map_intro_c2 :
-  forall (d : nat) (M : chHandle -> nat),
-  forall (H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M),
-  forall (K_table :  chHandle -> nat),
-  forall (ord : chGroup → nat) (E : nat -> nat),
+  forall (d : nat),
   forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
-       (Gks_real (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) (ord := ord) (E := E) d K_table)
-       (Gks_real_map d M H ord E K_table) A = 0
+       (Gks_real d)
+       (Gks_real_map d) A = 0
     )%R.
 Proof.
   intros.
@@ -587,19 +580,16 @@ Axiom AdvantageFrame : forall G0 G1 G2 G3 A,
     AdvantageE G0 G2 A = AdvantageE G1 G3 A.
 
 Lemma map_outro_c5 :
-  forall (d : nat) (M : chHandle -> nat),
-  forall (ord : chGroup → nat) (E : nat -> nat),
-  forall (K_table : _),
-  forall (H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M),
+  forall (d : nat),
   forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
-       (Gks_real (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) (ord := ord) (E := E) d K_table)
-       (Gks_ideal  (PrntN := PrntN) (Labels := Labels) (xpd := xpd) (xpd_angle := xpd_angle) (xtr := xtr) (xtr_angle := xtr_angle) (O_star := O_star) (ord := ord) (E := E) d Score K_table) (A) =
+       (Gks_real d)
+       (Gks_ideal d Score) (A) =
      AdvantageE
-       (Gks_real_map d M H ord E K_table)
-       (Gks_ideal_map d M H Score K_table) A
+       (Gks_real_map d)
+       (Gks_ideal_map d Score) A
     )%R.
 Proof.
   intros.
