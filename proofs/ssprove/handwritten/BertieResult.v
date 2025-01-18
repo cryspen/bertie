@@ -160,32 +160,6 @@ Definition t_TLSname_option_pair_to_name
     end
   end.
 
-Definition name_to_chName (n : name) : chName := fto (inord (
-  match n with
-  | BOT => 0
-
-  | ES => 1
-  | EEM => 2
-  | CET => 3
-  | BIND => 4
-  | BINDER => 5
-  | HS => 6
-  | SHT => 7
-  | CHT => 8
-  | HSALT => 9
-  | AS => 10
-  | RM => 11
-  | CAT => 12
-  | SAT => 13
-  | EAM => 14
-  | PSK => 15
-
-  | ZERO_SALT => 16
-  | ESALT => 17
-  | DH => 18
-  | ZERO_IKM => 19
-  end)).
-
 Section BertieKeySchedule.
   Definition Bertie_PrntN : name -> code fset0 fset0 (chName × chName) :=
     (fun n =>
@@ -225,7 +199,7 @@ Section BertieKeySchedule.
 
 End BertieKeySchedule.
 
-Instance BertieKeySchedule : Dependencies :=
+Instance BertieKeySchedule (d : nat) : Dependencies :=
   {
     PrntN := Bertie_PrntN;
     Labels := Bertie_Labels ;
@@ -245,8 +219,10 @@ Instance BertieKeySchedule : Dependencies :=
     L_M := Bertie_L_M ;
     M := Bertie_M ;
     H := Bertie_H ;
+
+    d := d ;
   }.
 
-Definition BertieKeyScheduleCoreSimulator (d : nat) : Simulator d. Admitted.
+Definition BertieKeyScheduleCoreSimulator (d : nat) : Simulator (DepInstance := BertieKeySchedule d) d. Admitted.
 Definition BertieKeyScheduleCoreTheorem (d : nat) :=
-  core_theorem d (BertieKeyScheduleCoreSimulator d).
+  core_theorem (DepInstance := BertieKeySchedule d) (BertieKeyScheduleCoreSimulator d).

@@ -126,7 +126,83 @@ Definition untag : chKey -> chKey := id.
 
 Axiom xpn_eq : name -> name -> bool.
 
-Axiom nfto : chName -> name.
+Definition nfto (x : chName) : name :=
+  match (nat_of_ord (otf x)) as k return (k < 20)%nat -> _ with
+  | 0 => fun _ => BOT
+  | 1 => fun _ => ES
+  | 2 => fun _ => EEM
+  | 3 => fun _ => CET
+  | 4 => fun _ => BIND
+  | 5 => fun _ => BINDER
+  | 6 => fun _ => HS
+  | 7 => fun _ => SHT
+  | 8 => fun _ => CHT
+  | 9 => fun _ => HSALT
+  | 10 => fun _ => AS
+  | 11 => fun _ => RM
+  | 12 => fun _ => CAT
+  | 13 => fun _ => SAT
+  | 14 => fun _ => EAM
+  | 15 => fun _ => PSK
+
+  | 16 => fun _ => ZERO_SALT
+  | 17 => fun _ => ESALT
+  | 18 => fun _ => DH
+  | 19 => fun _ => ZERO_IKM
+  | n => fun H => False_rect _ (ltac:(easy))
+  end%nat (ltn_ord (otf x)).
+
+Definition chName_to_name (n : name) : chName := fto (inord (
+  match n with
+  | BOT => 0
+
+  | ES => 1
+  | EEM => 2
+  | CET => 3
+  | BIND => 4
+  | BINDER => 5
+  | HS => 6
+  | SHT => 7
+  | CHT => 8
+  | HSALT => 9
+  | AS => 10
+  | RM => 11
+  | CAT => 12
+  | SAT => 13
+  | EAM => 14
+  | PSK => 15
+
+  | ZERO_SALT => 16
+  | ESALT => 17
+  | DH => 18
+  | ZERO_IKM => 19
+  end)).
+
+Definition name_to_chName (n : name) : chName := fto (inord (
+  match n with
+  | BOT => 0
+
+  | ES => 1
+  | EEM => 2
+  | CET => 3
+  | BIND => 4
+  | BINDER => 5
+  | HS => 6
+  | SHT => 7
+  | CHT => 8
+  | HSALT => 9
+  | AS => 10
+  | RM => 11
+  | CAT => 12
+  | SAT => 13
+  | EAM => 14
+  | PSK => 15
+
+  | ZERO_SALT => 16
+  | ESALT => 17
+  | DH => 18
+  | ZERO_IKM => 19
+  end)).
 
 Axiom len : chKey -> chNat (* TODO: should be key *).
 Definition alg : chKey -> chHash := (fun x => fto (fst (otf x))). (* TODO: should be key *)

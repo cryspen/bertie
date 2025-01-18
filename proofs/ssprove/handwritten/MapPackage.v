@@ -109,14 +109,14 @@ Notation " 'chXTRout' " :=
 Definition R_ch_map_XTR_package (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
   (List.In n XTR_names) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
-  package L_M (XTR_n_ℓ ℓ.+1)
+  package L_M (XTR_n_ℓ (* ℓ.+1 *))
     [interface
-       #val #[ XTR n ℓ ℓ.+1] : chXTRinp → chXTRout
+       #val #[ XTR n ℓ (* ℓ.+1 *)] : chXTRinp → chXTRout
     ].
 Proof.
   intros.
   refine [package
-     #def #[ XTR n ℓ ℓ.+1 ] ('(h1,h2) : chXTRinp) : chXTRout {
+     #def #[ XTR n ℓ (* ℓ.+1 *) ] ('(h1,h2) : chXTRinp) : chXTRout {
         '(i1,i2) ← PrntIdx n ℓ ;;
         temp1 ← get_or_fn (M (nfto i1) h1) fin_handle (@fail chHandle ;; ret (chCanonical _)) ;;
         temp2 ← get_or_fn (M (nfto i2) h2) fin_handle (@fail chHandle ;; ret (chCanonical _)) ;;
@@ -134,8 +134,8 @@ Proof.
           end ;;
         (* *)
 
-        assertD (ℓ' <? ℓ)%nat (fun H =>
-        #import {sig #[ XTR n ℓ' ℓ.+1 ] : chXTRinp → chXTRout }
+        assertD (ℓ' < d)%nat (fun H =>
+        #import {sig #[ XTR n ℓ' (* ℓ.+1 *) ] : chXTRinp → chXTRout }
         as XTR_fn ;;
         h ← xtr_angle n h1 h2 ;;
         h' ← XTR_fn (temp1, temp2) ;;
@@ -174,17 +174,16 @@ Proof.
     unfold XTR_n_ℓ.
     set (o := mkopsig _ _ _) ; pattern x2 in o ; subst o.
     apply lower_level_in_interface.
-    2: Lia.lia.
+    2: apply x3.
 
-    simpl.
-    unfold XTR, serialize_name.
+    epose serialize_name_notin.
+    unfold XTR_names, interface_foreach, List.fold_left.
     unfold mkopsig.
-    destruct n.
-    all: try (unfold XTR_names in H ; repeat (destruct H ; [ discriminate | ] || contradiction)).
-    all : rewrite <- !fset_cat ; simpl ; rewrite !in_fset ; unfold "\in" ; simpl ; try rewrite eqxx.
-    all: simpl.
-    all: try reflexivity.
-    all: now rewrite !Bool.orb_true_r.
+    rewrite <- !fset1E.
+    rewrite !in_fsetU.
+    rewrite !in_fset1.
+    unfold XTR_names in H.
+    repeat (destruct H as [ | H ]) ; subst ; repeat (apply /orP ; ((right ; apply eqxx) || left)) ; try apply eqxx ; contradiction.
   }
   {
     unfold set_at.
@@ -193,9 +192,9 @@ Proof.
 Defined.
 Fail Next Obligation.
 
-Definition R_ch_map_XTR_packages (d : nat) (M : chHandle -> nat)
+Definition R_ch_map_XTR_packages (* (d : nat) *) (M : chHandle -> nat)
   (H_inLM : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) :
-  package L_M (XTR_n_ℓ d) (XTR_n_ℓ d).
+  package L_M (XTR_n_ℓ (* d *)) (XTR_n_ℓ (* d *)).
   refine (ℓ_packages
             d
     (fun ℓ H => {package parallel_raw (map_with_in XTR_names (fun x H0 => pack (R_ch_map_XTR_package d x (fun _ => M) H0 H_inLM))) #with _ })
@@ -235,13 +234,13 @@ Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> 
   (List.In n XPR) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
   (forall s1 s k, ('option ('fin #|fin_handle|); M_ℓ s1 s k) \in L_M) ->
-  package L_M (XPD_n_ℓ ℓ.+1)
+  package L_M (XPD_n_ℓ (* ℓ.+1 *))
     [interface
-       #val #[ XPD n ℓ ℓ.+1 ] : chXPDinp → chXPDout
+       #val #[ XPD n ℓ (* ℓ.+1 *) ] : chXPDinp → chXPDout
     ].
   intros.
   refine [package
-     #def #[ XPD n ℓ ℓ.+1 ] ('(h1,r,args) : chXPDinp) : chXPDout {
+     #def #[ XPD n ℓ (* ℓ.+1 *) ] ('(h1,r,args) : chXPDinp) : chXPDout {
         '(i1,_) ← PrntIdx n ℓ ;;
         temp ← get_or_fn (M (nfto i1) h1) fin_handle (@fail chHandle ;; ret (chCanonical chHandle)) ;;
         label ← Labels n r ;;
@@ -253,10 +252,10 @@ Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> 
             | None => @fail 'nat ;; ret (chCanonical 'nat) (* fail? *)
             end) ;;
         (* *)
-        assertD (ℓ1 < ℓ)%nat (fun H =>
+        assertD (ℓ1 < d)%nat (fun H =>
             h ← xpd_angle n label h1 args ;;
 
-            #import {sig #[ XPD n ℓ1 ℓ.+1 ] : chXPDinp → chXPDout }
+            #import {sig #[ XPD n ℓ1 (* ℓ.+1 *) ] : chXPDinp → chXPDout }
             as XPD_fn ;;
             h' ← XPD_fn (temp, r, args) ;;
             ℓ ← ret (if xpn_eq n PSK then (ℓ + 1)%nat else ℓ) ;;
@@ -279,23 +278,27 @@ Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> 
   - unfold XPD_n_ℓ.
     set (o := mkopsig _ _ _) ; pattern x2 in o ; subst o.
     apply lower_level_in_interface.
-    2: Lia.lia.
+    2: apply x3. (* Lia.lia. *)
 
-    simpl.
+    (* simpl. *)
     unfold XPD, serialize_name.
     unfold mkopsig.
-    destruct n.
-    all: try (unfold XPR in H ; repeat (destruct H ; [ discriminate | ] || contradiction)).
-    all : rewrite <- !fset_cat ; simpl ; rewrite !in_fset ; unfold "\in" ; simpl ; rewrite eqxx.
-    all: simpl.
-    all: try reflexivity.
-    all: now rewrite !Bool.orb_true_r.
+    (* destruct n. *)
+    (* all: try (unfold XPR in H ; repeat (destruct H ; [ discriminate | ] || contradiction)). *)
+
+    unfold XPR, interface_foreach, List.fold_left, "++".
+    unfold mkopsig.
+    rewrite <- !fset1E.
+    rewrite !in_fsetU.
+    rewrite !in_fset1.
+    unfold XPR, "++" in H.
+    repeat (destruct H as [ | H ]) ; subst ; repeat (apply /orP ; ((right ; apply eqxx) || left)) ; try apply eqxx ; contradiction.
 Defined.
 Fail Next Obligation.
 
-Lemma trimmed_R_ch_map_XPD_package : forall n d M1 M2 A B C, trimmed [interface
-       #val #[ XPD n d d.+1 ] : chXPDinp → chXPDout
-    ] (R_ch_map_XPD_package d n M1 M2 A B C).
+Lemma trimmed_R_ch_map_XPD_package : forall n ℓ M1 M2 A B C, trimmed [interface
+       #val #[ XPD n ℓ (* d.+1 *) ] : chXPDinp → chXPDout
+    ] (R_ch_map_XPD_package ℓ n M1 M2 A B C).
 Proof.
   intros.
 
@@ -306,11 +309,11 @@ Proof.
 Qed.
 
 Lemma trimmed_parallel_raw_R_ch_map_XPD :
-  forall (d : nat),
+  (* forall (d : nat), *)
   forall (M : chHandle → nat),
   forall (H_L_M : ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M),
     trimmed (interface_foreach (fun n => [interface
-       #val #[ XPD n d d.+1 ] : chXPDinp → chXPDout
+       #val #[ XPD n d (* d.+1 *) ] : chXPDinp → chXPDout
     ]) XPR) (parallel_raw
        (map_with_in XPR
           (λ (x : name) (H0 : List.In x XPR),
@@ -340,9 +343,9 @@ Proof.
   }
 Qed.
 
-Definition R_ch_map_XPD_packages (d : nat) (M : chHandle -> nat) :
+Definition R_ch_map_XPD_packages (* (d : nat) *) (M : chHandle -> nat) :
   (forall s, ('option ('fin #|fin_handle|); M s) \in L_M) ->
-  package fset0 (XPD_n_ℓ d) (XPD_n_ℓ d).
+  package fset0 (XPD_n_ℓ (* d *)) (XPD_n_ℓ (* d *)).
   intros H_L_M.
   refine (ℓ_packages
             d (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H => pack (R_ch_map_XPD_package ℓ x (fun _ => M) (fun _ _ => M) H (fun _ => H_L_M) (fun _ _ => H_L_M)))) #with _ })
@@ -360,15 +363,15 @@ Admitted.
 
 (* R_ch_map, fig.25, Fig. 27, Fig. 29 *)
 (* GET_o_star_ℓ d *)
-Definition R_ch_map (d : nat) :
+Definition R_ch_map (* (d : nat) *) :
   package L_M
     ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout ;
        #val #[ DHGEN ] : 'unit → 'unit ;
        #val #[ DHEXP ] : 'unit → 'unit
     ] :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d)
+    XTR_n_ℓ (* d *) :|:
+    XPD_n_ℓ (* d *))
     ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout ;
        #val #[ DHGEN ] : 'unit → 'unit ;
@@ -380,8 +383,8 @@ Definition R_ch_map (d : nat) :
        #val #[ DHGEN ] : 'unit → 'unit ;
        #val #[ DHEXP ] : 'unit → 'unit
     ] :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d) ([interface
+    XTR_n_ℓ (* d *) :|:
+    XPD_n_ℓ (* d *)) ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout ;
        #val #[ DHGEN ] : 'unit → 'unit ;
        #val #[ DHEXP ] : 'unit → 'unit
@@ -405,10 +408,14 @@ Definition R_ch_map (d : nat) :
       }
     ]
   in _).
+
+  Unshelve.
+  2-9: try apply DepInstance ; shelve.
+  
   refine ({package
      par (base_package
-     ) (R_ch_map_XTR_packages d M H) }).
-
+     ) (R_ch_map_XTR_packages (* d *) M H) }).
+  
   ssprove_valid.
   {
     unfold FDisjoint.
@@ -420,17 +427,26 @@ Definition R_ch_map (d : nat) :
     apply fsubsetxx.
   }
   {
+    (* rewrite <- fsetUA. *)
+    (* rewrite (fsetUC XPD_n_ℓ). *)
+    (* rewrite <- fsetUA. *)
+    (* rewrite (fsetUA XTR_n_ℓ). *)
+    (* rewrite fsetUid. *)
+    (* rewrite fsetUA. *)
+    (* apply fsubsetxx. *)
     solve_in_fset.
   }
   {
     solve_in_fset.
   }
+  Unshelve.
+  ssprove_valid.
 
 Admitted.
 Admit Obligations.
 Fail Next Obligation.
 
-Program Definition Gks_real_map (d : nat) :
+Program Definition Gks_real_map (* (d : nat) *) :
   package
     fset0
     ([interface
@@ -438,10 +454,10 @@ Program Definition Gks_real_map (d : nat) :
     ] :|:
     GET_O_star_ℓ d)
     [interface] :=
-  {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) R_ch_map d ∘ Gcore_real d) }.
+  {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) R_ch_map (* d *) ∘ Gcore_real (* d *)) }.
 Fail Next Obligation.
 
-Program Definition Gks_ideal_map (d : nat) (Score : Simulator d) :
+Program Definition Gks_ideal_map (* (d : nat) *) (Score : Simulator d) :
   package
     fset0
     ([interface
@@ -449,21 +465,21 @@ Program Definition Gks_ideal_map (d : nat) (Score : Simulator d) :
        #val #[ DHGEN ] : 'unit → 'unit ;
        #val #[ DHEXP ] : 'unit → 'unit
     ] :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d :|:
+    XTR_n_ℓ (* d *) :|:
+    XPD_n_ℓ (* d *) :|:
     GET_O_star_ℓ d)
     [interface
-    ] := {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal d Score ∘ R_ch_map d) }.
+    ] := {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal (* d *) Score ∘ R_ch_map (* d *)) }.
 Fail Next Obligation.
 
 Lemma map_intro_c2 :
-  forall (d : nat),
+  (* forall (d : nat), *)
   forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
-       (Gks_real d)
-       (Gks_real_map d) A = 0
+       (Gks_real (* d *))
+       (Gks_real_map (* d *)) A = 0
     )%R.
 Proof.
   intros.
@@ -580,16 +596,16 @@ Axiom AdvantageFrame : forall G0 G1 G2 G3 A,
     AdvantageE G0 G2 A = AdvantageE G1 G3 A.
 
 Lemma map_outro_c5 :
-  forall (d : nat),
+  (* forall (d : nat), *)
   forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
-       (Gks_real d)
-       (Gks_ideal d Score) (A) =
+       (Gks_real (* d *))
+       (Gks_ideal (* d *) Score) (A) =
      AdvantageE
-       (Gks_real_map d)
-       (Gks_ideal_map d Score) A
+       (Gks_real_map (* d *))
+       (Gks_ideal_map (* d *) Score) A
     )%R.
 Proof.
   intros.

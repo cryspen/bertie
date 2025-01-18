@@ -95,5 +95,7 @@ Class Dependencies := {
 
     L_M : {fset Location} ;
     M : chHandle -> nat ;
-    H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M
+    H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M ;
+
+    d : nat ;
   }.
