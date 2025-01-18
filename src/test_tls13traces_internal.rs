@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-use crate::tls13keyscheduler::*;
 use crate::tls13handshake::*;
+use crate::tls13keyscheduler::{*, key_schedule::{TLSnames, TagKey}};
 use crate::tls13utils::*;
 use crate::{
     tls13crypto::{
@@ -515,7 +515,16 @@ fn test_key_schedule() {
             println!("Error: {}", x);
         }
         Ok(tx_hash) => {
-            let keys = derive_hk_ms(&ha, &ae, &TagKey {tag: TLSnames::DH, val: shared_secret_bytes}, &None, &tx_hash);
+            let keys = derive_hk_ms(
+                &ha,
+                &ae,
+                &TagKey {
+                    tag: TLSnames::DH,
+                    val: shared_secret_bytes,
+                },
+                &None,
+                &tx_hash,
+            );
             b = keys.is_ok();
             match keys {
                 Err(x) => {

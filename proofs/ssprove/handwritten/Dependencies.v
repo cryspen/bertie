@@ -70,15 +70,6 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
-(* From KeyScheduleTheorem Require Import ssp_helper. *)
-
-(* From KeyScheduleTheorem Require Import BasePackages. *)
-(* From KeyScheduleTheorem Require Import KeyPackages. *)
-(* From KeyScheduleTheorem Require Import XTR_XPD. *)
-
-(* From KeyScheduleTheorem Require Import Core. *)
-(* From KeyScheduleTheorem Require Import MapPackage. *)
-
 Axiom chGroup : choice_type.
 Axiom chGroup_is_finGroup : FinGroup chGroup.
 Axiom gen : chGroup -> code fset0 fset0 chGroup.
@@ -106,5 +97,3 @@ Class Dependencies := {
     M : chHandle -> nat ;
     H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M
   }.
-
-

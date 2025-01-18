@@ -1,3 +1,31 @@
+use crate::{
+    tls13crypto::{hkdf_expand, hkdf_extract, Digest, HashAlgorithm, Key},
+    tls13formats::*,
+    tls13utils::*,
+};
+
+/* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
+
+/// HKDF expand with a `label`.
+pub(crate) fn hkdf_expand_label(
+    hash_algorithm: &HashAlgorithm,
+    key: &Key,
+    label: Bytes,
+    context: &Bytes,
+    len: usize,
+) -> Result<Key, TLSError> {
+    if len >= 65536 {
+        Err(PAYLOAD_TOO_LONG)
+    } else {
+        let lenb = u16_as_be_bytes(U16(len as u16));
+        let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
+        let info = encode_length_u8(tls13_label.as_raw())?
+            .concat(encode_length_u8(context.as_raw())?)
+            .prefix(&lenb);
+        hkdf_expand(hash_algorithm, key, &info, len)
+    }
+}
+
 trait KeySchedule<N> {
     fn labels(a: N, b: bool) -> Result<Bytes, TLSError>; // Bit string of size 96 (8*12)
     fn prnt_n(a: N) -> (Option<N>, Option<N>);
@@ -6,7 +34,7 @@ trait KeySchedule<N> {
 pub(crate) struct TLSkeyscheduler {}
 
 #[derive(Copy, Clone, PartialEq)]
-pub(crate) enum TLSnames {
+pub enum TLSnames {
     ES,
     EEM,
     CET,
@@ -42,7 +70,7 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
             RM | CAT | SAT | EAM => (Some(AS), None),
             PSK => (Some(RM), None),
             ZeroSalt | DH | ZeroIKM => (None, None),
-            ESalt => (todo!(), None),
+            ESalt => (Some(ES), None), // (todo!(), None),
         }
     }
 
@@ -126,8 +154,8 @@ fn convert_label(label: Bytes) -> Option<Label> {
 }
 
 #[derive(Clone)]
-pub(crate) struct TagKey {
-    pub(crate) tag: TLSnames,
+pub struct TagKey {
+    pub tag: TLSnames,
     pub(crate) val: Key,
 }
 
@@ -147,7 +175,7 @@ pub(crate) fn xtr(alg: &HashAlgorithm, ikm: &TagKey, salt: &TagKey) -> Result<Ta
     })
 }
 
-fn xpd(
+pub(crate) fn xpd(
     hash_algorithm: &HashAlgorithm,
     key: &TagKey,
     label: Bytes,
@@ -193,7 +221,7 @@ struct Handle {
     level: u8,
 }
 
-fn xpd_angle(
+pub(crate) fn xpd_angle(
     name: TLSnames,
     label: Bytes,
     parrent_handle: &Handle,

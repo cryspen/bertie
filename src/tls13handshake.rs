@@ -8,7 +8,7 @@ use crate::{
         Algorithms, Digest, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
-    tls13keyscheduler::*,
+    tls13keyscheduler::{*, key_schedule::*},
     tls13record::*,
     tls13utils::*,
 };

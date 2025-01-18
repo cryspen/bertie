@@ -1,0 +1,252 @@
+From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
+Set Warnings "-notation-overridden,-ambiguous-paths".
+From Crypt Require Import choice_type Package Prelude.
+Import PackageNotation.
+From extructures Require Import ord fset.
+From mathcomp Require Import word_ssrZ word.
+(* From Jasmin Require Import word. *)
+
+From Coq Require Import ZArith.
+From Coq Require Import Strings.String.
+Import List.ListNotations.
+Open Scope list_scope.
+Open Scope Z_scope.
+Open Scope bool_scope.
+
+From Hacspec Require Import ChoiceEquality.
+From Hacspec Require Import LocationUtility.
+From Hacspec Require Import Hacspec_Lib_Comparable.
+From Hacspec Require Import Hacspec_Lib_Pre.
+From Hacspec Require Import Hacspec_Lib.
+
+Open Scope hacspec_scope.
+Import choice.Choice.Exports.
+
+Set Bullet Behavior "Strict Subproofs".
+Set Default Goal Selector "!".
+Set Primitive Projections.
+
+Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
+
+From HB Require Import structures.
+
+From Crypt Require Import jasmin_word.
+
+From Crypt Require Import Schnorr SigmaProtocol.
+
+From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+
+Set Warnings "-notation-overridden,-ambiguous-paths".
+From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
+  fingroup.fingroup solvable.cyclic prime ssrnat ssreflect ssrfun ssrbool ssrnum
+  eqtype choice seq.
+Set Warnings "notation-overridden,ambiguous-paths".
+
+From Mon Require Import SPropBase.
+
+From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+  UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
+  pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
+  SigmaProtocol.
+
+From Coq Require Import Utf8.
+From extructures Require Import ord fset fmap.
+
+From Equations Require Import Equations.
+Require Equations.Prop.DepElim.
+
+Set Equations With UIP.
+
+Set Bullet Behavior "Strict Subproofs".
+Set Default Goal Selector "!".
+Set Primitive Projections.
+
+Local Open Scope ring_scope.
+Import GroupScope GRing.Theory.
+
+Import PackageNotation.
+
+From KeyScheduleTheorem Require Import Types.
+From KeyScheduleTheorem Require Import ExtraTypes.
+From KeyScheduleTheorem Require Import Utility.
+
+From KeyScheduleTheorem Require Import Dependencies.
+
+From KeyScheduleTheorem Require Import ssp_helper.
+
+From KeyScheduleTheorem Require Import BasePackages.
+From KeyScheduleTheorem Require Import KeyPackages.
+From KeyScheduleTheorem Require Import XTR_XPD.
+
+From KeyScheduleTheorem Require Import Core.
+From KeyScheduleTheorem Require Import MapPackage.
+
+From KeyScheduleTheorem Require Import CoreTheorem.
+
+
+From BertieExtraction Require Import Bertie_Tls13keyscheduler.
+
+Definition name_to_t_TLSname (n : name) {H_not_bot : n <> BOT} : both t_TLSnames :=
+  match n return (n <> BOT) -> _ with
+  | BOT => fun H => False_rect _ (H erefl)
+
+  | ES => fun _ => TLSnames_ES
+  | EEM => fun _ => TLSnames_EEM
+  | CET => fun _ => TLSnames_CET
+  | BIND => fun _ => TLSnames_Bind
+  | BINDER => fun _ => TLSnames_Binder
+  | HS => fun _ => TLSnames_HS
+  | SHT => fun _ => TLSnames_SHT
+  | CHT => fun _ => TLSnames_CHT
+  | HSALT => fun _ => TLSnames_HSalt
+  | AS => fun _ => TLSnames_AS
+  | RM => fun _ => TLSnames_RM
+  | CAT => fun _ => TLSnames_CAT
+  | SAT => fun _ => TLSnames_SAT
+  | EAM => fun _ => TLSnames_EAM
+  | PSK => fun _ => TLSnames_PSK
+
+  | ZERO_SALT => fun _ => TLSnames_ZeroSalt
+  | ESALT => fun _ => TLSnames_ESalt
+  | DH => fun _ => TLSnames_DH
+  | ZERO_IKM => fun _ => TLSnames_ZeroIKM
+  end H_not_bot.
+
+
+Definition t_TLSname_option_pair_to_name
+  (n : chOption t_TLSnames) : name :=
+  match n with
+  | None => BOT
+  | Some a =>
+      match a with
+    | TLSnames_ES_case  =>
+       ES
+    | TLSnames_EEM_case  =>
+      EEM
+    | TLSnames_CET_case  =>
+      CET
+    | TLSnames_Bind_case  =>
+      BIND
+    | TLSnames_Binder_case  =>
+      BINDER
+    | TLSnames_HS_case  =>
+      HS
+    | TLSnames_SHT_case  =>
+      SHT
+    | TLSnames_CHT_case  =>
+      CHT
+    | TLSnames_HSalt_case  =>
+      HSALT
+    | TLSnames_AS_case  =>
+      AS
+    | TLSnames_RM_case  =>
+      RM
+    | TLSnames_CAT_case  =>
+      CAT
+    | TLSnames_SAT_case  =>
+      SAT
+    | TLSnames_EAM_case  =>
+      EAM
+    | TLSnames_PSK_case  =>
+      PSK
+    | TLSnames_ZeroSalt_case  =>
+      ZERO_SALT
+    | TLSnames_ESalt_case  =>
+      ESALT
+    | TLSnames_DH_case  =>
+      DH
+    | TLSnames_ZeroIKM_case  =>
+      ZERO_IKM
+    end
+  end.
+
+Definition name_to_chName (n : name) : chName := fto (inord (
+  match n with
+  | BOT => 0
+
+  | ES => 1
+  | EEM => 2
+  | CET => 3
+  | BIND => 4
+  | BINDER => 5
+  | HS => 6
+  | SHT => 7
+  | CHT => 8
+  | HSALT => 9
+  | AS => 10
+  | RM => 11
+  | CAT => 12
+  | SAT => 13
+  | EAM => 14
+  | PSK => 15
+
+  | ZERO_SALT => 16
+  | ESALT => 17
+  | DH => 18
+  | ZERO_IKM => 19
+  end)).
+
+Section BertieKeySchedule.
+  Definition Bertie_PrntN : name -> code fset0 fset0 (chName × chName) :=
+    (fun n =>
+       match n as k return n = k -> _ with
+       | BOT => fun _ => {code ret (name_to_chName BOT , name_to_chName BOT)}
+       | n0 => fun H =>
+                {code x ← is_state (both_prog (@f_prnt_n _ _ _ t_TLSkeyscheduler_t_KeySchedule (name_to_t_TLSname (H_not_bot := ltac:(easy)) n))) ;;
+                 ret (
+                     (name_to_chName (t_TLSname_option_pair_to_name (fst x))) ,
+                     (name_to_chName (t_TLSname_option_pair_to_name (snd x))))
+                   #with
+                  ltac:(ssprove_valid; apply f_prnt_n)
+                }
+       end erefl).
+
+  Definition Bertie_Labels : name -> bool -> code fset0 fset0 chLabel.
+  Admitted.
+
+  Definition Bertie_O_star : list name.
+  Admitted.
+  
+    Definition Bertie_xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey. Admitted.
+    Definition Bertie_xtr : chKey -> chKey -> code fset0 fset0 chKey. Admitted.
+    Definition Bertie_xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle. Admitted.
+    Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle. Admitted.
+    Definition Bertie_PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName). Admitted.
+    Definition Bertie_ord : chGroup → nat. Admitted.
+    Definition Bertie_E : nat -> nat. Admitted.
+
+    Definition Bertie_L_K : {fset Location}. Admitted.
+    Definition Bertie_K_table : chHandle -> nat. Admitted.
+    Definition Bertie_in_K_table : forall x, ('option chK_table; Bertie_K_table x) \in Bertie_L_K. Admitted.
+
+    Definition Bertie_L_M : {fset Location}. Admitted.
+    Definition Bertie_M : chHandle -> nat. Admitted.
+    Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted.
+
+End BertieKeySchedule.
+
+Instance BertieKeySchedule : Dependencies :=
+  {
+    PrntN := Bertie_PrntN;
+    Labels := Bertie_Labels ;
+    O_star := Bertie_O_star ;
+    xpd := Bertie_xpd ;
+    xtr := Bertie_xtr ;
+    xtr_angle := Bertie_xtr_angle ;
+    xpd_angle := Bertie_xpd_angle ;
+    PrntIdx := Bertie_PrntIdx ;
+    ord := Bertie_ord ;
+    E := Bertie_E ;
+
+    L_K := Bertie_L_K ;
+    K_table := Bertie_K_table ;
+    in_K_table := Bertie_in_K_table ;
+
+    L_M := Bertie_L_M ;
+    M := Bertie_M ;
+    H := Bertie_H ;
+  }.
+
+Definition BertieKeyScheduleCoreSimulator (d : nat) : Simulator d. Admitted.
+Definition BertieKeyScheduleCoreTheorem (d : nat) :=
+  core_theorem d (BertieKeyScheduleCoreSimulator d).
