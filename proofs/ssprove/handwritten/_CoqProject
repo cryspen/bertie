@@ -12,8 +12,8 @@ XTR_XPD.v
 
 Core.v
 KeySchedulePackages.v
-# MapPackage.v
+MapPackage.v
 
-# ./CoreTheorem.v
-# # ./ModularTheorem.v
+./CoreTheorem.v
+# ./ModularTheorem.v
 # ./MainTheorem.v

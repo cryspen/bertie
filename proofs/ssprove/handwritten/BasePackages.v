@@ -72,7 +72,105 @@ From KeyScheduleTheorem Require Import Utility.
 
 (*** Base Packages *)
 
-Definition SET_psk (i : nat) : nat := 10.
+Definition serialize_name  (n : name) (ℓ (* 0 .. d *) : nat) (d : nat) (index : nat) : nat :=
+  let start := 100%nat in
+  let size := 20%nat in
+  (match n with
+  | BOT => 0
+
+  | ES => 1
+  | EEM => 2
+  | CET => 3
+  | BIND => 4
+  | BINDER => 5
+  | HS => 6
+  | SHT => 7
+  | CHT => 8
+  | HSALT => 9
+  | AS => 10
+  | RM => 11
+  | CAT => 12
+  | SAT => 13
+  | EAM => 14
+  | PSK => 15
+
+  | ZERO_SALT => 16
+  | ESALT => 17
+  | DH => 18
+  | ZERO_IKM => 19
+  end%nat) + size * ℓ + index * size * d.+1 + start.
+
+Lemma serialize_name_notin :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+    (ℓ2 >= ℓ1.+1)%N ->
+    forall  (n1 n2 : name),
+    forall index,
+           serialize_name n1 ℓ1 d index \notin
+             fset1 (T:=Datatypes_nat__canonical__Ord_Ord) (serialize_name n2 ℓ2 d index).
+Proof.
+  intros.
+  unfold "\notin".
+  rewrite !ifF ; [ reflexivity | ].
+  unfold "\in"; simpl; unfold "\in"; simpl.
+  destruct n1, n2 ; unfold serialize_name.
+  all: try Lia.lia.
+Qed.
+
+Lemma serialize_name_notin_different_index :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+    (ℓ1 <= d)%N ->
+    (ℓ2 <= d)%N ->
+    forall  (n1 n2 : name),
+    forall (index1 index2 : nat),
+      (index1 <> index2)%nat ->
+      serialize_name n1 ℓ1 d index1 \notin
+        fset1 (T:=Datatypes_nat__canonical__Ord_Ord) (serialize_name n2 ℓ2 d index2).
+Proof.
+  intros.
+  unfold "\notin".
+  rewrite !ifF ; [ reflexivity | ].
+  unfold "\in"; simpl; unfold "\in"; simpl.
+  rewrite Bool.orb_false_r.
+
+  unfold serialize_name.
+  set 100%N.
+  generalize dependent n.
+  generalize dependent index1.
+  induction index2.
+  - intros.
+    destruct index1 ; intros.
+    {
+      destruct n1, n2 ; unfold serialize_name.
+      all: Lia.lia.
+    }
+    {
+      destruct n1, n2 ; unfold serialize_name.
+      all: Lia.lia.
+    }
+  - destruct index1 ; intros.
+    {
+      destruct n1, n2 ; unfold serialize_name.
+      all: Lia.lia.
+    }
+
+    rewrite <- (mulnA index2.+1).
+    rewrite (mulSnr index2).
+    rewrite (mulnA index2).
+    rewrite <- (addnA _ (_ + _)%nat n).
+    rewrite <- (addnA _ (20 * d.+1)%nat _).
+    rewrite addnA.
+
+    rewrite <- (mulnA index1.+1).
+    rewrite (mulSnr index1).
+    rewrite (mulnA index1).
+    rewrite <- (addnA _ (_ + _)%nat n).
+    rewrite <- (addnA _ (20 * d.+1)%nat _).
+    rewrite addnA.
+
+    now apply IHindex2.
+Qed.
 
 #[global] Notation " 'chSETinp' " :=
   (chHandle × 'bool × chKey)
@@ -80,7 +178,7 @@ Definition SET_psk (i : nat) : nat := 10.
 #[global] Notation " 'chSETout' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Definition SET (n : name) (ℓ : nat) := 1%nat.
+Definition SET (n : name) (ℓ : nat) (d : nat) := serialize_name n ℓ d 0.
 
 #[global] Notation " 'chGETinp' " :=
   (chHandle)
@@ -88,18 +186,7 @@ Definition SET (n : name) (ℓ : nat) := 1%nat.
 #[global] Notation " 'chGETout' " :=
   (chKey × 'bool)
     (in custom pack_type at level 2).
-Definition GET (n : name) (ℓ : nat) := 0%nat.
-
-Definition GET_o_star (n : O_star) (ℓ : nat) : nat := 13.
-
-Fixpoint GET_o_star_ℓ (d : nat) :=
-  match d with
-  | O => [interface]
-  | S d' =>
-      [interface
-       #val #[ GET_o_star TODO d' ] : 'unit → 'unit
-      ] :|: GET_o_star_ℓ d'
-  end.
+Definition GET (n : name) (ℓ : nat) (d : nat) := serialize_name n ℓ d 1.
 
 Notation " 'chHASHinp' " :=
   (bitvec)
@@ -108,6 +195,5 @@ Notation " 'chHASHout' " :=
   (bitvec)
     (in custom pack_type at level 2).
 Definition HASH := 1%nat.
-
 
 Definition len_ {n} (_ : 'I_ n) := n.

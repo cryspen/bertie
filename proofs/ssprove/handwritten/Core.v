@@ -76,16 +76,16 @@ From KeyScheduleTheorem Require Import XTR_XPD.
 
 (*** Core *)
 
-Definition Simulator d :=
+Section Core.
+  Definition Simulator d :=
   (package
     fset0
     ([interface
-       #val #[ SET_psk 0 ] : chSETinp → chSETout ;
-       #val #[ DHGEN ] : 'unit → 'unit ;
-       #val #[ DHEXP ] : 'unit → 'unit
-    ] :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d)
+       #val #[ SET PSK 0 d ] : chSETinp → chSETout
+      ]
+       :|: DH_interface
+       :|: XTR_n_ℓ d
+       :|: XPD_n_ℓ d)
     [interface
     ]
   ).
@@ -109,16 +109,47 @@ Proof.
       apply H.
 Qed.
 
+Context {O_star : list name}.
+
 Axiom Gcore_ki : package fset0 [interface] [interface].
 Axiom Gcore_hyb : forall (d : nat), package f_parameter_cursor_loc
-    (GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[HASH] : chHASHout → chHASHout ]
-     :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-    (GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[HASH] : chHASHout → chHASHout ]
-     :|: (GET_XTR d.+1 :|: SET_XTR d.+1)
-     :|: [interface #val #[SET_DH] : chKinp → chXPDout ]).
+    ((GET_XPD d.+1 :|: SET_XPD d.+1 :|: DH_Set_interface :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
+    (SET_O_star_ℓ (O_star := O_star) d :|: GET_O_star_ℓ (O_star := O_star) d).
 
-Context (PrntN: name -> code fset0 fset0 (chName × chName)).
-Context (Labels : name -> bool -> code fset0 fset0 chLabel).
+Context
+  {PrntN: name -> code fset0 fset0 (chName × chName)}
+    {Labels : name -> bool -> code fset0 fset0 chLabel}
+    {xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey}
+    {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}.
+
+Context
+  {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}
+  {xtr : chKey -> chKey -> code fset0 fset0 chKey}.
+
+Check XTR_packages.
+Notation XTR_packages := (XTR_packages (PrntN := PrntN) (Labels := Labels) (xtr := xtr) (xtr_angle := xtr_angle)).
+
+Lemma xtr_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
+    domm (pack (XTR_packages d)) :#: domm (pack (DH_package ord E)) = true.
+Proof.
+  intros.
+  unfold pack.
+
+  erewrite <- (trimmed_xtr_package d).
+  rewrite <- (trimmed_dh).
+
+  apply domm_trim_disjoint_is_ident.
+  rewrite fdisjointC.
+  apply idents_interface_hierachy2.
+  intros.
+  unfold DH_interface. rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
+  unfold idents.
+  unfold DHEXP, DHGEN, XTR, serialize_name.
+  simpl.
+  solve_imfset_disjoint.
+Qed.
+
+Notation XPD_packages := (XPD_packages (PrntN := PrntN) (Labels := Labels) (xtr := xtr) (xtr_angle := xtr_angle) (xpd := xpd) (xpd_angle := xpd_angle)).
 
 Lemma xpd_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
     domm (pack (XPD_packages d)) :#: domm (pack (DH_package ord E)) = true.
@@ -134,99 +165,91 @@ Proof.
   rewrite fdisjointC.
   apply idents_interface_hierachy2.
   intros.
-  rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
+  unfold DH_interface. rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
   unfold idents.
   unfold DHEXP, DHGEN, XPD, XPR, serialize_name.
   simpl.
   solve_imfset_disjoint.
 Qed.
 
-Lemma xtr_dh : forall {ord : chGroup → nat} {E : nat -> nat} (d : nat),
-    domm (pack (XTR_packages d)) :#: domm (pack (DH_package ord E)) = true.
-Proof.
-  intros.
-  unfold pack.
-
-  erewrite <- (trimmed_xtr_package d).
-  rewrite <- (trimmed_dh).
-
-  apply domm_trim_disjoint_is_ident.
-  rewrite fdisjointC.
-  apply idents_interface_hierachy2.
-  intros.
-  rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
-  unfold idents.
-  unfold DHEXP, DHGEN, XTR, serialize_name.
-  simpl.
-  solve_imfset_disjoint.
-Qed.
-
-Definition Gcore_real {ord : chGroup → nat}
-  {E : nat -> nat} (d : nat) :
+Obligation Tactic := (* try timeout 8 *) idtac.
+Program Definition Gcore_real {ord : chGroup → nat}
+  {E : nat -> nat} (d : nat) (K_table : chHandle -> nat) :
     package fset0
-      ((GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-      (XPD_n_ℓ d :|: XTR_n_ℓ d
-       :|: [interface #val #[DHGEN] : chDHGENout → chDHGENout ; #val #[DHEXP] : chDHEXPinp → chXPDout ])
+      ((GET_XPD d.+1 :|: SET_XPD d.+1 :|: DH_Set_interface :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
+      (SET_O_star_ℓ (O_star := O_star) d :|: GET_O_star_ℓ (O_star := O_star) d)
       (* ([interface #val #[SET_psk 0] : chSETinp → chSETout ; *)
       (*   #val #[DHGEN] : 'unit → 'unit ; *)
       (*   #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|: XPD_n_ℓ d :|:  *)
       (*    GET_o_star_ℓ d) *)
-.
-Proof.
-  refine {package (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ Gcore_hyb d}.
+  :=
+  {package ((par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ Gcore_hyb d) ∘ (K_O_star (O_star := O_star) d false K_table)}.
+Next Obligation.
+  intros.
+  (* ssprove_valid. *)
+  admit.
+Admitted.
+(* Proof. *)
+(*   (* refine {package (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ Gcore_hyb d}. *) *)
+(*   refine {package ((par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ Gcore_hyb d) ∘ (K_O_star d false K_table)}. *)
+(*   admit. *)
+(*   (* eapply valid_link_upto. *) *)
+(*   (* ssprove_valid. *) *)
+(*   (* 6:{ *) *)
+(*   (*   rewrite fsetU0. *) *)
+(*   (*   apply fsubsetxx. *) *)
+(*   (* } *) *)
+(*   (* 8,7: apply fsubsetxx. *) *)
+(*   (* 3: rewrite fset0U; apply fsubsetxx. *) *)
+(*   (* 3,4,6: try apply fsubsetxx. *) *)
 
-  ssprove_valid.
-  6:{
-    rewrite fsetU0.
-    apply fsubsetxx.
-  }
-  8,7: apply fsubsetxx.
-  3: rewrite fset0U; apply fsubsetxx.
-  3,4,6: try apply fsubsetxx.
+(*   (* 1:{ *) *)
+(*   (*   unfold FDisjoint. *) *)
+(*   (*   rewrite domm_union. *) *)
+(*   (*   rewrite fdisjointUl. *) *)
 
-  1:{
-    unfold FDisjoint.
-    rewrite domm_union.
-    rewrite fdisjointUl.
+(*   (*   rewrite xpd_dh. *) *)
+(*   (*   rewrite xtr_dh. *) *)
+(*   (*   reflexivity. *) *)
+(*   (* } *) *)
+(*   (* 1:{ *) *)
+(*   (*   unfold FDisjoint. *) *)
+(*   (*   rewrite <- trimmed_xtr_package. *) *)
+(*   (*   rewrite <- trimmed_xpd_package. *) *)
+(*   (*   apply domm_trim_disjoint_is_ident. *) *)
 
-    rewrite xpd_dh.
-    rewrite xtr_dh.
-    reflexivity.
-  }
-  1:{
-    unfold FDisjoint.
-    rewrite <- trimmed_xtr_package.
-    rewrite <- trimmed_xpd_package.
-    apply domm_trim_disjoint_is_ident.
+(*   (*   apply idents_interface_hierachy2. *) *)
+(*   (*   intros. *) *)
+(*   (*   rewrite fdisjointC. *) *)
+(*   (*   apply idents_interface_hierachy2. *) *)
+(*   (*   intros. *) *)
 
-    apply idents_interface_hierachy2.
-    intros.
-    rewrite fdisjointC.
-    apply idents_interface_hierachy2.
-    intros.
-
-    simpl.
-    unfold idents, XPD, XTR, serialize_name.
-    solve_imfset_disjoint.
-  }
-  {
-    solve_in_fset.
-  }
-Defined.
+(*   (*   simpl. *) *)
+(*   (*   unfold idents, XPD, XTR, serialize_name. *) *)
+(*   (*   solve_imfset_disjoint. *) *)
+(*   (* } *) *)
+(*   (* { *) *)
+(*   (*   simpl. *) *)
+(*   (*   solve_in_fset. *) *)
+(*   (* } *) *)
+(* Admitted. *)
 Fail Next Obligation.
 
-(* Program Definition Gcore_ideal (d : nat) (Score : Simulator d) : *)
-(*   package *)
-(*     fset0 *)
-(*     ([interface *)
-(*        #val #[ SET_psk 0 ] : chSETinp → chSETout ; *)
-(*        #val #[ DHGEN ] : 'unit → 'unit ; *)
-(*        #val #[ DHEXP ] : 'unit → 'unit *)
-(*     ] :|: *)
-(*     XTR_n_ℓ d :|: *)
-(*     XPD_n_ℓ d :|: *)
-(*     GET_o_star_ℓ d) *)
-(*     [interface *)
-(*     ] := {package (Score ∘ Key_o_star_ideal d) }. *)
-(* Admit Obligations. *)
-(* Fail Next Obligation. *)
+Program Definition Gcore_ideal (d : nat) (Score : Simulator d) (K_table : chHandle -> nat) :
+  package
+    fset0
+    ([interface
+       #val #[ SET PSK 0 d ] : chSETinp → chSETout
+    ] :|: DH_interface :|:
+    XTR_n_ℓ d :|:
+    XPD_n_ℓ d :|:
+    GET_O_star_ℓ (O_star := O_star) d)
+    (GET_O_star_ℓ (O_star := O_star) d) :=
+  {package (K_O_star (O_star := O_star) d true K_table  ∘ Score) }.
+Final Obligation.
+intros.
+ssprove_valid.
+Admitted.
+Fail Next Obligation.
+
+End Core.
