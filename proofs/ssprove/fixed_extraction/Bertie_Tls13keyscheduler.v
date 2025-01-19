@@ -324,140 +324,140 @@ Class t_KeySchedule (v_Self : choice_type) {v_N : _} `{ t_Sized v_N} := {
   f_prnt_n : (both v_N -> both (t_Option v_N × t_Option v_N)) ;
 }.
 
-(* Equations convert_label (label : both t_Bytes) : both (t_Option t_Label) := *)
-(*   convert_label label  := *)
-(*     letb l := (impl__Bytes__declassify label).a[RangeFull] in *)
-(*     ifb l =.? (array_from_list [ret_both (101 : int8); *)
-(*       ret_both (120 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (98 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (110 : int8); *)
-(*       ret_both (100 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (114 : int8)]) *)
-(*     then Option_Some Label_EXT_BINDER____ *)
-(*     else ifb l =.? (array_from_list [ret_both (114 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (98 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (110 : int8); *)
-(*       ret_both (100 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (114 : int8)]) *)
-(*     then Option_Some Label_RES_BINDER____ *)
-(*     else ifb l =.? (array_from_list [ret_both (99 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (114 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (99 : int8)]) *)
-(*     then Option_Some Label_C_E_TRAFFIC___ *)
-(*     else ifb l =.? (array_from_list [ret_both (101 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (120 : int8); *)
-(*       ret_both (112 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (109 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (114 : int8)]) *)
-(*     then Option_Some Label_E_EXP_MASTER *)
-(*     else ifb l =.? (array_from_list [ret_both (99 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (112 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (114 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (99 : int8)]) *)
-(*     then Option_Some Label_C_AP_TRAFFIC *)
-(*     else ifb l =.? (array_from_list [ret_both (115 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (112 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (114 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (99 : int8)]) *)
-(*     then Option_Some Label_S_AP_TRAFFIC *)
-(*     else ifb l =.? (array_from_list [ret_both (101 : int8); *)
-(*       ret_both (120 : int8); *)
-(*       ret_both (112 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (109 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (114 : int8)]) *)
-(*     then Option_Some Label_EXP_MASTER____ *)
-(*     else ifb l =.? (array_from_list [ret_both (114 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (109 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (114 : int8)]) *)
-(*     then Option_Some Label_RES_MASTER____ *)
-(*     else ifb l =.? (array_from_list [ret_both (100 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (114 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (118 : int8); *)
-(*       ret_both (101 : int8); *)
-(*       ret_both (100 : int8)]) *)
-(*     then Option_Some Label_DERIVED_________ *)
-(*     else ifb l =.? (array_from_list [ret_both (99 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (104 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (114 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (99 : int8)]) *)
-(*     then Option_Some Label_C_HS_TRAFFIC *)
-(*     else ifb l =.? (array_from_list [ret_both (115 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (104 : int8); *)
-(*       ret_both (115 : int8); *)
-(*       ret_both (32 : int8); *)
-(*       ret_both (116 : int8); *)
-(*       ret_both (114 : int8); *)
-(*       ret_both (97 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (102 : int8); *)
-(*       ret_both (105 : int8); *)
-(*       ret_both (99 : int8)]) *)
-(*     then Option_Some Label_S_HS_TRAFFIC *)
-(*     else Option_Some Label_RESUMPTION____ : both (t_Option t_Label). *)
-(* Fail Next Obligation. *)
+Equations convert_label (label : both t_Bytes) : both (t_Option t_Label) :=
+  convert_label label  :=
+    letb l := (impl__Bytes__declassify label)(* .a[RangeFull] *) in
+    ifb l =.? array_to_list (array_from_list [ret_both (101 : int8);
+      ret_both (120 : int8);
+      ret_both (116 : int8);
+      ret_both (32 : int8);
+      ret_both (98 : int8);
+      ret_both (105 : int8);
+      ret_both (110 : int8);
+      ret_both (100 : int8);
+      ret_both (101 : int8);
+      ret_both (114 : int8)])
+    then Option_Some Label_EXT_BINDER____
+    else ifb l =.? array_to_list (array_from_list [ret_both (114 : int8);
+      ret_both (101 : int8);
+      ret_both (115 : int8);
+      ret_both (32 : int8);
+      ret_both (98 : int8);
+      ret_both (105 : int8);
+      ret_both (110 : int8);
+      ret_both (100 : int8);
+      ret_both (101 : int8);
+      ret_both (114 : int8)])
+    then Option_Some Label_RES_BINDER____
+    else ifb l =.? array_to_list (array_from_list [ret_both (99 : int8);
+      ret_both (32 : int8);
+      ret_both (101 : int8);
+      ret_both (32 : int8);
+      ret_both (116 : int8);
+      ret_both (114 : int8);
+      ret_both (97 : int8);
+      ret_both (102 : int8);
+      ret_both (102 : int8);
+      ret_both (105 : int8);
+      ret_both (99 : int8)])
+    then Option_Some Label_C_E_TRAFFIC___
+    else ifb l =.? array_to_list (array_from_list [ret_both (101 : int8);
+      ret_both (32 : int8);
+      ret_both (101 : int8);
+      ret_both (120 : int8);
+      ret_both (112 : int8);
+      ret_both (32 : int8);
+      ret_both (109 : int8);
+      ret_both (97 : int8);
+      ret_both (115 : int8);
+      ret_both (116 : int8);
+      ret_both (101 : int8);
+      ret_both (114 : int8)])
+    then Option_Some Label_E_EXP_MASTER
+    else ifb l =.? array_to_list (array_from_list [ret_both (99 : int8);
+      ret_both (32 : int8);
+      ret_both (97 : int8);
+      ret_both (112 : int8);
+      ret_both (32 : int8);
+      ret_both (116 : int8);
+      ret_both (114 : int8);
+      ret_both (97 : int8);
+      ret_both (102 : int8);
+      ret_both (102 : int8);
+      ret_both (105 : int8);
+      ret_both (99 : int8)])
+    then Option_Some Label_C_AP_TRAFFIC
+    else ifb l =.? array_to_list (array_from_list [ret_both (115 : int8);
+      ret_both (32 : int8);
+      ret_both (97 : int8);
+      ret_both (112 : int8);
+      ret_both (32 : int8);
+      ret_both (116 : int8);
+      ret_both (114 : int8);
+      ret_both (97 : int8);
+      ret_both (102 : int8);
+      ret_both (102 : int8);
+      ret_both (105 : int8);
+      ret_both (99 : int8)])
+    then Option_Some Label_S_AP_TRAFFIC
+    else ifb l =.? array_to_list (array_from_list [ret_both (101 : int8);
+      ret_both (120 : int8);
+      ret_both (112 : int8);
+      ret_both (32 : int8);
+      ret_both (109 : int8);
+      ret_both (97 : int8);
+      ret_both (115 : int8);
+      ret_both (116 : int8);
+      ret_both (101 : int8);
+      ret_both (114 : int8)])
+    then Option_Some Label_EXP_MASTER____
+    else ifb l =.? array_to_list (array_from_list [ret_both (114 : int8);
+      ret_both (101 : int8);
+      ret_both (115 : int8);
+      ret_both (32 : int8);
+      ret_both (109 : int8);
+      ret_both (97 : int8);
+      ret_both (115 : int8);
+      ret_both (116 : int8);
+      ret_both (101 : int8);
+      ret_both (114 : int8)])
+    then Option_Some Label_RES_MASTER____
+    else ifb l =.? array_to_list (array_from_list [ret_both (100 : int8);
+      ret_both (101 : int8);
+      ret_both (114 : int8);
+      ret_both (105 : int8);
+      ret_both (118 : int8);
+      ret_both (101 : int8);
+      ret_both (100 : int8)])
+    then Option_Some Label_DERIVED_________
+    else ifb l =.? array_to_list (array_from_list [ret_both (99 : int8);
+      ret_both (32 : int8);
+      ret_both (104 : int8);
+      ret_both (115 : int8);
+      ret_both (32 : int8);
+      ret_both (116 : int8);
+      ret_both (114 : int8);
+      ret_both (97 : int8);
+      ret_both (102 : int8);
+      ret_both (102 : int8);
+      ret_both (105 : int8);
+      ret_both (99 : int8)])
+    then Option_Some Label_C_HS_TRAFFIC
+    else ifb l =.? array_to_list (array_from_list [ret_both (115 : int8);
+      ret_both (32 : int8);
+      ret_both (104 : int8);
+      ret_both (115 : int8);
+      ret_both (32 : int8);
+      ret_both (116 : int8);
+      ret_both (114 : int8);
+      ret_both (97 : int8);
+      ret_both (102 : int8);
+      ret_both (102 : int8);
+      ret_both (105 : int8);
+      ret_both (99 : int8)])
+    then Option_Some Label_S_HS_TRAFFIC
+    else Option_Some Label_RESUMPTION____ : both (t_Option t_Label).
+Fail Next Obligation.
 
 #[global] Program Instance t_TLSkeyscheduler_t_KeySchedule : @t_KeySchedule t_TLSkeyscheduler t_TLSnames _ :=
   let f_prnt_n := fun  (a : both t_TLSnames) => matchb a with
@@ -519,15 +519,12 @@ Admitted.
 Fail Next Obligation.
 Hint Unfold t_TLSkeyscheduler_t_KeySchedule.
 
-Locate impl__Bytes__new.
-
 Equations hash_empty (algorithm : both t_HashAlgorithm) : both (t_Result t_Bytes int8) :=
   hash_empty algorithm  :=
     impl__HashAlgorithm__hash algorithm (impl__Bytes__new (ret_both tt)) : both (t_Result t_Bytes int8).
 Fail Next Obligation.
 
 (* Definition unsize {A} (x : both (t_Seq A)) : both (nseq_ A _). *)
-  
 
 Equations hkdf_expand_label (hash_algorithm : both t_HashAlgorithm) (key : both t_Bytes) (label : both t_Bytes) (context : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) :=
   hkdf_expand_label hash_algorithm key label context len  :=
@@ -547,114 +544,160 @@ Fail Next Obligation.
 (*     hkdf_expand_label ha k (bytes (unsize v_LABEL_FINISHED)) impl__Bytes__new (impl__HashAlgorithm__hmac_tag_len ha) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
 
-(* Definition t_Handle : choice_type := *)
-(*   (t_TLSnames × t_Bytes × t_HashAlgorithm × int8). *)
-(* Equations f_name (s : both t_Handle) : both t_TLSnames := *)
-(*   f_name s  := *)
-(*     bind_both s (fun x => *)
-(*       ret_both (fst (fst (fst x)) : t_TLSnames)) : both t_TLSnames. *)
-(* Fail Next Obligation. *)
-(* Equations f_key (s : both t_Handle) : both t_Bytes := *)
-(*   f_key s  := *)
-(*     bind_both s (fun x => *)
-(*       ret_both (snd (fst (fst x)) : t_Bytes)) : both t_Bytes. *)
-(* Fail Next Obligation. *)
-(* Equations f_alg (s : both t_Handle) : both t_HashAlgorithm := *)
-(*   f_alg s  := *)
-(*     bind_both s (fun x => *)
-(*       ret_both (snd (fst x) : t_HashAlgorithm)) : both t_HashAlgorithm. *)
-(* Fail Next Obligation. *)
-(* Equations f_level (s : both t_Handle) : both int8 := *)
-(*   f_level s  := *)
-(*     bind_both s (fun x => *)
-(*       ret_both (snd x : int8)) : both int8. *)
-(* Fail Next Obligation. *)
-(* Equations Build_t_Handle {f_name : both t_TLSnames} {f_key : both t_Bytes} {f_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) := *)
-(*   Build_t_Handle  := *)
-(*     bind_both f_level (fun f_level => *)
-(*       bind_both f_alg (fun f_alg => *)
-(*         bind_both f_key (fun f_key => *)
-(*           bind_both f_name (fun f_name => *)
-(*             ret_both ((f_name,f_key,f_alg,f_level) : (t_Handle)))))) : both (t_Handle). *)
-(* Fail Next Obligation. *)
-(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_key := f_key x) (f_alg := f_alg x) (f_level := f_level x)). *)
-(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_key' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := y) (f_alg := f_alg x) (f_level := f_level x)). *)
-(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := y) (f_level := f_level x)). *)
-(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := f_alg x) (f_level := y)). *)
+Definition t_Handle : choice_type :=
+  (t_TLSnames × t_Bytes × t_HashAlgorithm × int8).
+Equations f_name (s : both t_Handle) : both t_TLSnames :=
+  f_name s  :=
+    bind_both s (fun x =>
+      ret_both (fst (fst (fst x)) : t_TLSnames)) : both t_TLSnames.
+Fail Next Obligation.
+Equations f_key (s : both t_Handle) : both t_Bytes :=
+  f_key s  :=
+    bind_both s (fun x =>
+      ret_both (snd (fst (fst x)) : t_Bytes)) : both t_Bytes.
+Fail Next Obligation.
+Equations f_alg (s : both t_Handle) : both t_HashAlgorithm :=
+  f_alg s  :=
+    bind_both s (fun x =>
+      ret_both (snd (fst x) : t_HashAlgorithm)) : both t_HashAlgorithm.
+Fail Next Obligation.
+Equations f_level (s : both t_Handle) : both int8 :=
+  f_level s  :=
+    bind_both s (fun x =>
+      ret_both (snd x : int8)) : both int8.
+Fail Next Obligation.
+Equations Build_t_Handle {f_name : both t_TLSnames} {f_key : both t_Bytes} {f_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) :=
+  Build_t_Handle  :=
+    bind_both f_level (fun f_level =>
+      bind_both f_alg (fun f_alg =>
+        bind_both f_key (fun f_key =>
+          bind_both f_name (fun f_name =>
+            ret_both ((f_name,f_key,f_alg,f_level) : (t_Handle)))))) : both (t_Handle).
+Fail Next Obligation.
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_key := f_key x) (f_alg := f_alg x) (f_level := f_level x)).
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_key' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := y) (f_alg := f_alg x) (f_level := f_level x)).
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := y) (f_level := f_level x)).
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := f_alg x) (f_level := y)).
 
-(* Definition t_TagKey : choice_type := *)
-(*   (t_TLSnames × t_Bytes). *)
-(* Equations f_tag (s : both t_TagKey) : both t_TLSnames := *)
-(*   f_tag s  := *)
-(*     bind_both s (fun x => *)
-(*       ret_both (fst x : t_TLSnames)) : both t_TLSnames. *)
-(* Fail Next Obligation. *)
-(* Equations f_val (s : both t_TagKey) : both t_Bytes := *)
-(*   f_val s  := *)
-(*     bind_both s (fun x => *)
-(*       ret_both (snd x : t_Bytes)) : both t_Bytes. *)
-(* Fail Next Obligation. *)
-(* Equations Build_t_TagKey {f_tag : both t_TLSnames} {f_val : both t_Bytes} : both (t_TagKey) := *)
-(*   Build_t_TagKey  := *)
-(*     bind_both f_val (fun f_val => *)
-(*       bind_both f_tag (fun f_tag => *)
-(*         ret_both ((f_tag,f_val) : (t_TagKey)))) : both (t_TagKey). *)
-(* Fail Next Obligation. *)
-(* Notation "'Build_t_TagKey' '[' x ']' '(' 'f_tag' ':=' y ')'" := (Build_t_TagKey (f_tag := y) (f_val := f_val x)). *)
-(* Notation "'Build_t_TagKey' '[' x ']' '(' 'f_val' ':=' y ')'" := (Build_t_TagKey (f_tag := f_tag x) (f_val := y)). *)
+Definition t_TagKey : choice_type :=
+  (t_TLSnames × t_Bytes).
+Equations f_tag (s : both t_TagKey) : both t_TLSnames :=
+  f_tag s  :=
+    bind_both s (fun x =>
+      ret_both (fst x : t_TLSnames)) : both t_TLSnames.
+Fail Next Obligation.
+Equations f_val (s : both t_TagKey) : both t_Bytes :=
+  f_val s  :=
+    bind_both s (fun x =>
+      ret_both (snd x : t_Bytes)) : both t_Bytes.
+Fail Next Obligation.
+Equations Build_t_TagKey {f_tag : both t_TLSnames} {f_val : both t_Bytes} : both (t_TagKey) :=
+  Build_t_TagKey  :=
+    bind_both f_val (fun f_val =>
+      bind_both f_tag (fun f_tag =>
+        ret_both ((f_tag,f_val) : (t_TagKey)))) : both (t_TagKey).
+Fail Next Obligation.
+Notation "'Build_t_TagKey' '[' x ']' '(' 'f_tag' ':=' y ')'" := (Build_t_TagKey (f_tag := y) (f_val := f_val x)).
+Notation "'Build_t_TagKey' '[' x ']' '(' 'f_val' ':=' y ')'" := (Build_t_TagKey (f_tag := f_tag x) (f_val := y)).
 
 (* Equations no_psk (alg : both t_HashAlgorithm) : both t_TagKey := *)
 (*   no_psk alg  := *)
 (*     Build_t_TagKey (f_tag := TLSnames_PSK) (f_val := impl__Bytes__zeroes (impl__HashAlgorithm__hash_len alg)) : both t_TagKey. *)
 (* Fail Next Obligation. *)
 
-(* Equations xpd (hash_algorithm : both t_HashAlgorithm) (key : both t_TagKey) (label : both t_Bytes) (transcript_hash : both t_Bytes) : both (t_Result t_TagKey int8) := *)
-(*   xpd hash_algorithm key label transcript_hash  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] (n : t_TLSnames) := matchb prod_b (f_tag key,convert_label (f_clone label)) with *)
-(*     | '(TLSnames_ES ,Option_Some Label_EXT_BINDER____  | Label_RES_BINDER____ ) => *)
+(* Definition xpd (hash_algorithm : both t_HashAlgorithm) (key : both t_TagKey) (label : both t_Bytes) (transcript_hash : both t_Bytes) : both (t_Result t_TagKey int8). *)
+(* Proof. *)
+(*   refine (run (_) : both (t_Result t_TagKey int8)). *)
+(*   refine ( *)
+(*     letm[choice_typeMonad.result_bind_code _ (* int8 *)] (n : t_TLSnames) := matchb prod_b (f_tag key,convert_label (f_clone label)) with *)
+(*     | (TLSnames_ES , (* Option_ *)Some (Label_EXT_BINDER_____case)) => *)
 (*       Result_Ok TLSnames_Bind *)
-(*     | '(TLSnames_Bind ,Option_None ) => *)
+(*     | ( TLSnames_ES , (* Option_ *)Some (Label_RES_BINDER_____case) ) => *)
+(*       Result_Ok TLSnames_Bind *)
+(*     | (TLSnames_Bind ,(* Option_ *)None ) => *)
 (*       Result_Ok TLSnames_Binder *)
-(*     | '(TLSnames_ES ,Option_Some Label_C_E_TRAFFIC___ ) => *)
+(*     | (TLSnames_ES ,(* Option_ *)Some (Label_C_E_TRAFFIC____case) ) => *)
 (*       Result_Ok TLSnames_CET *)
-(*     | '(TLSnames_ES ,Option_Some Label_E_EXP_MASTER ) => *)
+(*     | (TLSnames_ES ,(* Option_ *)Some (Label_E_EXP_MASTER_case) ) => *)
 (*       Result_Ok TLSnames_EEM *)
-(*     | '(TLSnames_ES ,Option_Some Label_DERIVED_________ ) => *)
+(*     | (TLSnames_ES ,(* Option_ *)Some (Label_DERIVED__________case) ) => *)
 (*       Result_Ok TLSnames_ESalt *)
-(*     | '(TLSnames_HS ,Option_Some Label_C_HS_TRAFFIC ) => *)
+(*     | (TLSnames_HS ,(* Option_ *)Some (Label_C_HS_TRAFFIC_case) ) => *)
 (*       Result_Ok TLSnames_CHT *)
-(*     | '(TLSnames_HS ,Option_Some Label_S_HS_TRAFFIC ) => *)
+(*     | (TLSnames_HS ,(* Option_ *)Some (Label_S_HS_TRAFFIC_case) ) => *)
 (*       Result_Ok TLSnames_SHT *)
-(*     | '(TLSnames_HS ,Option_Some Label_DERIVED_________ ) => *)
-(*       Result_Ok TLSnames_HSalt *)
-(*     | '(TLSnames_AS ,Option_Some Label_C_AP_TRAFFIC ) => *)
+(*     (* | (TLSnames_HS ,(* Option_ *)Some (Label_DERIVED__________case) ) => *) *)
+(*     (*   Result_Ok TLSnames_HSalt *) *)
+(*     | (TLSnames_AS ,(* Option_ *)Some (Label_C_AP_TRAFFIC_case) ) => *)
 (*       Result_Ok TLSnames_CAT *)
-(*     | '(TLSnames_AS ,Option_Some Label_S_AP_TRAFFIC ) => *)
+(*     | (TLSnames_AS ,(* Option_ *)Some (Label_S_AP_TRAFFIC_case) ) => *)
 (*       Result_Ok TLSnames_SAT *)
-(*     | '(TLSnames_AS ,Option_Some Label_EXP_MASTER____ ) => *)
+(*     | (TLSnames_AS ,(* Option_ *)Some (Label_EXP_MASTER_____case) ) => *)
 (*       Result_Ok TLSnames_EAM *)
-(*     | '(TLSnames_AS ,Option_Some Label_RES_MASTER____ ) => *)
+(*     | (TLSnames_AS ,(* Option_ *)Some (Label_RES_MASTER_____case) ) => *)
 (*       Result_Ok TLSnames_RM *)
-(*     | '(TLSnames_RM ,Option_Some Label_RESUMPTION____ ) => *)
+(*     | (TLSnames_RM ,(* Option_ *)Some (Label_RESUMPTION_____case) ) => *)
 (*       Result_Ok TLSnames_PSK *)
-(*     | _ => *)
-(*       Result_Err v_INCORRECT_STATE *)
+(*     (* | _ => *) *)
+(*     (*   Result_Err v_INCORRECT_STATE *) *)
 (*     end in *)
-(*     letm[choice_typeMonad.result_bind_code int8] hoist197 := hkdf_expand_label hash_algorithm (f_val key) label transcript_hash (impl__HashAlgorithm__hash_len hash_algorithm) in *)
-(*     Result_Ok (letb hoist198 := Build_t_TagKey (f_tag := n) (f_val := hoist197) in *)
-(*     Result_Ok hoist198)) : both (t_Result t_TagKey int8). *)
-(* Fail Next Obligation. *)
+(*       _). *)
+(*   refine ( *)
+(*       letm[choice_typeMonad.result_bind_code _ (* int8 *)] hoist197 := Result_Ok (hkdf_expand_label hash_algorithm (f_val key) label transcript_hash (impl__HashAlgorithm__hash_len hash_algorithm)) in _). *)
+(*   refine (Result_Ok (letb hoist198 := Build_t_TagKey (f_tag := n) (f_val := hoist197 ) in *)
+(*     Result_Ok hoist198)). *)
+(* Qed. *)
+
+Equations xpd (hash_algorithm : both t_HashAlgorithm) (key : both t_TagKey) (label : both t_Bytes) (transcript_hash : both t_Bytes) : both (t_Result t_TagKey int8) :=
+  xpd hash_algorithm key label transcript_hash  :=
+    (* run *) (letm[choice_typeMonad.result_bind_code _ (* int8 *)] (n : t_TLSnames) :=
+    matchb prod_b (f_tag key,convert_label (f_clone label)) with
+    | (TLSnames_ES , (* Option_ *)Some (Label_EXT_BINDER_____case)) =>
+      Result_Ok TLSnames_Bind
+    | ( TLSnames_ES , (* Option_ *)Some (Label_RES_BINDER_____case) ) =>
+      Result_Ok TLSnames_Bind
+    | (TLSnames_Bind ,(* Option_ *)None ) =>
+      Result_Ok TLSnames_Binder
+    | (TLSnames_ES ,(* Option_ *)Some (Label_C_E_TRAFFIC____case) ) =>
+      Result_Ok TLSnames_CET
+    | (TLSnames_ES ,(* Option_ *)Some (Label_E_EXP_MASTER_case) ) =>
+      Result_Ok TLSnames_EEM
+    | (TLSnames_ES ,(* Option_ *)Some (Label_DERIVED__________case) ) =>
+      Result_Ok TLSnames_ESalt
+    | (TLSnames_HS ,(* Option_ *)Some (Label_C_HS_TRAFFIC_case) ) =>
+      Result_Ok TLSnames_CHT
+    | (TLSnames_HS ,(* Option_ *)Some (Label_S_HS_TRAFFIC_case) ) =>
+      Result_Ok TLSnames_SHT
+    (* | (TLSnames_HS ,(* Option_ *)Some (Label_DERIVED__________case) ) => *)
+    (*   Result_Ok TLSnames_HSalt *)
+    | (TLSnames_AS ,(* Option_ *)Some (Label_C_AP_TRAFFIC_case) ) =>
+      Result_Ok TLSnames_CAT
+    | (TLSnames_AS ,(* Option_ *)Some (Label_S_AP_TRAFFIC_case) ) =>
+      Result_Ok TLSnames_SAT
+    | (TLSnames_AS ,(* Option_ *)Some (Label_EXP_MASTER_____case) ) =>
+      Result_Ok TLSnames_EAM
+    | (TLSnames_AS ,(* Option_ *)Some (Label_RES_MASTER_____case) ) =>
+      Result_Ok TLSnames_RM
+    | (TLSnames_RM ,(* Option_ *)Some (Label_RESUMPTION_____case) ) =>
+      Result_Ok TLSnames_PSK
+    (* | _ => *)
+    (*   Result_Err v_INCORRECT_STATE *)
+    end in
+    letm[choice_typeMonad.result_bind_code _ (* int8 *)] hoist197 := Result_Ok (hkdf_expand_label hash_algorithm (f_val key) label transcript_hash (impl__HashAlgorithm__hash_len hash_algorithm)) in
+    (* Result_Ok *) (letb hoist198 := Build_t_TagKey (f_tag := n) (f_val := _ (* hoist197 *)) in
+    Result_Ok hoist198)) : both (t_Result t_TagKey int8).
+Fail Next Obligation.
 
 (* Equations derive_rms (ha : both t_HashAlgorithm) (master_secret : both t_TagKey) (tx : both t_Bytes) : both (t_Result t_TagKey int8) := *)
 (*   derive_rms ha master_secret tx  := *)
 (*     xpd ha master_secret (bytes (unsize v_LABEL_RES_MASTER)) tx : both (t_Result t_TagKey int8). *)
 (* Fail Next Obligation. *)
 
-(* Equations xpd_angle (name : both t_TLSnames) (label : both t_Bytes) (parrent_handle : both t_Handle) (args : both t_Bytes) : both (t_Result t_Handle int8) := *)
-(*   xpd_angle name label parrent_handle args  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] k := xpd (f_alg parrent_handle) (Build_t_TagKey (f_tag := f_name parrent_handle) (f_val := f_clone (f_key parrent_handle))) label args in *)
-(*     Result_Ok (Result_Ok (Build_t_Handle (f_name := f_tag k) (f_key := f_val k) (f_alg := f_alg parrent_handle) (f_level := f_level parrent_handle)))) : both (t_Result t_Handle int8). *)
-(* Fail Next Obligation. *)
+Equations xpd_angle (name : both t_TLSnames) (label : both t_Bytes) (parrent_handle : both t_Handle) (args : both t_Bytes) : both (t_Result t_Handle int8) :=
+  xpd_angle name label parrent_handle args  :=
+    (* run *) (letm[choice_typeMonad.result_bind_code _ (* int8 *)] k := xpd (f_alg parrent_handle) (Build_t_TagKey (f_tag := f_name parrent_handle) (f_val := f_clone (f_key parrent_handle))) label args in
+    (* Result_Ok *) (Result_Ok (Build_t_Handle (f_name := f_tag k) (f_key := f_val k) (f_alg := f_alg parrent_handle) (f_level := f_level parrent_handle)))) : both (t_Result t_Handle int8).
+Fail Next Obligation.
 
 (* Equations xtr (alg : both t_HashAlgorithm) (ikm : both t_TagKey) (salt : both t_TagKey) : both (t_Result t_TagKey int8) := *)
 (*   xtr alg ikm salt  := *)

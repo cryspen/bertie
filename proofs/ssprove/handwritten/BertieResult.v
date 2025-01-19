@@ -160,6 +160,40 @@ Definition t_TLSname_option_pair_to_name
     end
   end.
 
+Definition chHash_to_t_HashAlgorithm (x : chHash) : both t_HashAlgorithm :=
+  match (nat_of_ord (otf x)) as k return (k < 3)%nat -> _ with
+  | 0 => fun _ => HashAlgorithm_SHA256
+  | 1 => fun _ => HashAlgorithm_SHA384
+  | 2 => fun _ => HashAlgorithm_SHA512
+  | n => fun H => False_rect _ (ltac:(easy))
+  end%nat (ltn_ord (otf x)).
+
+Definition chLabel_to_label (l : chLabel) : (* both *) (chList int8) :=
+  (* array_from_list *) (List.map (fun (x : nat) => (* ret_both *) (((otf l / Nat.pow 2 (x * 8)) mod 8)%nat : int8)) (iota 0 12)).
+
+Notation repr := (fun WS x => wrepr WS x : int WS).
+
+Obligation Tactic := (* try timeout 8 *) idtac.
+Program Fixpoint bitvec_to_bitstring (x : bitvec) {measure x} : chList int8 :=
+  match x with
+  | O => []
+  | _ =>
+      bitvec_to_bitstring (x / 8)%nat ++ [wrepr _ (Z.of_nat (x mod 8)%nat)]
+  end.
+Next Obligation.
+  intros.
+  subst.
+  destruct x.
+  - Lia.lia.
+  - apply Nat.div_lt ; easy.
+Qed.
+Next Obligation.
+  intros.
+  easy.
+Qed.
+Final Obligation.
+Admitted.
+
 Section BertieKeySchedule.
   Definition Bertie_PrntN : name -> code fset0 fset0 (chName × chName) :=
     (fun n =>
@@ -176,26 +210,74 @@ Section BertieKeySchedule.
        end erefl).
 
   Definition Bertie_Labels : name -> bool -> code fset0 fset0 chLabel.
+  Proof.
+    intros.
   Admitted.
 
-  Definition Bertie_O_star : list name.
+  Definition Bertie_O_star : list name :=
+    [EEM; CET; BIND; BINDER; SHT; CHT; HSALT; RM; CAT; SAT; EAM; PSK; ZERO_SALT; ESALT; DH; ZERO_IKM].
+
+  Program Definition Bertie_xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey :=
+    (λ (H : chKey) (H0 : chLabel -× bitvec),
+   let H1 :=
+     let n := nfto (fto (otf H).2) in
+     match n as n0 return ({n0 = BOT} + {n0 ≠ BOT}) with
+     | BOT => left erefl
+     | name => right (fun (H2 : name = BOT) => False_ind False ltac:(discriminate))
+     end in
+   match H1 with
+   | left _ =>
+     {code ret (fto ((otf H).1, otf (name_to_chName BOT))) }
+   | right n =>
+       let s := H0.1 in
+       let b :=
+         xpd
+           (chHash_to_t_HashAlgorithm (fto (otf H).1))
+           (prod_b (name_to_t_TLSname (H_not_bot := n) (nfto (fto (otf H).2)), _))
+           (ret_both (chLabel_to_label H0.1))
+           (ret_both (bitvec_to_bitstring H0.2))
+       in
+       {code x ← is_state b ;;
+        ret
+          (fto ((otf H).1,
+           let X1 :=
+             match x with
+             | Result_Ok_case s0 => Option_Some (fst s0)
+             | Result_Err_case _ => None
+             end in
+           otf (name_to_chName (t_TLSname_option_pair_to_name X1)))) }
+   end).
+  Next Obligation.
+    admit.
   Admitted.
-  
-    Definition Bertie_xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey. Admitted.
-    Definition Bertie_xtr : chKey -> chKey -> code fset0 fset0 chKey. Admitted.
-    Definition Bertie_xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle. Admitted.
-    Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle. Admitted.
-    Definition Bertie_PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName). Admitted.
-    Definition Bertie_ord : chGroup → nat. Admitted.
-    Definition Bertie_E : nat -> nat. Admitted.
+  Final Obligation.
+    intros.
+    ssprove_valid.
+    apply b.
+  Qed.
 
-    Definition Bertie_L_K : {fset Location}. Admitted.
-    Definition Bertie_K_table : chHandle -> nat. Admitted.
-    Definition Bertie_in_K_table : forall x, ('option chK_table; Bertie_K_table x) \in Bertie_L_K. Admitted.
+  Definition Bertie_xtr : chKey -> chKey -> code fset0 fset0 chKey.
+  Proof.
+    intros.
+    refine {code ret _}.
+    admit.
+    (* refine X. *)
+    (* Qed. *)
+  Admitted.
 
-    Definition Bertie_L_M : {fset Location}. Admitted.
-    Definition Bertie_M : chHandle -> nat. Admitted.
-    Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted.
+  Definition Bertie_xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle. Admitted.
+  Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle. Admitted.
+  Definition Bertie_PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName). Admitted.
+  Definition Bertie_ord : chGroup → nat. Admitted.
+  Definition Bertie_E : nat -> nat. Admitted.
+
+  Definition Bertie_L_K : {fset Location}. Admitted.
+  Definition Bertie_K_table : chHandle -> nat. Admitted.
+  Definition Bertie_in_K_table : forall x, ('option chK_table; Bertie_K_table x) \in Bertie_L_K. Admitted.
+
+  Definition Bertie_L_M : {fset Location}. Admitted.
+  Definition Bertie_M : chHandle -> nat. Admitted.
+  Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted.
 
 End BertieKeySchedule.
 
