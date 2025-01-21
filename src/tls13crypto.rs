@@ -89,7 +89,7 @@ pub(crate) enum PublicVerificationKey {
 }
 
 /// Bertie hash algorithms.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub enum HashAlgorithm {
     SHA256,
     SHA384,

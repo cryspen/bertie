@@ -519,6 +519,7 @@ fn test_key_schedule() {
                 &ha,
                 &ae,
                 &TagKey {
+                    alg: ha,
                     tag: TLSnames::DH,
                     val: shared_secret_bytes,
                 },

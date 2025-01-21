@@ -8,7 +8,7 @@ use crate::{
         Algorithms, Digest, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
-    tls13keyscheduler::{*, key_schedule::*},
+    tls13keyscheduler::{key_schedule::*, *},
     tls13record::*,
     tls13utils::*,
 };
@@ -21,8 +21,24 @@ There are no optional steps, all states must be traversed, even if the traversal
 See "put_psk_skip_server_signature" below */
 
 pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<Psk>, Transcript);
-pub struct ClientPostServerHello(Random, Random, Algorithms, TagKey, MacKey, MacKey, Transcript);
-pub struct ClientPostCertificateVerify(Random, Random, Algorithms, TagKey, MacKey, MacKey, Transcript);
+pub struct ClientPostServerHello(
+    Random,
+    Random,
+    Algorithms,
+    TagKey,
+    MacKey,
+    MacKey,
+    Transcript,
+);
+pub struct ClientPostCertificateVerify(
+    Random,
+    Random,
+    Algorithms,
+    TagKey,
+    MacKey,
+    MacKey,
+    Transcript,
+);
 pub struct ClientPostServerFinished(Random, Random, Algorithms, TagKey, MacKey, Transcript);
 // We do not use most of this state, but we keep the unused parts for verification purposes.
 #[allow(dead_code)]
@@ -60,7 +76,15 @@ pub struct ServerPostServerHello {
     transcript: Transcript,
 }
 
-pub struct ServerPostCertificateVerify(Random, Random, Algorithms, TagKey, MacKey, MacKey, Transcript);
+pub struct ServerPostCertificateVerify(
+    Random,
+    Random,
+    Algorithms,
+    TagKey,
+    MacKey,
+    MacKey,
+    Transcript,
+);
 pub struct ServerPostServerFinished(Random, Random, Algorithms, TagKey, MacKey, Transcript);
 // We do not use most of this state, but we keep the unsused parts for verification purposes.
 #[allow(dead_code)]
@@ -117,14 +141,19 @@ fn compute_psk_binder_zero_rtt(
     } = algs0;
     match (psk_mode, psk, trunc_len as u8) {
         (true, Some(k), _) => {
+            let psk_key = TagKey {
+                alg: ha,
+                tag: TLSnames::PSK,
+                val: k.clone(),
+            };
             let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
-            let mk = derive_binder_key(&ha, &TagKey {tag: TLSnames::PSK, val: k.clone()})?;
-            let binder = hmac_tag(&ha, &mk, &th_trunc)?;
+            let mk = derive_binder_key(&ha, &psk_key)?;
+            let binder = xpd(&TagKey {alg: ha, val: mk, tag: TLSnames::Bind}, vec![].into(), &th_trunc)?.val;
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
             if zero_rtt {
                 let th = tx_ch.transcript_hash()?;
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, &TagKey {tag: TLSnames::PSK, val: k.clone()}, &th)?;
+                let (aek, key) = derive_0rtt_keys(&ha, &ae, &psk_key, &th)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
             } else {
@@ -152,8 +181,16 @@ fn put_server_hello(
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
         &ciphersuite.hash,
         &ciphersuite.aead,
-        &TagKey {tag: TLSnames::DH, val: shared_secret},
-        &psk.map(|x| TagKey {tag: TLSnames::PSK, val: x}),
+        &TagKey {
+            alg: ciphersuite.hash,
+            tag: TLSnames::DH,
+            val: shared_secret,
+        },
+        &psk.map(|x| TagKey {
+            alg: ciphersuite.hash,
+            tag: TLSnames::PSK,
+            val: x,
+        }),
         &th,
     )?;
 
@@ -416,11 +453,16 @@ fn process_psk_binder_zero_rtt(
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
-            let mk = derive_binder_key(&ciphersuite.hash, &TagKey {tag: TLSnames::PSK, val: k.clone()})?;
+            let psk_key = TagKey {
+                alg: ciphersuite.hash,
+                tag: TLSnames::PSK,
+                val: k.clone(),
+            };
+            let mk = derive_binder_key(&ciphersuite.hash, &psk_key)?;
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms) =
-                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &TagKey {tag: TLSnames::PSK, val: k.clone()}, &th)?;
+                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_key, &th)?;
                 let cipher0 = Some(server_cipher_state0(key_iv, 0, early_exporter_ms));
                 Ok(cipher0)
             } else {
@@ -450,8 +492,16 @@ fn get_server_hello(
     let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
         &state.ciphersuite.hash,
         &state.ciphersuite.aead,
-        &TagKey {tag: TLSnames::DH, val: shared_secret},
-        &state.server.psk_opt.clone().map(|x| TagKey {tag: TLSnames::PSK, val: x}),
+        &TagKey {
+            alg: state.ciphersuite.hash,
+            tag: TLSnames::DH,
+            val: shared_secret,
+        },
+        &state.server.psk_opt.clone().map(|x| TagKey {
+            alg: state.ciphersuite.hash,
+            tag: TLSnames::PSK,
+            val: x,
+        }),
         &transcript_hash,
     )?;
     Ok((
