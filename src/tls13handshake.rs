@@ -101,6 +101,7 @@ fn build_client_hello(
     tkt: Option<Bytes>,
     psk: Option<Psk>,
     rng: &mut (impl CryptoRng + RngCore),
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -116,7 +117,7 @@ fn build_client_hello(
     let (client_hello, trunc_len) =
         client_hello(&ciphersuite, client_random.into(), &kem_pk, sn, &tkt)?;
     let (nch, cipher0, tx_ch) =
-        compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx)?;
+        compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx, ks)?;
     Ok((
         nch,
         cipher0,
@@ -130,6 +131,7 @@ fn compute_psk_binder_zero_rtt(
     trunc_len: usize,
     psk: &Option<Psk>,
     tx: Transcript,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, Option<ClientCipherState0>, Transcript), TLSError> {
     let Algorithms {
         hash: ha,
@@ -147,13 +149,23 @@ fn compute_psk_binder_zero_rtt(
                 val: k.clone(),
             };
             let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
-            let mk = derive_binder_key(&ha, &psk_key)?;
-            let binder = xpd(&TagKey {alg: ha, val: mk, tag: TLSnames::Bind}, vec![].into(), &th_trunc)?.val;
+            let mk = derive_binder_key(&ha, &psk_key, ks)?;
+            let binder =
+                xpd(
+                    &TagKey {
+                        alg: ha,
+                        val: mk,
+                        tag: TLSnames::Bind,
+                    },
+                    vec![].into(),
+                    &th_trunc,
+                )?
+            .val;
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
             if zero_rtt {
                 let th = tx_ch.transcript_hash()?;
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, &psk_key, &th)?;
+                let (aek, key) = derive_0rtt_keys(&ha, &ae, &psk_key, &th, ks)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
             } else {
@@ -183,7 +195,7 @@ fn put_server_hello(
         &ciphersuite.aead,
         &TagKey {
             alg: ciphersuite.hash,
-            tag: TLSnames::DH,
+            tag: TLSnames::KEM,
             val: shared_secret,
         },
         &psk.map(|x| TagKey {
@@ -359,6 +371,7 @@ pub fn client_init(
     tkt: Option<Bytes>,
     psk: Option<Psk>,
     rng: &mut (impl CryptoRng + RngCore),
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -367,7 +380,7 @@ pub fn client_init(
     ),
     TLSError,
 > {
-    build_client_hello(algs, sn, tkt, psk, rng)
+    build_client_hello(algs, sn, tkt, psk, rng, ks)
 }
 
 /// Update the client state after generating the client hello message.
@@ -421,6 +434,7 @@ fn put_client_hello(
     ciphersuite: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
     let (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) =
         parse_client_hello(&ciphersuite, ch)?;
@@ -429,7 +443,7 @@ fn put_client_hello(
     let transcript = tx.add(ch);
     let th = transcript.transcript_hash()?;
     let server = lookup_db(ciphersuite, &db, &sni, &tkto)?;
-    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero)?;
+    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero, ks)?;
     Ok((
         cipher0,
         ServerPostClientHello {
@@ -450,6 +464,7 @@ fn process_psk_binder_zero_rtt(
     th: Digest,
     psko: &Option<Psk>,
     bindero: Option<Bytes>,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
@@ -458,11 +473,11 @@ fn process_psk_binder_zero_rtt(
                 tag: TLSnames::PSK,
                 val: k.clone(),
             };
-            let mk = derive_binder_key(&ciphersuite.hash, &psk_key)?;
+            let mk = derive_binder_key(&ciphersuite.hash, &psk_key, ks)?;
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms) =
-                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_key, &th)?;
+                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_key, &th, ks)?;
                 let cipher0 = Some(server_cipher_state0(key_iv, 0, early_exporter_ms));
                 Ok(cipher0)
             } else {
@@ -494,7 +509,7 @@ fn get_server_hello(
         &state.ciphersuite.aead,
         &TagKey {
             alg: state.ciphersuite.hash,
-            tag: TLSnames::DH,
+            tag: TLSnames::KEM,
             val: shared_secret,
         },
         &state.server.psk_opt.clone().map(|x| TagKey {
@@ -692,6 +707,7 @@ pub fn server_init_no_psk(
     ch: &HandshakeData,
     db: ServerDB,
     rng: &mut (impl CryptoRng + RngCore),
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -703,7 +719,7 @@ pub fn server_init_no_psk(
     ),
     TLSError,
 > {
-    let (cipher0, st) = put_client_hello(algs, ch, db)?;
+    let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
 
     let (ee, sc, scv, st) = get_server_signature(st, rng)?;
@@ -718,6 +734,7 @@ pub fn server_init_psk(
     ch: &HandshakeData,
     db: ServerDB,
     rng: &mut (impl CryptoRng + RngCore),
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -729,7 +746,7 @@ pub fn server_init_psk(
     ),
     TLSError,
 > {
-    let (cipher0, st) = put_client_hello(algs, ch, db)?;
+    let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
 
     let (ee, st) = get_skip_server_signature(st)?;
@@ -744,6 +761,7 @@ pub fn server_init(
     ch: &HandshakeData,
     db: ServerDB,
     rng: &mut (impl CryptoRng + RngCore),
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -756,8 +774,8 @@ pub fn server_init(
     TLSError,
 > {
     match algs.psk_mode() {
-        false => server_init_no_psk(algs, ch, db, rng),
-        true => server_init_psk(algs, ch, db, rng),
+        false => server_init_no_psk(algs, ch, db, rng, ks),
+        true => server_init_psk(algs, ch, db, rng, ks),
     }
 }
 

@@ -2,6 +2,7 @@ use std::{
     fs::File,
     io::{BufReader, Read, Write},
     net::TcpStream,
+    collections::HashMap
 };
 
 use rand::{CryptoRng, RngCore};
@@ -15,6 +16,7 @@ use crate::{
         PROTOCOL_VERSION_ALERT,
     },
     Server,
+    tls13keyscheduler::key_schedule::*,
 };
 
 use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
@@ -182,11 +184,16 @@ impl BertieStream<ServerState<TcpStream>> {
     pub fn connect(&mut self, rng: &mut (impl RngCore + CryptoRng)) -> Result<(), BertieError> {
         let client_hello = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
 
+        let mut ks : TLSkeyscheduler = TLSkeyscheduler {
+            keys: HashMap::new(),
+        };
+
         match Server::accept(
             self.ciphersuite,
             self.state.db.clone(),
             &client_hello.into(),
             rng,
+            &mut ks,
         ) {
             Err(x) => {
                 match x {

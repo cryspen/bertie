@@ -3,6 +3,8 @@
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
 
+use std::collections::HashMap;
+
 use bertie::{
     server::ServerDB,
     test_utils::TestRng,
@@ -11,6 +13,7 @@ use bertie::{
     },
     tls13utils::{eq, random_bytes, AppData, Bytes},
     Client, Server,
+    TLSkeyscheduler,
 };
 
 fn load_hex(s: &str) -> Bytes {
@@ -120,14 +123,22 @@ fn test_full_round_trip() {
     let mut b = true;
     const ciphersuite: Algorithms = TLS_CHACHA20_POLY1305_SHA256_X25519;
 
-    match Client::connect(ciphersuite, &server_name, None, None, &mut client_rng) {
+    let mut client_ks : TLSkeyscheduler = TLSkeyscheduler {
+        keys: HashMap::new(),
+    };
+
+    let mut server_ks : TLSkeyscheduler = TLSkeyscheduler {
+        keys: HashMap::new(),
+    };
+    
+    match Client::connect(ciphersuite, &server_name, None, None, &mut client_rng, &mut client_ks) {
         Err(x) => {
             println!("Client0 Error {}", x);
             b = false;
         }
         Ok((client_hello, client)) => {
             println!("Client0 Complete {}", server_rng.raw().len());
-            match Server::accept(ciphersuite, db, &client_hello, &mut server_rng) {
+            match Server::accept(ciphersuite, db, &client_hello, &mut server_rng, &mut server_ks) {
                 Err(x) => {
                     println!("ServerInit Error {}", x);
                     b = false;

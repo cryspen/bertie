@@ -4,13 +4,12 @@
 
 use rand::{CryptoRng, RngCore};
 use std::{
-    io::{Read, Write},
-    net::TcpStream,
+    collections::HashMap, io::{Read, Write}, net::TcpStream
 };
 // use tracing::{event, Level};
 
 use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
-use crate::{tls13crypto::*, tls13utils::*, Client};
+use crate::{tls13crypto::*, tls13keyscheduler::key_schedule::TLSkeyscheduler, tls13utils::*, Client};
 
 pub struct ClientState<Stream: Read + Write> {
     stream: Stream,
@@ -122,10 +121,14 @@ impl BertieStream<ClientState<TcpStream>> {
             return Err(BertieError::InvalidState);
         }
 
+        let mut ks : TLSkeyscheduler = TLSkeyscheduler {
+            keys: HashMap::new(),
+        };
+        
         // Client Hello
         let (client_hello, cstate) = {
             let sni = self.host.as_bytes();
-            Client::connect(self.ciphersuite, &Bytes::from(sni), None, None, rng)?
+            Client::connect(self.ciphersuite, &Bytes::from(sni), None, None, rng, &mut ks)?
         };
         // event!(Level::TRACE, "client hello: {}", client_hello.as_hex());
         // event!(Level::DEBUG, "  {ciphersuite:?}");

@@ -16,6 +16,7 @@ use crate::{
     tls13handshake::*,
     tls13record::*,
     tls13utils::*,
+    tls13keyscheduler::key_schedule::*,
 };
 
 /// The TLS Client state.
@@ -68,9 +69,10 @@ impl Client {
         session_ticket: Option<Bytes>,
         psk: Option<Key>,
         rng: &mut (impl CryptoRng + RngCore),
+        ks: &mut TLSkeyscheduler,
     ) -> Result<(Bytes, Self), TLSError> {
         let (client_hello, cipherstate0, client_state) =
-            client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
+            client_init(ciphersuite, server_name, session_ticket, psk, rng, ks)?;
         let mut client_hello_record = handshake_record(client_hello)?;
         client_hello_record[2] = U8(0x01);
         Ok((
@@ -202,12 +204,13 @@ impl Server {
         db: ServerDB,
         client_hello: &Bytes,
         rng: &mut (impl CryptoRng + RngCore),
+        ks: &mut TLSkeyscheduler,
     ) -> Result<(Bytes, Bytes, Self), TLSError> {
         let mut ch_rec = client_hello.clone();
         ch_rec[2] = U8(0x03);
         let ch = get_handshake_record(&ch_rec)?;
         let (server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate) =
-            server_init(ciphersuite, &ch, db, rng)?;
+            server_init(ciphersuite, &ch, db, rng, ks)?;
         let sh_rec = handshake_record(server_hello)?;
         let (sf_rec, cipher_hs) = encrypt_handshake(server_finished, 0, cipher_hs)?;
         Ok((
