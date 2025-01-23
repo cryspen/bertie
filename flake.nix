@@ -41,6 +41,7 @@
     {
       # Takes the lockfile as input.
       packages.default = cargoLock: pkgs.callPackage bertie { inherit hax craneLib cargoLock; };
+      devShells.default = craneLib.devShell { };
     }
   );
 }
