@@ -14,9 +14,9 @@ use crate::{
     tls13crypto::*,
     tls13formats::{handshake_data::HandshakeType, *},
     tls13handshake::*,
+    tls13keyscheduler::key_schedule::*,
     tls13record::*,
     tls13utils::*,
-    tls13keyscheduler::key_schedule::*,
 };
 
 /// The TLS Client state.
@@ -97,11 +97,12 @@ impl Client {
     pub fn read_handshake(
         self,
         handshake_bytes: &Bytes,
+        ks: &mut TLSkeyscheduler,
     ) -> Result<(Option<Bytes>, Self), TLSError> {
         match self {
             Client::Client0(state, cipher_state) => {
                 let sf = get_handshake_record(handshake_bytes)?;
-                let (cipher1, cstate) = client_set_params(&sf, state)?;
+                let (cipher1, cstate) = client_set_params(&sf, state, ks)?;
                 let buf = handshake_data::HandshakeData::from(Bytes::new());
                 Ok((None, Client::ClientH(cstate, cipher_state, cipher1, buf)))
             }
@@ -109,7 +110,7 @@ impl Client {
                 let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
                 let buf = buf.concat(&hd);
                 if buf.find_handshake_message(HandshakeType::Finished, 0) {
-                    let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
+                    let (cfin, cipher1, cstate) = client_finish(&buf, cstate, ks)?;
                     let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
                     Ok((Some(cf_rec), Client::Client1(cstate, cipher1)))
                 } else {
@@ -228,11 +229,15 @@ impl Server {
     /// The function returns a [`Result`].
     /// When successful, the function returns the next [`Server`] state.
     /// If an error occurs, it returns a [`TLSError`].
-    pub fn read_handshake(self, handshake_bytes: &Bytes) -> Result<Self, TLSError> {
+    pub fn read_handshake(
+        self,
+        handshake_bytes: &Bytes,
+        ks: &mut TLSkeyscheduler,
+    ) -> Result<Self, TLSError> {
         match self {
             Server::ServerH(sstate, _cipher0, cipher_hs, cipher1) => {
                 let (cf, _cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
-                let sstate = server_finish(&cf, sstate)?;
+                let sstate = server_finish(&cf, sstate, ks)?;
                 Ok(Server::Server1(sstate, cipher1))
             }
             _ => Err(INCORRECT_STATE),

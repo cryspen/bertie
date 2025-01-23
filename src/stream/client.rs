@@ -4,12 +4,16 @@
 
 use rand::{CryptoRng, RngCore};
 use std::{
-    collections::HashMap, io::{Read, Write}, net::TcpStream
+    collections::HashMap,
+    io::{Read, Write},
+    net::TcpStream,
 };
 // use tracing::{event, Level};
 
 use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
-use crate::{tls13crypto::*, tls13keyscheduler::key_schedule::TLSkeyscheduler, tls13utils::*, Client};
+use crate::{
+    tls13crypto::*, tls13keyscheduler::key_schedule::TLSkeyscheduler, tls13utils::*, Client,
+};
 
 pub struct ClientState<Stream: Read + Write> {
     stream: Stream,
@@ -121,14 +125,21 @@ impl BertieStream<ClientState<TcpStream>> {
             return Err(BertieError::InvalidState);
         }
 
-        let mut ks : TLSkeyscheduler = TLSkeyscheduler {
+        let mut ks: TLSkeyscheduler = TLSkeyscheduler {
             keys: HashMap::new(),
         };
-        
+
         // Client Hello
         let (client_hello, cstate) = {
             let sni = self.host.as_bytes();
-            Client::connect(self.ciphersuite, &Bytes::from(sni), None, None, rng, &mut ks)?
+            Client::connect(
+                self.ciphersuite,
+                &Bytes::from(sni),
+                None,
+                None,
+                rng,
+                &mut ks,
+            )?
         };
         // event!(Level::TRACE, "client hello: {}", client_hello.as_hex());
         // event!(Level::DEBUG, "  {ciphersuite:?}");
@@ -149,7 +160,7 @@ impl BertieStream<ClientState<TcpStream>> {
         }
 
         // Read server hello
-        let cstate = match cstate.read_handshake(&Bytes::from(server_hello)) {
+        let cstate = match cstate.read_handshake(&Bytes::from(server_hello), &mut ks) {
             Ok((_, cstate)) => cstate,
             Err(e) => {
                 println!(" >>> ERROR {e}");
@@ -180,7 +191,7 @@ impl BertieStream<ClientState<TcpStream>> {
         while cf_rec.is_none() {
             let rec = read_record(&mut read_buffer, &mut self.state.stream)?;
 
-            let (new_cf_rec, new_cstate) = match cstate.read_handshake(&rec.into()) {
+            let (new_cf_rec, new_cstate) = match cstate.read_handshake(&rec.into(), &mut ks) {
                 Ok((new_cf_rec, new_cstate)) => (new_cf_rec, new_cstate),
                 Err(e) => {
                     match e {

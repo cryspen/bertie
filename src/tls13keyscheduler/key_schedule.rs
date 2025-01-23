@@ -112,30 +112,32 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
 
     fn labels(a: TLSnames, b: bool) -> Result<Bytes, TLSError> {
         // [u8; 12]
-        Ok(match a {
-            // EEM => LABEL_E_EXP_MASTER,
-            // CET => LABEL_C_E_TRAFFIC,
-            // Binder => LABEL_RES_BINDER,
-            SHT => LABEL_S_HS_TRAFFIC,
-            CHT => LABEL_C_HS_TRAFFIC,
-            CAT => LABEL_C_AP_TRAFFIC,
-            SAT => LABEL_S_AP_TRAFFIC,
+        Ok(label_to_bytes(match a {
+            Bind => {
+                if b {
+                    RES_BINDER__
+                } else {
+                    EXT_BINDER__
+                }
+            }
+            RM => RES_MASTER__,
+            ESalt | HSalt => DERIVED_____,
+            EEM | EAM => E_EXP_MASTER,
+            CET => C_E_TRAFFIC_,
+            Binder => ____________,
+            SHT => S_HS_TRAFFIC,
+            CHT => C_HS_TRAFFIC,
+            CAT => C_AP_TRAFFIC,
+            SAT => S_AP_TRAFFIC,
             _ => Err(INCORRECT_STATE)?,
-        }
-        .into())
+        }))
     }
 
     fn get(&self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8)) -> Key {
         self.keys.get(&h).unwrap().clone()
     }
 
-    fn set(
-        &mut self,
-        name: TLSnames,
-        level: u8,
-        h: (TLSnames, HashAlgorithm, u8),
-        k: Key,
-    ) {
+    fn set(&mut self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8), k: Key) {
         self.keys.insert(h, k);
     }
 
@@ -243,53 +245,24 @@ pub(crate) fn xpd_alg(
     }
 }
 
-// ikm, salt
 pub(crate) fn xtr(k1: &TagKey, k2: &TagKey) -> Result<TagKey, TLSError> {
-    let k_n = match (k1.tag, k2.tag) {
-        (PSK, ZeroSalt) => ES,
-        (KEM, ESalt) => HS,
-        (ZeroIKM, HSalt) => AS,
-        _ => Err(INCORRECT_STATE)?,
-    };
+    // let k_n = match (k1.tag, k2.tag) {
+    //     (PSK, ZeroSalt) => ES,
+    //     (KEM, ESalt) => HS,
+    //     (ZeroIKM, HSalt) => AS,
+    //     _ => Err(INCORRECT_STATE)?,
+    // };
 
     let val = xtr_alg(&k1.alg, &k1.val, &k2.val)?;
 
     Ok(TagKey {
         alg: k1.alg.clone(),
-        tag: k_n,
+        tag: k1.tag.clone(),
         val,
     })
 }
 
 pub(crate) fn xpd(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSError> {
-    let n: TLSnames = match (k1.tag, convert_label(label.clone())) {
-        (ES, Some(EXT_BINDER__ | RES_BINDER__)) => Bind,
-        (Bind, Some(_____________)) => Binder,
-        (ES, Some(C_E_TRAFFIC_)) => CET,
-        (ES, Some(E_EXP_MASTER)) => EEM,
-        (ES, Some(DERIVED_____)) => ESalt,
-
-        (HS, Some(C_HS_TRAFFIC)) => CHT,
-        (HS, Some(S_HS_TRAFFIC)) => SHT,
-        (HS, Some(DERIVED_____)) => HSalt,
-
-        (AS, Some(C_AP_TRAFFIC)) => CAT,
-        (AS, Some(S_AP_TRAFFIC)) => SAT,
-        (AS, Some(EXP_MASTER__)) => EAM,
-        (AS, Some(RES_MASTER__)) => RM,
-
-        (RM, Some(RESUMPTION__)) => PSK,
-
-        _ => Err(INCORRECT_STATE)?,
-    };
-
-    let TagKey { alg, tag, val: k1 } = k1.clone();
-    let val = xpd_alg(&alg, &k1, label, d)?;
-
-    Ok(TagKey { tag: n, alg, val })
-}
-
-pub(crate) fn xpd_(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSError> {
     let TagKey { alg, tag, val: k1 } = k1.clone();
     let val = xpd_alg(&alg, &k1, label, d)?;
 
@@ -338,6 +311,31 @@ pub(crate) fn xpd_angle(
     })
 }
 
+pub fn tagkey_from_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) -> TagKey {
+    TagKey {
+        alg: handle.alg,
+        tag: handle.name,
+        val: get_by_handle(ks, handle),
+    }
+}
+
+pub fn set_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle, key: Key) {
+    ks.set(
+        handle.name,
+        handle.level,
+        (handle.name, handle.alg, handle.level),
+        key,
+    );
+}
+
+pub fn get_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) -> Key {
+    ks.get(
+        handle.name,
+        handle.level,
+        (handle.name, handle.alg, handle.level),
+    )
+}
+
 #[allow(non_snake_case)]
 pub fn XPD<KS: KeySchedule<TLSnames>>(
     ks: &mut KS,
@@ -349,13 +347,14 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
 ) -> Result<Handle, TLSError> {
     let (n1, _) = KS::prnt_n(n);
     let label = KS::labels(n, r)?;
+
     let h = xpd_angle(n, label.clone(), h1, args)?;
     let k1 = ks.get(n1.unwrap(), l, (h1.name, h1.alg, h1.level));
 
     let k: TagKey;
     if n == PSK {
         l = l + 1;
-        k = xpd_(
+        k = xpd(
             &TagKey {
                 alg: h1.alg,
                 tag: h1.name,
@@ -366,7 +365,7 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
         )?;
     } else {
         let d = KS::hash(args);
-        k = xpd_(
+        k = xpd(
             &TagKey {
                 alg: h1.alg,
                 tag: h1.name,
@@ -383,56 +382,56 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
     Ok(h)
 }
 
-// pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<Handle, TLSError> {
-//     let k_n = match (left.name, right.name) {
-//         (PSK, ZeroSalt) => ES,
-//         // (ESalt, DH) => HS,
-//         (DH, ESalt) => HS, // TODO: Should use ^ instead
-//         // (HSalt, ZeroIKM) => AS,
-//         (ZeroIKM, HSalt) => AS, // TODO: should use ^ instead
-//         _ => Err(INCORRECT_STATE)?,
-//     };
+pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<Handle, TLSError> {
+    // let k_n = match (left.name, right.name) {
+    //     (PSK, ZeroSalt) => ES,
+    //     // (ESalt, DH) => HS,
+    //     (DH, ESalt) => HS, // TODO: Should use ^ instead
+    //     // (HSalt, ZeroIKM) => AS,
+    //     (ZeroIKM, HSalt) => AS, // TODO: should use ^ instead
+    //     _ => Err(INCORRECT_STATE)?,
+    // };
 
-//     Ok(Handle {
-//         alg: left.alg,
-//         name: k_n,
-//         level: left.level,
-//     })
-// }
+    Ok(Handle {
+        alg: left.alg,
+        name,
+        level: left.level,
+    })
+}
 
-// pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
-//     ks: &mut KS,
-//     level: u8,
-//     name: TLSnames,
-//     h1: Handle,
-//     h2: Handle,
-// ) -> Result<Handle, TLSError> {
-//     let (n1, n2) = KS::prnt_n(name);
-//     // if h1.is_some() && h2.is_some() {
-//     //     assert_eq!(h1.unwrap().alg, h2.unwrap().alg)
-//     // }
-//     let h = xtr_angle(name, h1.clone(), h2.clone())?;
-//     let (k1, hon1) = ks.get(n1.unwrap(), level.clone(), (h1.name, h1.alg, h1.level));
-//     let (k2, hon2) = ks.get(n2.unwrap(), level.clone(), (h2.name, h2.alg, h2.level));
-//     let k = xtr(
-//         &TagKey {
-//             alg: h1.alg.clone(),
-//             tag: k1.0,
-//             val: k1.1,
-//         },
-//         &TagKey {
-//             alg: h1.alg.clone(),
-//             tag: k2.0,
-//             val: k2.1,
-//         },
-//     )?;
-//     let hon = hon1 || hon2;
-//     // if b && hon2 {
+pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
+    ks: &mut KS,
+    level: u8,
+    name: TLSnames,
+    h1: &Handle,
+    h2: &Handle,
+) -> Result<Handle, TLSError> {
+    let (n1, n2) = KS::prnt_n(name);
+    // if h1.is_some() && h2.is_some() {
+    //     assert_eq!(h1.unwrap().alg, h2.unwrap().alg)
+    // }
+    let h = xtr_angle(name, h1.clone(), h2.clone())?;
+    let k1 = ks.get(n1.unwrap(), level.clone(), (h1.name, h1.alg, h1.level));
+    let k2 = ks.get(n2.unwrap(), level.clone(), (h2.name, h2.alg, h2.level));
+    let k = xtr(
+        &TagKey {
+            alg: h1.alg.clone(),
+            tag: h1.name,
+            val: k1,
+        },
+        &TagKey {
+            alg: h2.alg.clone(),
+            tag: h2.name,
+            val: k2,
+        },
+    )?;
+    // let hon = hon1 || hon2;
+    // if b && hon2 {
 
-//     // }
-//     ks.set(name, level, (h.name, h.alg, h.level), hon, (k.tag, k.val));
-//     Ok(h)
-// }
+    // }
+    ks.set(name, level, (h.name, h.alg, h.level), k.val);
+    Ok(h)
+}
 
 // fn nextKeys(
 //     alg: &HashAlgorithm,

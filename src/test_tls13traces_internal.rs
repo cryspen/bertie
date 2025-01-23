@@ -1,13 +1,19 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+
 use crate::tls13handshake::*;
-use crate::tls13keyscheduler::{*, key_schedule::{TLSnames, TagKey}};
+use crate::tls13keyscheduler::{
+    key_schedule::{TLSnames, TagKey},
+    *,
+};
 use crate::tls13utils::*;
 use crate::{
     tls13crypto::{
         hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
+    TLSkeyscheduler,
 };
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
@@ -509,6 +515,11 @@ fn test_key_schedule() {
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let transcript = client_hello_bytes.concat(server_hello_bytes);
     let tx_hash = ha.hash(&transcript);
+
+    let mut ks = TLSkeyscheduler {
+        keys: HashMap::new(),
+    };
+
     let mut b = true;
     match tx_hash {
         Err(x) => {
@@ -525,6 +536,7 @@ fn test_key_schedule() {
                 },
                 &None,
                 &tx_hash,
+                &mut ks,
             );
             b = keys.is_ok();
             match keys {
@@ -557,7 +569,7 @@ fn test_key_schedule() {
                             println!("Error: {}", x);
                         }
                         Ok(tx_hash) => {
-                            let keys = derive_app_keys(&ha, &ae, &ms, &tx_hash);
+                            let keys = derive_app_keys(&ha, &ae, &ms, &tx_hash, &mut ks);
                             b = keys.is_ok();
                             match keys {
                                 Err(x) => {

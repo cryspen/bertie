@@ -2,8 +2,8 @@
 
 use crate::tls13crypto::*;
 use crate::tls13formats::*;
-use crate::tls13utils::*;
 use crate::tls13keyscheduler::key_schedule::TagKey;
+use crate::tls13utils::*;
 
 /* CipherStates Exported by the TLS 1.3 Handshake */
 pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, TagKey);

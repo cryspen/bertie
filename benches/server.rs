@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 use bertie::{
@@ -19,7 +20,7 @@ use bertie::{
         SignatureScheme,
     },
     tls13utils::Bytes,
-    Client, Server,
+    Client, Server, TLSkeyscheduler,
 };
 use libcrux::{digest, drbg::Drbg};
 
@@ -100,6 +101,12 @@ fn protocol() {
 
     for ciphersuite in CIPHERSUITES {
         let mut rng = Drbg::new(digest::Algorithm::Sha256).unwrap();
+        let mut client_ks: TLSkeyscheduler = TLSkeyscheduler {
+            keys: HashMap::new(),
+        };
+        let mut server_ks: TLSkeyscheduler = TLSkeyscheduler {
+            keys: HashMap::new(),
+        };
 
         // Server
         let server_name_str = "localhost";
@@ -121,20 +128,39 @@ fn protocol() {
         let payload = rng.generate_vec(NUM_PAYLOAD_BYTES).unwrap();
 
         for _ in 0..ITERATIONS {
-            let (client_hello, client) =
-                Client::connect(ciphersuite, &server_name, None, None, &mut rng).unwrap();
+            let (client_hello, client) = Client::connect(
+                ciphersuite,
+                &server_name,
+                None,
+                None,
+                &mut rng,
+                &mut client_ks,
+            )
+            .unwrap();
 
             let start_time = Instant::now();
-            let (server_hello, server_finished, server) =
-                Server::accept(ciphersuite, db.clone(), &client_hello, &mut rng).unwrap();
+            let (server_hello, server_finished, server) = Server::accept(
+                ciphersuite,
+                db.clone(),
+                &client_hello,
+                &mut rng,
+                &mut server_ks,
+            )
+            .unwrap();
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
 
-            let (_client_msg, client) = client.read_handshake(&server_hello).unwrap();
-            let (client_msg, client) = client.read_handshake(&server_finished).unwrap();
+            let (_client_msg, client) = client
+                .read_handshake(&server_hello, &mut client_ks)
+                .unwrap();
+            let (client_msg, client) = client
+                .read_handshake(&server_finished, &mut client_ks)
+                .unwrap();
 
             let start_time = Instant::now();
-            let server = server.read_handshake(&client_msg.unwrap()).unwrap();
+            let server = server
+                .read_handshake(&client_msg.unwrap(), &mut server_ks)
+                .unwrap();
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
 

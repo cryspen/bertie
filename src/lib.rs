@@ -29,8 +29,8 @@
 
 mod tls13formats;
 mod tls13handshake;
-mod tls13record;
 mod tls13keyscheduler;
+mod tls13record;
 pub use tls13keyscheduler::key_schedule::TLSkeyscheduler;
 
 pub mod server;
