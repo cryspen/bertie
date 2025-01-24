@@ -28,30 +28,37 @@ pub(crate) fn hkdf_expand_label(
 }
 
 /// Get an empty key of the correct size.
-pub(crate) fn zero_salt(alg: &HashAlgorithm) -> TagKey {
-    TagKey {
+pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
+    let handle = Handle {
         alg: alg.clone(),
-        tag: ZeroSalt,
-        val: Bytes::zeroes(alg.hash_len()),
-    }
+        name: ZeroSalt,
+        level: 0,
+    };
+    let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
+    handle
 }
 
 /// Get an empty key of the correct size.
-pub(crate) fn no_psk(alg: &HashAlgorithm) -> TagKey {
-    TagKey {
+pub(crate) fn no_psk(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle // TagKey
+{
+    let handle = Handle {
         alg: alg.clone(),
-        tag: PSK,
-        val: Bytes::zeroes(alg.hash_len()),
-    }
+        name: PSK,
+        level: 0,
+    };
+    let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
+    handle
 }
 
 /// Get an empty key of the correct size.
-pub(crate) fn zero_ikm(alg: &HashAlgorithm) -> TagKey {
-    TagKey {
+pub(crate) fn zero_ikm(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
+    let handle = Handle {
         alg: alg.clone(),
-        tag: ZeroIKM,
-        val: Bytes::zeroes(alg.hash_len()),
-    }
+        name: ZeroIKM,
+        level: 0,
+    };
+    let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
+    handle
 }
 
 pub trait KeySchedule<N> {
@@ -59,7 +66,7 @@ pub trait KeySchedule<N> {
     fn prnt_n(a: N) -> (Option<N>, Option<N>);
 
     // key mapping
-    fn get(&self, name: N, level: u8, h: (N, HashAlgorithm, u8)) -> Key;
+    fn get(&self, name: N, level: u8, h: (N, HashAlgorithm, u8)) -> Option<Key>;
     fn set(&mut self, name: N, level: u8, h: (N, HashAlgorithm, u8), k: Key);
 
     fn hash(d: &Bytes) -> Bytes;
@@ -133,8 +140,8 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
         }))
     }
 
-    fn get(&self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8)) -> Key {
-        self.keys.get(&h).unwrap().clone()
+    fn get(&self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8)) -> Option<Key> {
+        self.keys.get(&h).map(|x| x.clone())
     }
 
     fn set(&mut self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8), k: Key) {
@@ -311,12 +318,15 @@ pub(crate) fn xpd_angle(
     })
 }
 
-pub fn tagkey_from_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) -> TagKey {
-    TagKey {
+pub fn tagkey_from_handle<KS: KeySchedule<TLSnames>>(
+    ks: &mut KS,
+    handle: &Handle,
+) -> Option<TagKey> {
+    Some(TagKey {
         alg: handle.alg,
         tag: handle.name,
-        val: get_by_handle(ks, handle),
-    }
+        val: get_by_handle(ks, handle)?,
+    })
 }
 
 pub fn set_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle, key: Key) {
@@ -328,7 +338,7 @@ pub fn set_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle, ke
     );
 }
 
-pub fn get_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) -> Key {
+pub fn get_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) -> Option<Key> {
     ks.get(
         handle.name,
         handle.level,
@@ -349,7 +359,9 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
     let label = KS::labels(n, r)?;
 
     let h = xpd_angle(n, label.clone(), h1, args)?;
-    let k1 = ks.get(n1.unwrap(), l, (h1.name, h1.alg, h1.level));
+    let k1 = ks
+        .get(n1.unwrap(), l, (h1.name, h1.alg, h1.level))
+        .ok_or(INCORRECT_STATE)?;
 
     let k: TagKey;
     if n == PSK {
@@ -411,8 +423,12 @@ pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
     //     assert_eq!(h1.unwrap().alg, h2.unwrap().alg)
     // }
     let h = xtr_angle(name, h1.clone(), h2.clone())?;
-    let k1 = ks.get(n1.unwrap(), level.clone(), (h1.name, h1.alg, h1.level));
-    let k2 = ks.get(n2.unwrap(), level.clone(), (h2.name, h2.alg, h2.level));
+    let k1 = ks
+        .get(n1.unwrap(), level.clone(), (h1.name, h1.alg, h1.level))
+        .ok_or(INCORRECT_STATE)?;
+    let k2 = ks
+        .get(n2.unwrap(), level.clone(), (h2.name, h2.alg, h2.level))
+        .ok_or(INCORRECT_STATE)?;
     let k = xtr(
         &TagKey {
             alg: h1.alg.clone(),
