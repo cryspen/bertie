@@ -1042,7 +1042,7 @@ Theorem ℓ_raw_package_trimmed :
     {f : nat -> Interface}
     (p : forall (n : nat) , (n <= d)%N → package L I (f n))
     (H_trim_p : forall ℓ (H_le : (ℓ <= d)%N), trimmed (f ℓ) (p ℓ H_le))
-    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> idents (f n) :#: idents (f ℓ)),
+    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d > n)%nat -> idents (f n) :#: idents (f ℓ)),
     trimmed (interface_hierarchy f d) (ℓ_raw_packages d p).
 Proof.
   intros.
@@ -1061,11 +1061,16 @@ Proof.
 
         apply idents_interface_hierachy.
         - Lia.lia.
-        - apply Hdisj.
+        - intros.
+          now apply Hdisj.
       }
       {
         intros.
         apply H_trim_p.
+      }
+      {
+        intros.
+        now apply Hdisj.
       }
     }
     {
@@ -1073,6 +1078,10 @@ Proof.
     }
     {
       apply IHd.
+      2:{
+        intros.
+        now apply Hdisj.
+      }
       intros.
       apply H_trim_p.
     }
@@ -1084,7 +1093,7 @@ Definition ℓ_packages {L I}
   (p : forall (n : nat), (d >= n)%nat → package L I (f n))
   (H : ∀ (d : nat) H, ValidPackage L I (f d) (p d H))
   (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
-  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> idents (f n) :#: idents (f ℓ))
+  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d > n)%nat -> idents (f n) :#: idents (f ℓ))
   : package L I (interface_hierarchy f d).
 Proof.
   refine {package ℓ_raw_packages d p}.
@@ -1106,12 +1115,13 @@ Proof.
       2:{
         intros.
         apply Hdisj.
-        apply H0.
+        - apply H0.
+        - Lia.lia.
       }
       solve_Parable.
 
       apply idents_interface_hierachy.
-      2: apply Hdisj.
+      2: intros ; now apply Hdisj.
       Lia.lia.
     + apply H.
     + apply IHd.
@@ -1119,5 +1129,6 @@ Proof.
         apply H.
       * intros.
         apply H_trim_p.
+      * intros ; now apply Hdisj.
 Defined.
 

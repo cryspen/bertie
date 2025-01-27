@@ -123,6 +123,17 @@ Inductive name :=
 Definition all_names :=
   [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; PSK; ZERO_SALT; ESALT; DH; ZERO_IKM].
 
+Definition O_star : list name :=
+  [ES;
+   EEM; CET; BIND; BINDER;
+   HS;
+   SHT; CHT;
+   HSALT;
+   AS;
+   RM; CAT; SAT; EAM; (* PSK; *) ZERO_SALT;
+   ESALT;
+   DH; ZERO_IKM].
+
 Definition fin_name : finType := 'fin 20.
 #[global] Instance pos_name : Positive #|fin_name| :=
   eq_ind_r [eta Positive] (erefl : Positive 20) (card_ord 20).
@@ -138,7 +149,7 @@ Definition fin_hash : finType := 'fin 3.
   eq_ind_r [eta Positive] (erefl : Positive 3) (card_ord 3).
 Definition chHash : choice_type := chFin (mkpos #|fin_hash|).
 
-Axiom chHash_to_hash : chHash -> name.
+(* Axiom chHash_to_hash : chHash -> name. *)
 
 (* Base handles are defined on p. 16 *)
 
@@ -165,20 +176,9 @@ Definition chHandle : choice_type := chFin (mkpos #|fin_handle|).
 Definition chHandle_to_chHash (h : chHandle) : chHash :=
   fto (fst (snd (snd (otf h)))).
 
-(* Axiom chName_to_name : chName -> name. *)
-
 Definition fin_key := (Casts.prod_finType fin_hash fin_name).
 #[global] Instance pos_key : Positive #|fin_key| := pos_prod pos_hash pos_name.
 Definition chKey := chFin (mkpos #|fin_key|).
 
 Definition chKey_to_chName (h : chKey) : chName :=
   fto (snd (otf h)).
-
-(* Axiom xpd_angle : name -> chLabel -> chHandle -> bitvec -> raw_code chHandle. *)
-
-(* Inductive XPR := *)
-(* | XPR_N *)
-(* | XPR_PSK *)
-(* | XPR_ESALT. *)
-
-Inductive O_star := TODO.

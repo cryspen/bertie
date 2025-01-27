@@ -8,7 +8,10 @@ use crate::{
         Algorithms, Digest, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
-    tls13keyscheduler::{key_schedule::*, *},
+    tls13keyscheduler::{
+        key_schedule::{TLSnames::*, *},
+        *,
+    },
     tls13record::*,
     tls13utils::*,
 };
@@ -143,10 +146,8 @@ fn compute_psk_binder_zero_rtt(
     } = algs0;
     match (psk_mode, psk, trunc_len as u8) {
         (true, Some(k), _) => {
-            // panic!(); // TODO: function never called in tests??
-
             let psk_handle = Handle {
-                name: TLSnames::PSK,
+                name: PSK,
                 alg: ha,
                 level: 0,
             };
@@ -154,20 +155,8 @@ fn compute_psk_binder_zero_rtt(
 
             let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
             let mk_handle = derive_binder_key(&ha, &psk_handle, ks)?;
-            let mk = tagkey_from_handle(ks, &mk_handle).ok_or(INCORRECT_STATE)?.val;
 
-            let binder_handle = XPD(
-                ks,
-                TLSnames::Binder,
-                0,
-                &Handle {
-                    name: TLSnames::Bind,
-                    alg: ha,
-                    level: 0,
-                },
-                true,
-                &th_trunc,
-            )?;
+            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
             let binder = tagkey_from_handle(ks, &binder_handle)
                 .ok_or(INCORRECT_STATE)?
                 .val;
@@ -206,7 +195,7 @@ fn put_server_hello(
 
     // KEM
     let shared_secret_handle = Handle {
-        name: TLSnames::KEM,
+        name: KEM,
         alg: ciphersuite.hash,
         level: 0,
     };
@@ -215,7 +204,7 @@ fn put_server_hello(
     let psk_handle = psk.map(|x| {
         let handle = Handle {
             alg: ciphersuite.hash,
-            name: TLSnames::PSK,
+            name: PSK,
             level: 0,
         };
         set_by_handle(ks, &handle, x);
@@ -512,27 +501,18 @@ fn process_psk_binder_zero_rtt(
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
             let psk_handle = Handle {
-                name: TLSnames::PSK,
+                name: PSK,
                 alg: ciphersuite.hash,
                 level: 0,
             };
             set_by_handle(ks, &psk_handle, k.clone());
 
             let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
-            let mk = tagkey_from_handle(ks, &mk_handle).ok_or(INCORRECT_STATE)?.val;
+            let mk = tagkey_from_handle(ks, &mk_handle)
+                .ok_or(INCORRECT_STATE)?
+                .val;
 
-            let binder_handle = XPD(
-                ks,
-                TLSnames::Binder,
-                0,
-                &Handle {
-                    name: TLSnames::Bind,
-                    alg: ciphersuite.hash,
-                    level: 0,
-                },
-                true,
-                &th_trunc,
-            )?;
+            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
             let binder = tagkey_from_handle(ks, &binder_handle)
                 .ok_or(INCORRECT_STATE)?
                 .val;
@@ -565,7 +545,7 @@ fn get_server_hello(
 
     // KEM
     let shared_secret_handle = Handle {
-        name: TLSnames::KEM,
+        name: KEM,
         alg: state.ciphersuite.hash,
         level: 0,
     };
@@ -583,7 +563,7 @@ fn get_server_hello(
     let psk_handle = state.server.psk_opt.clone().map(|x| {
         let handle = Handle {
             alg: state.ciphersuite.hash,
-            name: TLSnames::PSK,
+            name: PSK,
             level: 0,
         };
         set_by_handle(ks, &handle, x);
@@ -838,7 +818,7 @@ pub fn server_init_psk(
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng, ks)?;
-    
+
     let (ee, st) = get_skip_server_signature(st)?;
     let (sfin, cipher1, st) = get_server_finished(st, ks)?;
     let flight = ee.concat(&sfin);

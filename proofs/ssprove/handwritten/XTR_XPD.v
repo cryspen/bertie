@@ -147,27 +147,27 @@ Definition Xtr
 Defined.
 Fail Next Obligation.
 
-Definition GET_n_ℓ (d : nat) : Interface :=
-  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (all_names) d.
+(* Definition GET_n_ℓ (d : nat) : Interface := *)
+(*   interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (all_names) d. *)
 
-Definition SET_n_ℓ (d : nat) : Interface :=
-  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (all_names) d.
+(* Definition SET_n_ℓ (d : nat) : Interface := *)
+(*   interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (all_names) d. *)
 
 Definition XTR_names := [ES; HS; AS].
 
-Definition GET_XTR (d : nat) : Interface :=
-  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (XTR_names) d.
+Definition GET_XTR : Interface :=
+  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d.+1 ] : chGETinp → chGETout]) (XTR_names) d.+1.
 
-Definition SET_XTR (d : nat) : Interface :=
-  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (XTR_names) d.
+Definition SET_XTR : Interface :=
+  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d.+1 ] : chSETinp → chSETout]) (XTR_names) d.+1.
 
 Definition XTR_n_ℓ (* d *) :=
   interface_hierarchy_foreach (fun n d' => [interface #val #[ XTR n d' (* d *) ] : chXTRinp → chXTRout]) XTR_names d.
 
-Lemma trimmed_Xtr : forall ℓ n d,
+Lemma trimmed_Xtr : forall ℓ n (* d *),
     trimmed
       [interface #val #[XTR n ℓ (* d *)] : chXTRinp → chXTRout ]
-      (Xtr n ℓ (* d *) false (GET := GET n ℓ d) (SET := SET n ℓ d)).
+      (Xtr n ℓ (* d *) false (GET := GET n ℓ d.+1) (SET := SET n ℓ d.+1)).
 Proof.
   intros.
   unfold trimmed.
@@ -175,12 +175,12 @@ Proof.
 Qed.
 
 Definition xtr_level_raw (ℓ : nat) (* (d : nat) *) :=
-  parallel_raw (List.map (fun n => pack (Xtr n ℓ (* d *) false (GET := GET n ℓ d) (SET := SET n ℓ d))) XTR_names).
+  parallel_raw (List.map (fun n => pack (Xtr n ℓ (* d *) false (GET := GET n ℓ d.+1) (SET := SET n ℓ d.+1))) XTR_names).
 
 Lemma valid_xtr_level :
   forall (* d *) ℓ,
     (ℓ <= d)%N ->
-    ValidPackage f_parameter_cursor_loc (GET_XTR d.+1 :|: SET_XTR d.+1)
+    ValidPackage f_parameter_cursor_loc (GET_XTR :|: SET_XTR)
       (interface_foreach (fun n => [interface #val #[XTR n ℓ (* d *)] : chXTRinp → chXTRout]) XTR_names)
       (xtr_level_raw ℓ (* d *)).
 Proof.
@@ -216,18 +216,11 @@ Proof.
     set (fun x => fset _).
     simpl in f.
     subst f.
-    
+
     unfold XTR_names, valid_pairs, List.map.
-    split.
-    {
-      epose (pack_valid (@Xtr ES ℓ (* d *) false (GET ES ℓ d) (SET ES ℓ d))).
-      Set Printing Implicit.
-      apply valid_package_from_class.
-      admit.
-    }
-    admit.
-(* Qed. *)
-Admitted.
+    repeat split ;
+      apply (pack_valid (@Xtr _ ℓ (* d *) false (GET _ ℓ d.+1) (SET _ ℓ d.+1))).
+Qed.
 
 Definition xtr_level (* d *) ℓ (H : (ℓ <= d)%N) :=
   {package (xtr_level_raw ℓ (* d *)) #with (valid_xtr_level (* d *) ℓ H)}.
@@ -256,7 +249,7 @@ Qed.
 (*        (λ n : nat, {package par (par (Xtr ES n false) (Xtr HS n false)) (Xtr AS n false) }) d). *)
 
 Definition XTR_packages (* (d : nat) *) :
-  package fset0 (GET_XTR (d.+1) :|: SET_XTR (d.+1)) (XTR_n_ℓ (* (d) *)).
+  package fset0 (GET_XTR :|: SET_XTR) (XTR_n_ℓ (* (d) *)).
 Proof.
   refine (ℓ_packages d (fun y i => xtr_level (* _ *) _ _) _ _ _).
   {
@@ -338,16 +331,16 @@ Definition XPD_n_ℓ (* (d : nat) *) :=
        #val #[ XPD n d' (* d *) ] : chXPDinp → chXPDout
       ]) XPR d.
 
-Definition GET_XPD (d : nat) : Interface :=
-  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (XPR) d.
+Definition GET_XPD : Interface :=
+  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d.+1 ] : chGETinp → chGETout]) (XPR) d.+1.
 
-Definition SET_XPD (d : nat) : Interface :=
-  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (XPR) d.
+Definition SET_XPD : Interface :=
+  interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d.+1 ] : chSETinp → chSETout]) (XPR) d.+1.
 
 Lemma trimmed_Xpd : forall ℓ n (* d *),
     trimmed
       [interface #val #[XPD n ℓ (* d *)] : chXPDinp → chXPDout ]
-      (Xpd n ℓ (* d *) (GET := GET n ℓ d) (SET := SET n ℓ d) (HASH := HASH)).
+      (Xpd n ℓ (* d *) (GET := GET n ℓ d.+1) (SET := SET n ℓ d.+1) (HASH := HASH)).
 Proof.
   intros.
   unfold trimmed.
@@ -355,7 +348,7 @@ Proof.
 Qed.
 
 Definition xpd_level_raw (ℓ : nat) (* (d : nat) *) :=
-  parallel_raw (List.map (fun n => pack (Xpd n ℓ (* d *) (GET := GET n ℓ d) (SET := SET n ℓ d) (HASH := HASH))) XPR).
+  parallel_raw (List.map (fun n => pack (Xpd n ℓ (* d *) (GET := GET n ℓ d.+1) (SET := SET n ℓ d.+1) (HASH := HASH))) XPR).
 
 Lemma interface_hierarchy_trivial : forall i L (* d *),
   L <> [] ->
@@ -400,7 +393,7 @@ Qed.
 Lemma valid_xpd_level :
   forall (* d *) ℓ,
     (ℓ <= d)%N ->
-  ValidPackage f_parameter_cursor_loc (GET_XPD d.+1 :|: SET_XPD d.+1 :|: [interface #val #[ HASH ] : chHASHinp → chHASHout])
+  ValidPackage f_parameter_cursor_loc (GET_XPD :|: SET_XPD :|: [interface #val #[ HASH ] : chHASHinp → chHASHout])
    (interface_foreach (fun n => [interface #val #[XPD n ℓ (* d *)] : chXPDinp → chXPDout]) XPR)
    (xpd_level_raw ℓ (* d *)).
 Proof.
@@ -437,18 +430,11 @@ Proof.
     unfold trimmed_pairs.
     hnf.
 
-    repeat split ;  apply trimmed_Xpd.
+    repeat split ; apply (trimmed_Xpd ℓ).
   - unfold XPR, serialize_name, "++", valid_pairs, List.map.
-    repeat split.
-    1:{
-      rewrite <- fset_cat ; simpl fset.
-      epose (@Xpd PSK ℓ (* d *) (GET PSK ℓ d) (SET PSK ℓ d) HASH).
-      admit.
-    }
-    (* all: do 2 rewrite <- fset_cat ; simpl fset ; apply Xpd. *)
-    all: admit.
-(* Qed. (* Slow? solve_in_rewrite? Issue with all? *) *)
-Admitted.
+    rewrite <- !fset_cat ; simpl fset.
+    repeat split ; apply (pack_valid (@Xpd _ ℓ (* d *) (GET _ ℓ d.+1) (SET _ ℓ d.+1) HASH)).
+Qed. (* Slow? solve_in_rewrite? Issue with all? *)
 
 Definition xpd_level (* d *) ℓ H :=
   {package (xpd_level_raw ℓ (* d *)) #with (valid_xpd_level (* d *) ℓ H)}.
@@ -528,7 +514,7 @@ Proof.
 Qed. (* Slow .. *)
 
 Definition XPD_packages (* (d : nat) *) :
-package fset0 ((GET_XPD (d.+1) :|: SET_XPD (d.+1)) :|: [interface
+package fset0 ((GET_XPD :|: SET_XPD) :|: [interface
      #val #[ HASH ] : chHASHinp → chHASHout
   ]) (XPD_n_ℓ (* d *)).
 Proof.
@@ -569,9 +555,6 @@ Definition SET_DH : nat := 13.
 Definition DH_interface := [interface #val #[DHGEN] : chDHGENout → chDHGENout ; #val #[DHEXP] : chDHEXPinp → chXPDout ].
 Definition DH_Set_interface := [interface #val #[ SET_DH ] : chSETinp → chSETout].
 
-Axiom DHGEN_function : chGroup -> code fset0 fset0 chGroup.
-Axiom DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle.
-
 Definition DH_package :
   (* (G : {fset finGroupType}) *)
   package
@@ -591,7 +574,6 @@ Definition DH_package :
   Unshelve.
   all: apply DepInstance.
 Defined.
-Admit Obligations.
 Fail Next Obligation.
 
 (*   refine [package *)

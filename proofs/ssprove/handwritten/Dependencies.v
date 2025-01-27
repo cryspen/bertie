@@ -80,7 +80,7 @@ Definition chK_table := 'fin #|fin_K_table|.
 Class Dependencies := {
     PrntN: name -> code fset0 fset0 (chName × chName) ;
     Labels : name -> bool -> code fset0 fset0 chLabel ;
-    O_star : list name ;
+    (* O_star : list name ; *)
     xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey ;
     xtr : chKey -> chKey -> code fset0 fset0 chKey ;
     xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle ;
@@ -98,4 +98,7 @@ Class Dependencies := {
     H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M ;
 
     d : nat ;
+
+    DHGEN_function : chGroup -> code fset0 fset0 chGroup ;
+    DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle ;
   }.

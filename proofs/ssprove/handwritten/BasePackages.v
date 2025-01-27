@@ -117,6 +117,23 @@ Proof.
   all: try Lia.lia.
 Qed.
 
+Lemma serialize_name_notin_different_name :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+  forall (n1 n2 : name),
+    (n1 <> n2)%N ->
+    forall index,
+           serialize_name n1 ℓ1 d index \notin
+             fset1 (T:=Datatypes_nat__canonical__Ord_Ord) (serialize_name n2 ℓ2 d index).
+Proof.
+  intros.
+  unfold "\notin".
+  rewrite !ifF ; [ reflexivity | ].
+  unfold "\in"; simpl; unfold "\in"; simpl.
+  destruct n1, n2 ; unfold serialize_name.
+  all: try (Lia.nia || contradiction).
+Qed.
+
 Lemma serialize_name_notin_different_index :
   forall d,
   forall (ℓ1 ℓ2 : nat),
