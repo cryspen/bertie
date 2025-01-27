@@ -178,10 +178,13 @@ fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, u
     let binders = encode_length_u16(encode_length_u8(zero_key(&algs.hash()).as_raw())?)?;
     let binders_len = binders.len();
     let ext = bytes2(0, 41).concat(encode_length_u16(identities.concat(binders))?);
-    Ok((ext, binders_len))
+    let ext_len = ext.len();
+    println!("ext: {:?}", ext);
+    Ok((ext, ext_len + binders_len + 199-16-82)) // binders_len+199-76+41))
 }
 
-fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(), TLSError> {
+// Return ticket (tkt) and binder
+fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(Bytes, Bytes), TLSError> {
     let len_id = length_u16_encoded(ch)?;
     let len_tkt = length_u16_encoded(&ch[2..2 + len_id])?;
     if len_id == len_tkt + 6 {
@@ -190,7 +193,12 @@ fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(), TLSError> {
         if ch.len() - 5 - len_id != algs.hash().hash_len() {
             tlserr(parse_failed())
         } else {
-            Ok(())
+            let len_other_u16 = length_u16_encoded(&ch[2 + len_id..ch.len()])?;
+            let len_other_u8 = length_u8_encoded(&ch[4 + len_id..4+len_id+len_other_u16])?;
+            // println!("OOKK {:?}", Bytes::from(&ch[4 + len_id..4+len_id+len_other_u16]));
+            // encode_length_u16(encode_length_u8(zero_key(&algs.hash()).as_raw())?)?
+            Ok((Bytes::from(&ch[4..4 + len_tkt]), Bytes::from([0; 0]) // Bytes::from(&ch[0..ch.len()])
+            ))
         }
     } else {
         tlserr(parse_failed())
@@ -251,6 +259,7 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
             ticket: None,
             binder: None,
         };
+
         match (l0 as u8, l1 as u8) {
             (0, 0) => Ok((
                 4 + len,
@@ -289,14 +298,30 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
                 )),
                 Err(_) => tlserr(MISSING_KEY_SHARE),
             },
-            (0, 41) => {
-                check_psk_shared_key(algs, &bytes[4..4 + len])?;
-                Ok((4 + len, out))
+            (0, 0x29) => { // 41
+                let (tkt,binder) =
+                    check_psk_shared_key(algs, &bytes[4..4 + len])?;
+                Ok((4 + len, Extensions {
+                    sni: None,
+                    key_share: None,
+                    ticket: Some(tkt),
+                    binder: Some(binder)
+                }))
             }
-            _ => Ok((4 + len, out)),
+            _ => {
+                Ok((4 + len, out))
+            },
         }
     }
 }
+
+// MERGE TICKET, None and Some(Bytes([0, 32, 83, 191, 189, 124, 0, 197, 247, 244, 60, 30, 5, 51, 213, 47, 95, 50, 31, 193, 126, 71, 89, 12, 87, 231, 243, 56, 157, 37, 238, 19, 173, 249, 255, 255, 255, 255]))
+// MERGE BINDER, None and Some(Bytes([32, 178, 2, 159, 49, 111, 245, 95, 202, 216, 20, 95, 27, 20, 17, 62, 25, 231, 29, 31, 160, 176, 188, 226, 107, 151, 220, 123, 201, 47, 82, 68, 228]))
+
+// session_ticket: Bytes([83, 191, 189, 124, 0, 197, 247, 244, 60, 30, 5, 51, 213, 47, 95, 50, 31, 193, 126, 71, 89, 12, 87, 231, 243, 56, 157, 37, 238, 19, 173, 249])
+// Bytes([0, 38, 0, 32, 83, 191, 189, 124, 0, 197, 247, 244, 60, 30, 5, 51, 213, 47, 95, 50, 31, 193, 126, 71, 89, 12, 87, 231, 243, 56, 157, 37, 238, 19, 173, 249, 255, 255, 255, 255])
+// binders: Bytes([0, 33, 32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
 
 fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<Bytes>), TLSError> {
     if b.len() < 4 {
@@ -322,6 +347,7 @@ fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<
 #[inline(always)]
 fn check_extensions_slice(algs: &Algorithms, b: &[U8]) -> Result<Extensions, TLSError> {
     let (len, out) = check_extension(algs, b)?;
+    // println!("CES: len {} vs b.len {},,{:?}", len, b.len(), b);
     if len == b.len() {
         Ok(out)
     } else {
@@ -332,6 +358,7 @@ fn check_extensions_slice(algs: &Algorithms, b: &[U8]) -> Result<Extensions, TLS
 
 fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError> {
     let (len, out) = check_extension(algs, b.as_raw())?;
+    // println!("CE : len {} vs b.len {},,{:?}", len, b.len(), b);
     if len == b.len() {
         Ok(out)
     } else {
@@ -542,10 +569,13 @@ pub(crate) fn client_hello(
         key_shares
     );
     let (trunc_len, extensions) = (match (algorithms.psk_mode(), session_ticket) {
-        (true, Some(session_ticket)) => get_psk_extensions(algorithms, session_ticket, extensions),
+        (true, Some(session_ticket)) => {
+            get_psk_extensions(algorithms, session_ticket, extensions)
+        },
         (false, None) => Ok((0, extensions)),
         _ => tlserr(PSK_MODE_MISMATCH),
     })?;
+    // println!("HERE??");
 
     let encoded_extensions = encode_length_u16(extensions)?;
     let handshake_bytes = bytes_concat!(
@@ -572,7 +602,8 @@ pub(crate) fn set_client_hello_binder(
     let hlen = ciphersuite.hash().hash_len();
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
-            if chlen - hlen == trunc_len {
+            if chlen - hlen == trunc_len
+            {
                 Ok(HandshakeData(ch.update_slice(trunc_len, m, 0, hlen)))
             } else {
                 tlserr(parse_failed())
@@ -646,8 +677,7 @@ pub(super) fn parse_client_hello(
     check_length_encoding_u16(&ch.slice_range(next..ch.len()))?;
     next += 2;
     let exts = check_extensions(ciphersuite, &ch.slice_range(next..ch.len()))?;
-    //println!("check_extensions");
-    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3; // ??
     match (ciphersuite.psk_mode(), exts) {
         (
             _,
@@ -666,7 +696,9 @@ pub(super) fn parse_client_hello(
                 ticket: Some(tkt),
                 binder: Some(binder),
             },
-        ) => Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len)),
+        ) => {
+            Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len))
+        },
         (
             true,
             Extensions {

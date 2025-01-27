@@ -34,7 +34,8 @@ pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle
         name: ZeroSalt,
         level: 0,
     };
-    let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
+    let _ = set_by_handle(ks, &handle, Bytes::zeroes(1) // alg.hash_len()
+    ); // 1 bit-length, multiple introduce redundancy ?
     handle
 }
 
@@ -276,7 +277,7 @@ pub(crate) fn xpd(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSEr
     Ok(TagKey { tag, alg, val })
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Handle {
     pub name: TLSnames,
     pub alg: HashAlgorithm,

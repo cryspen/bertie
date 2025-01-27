@@ -14,21 +14,12 @@ fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
 
 pub fn derive_binder_key(
     ha: &HashAlgorithm,
-    key: &TagKey,
+    handle: &Handle,
     ks: &mut TLSkeyscheduler,
-) -> Result<MacKey, TLSError> {
+) -> Result<Handle, TLSError> {
     // panic!(); // TODO: function never called in tests??
-    let key_handle = Handle {
-        name: key.tag,
-        alg: key.alg,
-        level: 0,
-    };
-    set_by_handle(ks, &key_handle, key.val.clone());
-
     let zero_salt_handle = zero_salt(ks, ha);
-
-    let early_secret_handle = XTR(ks, 0, TLSnames::ES, &key_handle, &zero_salt_handle)?;
-    let early_secret = tagkey_from_handle(ks, &early_secret_handle).ok_or(INCORRECT_STATE)?;
+    let early_secret_handle = XTR(ks, 0, TLSnames::ES, &handle, &zero_salt_handle)?;
 
     let h = XPD(
         ks,
@@ -38,9 +29,7 @@ pub fn derive_binder_key(
         true, // res or ext? or is a bit needed to determine this?
         &hash_empty(ha)?,
     )?;
-    Ok(ks
-        .get(TLSnames::Bind, 0, (h.name, h.alg, h.level))
-        .ok_or(INCORRECT_STATE)?)
+    Ok(h)
 }
 
 /// Derive an AEAD key and iv.
@@ -160,6 +149,7 @@ pub(crate) fn derive_hk_handles(
         true,
         &digest_emp,
     )?;
+
     let handshake_secret_handle = XTR(
         ks,
         0,
@@ -191,6 +181,7 @@ pub(crate) fn derive_hk_handles(
         true,
         &digest_emp,
     )?;
+
     let zero_ikm_handle = zero_ikm(ks, ha);
     let master_secret_handle = XTR(
         ks,

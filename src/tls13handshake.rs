@@ -143,20 +143,21 @@ fn compute_psk_binder_zero_rtt(
     } = algs0;
     match (psk_mode, psk, trunc_len as u8) {
         (true, Some(k), _) => {
-            let psk_key = TagKey {
-                alg: ha,
-                tag: TLSnames::PSK,
-                val: k.clone(),
-            };
+            // panic!(); // TODO: function never called in tests??
+
             let psk_handle = Handle {
-                name: psk_key.tag,
-                alg: psk_key.alg,
+                name: TLSnames::PSK,
+                alg: ha,
                 level: 0,
             };
-            set_by_handle(ks, &psk_handle, psk_key.val.clone());
+            set_by_handle(ks, &psk_handle, k.clone());
 
+            println!("trunc len: {}", trunc_len);
             let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
-            let mk = derive_binder_key(&ha, &psk_key, ks)?;
+            let mk_handle = derive_binder_key(&ha, &psk_handle, ks)?;
+            let mk = tagkey_from_handle(ks, &mk_handle).ok_or(INCORRECT_STATE)?.val;
+
+            println!("client th_trunc: {:?}", th_trunc);
 
             let binder_handle = XPD(
                 ks,
@@ -173,6 +174,7 @@ fn compute_psk_binder_zero_rtt(
             let binder = tagkey_from_handle(ks, &binder_handle)
                 .ok_or(INCORRECT_STATE)?
                 .val;
+            println!("client binder: {:?}", binder);
 
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
@@ -483,6 +485,7 @@ fn put_client_hello(
     let (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) =
         parse_client_hello(&ciphersuite, ch)?;
     let tx = Transcript::new(ciphersuite.hash());
+    println!("trunc len: {}", trunc_len);
     let th_trunc = tx.transcript_hash_without_client_hello(ch, trunc_len)?;
     let transcript = tx.add(ch);
     let th = transcript.transcript_hash()?;
@@ -513,18 +516,44 @@ fn process_psk_binder_zero_rtt(
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
-            let psk_key = TagKey {
-                alg: ciphersuite.hash,
-                tag: TLSnames::PSK,
-                val: k.clone(),
-            };
+            // panic!(); // TODO: function never called in tests??
+
+            println!("server? th_trunc: {:?}", th_trunc);
+
+            println!("server? binder: {:?}", binder);
+
             let psk_handle = Handle {
-                name: psk_key.tag,
-                alg: psk_key.alg,
+                name: TLSnames::PSK,
+                alg: ciphersuite.hash,
                 level: 0,
             };
-            set_by_handle(ks, &psk_handle, psk_key.val.clone());
-            let mk = derive_binder_key(&ciphersuite.hash, &psk_key, ks)?;
+            set_by_handle(ks, &psk_handle, k.clone());
+
+            let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
+            let mk = tagkey_from_handle(ks, &mk_handle).ok_or(INCORRECT_STATE)?.val;
+
+            println!("derived key {:?} {:?}", mk, th_trunc);
+
+            let binder_handle = XPD(
+                ks,
+                TLSnames::Binder,
+                0,
+                &Handle {
+                    name: TLSnames::Bind,
+                    alg: ciphersuite.hash,
+                    level: 0,
+                },
+                true,
+                &th_trunc,
+            )?;
+
+            println!("client (pre) binder: {:?}", binder);
+
+            let binder = tagkey_from_handle(ks, &binder_handle)
+                .ok_or(INCORRECT_STATE)?
+                .val;
+            println!("client binder: {:?}", binder);
+
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms_handle) =
@@ -826,10 +855,11 @@ pub fn server_init_psk(
 > {
     let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
     let (sh, cipher_hs, st) = get_server_hello(st, rng, ks)?;
-
+    
     let (ee, st) = get_skip_server_signature(st)?;
     let (sfin, cipher1, st) = get_server_finished(st, ks)?;
     let flight = ee.concat(&sfin);
+
     Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
 }
 

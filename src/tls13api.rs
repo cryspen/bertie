@@ -207,11 +207,14 @@ impl Server {
         rng: &mut (impl CryptoRng + RngCore),
         ks: &mut TLSkeyscheduler,
     ) -> Result<(Bytes, Bytes, Self), TLSError> {
+        println!("server");
         let mut ch_rec = client_hello.clone();
         ch_rec[2] = U8(0x03);
         let ch = get_handshake_record(&ch_rec)?;
+        println!("ch gotten {:?} {:?}", db.psk_opt, ciphersuite.psk_mode);
         let (server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate) =
             server_init(ciphersuite, &ch, db, rng, ks)?;
+        println!("post init");
         let sh_rec = handshake_record(server_hello)?;
         let (sf_rec, cipher_hs) = encrypt_handshake(server_finished, 0, cipher_hs)?;
         Ok((

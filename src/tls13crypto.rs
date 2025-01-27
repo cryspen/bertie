@@ -115,7 +115,8 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hash digest.
-    pub(crate) fn hash_len(&self) -> usize {
+    pub// (crate)
+    fn hash_len(&self) -> usize {
         match self {
             HashAlgorithm::SHA256 => digest::digest_size(digest::Algorithm::Sha256),
             HashAlgorithm::SHA384 => digest::digest_size(digest::Algorithm::Sha384),
@@ -162,6 +163,7 @@ pub(crate) fn hmac_verify(
     input: &Bytes,
     tag: &Bytes,
 ) -> Result<(), TLSError> {
+    println!("{:?}\nVS\n{:?}", hmac_tag(alg, mk, input)?, tag);
     if eq(&hmac_tag(alg, mk, input)?, tag) {
         Ok(())
     } else {
