@@ -152,12 +152,9 @@ fn compute_psk_binder_zero_rtt(
             };
             set_by_handle(ks, &psk_handle, k.clone());
 
-            println!("trunc len: {}", trunc_len);
             let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
             let mk_handle = derive_binder_key(&ha, &psk_handle, ks)?;
             let mk = tagkey_from_handle(ks, &mk_handle).ok_or(INCORRECT_STATE)?.val;
-
-            println!("client th_trunc: {:?}", th_trunc);
 
             let binder_handle = XPD(
                 ks,
@@ -174,7 +171,6 @@ fn compute_psk_binder_zero_rtt(
             let binder = tagkey_from_handle(ks, &binder_handle)
                 .ok_or(INCORRECT_STATE)?
                 .val;
-            println!("client binder: {:?}", binder);
 
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
@@ -485,7 +481,6 @@ fn put_client_hello(
     let (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) =
         parse_client_hello(&ciphersuite, ch)?;
     let tx = Transcript::new(ciphersuite.hash());
-    println!("trunc len: {}", trunc_len);
     let th_trunc = tx.transcript_hash_without_client_hello(ch, trunc_len)?;
     let transcript = tx.add(ch);
     let th = transcript.transcript_hash()?;
@@ -516,12 +511,6 @@ fn process_psk_binder_zero_rtt(
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
-            // panic!(); // TODO: function never called in tests??
-
-            println!("server? th_trunc: {:?}", th_trunc);
-
-            println!("server? binder: {:?}", binder);
-
             let psk_handle = Handle {
                 name: TLSnames::PSK,
                 alg: ciphersuite.hash,
@@ -531,8 +520,6 @@ fn process_psk_binder_zero_rtt(
 
             let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
             let mk = tagkey_from_handle(ks, &mk_handle).ok_or(INCORRECT_STATE)?.val;
-
-            println!("derived key {:?} {:?}", mk, th_trunc);
 
             let binder_handle = XPD(
                 ks,
@@ -546,13 +533,9 @@ fn process_psk_binder_zero_rtt(
                 true,
                 &th_trunc,
             )?;
-
-            println!("client (pre) binder: {:?}", binder);
-
             let binder = tagkey_from_handle(ks, &binder_handle)
                 .ok_or(INCORRECT_STATE)?
                 .val;
-            println!("client binder: {:?}", binder);
 
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {

@@ -163,7 +163,6 @@ pub(crate) fn hmac_verify(
     input: &Bytes,
     tag: &Bytes,
 ) -> Result<(), TLSError> {
-    println!("{:?}\nVS\n{:?}", hmac_tag(alg, mk, input)?, tag);
     if eq(&hmac_tag(alg, mk, input)?, tag) {
         Ok(())
     } else {

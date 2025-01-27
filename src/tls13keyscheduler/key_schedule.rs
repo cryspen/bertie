@@ -34,7 +34,10 @@ pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle
         name: ZeroSalt,
         level: 0,
     };
-    let _ = set_by_handle(ks, &handle, Bytes::zeroes(1) // alg.hash_len()
+    let _ = set_by_handle(
+        ks,
+        &handle,
+        Bytes::zeroes(1), // alg.hash_len()
     ); // 1 bit-length, multiple introduce redundancy ?
     handle
 }
@@ -487,7 +490,7 @@ pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
 // }
 
 /////////
-// Description from papaer
+// Description from paper
 /////////
 
 ////
@@ -530,4 +533,16 @@ pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
 //         let k = tag(h, k_star);
 //         return (k, hon)
 //     }
+// }
+
+
+// pub(crate) fn nextKeys(key: &TagKey, extra: Bytes, digest: &Digest, aead_algorithm: &AeadAlgorithm,) -> Vec<TagKey> {
+//     // 0-RTT (k_cet)
+//     derive_0rtt_keys(
+
+//     // handshake messages (k_cht, k_sht)
+
+//     // 1-RTT data (k_cat, k_sat)
+
+//     // eksporter secrets (k_eem, k_eam)
 // }

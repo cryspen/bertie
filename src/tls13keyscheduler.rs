@@ -17,7 +17,6 @@ pub fn derive_binder_key(
     handle: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<Handle, TLSError> {
-    // panic!(); // TODO: function never called in tests??
     let zero_salt_handle = zero_salt(ks, ha);
     let early_secret_handle = XTR(ks, 0, TLSnames::ES, &handle, &zero_salt_handle)?;
 
@@ -263,14 +262,3 @@ pub(crate) fn derive_rms(
 ) -> Result<Handle, TLSError> {
     XPD(ks, TLSnames::RM, 0, &master_secret, true, &tx)
 }
-
-// pub(crate) fn nextKeys(key: &TagKey, extra: Bytes, digest: &Digest, aead_algorithm: &AeadAlgorithm,) -> Vec<TagKey> {
-//     // 0-RTT (k_cet)
-//     derive_0rtt_keys(
-
-//     // handshake messages (k_cht, k_sht)
-
-//     // 1-RTT data (k_cat, k_sat)
-
-//     // eksporter secrets (k_eem, k_eam)
-// }
