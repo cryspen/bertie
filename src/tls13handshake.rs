@@ -602,6 +602,7 @@ fn process_psk_binder_zero_rtt(
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
             let mk = derive_binder_key(&ciphersuite.hash, k)?;
+            let binder = hmac_tag(&ciphersuite.hash, &mk, &th_trunc)?;
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms) =
