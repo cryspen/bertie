@@ -111,7 +111,7 @@ Axiom Gcore_sodh : package fset0 [interface] [interface].
 
 Lemma core_theorem :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
@@ -124,7 +124,7 @@ Proof. Admitted.
 
 Lemma equation20_lhs :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
@@ -133,7 +133,7 @@ Proof. Admitted.
 
 Lemma equation20_rhs :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
@@ -142,7 +142,7 @@ Proof. Admitted.
 
 Lemma hyb_telescope :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   (* forall (K_table : chHandle -> nat), *)
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
@@ -154,7 +154,7 @@ Proof. Admitted.
 
 Lemma equation20_eq :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   (* forall (K_table : chHandle -> nat), *)
   forall i,
   forall (LA : {fset Location}) (A : raw_package),

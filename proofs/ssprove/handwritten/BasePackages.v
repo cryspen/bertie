@@ -70,124 +70,9 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 (*** Base Packages *)
-
-Definition serialize_name  (n : name) (ℓ (* 0 .. d *) : nat) (d : nat) (index : nat) : nat :=
-  let start := 100%nat in
-  let size := 20%nat in
-  (match n with
-  | BOT => 0
-
-  | ES => 1
-  | EEM => 2
-  | CET => 3
-  | BIND => 4
-  | BINDER => 5
-  | HS => 6
-  | SHT => 7
-  | CHT => 8
-  | HSALT => 9
-  | AS => 10
-  | RM => 11
-  | CAT => 12
-  | SAT => 13
-  | EAM => 14
-  | PSK => 15
-
-  | ZERO_SALT => 16
-  | ESALT => 17
-  | DH => 18
-  | ZERO_IKM => 19
-  end%nat) + size * ℓ + index * size * d.+1 + start.
-
-Lemma serialize_name_notin :
-  forall d,
-  forall (ℓ1 ℓ2 : nat),
-    (ℓ2 >= ℓ1.+1)%N ->
-    forall  (n1 n2 : name),
-    forall index,
-           serialize_name n1 ℓ1 d index \notin
-             fset1 (T:=Datatypes_nat__canonical__Ord_Ord) (serialize_name n2 ℓ2 d index).
-Proof.
-  intros.
-  unfold "\notin".
-  rewrite !ifF ; [ reflexivity | ].
-  unfold "\in"; simpl; unfold "\in"; simpl.
-  destruct n1, n2 ; unfold serialize_name.
-  all: try Lia.lia.
-Qed.
-
-Lemma serialize_name_notin_different_name :
-  forall d,
-  forall (ℓ1 ℓ2 : nat),
-  forall (n1 n2 : name),
-    (n1 <> n2)%N ->
-    forall index,
-           serialize_name n1 ℓ1 d index \notin
-             fset1 (T:=Datatypes_nat__canonical__Ord_Ord) (serialize_name n2 ℓ2 d index).
-Proof.
-  intros.
-  unfold "\notin".
-  rewrite !ifF ; [ reflexivity | ].
-  unfold "\in"; simpl; unfold "\in"; simpl.
-  destruct n1, n2 ; unfold serialize_name.
-  all: try (Lia.nia || contradiction).
-Qed.
-
-Lemma serialize_name_notin_different_index :
-  forall d,
-  forall (ℓ1 ℓ2 : nat),
-    (ℓ1 <= d)%N ->
-    (ℓ2 <= d)%N ->
-    forall  (n1 n2 : name),
-    forall (index1 index2 : nat),
-      (index1 <> index2)%nat ->
-      serialize_name n1 ℓ1 d index1 \notin
-        fset1 (T:=Datatypes_nat__canonical__Ord_Ord) (serialize_name n2 ℓ2 d index2).
-Proof.
-  intros.
-  unfold "\notin".
-  rewrite !ifF ; [ reflexivity | ].
-  unfold "\in"; simpl; unfold "\in"; simpl.
-  rewrite Bool.orb_false_r.
-
-  unfold serialize_name.
-  set 100%N.
-  generalize dependent n.
-  generalize dependent index1.
-  induction index2.
-  - intros.
-    destruct index1 ; intros.
-    {
-      destruct n1, n2 ; unfold serialize_name.
-      all: Lia.lia.
-    }
-    {
-      destruct n1, n2 ; unfold serialize_name.
-      all: Lia.lia.
-    }
-  - destruct index1 ; intros.
-    {
-      destruct n1, n2 ; unfold serialize_name.
-      all: Lia.lia.
-    }
-
-    rewrite <- (mulnA index2.+1).
-    rewrite (mulSnr index2).
-    rewrite (mulnA index2).
-    rewrite <- (addnA _ (_ + _)%nat n).
-    rewrite <- (addnA _ (20 * d.+1)%nat _).
-    rewrite addnA.
-
-    rewrite <- (mulnA index1.+1).
-    rewrite (mulSnr index1).
-    rewrite (mulnA index1).
-    rewrite <- (addnA _ (_ + _)%nat n).
-    rewrite <- (addnA _ (20 * d.+1)%nat _).
-    rewrite addnA.
-
-    now apply IHindex2.
-Qed.
 
 #[global] Notation " 'chSETinp' " :=
   (chHandle × 'bool × chKey)
@@ -213,4 +98,29 @@ Notation " 'chHASHout' " :=
     (in custom pack_type at level 2).
 Definition HASH := 1%nat.
 
-Definition len_ {n} (_ : 'I_ n) := n.
+Notation " 'chUNQinp' " :=
+  (chHandle × 'bool × chKey)
+    (in custom pack_type at level 2).
+Notation " 'chUNQout' " :=
+  (chHandle)
+    (in custom pack_type at level 2).
+
+Definition UNQ (n : name) (d : nat) : nat := serialize_name n 0 d 2.
+
+Notation " 'chDHGENinp' " :=
+  (chGroup)
+    (in custom pack_type at level 2).
+Notation " 'chDHGENout' " :=
+  (chGroup)
+    (in custom pack_type at level 2).
+Definition DHGEN : nat := 11.
+
+Notation " 'chDHEXPinp' " :=
+  (chGroup × chGroup)
+    (in custom pack_type at level 2).
+Notation " 'chDHEXPout' " :=
+  (chHandle)
+    (in custom pack_type at level 2).
+Definition DHEXP : nat := 12.
+
+Definition SET_DH : nat := 13.

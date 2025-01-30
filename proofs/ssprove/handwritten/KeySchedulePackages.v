@@ -85,58 +85,68 @@ Section KeySchedulePackages.
   Context {Dependencies : Dependencies}.
   Existing Instance Dependencies.
 
-Definition key_schedule_interface (* d *) :=
-  ([interface
-      #val #[ SET PSK 0 d ] : chSETinp → chSETout
-    ]
-     :|: DH_interface (* DHEXP, DHGEN *)
-     :|: XTR_n_ℓ (* d *) (* {ES,HS,AS},  0..d *)
-     :|: XPD_n_ℓ (* d *) (* XPN,         0..d *)
-     :|: GET_O_star_ℓ d).
+  Definition key_schedule_interface (* d *) :=
+    ([interface
+        #val #[ SET PSK 0 d ] : chSETinp → chSETout
+      ]
+       :|: DH_interface (* DHEXP, DHGEN *)
+       :|: XTR_n_ℓ (* d *) (* {ES,HS,AS},  0..d *)
+       :|: XPD_n_ℓ (* d *) (* XPN,         0..d *)
+       :|: GET_O_star_ℓ).
 
-Definition key_schedule_export (* d *) :=
-  GET_O_star_ℓ d :|: SET_O_star_ℓ d.
+  Definition key_schedule_export (* d *) :=
+    GET_O_star_ℓ :|: SET_O_star_ℓ.
 
-(* Context {ord : chGroup → nat} {E : nat -> nat}. *)
+  (* Context {ord : chGroup → nat} {E : nat -> nat}. *)
 
-(* Fig.11, p.17 *)
-Obligation Tactic := (* try timeout 8 *) idtac.
-Program Definition Gks_real (* (d : nat) *) :
-  package
-    fset0
-    (GET_XPD d.+1 :|: SET_XPD d.+1 :|: DH_Set_interface :|: [interface #val #[HASH] : chHASHout → chHASHout ] :|: (GET_XTR d.+1 :|: SET_XTR d.+1))
-    (SET_O_star_ℓ d :|: GET_O_star_ℓ d)
+  (* Fig.11, p.17 *)
+  Obligation Tactic := (* try timeout 8 *) idtac.
+  Definition Gks_real (* (d : nat) *) :
+    package
+      L_K
+      (GET_XPD :|: SET_XPD :|: DH_Set_interface :|: [interface #val #[HASH] : chHASHout → chHASHout ] :|: (GET_XTR :|: SET_XTR))
+      (SET_O_star_ℓ :|: GET_O_star_ℓ)
     (* ] *) :=
-  {package
-     (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-     Gcore_real (* d *)
-     #with
-    _
-  }.
-Fail Next Obligation.
+    {package
+       (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
+       Gcore_real (* d *)
+       #with
+      _
+    }.
+  Fail Next Obligation.
 
-(* Look into the use nominal sets (PR - Markus?)! *)
+  (* Look into the use nominal sets (PR - Markus?)! *)
 
-Program Definition Gks_ideal (* d *) (S : Simulator d) :
-  package
-    fset0
-    (key_schedule_interface (* d *))
-    [interface
-    ]
-  :=
-  {package
-     (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-     K_O_star d true ∘ S
-  }.
-Final Obligation.
-intros.
-ssprove_valid.
-1:{
-  eapply valid_package_inject_import.
-  2:{
-    epose (K_O_star d true).
-    admit.
-  }
-Admitted.
+  Program Definition Gks_ideal (* d *) (S : Simulator) :
+    package
+      L_K
+      (key_schedule_interface (* d *))
+      GET_O_star_ℓ
+    :=
+    {package
+       (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
+       K_O_star true ∘ S
+    }.
+  Final Obligation.
+    intros.
+    unfold key_schedule_interface.
+    eapply valid_link_upto.
+    1:{
+      eapply valid_package_inject_export.
+      2: apply (pack_valid (K_O_star true)).
+      solve_in_fset.
+    }
+    1:{
+      eapply valid_package_inject_import.
+      2: apply (pack_valid S).
+      solve_in_fset.
+    }
+    {
+      solve_in_fset.
+    }
+    {
+      solve_in_fset.
+    }
+  Qed.
 
 End KeySchedulePackages.

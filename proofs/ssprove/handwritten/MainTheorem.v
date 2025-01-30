@@ -72,6 +72,8 @@ From KeyScheduleTheorem Require Import Utility.
 
 From KeyScheduleTheorem Require Import ssp_helper.
 
+From KeyScheduleTheorem Require Import Dependencies.
+
 From KeyScheduleTheorem Require Import BasePackages.
 From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
@@ -84,11 +86,16 @@ From KeyScheduleTheorem Require Import CoreTheorem.
 
 (*** Key Schedule theorem *)
 
+Section MainTheorem.
+
+  Context {DepInstance : Dependencies}.
+  Existing Instance DepInstance.
+
 Notation " 'chTranscript' " :=
   (t_Handle)
     (in custom pack_type at level 2).
 
-Definition KS : nat := 0%nat.
+(* Definition KS : nat := 0%nat. *)
 
 (* Fig. 12, p. 18 *)
 (* Fig.29, P.63 *)
@@ -101,66 +108,62 @@ Notation " 'chKinp' " :=
 Notation " 'chKout' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Definition K (n : chName) (ℓ : nat) := 10%nat.
+(* Definition K (n : chName) (ℓ : nat) := 10%nat. *)
 
 (* Fig 13-14. K key and log *)
 
 Axiom exists_h_star : (chHandle -> raw_code 'unit) -> raw_code 'unit.
-Inductive ZAF := | Z | A | F.
 
 Axiom level : chHandle -> nat.
 
-Definition L_package (n : chName) (Log_table : chHandle -> nat) (P : ZAF) :
-  package
-    fset0
-    [interface]
-    [interface
-       #val #[ UNQ TODO ] : chUNQinp → chUNQout
-    ].
-  refine [package
-      #def #[ UNQ TODO (* n ℓ *) ] ('(h,hon,k) : chUNQinp) : chUNQout {
-         (* (exists_h_star (fun h_star =>  *)
-         (*   '(h',hon',k) ← get_or_fn (Log_table h_star) (chHandle × 'bool × chKey) (@fail _ ;; ret (chCanonical (chHandle × 'bool × chKey))) ;; *)
-         (*   r ← ret (level h) ;; *)
-         (*   r' ← ret (level h_star) ;; *)
-         (*   match P with *)
-         (*   | Z => ret Datatypes.tt *)
-         (*   | A => if Datatypes.andb (hon == hon' == false) (r == r' == false) *)
-         (*         then @fail _ ;; ret Datatypes.tt *)
-         (*         else ret Datatypes.tt *)
-         (*   | F => @fail _ ;; ret Datatypes.tt *)
-         (*   end)) ;; *)
-          set_at (Log_table h) (chHandle × 'bool × chKey) (h,hon,k) ;;
-          ret h
-      }
-    ].
-Admitted.
-Admit Obligations.
-Fail Next Obligation.
+(* Definition L_package (n : chName) (Log_table : chHandle -> nat) (P : ZAF) : *)
+(*   package *)
+(*     fset0 *)
+(*     [interface] *)
+(*     UNQ_O_star. *)
+(*   (* refine [package *) *)
+(*   (*     #def #[ UNQ TODO (* n ℓ *) ] ('(h,hon,k) : chUNQinp) : chUNQout { *) *)
+(*   (*        (* (exists_h_star (fun h_star =>  *) *) *)
+(*   (*        (*   '(h',hon',k) ← get_or_fn (Log_table h_star) (chHandle × 'bool × chKey) (@fail _ ;; ret (chCanonical (chHandle × 'bool × chKey))) ;; *) *) *)
+(*   (*        (*   r ← ret (level h) ;; *) *) *)
+(*   (*        (*   r' ← ret (level h_star) ;; *) *) *)
+(*   (*        (*   match P with *) *) *)
+(*   (*        (*   | Z => ret Datatypes.tt *) *) *)
+(*   (*        (*   | A => if Datatypes.andb (hon == hon' == false) (r == r' == false) *) *) *)
+(*   (*        (*         then @fail _ ;; ret Datatypes.tt *) *) *)
+(*   (*        (*         else ret Datatypes.tt *) *) *)
+(*   (*        (*   | F => @fail _ ;; ret Datatypes.tt *) *) *)
+(*   (*        (*   end)) ;; *) *) *)
+(*   (*         set_at (Log_table h) (chHandle × 'bool × chKey) (h,hon,k) ;; *) *)
+(*   (*         ret h *) *)
+(*   (*     } *) *)
+(*   (*   ]. *) *)
+(* Admitted. *)
+(* Admit Obligations. *)
+(* Fail Next Obligation. *)
 
 (* Fig 12. the real XPD and XTR games *)
 
-
-
 Lemma main_reduction :
-  forall (d : nat) (M : chHandle -> nat),
-  forall (PrntN : name -> raw_code (chName × chName)) (Labels : name -> bool -> raw_code label_ty),
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
-       (Gks_real d PrntN Labels)
-       (Gks_ideal d Score PrntN Labels) A =
+       (Gks_real)
+       (Gks_ideal Score) A =
      AdvantageE
-       (Gcore_real d PrntN Labels)
-       (Gcore_ideal d Score) (A ∘ R_ch_map d M)
+       (Gcore_real)
+       (Gcore_ideal Score) (A ∘ R_ch_map)
     )%R.
 Proof.
   intros.
-  rewrite (map_outro_c5 d M PrntN Labels Score LA).
+  rewrite (map_outro_c5 Score LA).
   unfold Gks_real_map , Gks_ideal_map , pack.
+  unfold Gcore_real.
+
+  epose (Advantage_link).
   rewrite <- Advantage_link.
-  rewrite <- Advantage_link.
+  (* rewrite <- Advantage_link. *)
   unfold Gcore_ideal.
 Admitted.
   (* reflexivity. *)
@@ -189,13 +192,125 @@ Axiom Gxtr_hs : nat -> loc_GamePair
          (* #val #[ HS ] : 'unit → 'unit *)
       ].
 
-Axiom Gxpd : XPR -> nat -> loc_GamePair
-      [interface
-         (* #val #[ ES ] : 'unit → 'unit *)
-      ].
+Axiom hash : package fset0 [interface] [interface #val #[ HASH ] : chHASHinp → chHASHout].
 
+Lemma trimmed_K_XPD (b : bool) : (trimmed (SET_XPD :|: GET_XPD) (K_XPD b)). Admitted.
+Lemma trimmed_hash : (trimmed ([interface #val #[ HASH ] : chHASHinp → chHASHout]) hash). Admitted.
 
-Axiom R_ : XPR -> nat -> package fset0 [interface] [interface].
+Definition Gxpds : forall (ℓ : nat) (P : ZAF),
+    (ℓ <= d)%N ->
+      loc_GamePair
+      (interface_foreach
+          (λ n : name, [interface #val #[XPD n ℓ] : ((chKout) × ('bool)) × (chHASHout) → chKout ])
+          XPR).
+Proof.
+  intros.
+  refine (fun b => {| locs := L_K :|: L_L ;
+                  locs_pack := {package xpd_level _ H ∘ ((par (K_XPD b) hash) ∘ (Ls XPR P erefl)) }
+                |}).
+  eapply valid_link_upto.
+  1: apply (pack_valid (xpd_level _ _)).
+  2: apply fsub0set.
+  2: apply fsubsetxx.
+  eapply valid_link_upto.
+  2: apply Ls.
+  3: apply fsubsetUr.
+  2: apply fsubsetUl.
+  eapply valid_par_upto.
+  3: apply hash.
+  3: rewrite fsetU0 ; apply fsubsetxx.
+  3: rewrite <- fset0E ; rewrite fsetU0 ; apply fsubsetxx.
+  3: apply fsubsetxx.
+  1:{
+    rewrite <- trimmed_K_XPD.
+    rewrite <- trimmed_hash.
+    solve_Parable.
+    unfold idents.
+    rewrite imfsetU.
+    rewrite fdisjointUl.
+    apply /andP ; split.
+    - unfold SET_XPD.
+      unfold interface_hierarchy_foreach.
+      rewrite fdisjointC.
+      apply (idents_interface_hierachy2).
+      intros.
+      unfold idents.
+      solve_imfset_disjoint.
+      all: unfold HASH, SET, serialize_name ; Lia.lia.
+    - unfold GET_XPD.
+      unfold interface_hierarchy_foreach.
+      rewrite fdisjointC.
+      apply (idents_interface_hierachy2).
+      intros.
+      unfold idents.
+      solve_imfset_disjoint.
+      all: unfold HASH, GET, serialize_name ; Lia.lia.
+  }
+  eapply valid_package_inject_import.
+  2: rewrite fsetUC ; apply (pack_valid (K_XPD b)).
+  unfold UNQ_XPD.
+  apply fsubsetxx.
+Qed.
+
+Definition Gxpd : forall (n : name) (ℓ : nat) (P : ZAF),
+    (ℓ <= d)%N ->
+      loc_GamePair
+      ([interface #val #[XPD n ℓ] : ((chKout) × ('bool)) × (chHASHout) → chKout ]).
+Proof.
+  intros.
+  refine (fun b => {| locs := L_K :|: L_L ;
+                  locs_pack := {package xpd_level ℓ H ∘ ((par (K_package n ℓ H b) hash) ∘ (L_package n P)) }
+                |}).
+  eapply valid_link_upto.
+  1: apply (pack_valid (xpd_level ℓ H)).
+  2: apply fsub0set.
+  2: apply fsubsetxx.
+  eapply valid_link_upto.
+  2: apply Ls.
+  3: apply fsubsetUr.
+  2: apply fsubsetUl.
+  eapply valid_par_upto.
+  3: apply hash.
+  3: rewrite fsetU0 ; apply fsubsetxx.
+  3: rewrite <- fset0E ; rewrite fsetU0 ; apply fsubsetxx.
+  3: apply fsubsetxx.
+  1:{
+    rewrite <- trimmed_K_XPD.
+    rewrite <- trimmed_hash.
+    solve_Parable.
+    unfold idents.
+    rewrite imfsetU.
+    rewrite fdisjointUl.
+    apply /andP ; split.
+    - unfold SET_XPD.
+      unfold interface_hierarchy_foreach.
+      rewrite fdisjointC.
+      apply (idents_interface_hierachy2).
+      intros.
+      unfold idents.
+      solve_imfset_disjoint.
+      all: unfold HASH, SET, serialize_name ; Lia.lia.
+    - unfold GET_XPD.
+      unfold interface_hierarchy_foreach.
+      rewrite fdisjointC.
+      apply (idents_interface_hierachy2).
+      intros.
+      unfold idents.
+      solve_imfset_disjoint.
+      all: unfold HASH, GET, serialize_name ; Lia.lia.
+  }
+  eapply valid_package_inject_import.
+  2: rewrite fsetUC ; apply (pack_valid (K_XPD b)).
+  unfold UNQ_XPD.
+  apply fsubsetxx.
+Qed.
+
+(* Axiom Gxpd : name -> nat -> loc_GamePair *)
+(*       [interface *)
+(*          (* #val #[ ES ] : 'unit → 'unit *) *)
+(*       ]. *)
+
+Axiom R_ : name -> nat -> package fset0 [interface] [interface].
 
 Ltac split_advantage O :=
   try apply (AdvantageE_le_0 _ _ _ ) ;
@@ -209,22 +324,20 @@ Axiom ki_hybrid :
   forall (LA : {fset Location}) (A : raw_package),
   forall i,
     ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
-  (AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ + 1)) (Ai A i) <=
-  Advantage (λ x : bool, Gxtr_es ℓ x) (Ai A i ∘ R_es ℓ) + Advantage (λ x : bool, Gxtr_hs ℓ x) (Ai A i ∘ R_hs ℓ) +
-    Advantage (λ x : bool, Gxtr_as ℓ x) (Ai A i ∘ R_as ℓ) + sumR_l [:: XPR_N; XPR_PSK; XPR_ESALT] (λ n : XPR, Advantage (λ x : bool, Gxpd n ℓ x) (Ai A i ∘ R_ n ℓ)))%R.
+  (AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ + 1)) (Ai (A ∘ R_ch_map) i) <=
+  Advantage (λ x : bool, Gxtr_es ℓ x) (Ai (A) i ∘ R_es ℓ) + Advantage (λ x : bool, Gxtr_hs ℓ x) (Ai (A) i ∘ R_hs ℓ) +
+    Advantage (λ x : bool, Gxtr_as ℓ x) (Ai (A) i ∘ R_as ℓ) + sumR_l XPR (λ n : name, Advantage (λ x : bool, Gxpd n ℓ x) (Ai (A) i ∘ R_ n ℓ)))%R.
 
 Lemma key_schedule_theorem :
-  forall (d : nat) (M : chHandle -> nat),
-  forall (PrntN : name -> raw_code (chName × chName)) (Labels : name -> bool -> raw_code label_ty),
-  forall (S : Simulator d),
+  forall (S : Simulator),
   forall (hash : nat),
   forall (LA : {fset Location}) (A : raw_package),
-    ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
-  forall (H_ε_acr : (sumR_l [:: R_cr; R_Z; R_D] (λ R : package f_parameter_cursor_loc (fset [::]) (fset [::]), Advantage (λ x : bool, Gacr x) (A ∘ R)) <= ε_acr)%R),
-  forall (H_ε_sodh_ki : (forall i, Advantage (λ x : bool, Gsodh x) (Ai A i ∘ R_sodh) + AdvantageE Gcore_ki (Gcore_ideal d S) (Ai A i) <= ε_sodh_ki i)%R),
+    ValidPackage LA ([interface #val #[ KS ] : 'unit → chTranscript ]) A_export A →
+  forall (H_ε_acr : (sumR_l [:: R_cr; R_Z; R_D] (λ R : package f_parameter_cursor_loc (fset [::]) (fset [::]), Advantage (λ x : bool, Gacr x) ((A ∘ R_ch_map) ∘ R)) <= ε_acr)%R),
+  forall (H_ε_sodh_ki : (forall i, Advantage (λ x : bool, Gsodh x) (Ai (A ∘ R_ch_map) i ∘ R_sodh) + AdvantageE Gcore_ki (Gcore_ideal S) (Ai (A ∘ R_ch_map) i) <= ε_sodh_ki i)%R),
     (AdvantageE
-       (Gks_real d PrntN Labels)
-       (Gks_ideal d S PrntN Labels) A <=
+       (Gks_real)
+       (Gks_ideal S) A <=
      ε_acr +
      maxR (fun i =>
       ε_sodh_ki i
@@ -232,32 +345,40 @@ Lemma key_schedule_theorem :
          Advantage (Gxtr_es ℓ) (Ai A i ∘ R_es ℓ)
         +Advantage (Gxtr_hs ℓ) (Ai A i ∘ R_hs ℓ)
         +Advantage (Gxtr_as ℓ) (Ai A i ∘ R_as ℓ)
-        +sumR_l [XPR_N; XPR_PSK; XPR_ESALT] (fun n => Advantage (Gxpd n ℓ) (Ai A i ∘ R_ n ℓ)
+        +sumR_l XPR (fun n => Advantage (Gxpd n ℓ) (Ai A i ∘ R_ n ℓ)
        )))
     )%R.
 Proof.
   intros.
-  rewrite (main_reduction d M).
+  rewrite (main_reduction).
 
   eapply Order.le_trans.
-  - eapply (core_theorem _ _ _ _ _).
-    apply H.
+  - eapply (core_theorem _ _ _).
+    
+    ssprove_valid.
+    1:{ admit. }
+    1,2: apply fsubsetxx.
+    
   - apply Num.Theory.lerD ; [ apply H_ε_acr | ].
     apply max_leq.
     intros i.
 
     eapply Order.le_trans.
     + apply Num.Theory.lerD ; [ easy | ].
-      epose (equation20_eq d S i).
+      epose (equation20_eq S i).
       eapply i0.
-      easy.
+
+      ssprove_valid.
+      1:{ admit. }
+      1,2: apply fsubsetxx.
     + rewrite addrA.
       apply Num.Theory.lerD ; [ apply H_ε_sodh_ki | ].
       apply sumR_le.
       intros ℓ.
       eapply ki_hybrid.
       easy.
-Qed.
+Admitted.
+(* Qed. *)
 
 (* (*** Concrete instance *) *)
 
@@ -267,3 +388,5 @@ Qed.
 (* Proof. *)
 (*   intros. *)
 (* Admitted. *)
+
+End MainTheorem.

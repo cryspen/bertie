@@ -43,6 +43,6 @@
 
 ./handwritten/CoreTheorem.v
 # ./handwritten/ModularTheorem.v
-# ./handwritten/MainTheorem.v
+./handwritten/MainTheorem.v
 
 ./handwritten/BertieResult.v

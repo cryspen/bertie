@@ -81,6 +81,44 @@ From KeyScheduleTheorem Require Import KeySchedulePackages.
 
 (*** Helper definitions *)
 
+
+From elpi Require Import elpi.
+Elpi Tactic undup.
+Elpi Accumulate lp:{{
+/*(*/
+  pred same-goal i:sealed-goal, i:sealed-goal. 
+  same-goal (nabla G1) (nabla G2) :-
+    % TODO: proof variables could be permuted
+    pi x\ same-goal (G1 x) (G2 x).
+  same-goal (seal (goal Ctx1 _ Ty1 P1 _) as G1)
+            (seal (goal Ctx2 _ Ty2 P2 _) as G2) :-
+    same-ctx Ctx1 Ctx2,
+    % this is an elpi builtin, aka same_term, which does not
+    % unify but rather compare two terms without assigning variables
+    Ty1 == Ty2,
+    P1 = P2.
+
+  pred same-ctx i:goal-ctx, i:goal-ctx.
+  same-ctx [] [].
+  same-ctx [decl V _ T1|C1] [decl V _ T2|C2] :-
+    % TODO: we could compare up to permutation...
+    % TODO: we could try to relate def and decl
+    T1 == T2,
+    same-ctx C1 C2.
+
+  pred undup i:sealed-goal, i:list sealed-goal, o:list sealed-goal.
+  undup _ [] [].
+  undup G [G1|GN] GN :- same-goal G G1.
+  undup G [G1|GN] [G1|GL] :- undup G GN GL.
+
+  msolve [G1|GS] [G1|GL] :-
+    % TODO: we could find all duplicates, not just
+    % copies of the first goal...
+    undup G1 GS GL.
+/*)*/
+}}.
+
+
 (*** Package *)
 
 Section MapPackages.
@@ -93,8 +131,8 @@ Section MapPackages.
 (* Context {PrntN: name -> code fset0 fset0 (chName × chName)}. *)
 (* Context {Labels : name -> bool -> code fset0 fset0 chLabel}. *)
 
-Axiom XTR_LABAL_from_index : nat -> name.
-Axiom XPN_LABAL_from_index : nat -> name.
+(* Axiom XTR_LABAL_from_index : nat -> name. *)
+(* Axiom XPN_LABAL_from_index : nat -> name. *)
 Axiom level : chHandle -> code fset0 [interface] (chOption chNat).
 
 Notation " 'chXTRinp' " :=
@@ -134,7 +172,7 @@ Proof.
           end ;;
         (* *)
 
-        assertD (ℓ' < d)%nat (fun H =>
+        assertD (ℓ' <= d)%nat (fun H =>
         #import {sig #[ XTR n ℓ' (* ℓ.+1 *) ] : chXTRinp → chXTRout }
         as XTR_fn ;;
         h ← xtr_angle n h1 h2 ;;
@@ -183,7 +221,8 @@ Proof.
     rewrite !in_fsetU.
     rewrite !in_fset1.
     unfold XTR_names in H.
-    repeat (destruct H as [ | H ]) ; subst ; repeat (apply /orP ; ((right ; apply eqxx) || left)) ; try apply eqxx ; contradiction.
+    
+    repeat (destruct H as [ | H ] ; [subst ; repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP | ]) ; contradiction.
   }
   {
     unfold set_at.
@@ -192,34 +231,74 @@ Proof.
 Defined.
 Fail Next Obligation.
 
+
 Definition R_ch_map_XTR_packages (* (d : nat) *) (M : chHandle -> nat)
   (H_inLM : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) :
   package L_M (XTR_n_ℓ (* d *)) (XTR_n_ℓ (* d *)).
-  refine (ℓ_packages
-            d
-    (fun ℓ H => {package parallel_raw (map_with_in XTR_names (fun x H0 => pack (R_ch_map_XTR_package d x (fun _ => M) H0 H_inLM))) #with _ })
-    _ _ _ ).
-  Unshelve.
 
-  - intros.
+  assert (H1 : forall n, ∀ x y : ExtraTypes_name__canonical__eqtype_Equality,
+             x ≠ y
+             → idents [interface #val #[XTR x n] : chXTRinp → chXTRout ]
+                 :#: idents [interface #val #[XTR y n] : chXTRinp → chXTRout ]
+         ).
+  {
+    intros.
+    unfold idents.
+    solve_imfset_disjoint.
+  }
+
+  assert (H2 : uniq XTR_names) by reflexivity.
+
+  assert (H3 : forall ℓ, trimmed_pairs
+    (@List.map (Equality.sort ExtraTypes_name__canonical__eqtype_Equality) Interface
+       (fun n : name =>
+        @fset
+          (Datatypes_prod__canonical__Ord_Ord Datatypes_nat__canonical__Ord_Ord
+             (Datatypes_prod__canonical__Ord_Ord choice_type_choice_type__canonical__Ord_Ord
+                choice_type_choice_type__canonical__Ord_Ord))
+          (@cons (prod nat (prod choice_type choice_type))
+             (@pair nat (prod choice_type choice_type) (@XTR DepInstance n ℓ)
+                (@pair choice_type choice_type (chProd chHandle chHandle) chHandle))
+             (@nil (prod nat (prod choice_type choice_type))))) XTR_names)
+    (@map_with_in (Equality.sort ExtraTypes_name__canonical__eqtype_Equality) raw_package XTR_names
+       (fun (x : name) (H0 : @List.In name x XTR_names) =>
+          @pack _ _ _ (R_ch_map_XTR_package ℓ x (fun _ : name => M) H0 H_inLM)))).
+  {
     unfold pack.
-    admit.
-  - intros.
-    unfold pack.
-    unfold XTR_names.
-    unfold List.map.
+    unfold map_with_in, XTR_names.
     unfold parallel_raw.
     unfold List.fold_left.
-    admit.
-  - intros.
-    simpl.
-    unfold XTR, serialize_name.
-    solve_imfset_disjoint.
+    unfold List.map.
+    unfold trimmed_pairs.
+    repeat split ; unfold trimmed ; trim_is_interface.
+  }
 
-    Unshelve.
-    ssprove_valid.
-    admit.
-Admitted.
+  set (XTR_n_ℓ) at 2.
+  rewrite (interface_hierarchy_trivial XTR_n_ℓ XTR_names d _).
+  2: easy.
+  subst i.
+  refine (ℓ_packages
+            d
+            (fun ℓ H => {package parallel_raw (map_with_in XTR_names (fun x H0 => pack (R_ch_map_XTR_package ℓ x (fun _ => M) H0 H_inLM)))
+                        #with
+                 (valid_forall_map_with_in
+                    (λ (n : name) (ℓ : nat), XTR_n_ℓ (* [interface #val #[XTR n ℓ] : chXTRinp → chXTRout ] *))
+                    (λ n : name, [interface #val #[XTR n ℓ] : chXTRinp → chXTRout ])
+                    XTR_names
+                    (λ ℓ (x : name) (H0 : List.In x XTR_names), R_ch_map_XTR_package ℓ x (λ _ : name, M) H0 H_inLM)
+                    d
+                    ℓ
+                    H (H1 _) H2 (H3 _) _ ) })
+            _ (fun _ _ => trimmed_parallel_raw _ _ _ (H1 _) H2 (H3 _)) _ ).
+  - unfold XTR_names, map_with_in, List.map.
+    unfold valid_pairs.
+    split ; [ | split ] ; apply R_ch_map_XTR_package.
+  - intros.
+    apply idents_foreach_disjoint_foreach.
+    intros.
+    unfold idents.
+    solve_imfset_disjoint.
+Defined.
 Fail Next Obligation.
 
 Notation " 'chXPDinp' " :=
@@ -252,7 +331,7 @@ Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> 
             | None => @fail 'nat ;; ret (chCanonical 'nat) (* fail? *)
             end) ;;
         (* *)
-        assertD (ℓ1 < d)%nat (fun H =>
+        assertD (ℓ1 <= d)%nat (fun H =>
             h ← xpd_angle n label h1 args ;;
 
             #import {sig #[ XPD n ℓ1 (* ℓ.+1 *) ] : chXPDinp → chXPDout }
@@ -292,7 +371,7 @@ Definition R_ch_map_XPD_package (ℓ : nat) (n : name) (M : name -> chHandle -> 
     rewrite !in_fsetU.
     rewrite !in_fset1.
     unfold XPR, "++" in H.
-    repeat (destruct H as [ | H ]) ; subst ; repeat (apply /orP ; ((right ; apply eqxx) || left)) ; try apply eqxx ; contradiction.
+    repeat (destruct H as [ | H ] ; [subst ; repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP | ]) ; contradiction.
 Defined.
 Fail Next Obligation.
 
@@ -324,10 +403,12 @@ Proof.
 
   apply trimmed_parallel_raw.
   {
-    simpl.
-    repeat split.
-    all: unfold XPD, serialize_name, idents.
-    all: solve_imfset_disjoint.
+    intros.
+    unfold idents.
+    solve_imfset_disjoint.
+  }
+  {
+    reflexivity.
   }
   {
     (* unfold XPD, serialize_name, idents. *)
@@ -343,23 +424,85 @@ Proof.
   }
 Qed.
 
-Definition R_ch_map_XPD_packages (* (d : nat) *) (M : chHandle -> nat) :
+Definition R_ch_map_XPD_packages  (* (d : nat) *) (M : chHandle -> nat) :
   (forall s, ('option ('fin #|fin_handle|); M s) \in L_M) ->
-  package fset0 (XPD_n_ℓ (* d *)) (XPD_n_ℓ (* d *)).
+  package L_M (XPD_n_ℓ (* d *)) (XPD_n_ℓ (* d *)).
   intros H_L_M.
-  refine (ℓ_packages
-            d (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H => pack (R_ch_map_XPD_package ℓ x (fun _ => M) (fun _ _ => M) H (fun _ => H_L_M) (fun _ _ => H_L_M)))) #with _ })
-    _ _ _).
+  (* refine (ℓ_packages *)
+  (*           d (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H => pack (R_ch_map_XPD_package ℓ x (fun _ => M) (fun _ _ => M) H (fun _ => H_L_M) (fun _ _ => H_L_M)))) #with _ }) *)
+  (*   _ _ _). *)
 
   (* 2: intros ; apply trimmed_parallel_raw_R_ch_map_XPD. *)
   (* 2: now apply interface_foreach_idents_XPD. *)
+  
+  assert (H1 : forall n, ∀ x y : ExtraTypes_name__canonical__eqtype_Equality,
+             x ≠ y
+             → idents [interface #val #[XPD x n] : chXPDinp → chXPDout ]
+                 :#: idents [interface #val #[XPD y n] : chXPDinp → chXPDout ]
+         ).
+  {
+    intros.
+    unfold idents.
+    solve_imfset_disjoint.
+  }
 
-  (* intros. *)
-  (* ssprove_valid. *)
+  assert (H2 : uniq XPR) by reflexivity.
 
-  (* Unshelve. *)
-  (* admit. *)
-Admitted.
+  eassert (H3 : forall ℓ, trimmed_pairs
+    (@List.map (Equality.sort ExtraTypes_name__canonical__eqtype_Equality) Interface
+       (fun n : name =>
+        @fset
+          (Datatypes_prod__canonical__Ord_Ord Datatypes_nat__canonical__Ord_Ord
+             (Datatypes_prod__canonical__Ord_Ord choice_type_choice_type__canonical__Ord_Ord
+                choice_type_choice_type__canonical__Ord_Ord))
+          (@cons (prod nat (prod choice_type choice_type))
+             (@pair nat (prod choice_type choice_type) (@XPD DepInstance n ℓ)
+                (@pair choice_type choice_type (chProd (chProd chHandle chBool) bitvec) chHandle))
+             (@nil (prod nat (prod choice_type choice_type))))) XPR)
+    (@map_with_in (Equality.sort ExtraTypes_name__canonical__eqtype_Equality) raw_package XPR
+       (fun (x : name) (H0 : @List.In name x XPR) =>
+        @pack _ _ _
+          (R_ch_map_XPD_package ℓ x (fun _ : name => M) (fun (_ : name) (_ : nat) => M) H0
+             (fun _ => H_L_M) (fun _ _ => H_L_M))))).
+  {
+    intros.
+    unfold pack.
+    unfold map_with_in, XPR.
+    unfold parallel_raw.
+    unfold List.fold_left.
+    unfold List.map.
+    unfold "++".
+    unfold trimmed_pairs.
+    repeat split ; unfold trimmed ; try trim_is_interface.
+  }
+
+  set (XPD_n_ℓ) at 2.
+  rewrite (interface_hierarchy_trivial XPD_n_ℓ XPR d _).
+  2: easy.
+  subst i.
+  refine (ℓ_packages
+            d
+            (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H0 => pack (R_ch_map_XPD_package ℓ x (fun _ => M) (fun _ _ => M) H0 (fun _ => H_L_M) (fun _ _ => H_L_M))))
+                        #with
+                 (valid_forall_map_with_in
+                    (λ (n : name) (ℓ : nat), XPD_n_ℓ (* [interface #val #[XPD n ℓ] : chXPDinp → chXPDout ] *))
+                    (λ n : name, [interface #val #[XPD n ℓ] : chXPDinp → chXPDout ])
+                    XPR
+                    (λ ℓ (x : name) (H0 : List.In x XPR), R_ch_map_XPD_package ℓ x (λ _ : name, M) (λ _ _ , M) H0 _ _)
+                    d
+                    ℓ
+                    H (H1 _) H2 (H3 _) _ ) })
+            _ (fun _ _ => trimmed_parallel_raw _ _ _ (H1 _) H2 (H3 _)) _ ).
+  - unfold XPR, map_with_in, List.map, "++".
+    unfold valid_pairs.
+    repeat split. all: apply R_ch_map_XPD_package.
+  - intros.
+    apply idents_foreach_disjoint_foreach.
+    intros.
+    unfold idents.
+    solve_imfset_disjoint.
+Defined.
+Fail Next Obligation.
 
 (* R_ch_map, fig.25, Fig. 27, Fig. 29 *)
 (* GET_o_star_ℓ d *)
@@ -377,7 +520,7 @@ Definition R_ch_map (* (d : nat) *) :
        #val #[ DHGEN ] : 'unit → 'unit ;
        #val #[ DHEXP ] : 'unit → 'unit
     ]).
-  refine (let base_package : package fset0
+  refine (let base_package : package L_M
     ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout ;
        #val #[ DHGEN ] : 'unit → 'unit ;
@@ -412,18 +555,33 @@ Definition R_ch_map (* (d : nat) *) :
   Unshelve.
   2-9: try apply DepInstance ; shelve.
   
-  refine ({package
+  1: refine ({package
      par (base_package
      ) (R_ch_map_XTR_packages (* d *) M H) }).
-  
+  1:{
   ssprove_valid.
   {
+    (* simpl. *)
     unfold FDisjoint.
     apply @parable.
+
+    eassert (trimmed _ (R_ch_map_XTR_packages M H)).
+    {
+      admit.
+    }
+    rewrite <- H.
+
+    eassert (trimmed _ base_package).
+    {
+      admit.
+    }
+    rewrite <- H0.
+
+    solve_Parable.
     admit.
   }
   {
-    rewrite fset0U.
+    rewrite fsetUid.
     apply fsubsetxx.
   }
   {
@@ -439,9 +597,40 @@ Definition R_ch_map (* (d : nat) *) :
   {
     solve_in_fset.
   }
+  }
+  {
+    unfold set_at.
+    ssprove_valid ; ssprove_valid'_2.
+    1:{
+      rewrite !in_fsetU.
+      apply /orP ; left.
+      apply /orP ; left.
+      rewrite fset_cons.
+      rewrite !in_fsetU.
+      apply /orP ; right.
+      rewrite fset_cons.
+      rewrite !in_fsetU.
+      apply /orP ; left.
+      rewrite in_fset1.
+      reflexivity.
+    }
+    {
+      rewrite !in_fsetU.
+      apply /orP ; left.
+      apply /orP ; left.
+      rewrite fset_cons.
+      rewrite !in_fsetU.
+      apply /orP ; left.
+      rewrite in_fset1.
+      unfold mkopsig.
+      apply eqxx.
+    }
+    {
+      admit.
+    }
+  }
   Unshelve.
-  ssprove_valid.
-
+  1,2: admit.
 Admitted.
 Admit Obligations.
 Fail Next Obligation.
@@ -452,12 +641,12 @@ Program Definition Gks_real_map (* (d : nat) *) :
     ([interface
        #val #[ SET PSK 0 d ] : chSETinp → chSETout
     ] :|:
-    GET_O_star_ℓ d)
+    GET_O_star_ℓ)
     [interface] :=
-  {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) R_ch_map (* d *) ∘ Gcore_real (* d *)) }.
+  {package R_ch_map (* d *) ∘ ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_real (* d *)) }.
 Fail Next Obligation.
 
-Program Definition Gks_ideal_map (* (d : nat) *) (Score : Simulator d) :
+Program Definition Gks_ideal_map (* (d : nat) *) (Score : Simulator) :
   package
     fset0
     ([interface
@@ -467,14 +656,14 @@ Program Definition Gks_ideal_map (* (d : nat) *) (Score : Simulator d) :
     ] :|:
     XTR_n_ℓ (* d *) :|:
     XPD_n_ℓ (* d *) :|:
-    GET_O_star_ℓ d)
+    GET_O_star_ℓ)
     [interface
-    ] := {package ((* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal (* d *) Score ∘ R_ch_map (* d *)) }.
+    ] := {package (R_ch_map (* d *) ∘ (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal (* d *) Score) }.
 Fail Next Obligation.
 
 Lemma map_intro_c2 :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
@@ -597,7 +786,7 @@ Axiom AdvantageFrame : forall G0 G1 G2 G3 A,
 
 Lemma map_outro_c5 :
   (* forall (d : nat), *)
-  forall (Score : Simulator d),
+  forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
     (AdvantageE
@@ -629,9 +818,9 @@ Proof.
 
   unfold Gcore_ideal.
 
-  rewrite <- link_assoc.
-  epose Advantage_link.
-  rewrite <- Advantage_link.
+  (* rewrite <- link_assoc. *)
+  (* epose Advantage_link. *)
+  (* rewrite <- Advantage_link. *)
   (* rewrite <- Advantage_link. *)
   (* rewrite <- Advantage_link. *)
 

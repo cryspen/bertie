@@ -279,13 +279,34 @@ Section BertieKeySchedule.
   Definition Bertie_M : chHandle -> nat. Admitted.
   Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted.
 
+  Definition Bertie_DHGEN_function : chGroup -> code fset0 fset0 chGroup. Admitted.
+  Definition Bertie_DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle. Admitted.
+
 End BertieKeySchedule.
 
 Instance BertieKeySchedule (d : nat) : Dependencies :=
+(* Proof. *)
+(*   econstructor. *)
+(*   - refine (Bertie_PrntN). *)
+(*   - refine (Bertie_Labels). *)
+(*   - refine (Bertie_xpd). *)
+(*   - refine (Bertie_xtr). *)
+(*   - refine (Bertie_xtr_angle). *)
+(*   - refine (Bertie_xpd_angle). *)
+(*   - refine (Bertie_PrntIdx). *)
+(*   - refine (Bertie_ord). *)
+(*   - refine (Bertie_E). *)
+
+(*   - refine (Bertie_in_K_table). *)
+(*   - refine (Bertie_H). *)
+(*   - refine (d). *)
+(*   - refine (Bertie_DHGEN_function). *)
+(*   - refine (Bertie_DHEXP_function). *)
+
   {
     PrntN := Bertie_PrntN;
     Labels := Bertie_Labels ;
-    O_star := Bertie_O_star ;
+    
     xpd := Bertie_xpd ;
     xtr := Bertie_xtr ;
     xtr_angle := Bertie_xtr_angle ;
@@ -303,8 +324,11 @@ Instance BertieKeySchedule (d : nat) : Dependencies :=
     H := Bertie_H ;
 
     d := d ;
+
+    DHGEN_function := Bertie_DHGEN_function ;
+    DHEXP_function := Bertie_DHEXP_function ;
   }.
 
-Definition BertieKeyScheduleCoreSimulator (d : nat) : Simulator (DepInstance := BertieKeySchedule d) d. Admitted.
+Definition BertieKeyScheduleCoreSimulator (d : nat) : Simulator (DepInstance := BertieKeySchedule d). Admitted.
 Definition BertieKeyScheduleCoreTheorem (d : nat) :=
   core_theorem (DepInstance := BertieKeySchedule d) (BertieKeyScheduleCoreSimulator d).

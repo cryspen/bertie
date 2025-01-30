@@ -77,6 +77,10 @@ Axiom gen : chGroup -> code fset0 fset0 chGroup.
 Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool.
 Definition chK_table := 'fin #|fin_K_table|.
 
+Definition fin_L_table : finType :=
+  Casts.prod_finType (Casts.prod_finType fin_handle 'bool) fin_key.
+Definition chL_table := 'fin #|fin_L_table|.
+
 Class Dependencies := {
     PrntN: name -> code fset0 fset0 (chName × chName) ;
     Labels : name -> bool -> code fset0 fset0 chLabel ;
@@ -88,6 +92,10 @@ Class Dependencies := {
     PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName) ;
     ord : chGroup → nat ;
     E : nat -> nat ;
+
+    L_L : {fset Location} ;
+    L_table : chHandle -> nat ;
+    in_L_table : forall x, ('option chL_table; L_table x) \in L_L ;
 
     L_K : {fset Location} ;
     K_table : chHandle -> nat ;
@@ -102,3 +110,6 @@ Class Dependencies := {
     DHGEN_function : chGroup -> code fset0 fset0 chGroup ;
     DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle ;
   }.
+
+Definition chFinGroup : finGroupType :=
+  {| FinGroup.sort := chGroup; FinGroup.class := chGroup_is_finGroup |}.

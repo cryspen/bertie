@@ -152,32 +152,6 @@ Definition nfto (x : chName) : name :=
   | n => fun H => False_rect _ (ltac:(easy))
   end%nat (ltn_ord (otf x)).
 
-Definition chName_to_name (n : name) : chName := fto (inord (
-  match n with
-  | BOT => 0
-
-  | ES => 1
-  | EEM => 2
-  | CET => 3
-  | BIND => 4
-  | BINDER => 5
-  | HS => 6
-  | SHT => 7
-  | CHT => 8
-  | HSALT => 9
-  | AS => 10
-  | RM => 11
-  | CAT => 12
-  | SAT => 13
-  | EAM => 14
-  | PSK => 15
-
-  | ZERO_SALT => 16
-  | ESALT => 17
-  | DH => 18
-  | ZERO_IKM => 19
-  end)).
-
 Definition name_to_chName (n : name) : chName := fto (inord (
   match n with
   | BOT => 0
@@ -214,12 +188,6 @@ Definition tag : chHash -> chName -> chKey (* TODO: should be key *) :=
 
 From KeyScheduleTheorem Require Import ssp_helper.
 
-Fixpoint interface_hierarchy (f : nat -> Interface) (ℓ : nat) : Interface :=
-  match ℓ with
-  | O => [interface]
-  | S n => f n :|: interface_hierarchy f n
-  end.
-
 Fixpoint map_with_in {A B} (l : list A) (f : forall (x : A), (List.In x l) -> B) : list B :=
   match l as k return (k = l -> _) with
   | [] => fun _ => []
@@ -232,9 +200,9 @@ Fixpoint map_with_in {A B} (l : list A) (f : forall (x : A), (List.In x l) -> B)
 Fixpoint map_with_in_num (d : nat) (f : forall (x : nat), (x <= d)%nat -> raw_package) {struct d} : raw_package
   :=
   match d as k return (k <= d)%nat -> _ with
-  | O => fun _ => emptym
+  | O => fun H => f O H
   | S n =>
-      fun H => par (f n (leq_trans (leqnSn n) H)) (map_with_in_num n (fun y Hf => f y (leq_trans Hf (leq_trans (leqnSn n) H))))
+      fun H => par (map_with_in_num n (fun y Hf => f y (leq_trans Hf (leq_trans (leqnSn n) H)))) (f (S n) H)
   end (leqnn d).
 
 Definition ℓ_raw_packages (d : nat) (p : forall (n : nat), (n <= d)%nat ->  raw_package) : raw_package :=
@@ -445,11 +413,26 @@ Proof.
   reflexivity.
 Qed.
 
-Definition interface_foreach {A : Type} (f : A -> Interface) (l : list A) :=
+Fixpoint interface_foreach {A : Type} (f : A -> Interface) (l : list A) :=
   match l with
   | [] => [interface]
-  | (x :: xs) => List.fold_left (fun y n => y :|: f n) xs (f x)
+  | [x] => f x
+  | (x :: xs) => f x :|: interface_foreach f xs
   end.
+
+(* seq.foldl (fun y n => y :|: f n) [interface] l. *)
+
+(* match l with *)
+(* | [] => [interface] *)
+(* | (x :: xs) => seq.foldl (fun y n => y :|: f n) (f x) xs *)
+(* end. *)
+
+Fixpoint interface_hierarchy (f : nat -> Interface) (ℓ : nat) : Interface :=
+  match ℓ with
+  | O => f O
+  | S n => interface_hierarchy f n :|: f (S n)
+  end.
+  (* interface_foreach f (iota O (S ℓ)). *)
 
 Definition interface_hierarchy_foreach {A : Type} (f : A -> nat -> Interface) (l : list A) :=
   interface_hierarchy (fun ℓ => interface_foreach (fun n => f n ℓ) l).
@@ -495,6 +478,111 @@ Ltac solve_Parable :=
       apply parable_par_l ; solve_Parable
   end.
 
+Definition serialize_name  (n : name) (ℓ (* 0 .. d *) : nat) (d : nat) (index : nat) : nat :=
+  let start := 100%nat in
+  let size := 20%nat in
+  (match n with
+  | BOT => 0
+
+  | ES => 1
+  | EEM => 2
+  | CET => 3
+  | BIND => 4
+  | BINDER => 5
+  | HS => 6
+  | SHT => 7
+  | CHT => 8
+  | HSALT => 9
+  | AS => 10
+  | RM => 11
+  | CAT => 12
+  | SAT => 13
+  | EAM => 14
+  | PSK => 15
+
+  | ZERO_SALT => 16
+  | ESALT => 17
+  | DH => 18
+  | ZERO_IKM => 19
+  end%nat) + size * ℓ + index * size * d.+1 + start.
+
+Lemma serialize_name_notin :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+    (ℓ2 <> ℓ1)%N ->
+    forall  (n1 n2 : name),
+    forall index,
+           serialize_name n1 ℓ1 d index <> serialize_name n2 ℓ2 d index.
+Proof.
+  intros.
+  destruct n1, n2 ; unfold serialize_name.
+  all: try Lia.lia.
+Qed.
+
+Lemma serialize_name_notin_different_name :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+  forall (n1 n2 : name),
+    (n1 <> n2)%N ->
+    forall index,
+           serialize_name n1 ℓ1 d index <> serialize_name n2 ℓ2 d index.
+Proof.
+  intros.
+  unfold "\notin".
+  destruct n1, n2 ; unfold serialize_name.
+  all: try (Lia.nia || contradiction).
+Qed.
+
+Lemma serialize_name_notin_different_index :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+    (ℓ1 <= d)%N ->
+    (ℓ2 <= d)%N ->
+    forall  (n1 n2 : name),
+    forall (index1 index2 : nat),
+      (index1 <> index2)%nat ->
+      serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
+Proof.
+  intros.
+  
+  unfold serialize_name.
+  set 100%N.
+  generalize dependent n.
+  generalize dependent index1.
+  induction index2.
+  - intros.
+    destruct index1 ; intros.
+    {
+      destruct n1, n2 ; unfold serialize_name.
+      all: Lia.lia.
+    }
+    {
+      destruct n1, n2 ; unfold serialize_name.
+      all: Lia.lia.
+    }
+  - destruct index1 ; intros.
+    {
+      destruct n1, n2 ; unfold serialize_name.
+      all: Lia.lia.
+    }
+
+    rewrite <- (mulnA index2.+1).
+    rewrite (mulSnr index2).
+    rewrite (mulnA index2).
+    rewrite <- (addnA _ (_ + _)%nat n).
+    rewrite <- (addnA _ (20 * d.+1)%nat _).
+    rewrite addnA.
+
+    rewrite <- (mulnA index1.+1).
+    rewrite (mulSnr index1).
+    rewrite (mulnA index1).
+    rewrite <- (addnA _ (_ + _)%nat n).
+    rewrite <- (addnA _ (20 * d.+1)%nat _).
+    rewrite addnA.
+
+    now apply IHindex2.
+Qed.
+
 Ltac solve_imfset_disjoint :=
   (* try rewrite !imfsetU *)
   (* ; try rewrite !fdisjointUr *)
@@ -511,7 +599,12 @@ try rewrite !imfsetU
 ; try rewrite  <- !fset1E
 ; try rewrite !imfset1
 ; try rewrite !fdisjoints1
-; try (unfold "\notin" ; rewrite !ifF ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ])
+; repeat (apply /andP ; split)
+; try (rewrite (ssrbool.introF (fset1P _ _)) ; [ reflexivity | ])
+; try (now apply serialize_name_notin)
+; try (now apply serialize_name_notin_different_name)
+; try (now apply serialize_name_notin_different_index)
+(* ; try (idtac ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ]) *)
 (* ; setoid_rewrite Bool.orb_false_r *)
 (* ; simpl *)
 (* ; Lia.lia *)
@@ -561,9 +654,9 @@ Definition parallel_raw (p : list raw_package) : raw_package :=
 
 Lemma fold_left_to_fsetU :
   forall (T : ordType) B (f : B -> {fset T}) L (v : {fset T}),
-    List.fold_left (fun y x => y :|: f x) L v
+    List.fold_left (fun y x => f x :|: y) L v
     =
-      v :|: List.fold_left (fun y x => y :|: f x) L fset0.
+      v :|: List.fold_left (fun y x => f x :|: y) L fset0.
 Proof.
   clear ; intros.
   generalize dependent v.
@@ -572,45 +665,54 @@ Proof.
     rewrite fsetU0.
     reflexivity.
   - simpl.
-    rewrite !(IHL (_ :|: f _)).
-    rewrite fset0U.
-    now rewrite fsetUA.
+    rewrite !(IHL (f _ :|: _)).
+    rewrite fsetU0.
+    rewrite fsetUA.
+    rewrite (fsetUC v).
+    reflexivity.
 Qed.
 
 Lemma interface_hierarchy_foreach_subset : forall {A} f L d,
-    interface_hierarchy_foreach f L d :<=: interface_hierarchy_foreach (A := A) f L d.+1.
+    interface_hierarchy_foreach f L d :<=: interface_hierarchy_foreach (A := A) f L d.
 Proof.
   intros.
   unfold interface_hierarchy_foreach.
   simpl.
-  rewrite fsubsetU ; [ reflexivity | ].
-  rewrite fsubsetxx.
-  now rewrite Bool.orb_true_r.
+  apply fsubsetxx.
 Qed.
 
 Lemma lower_level_in_interface :
   forall (f : name -> nat -> Interface) (l : list name) d ℓ (p : nat -> _),
     p ℓ \in interface_foreach (f^~ ℓ) l ->
-    (ℓ < d)%nat ->
+    (ℓ <= d)%nat ->
     (p ℓ) \in
     interface_hierarchy_foreach f l d.
 Proof.
   intros.
+  unfold interface_hierarchy_foreach.
+  simpl.
+
   induction d.
-  - easy.
-  - unfold interface_hierarchy_foreach.
-    simpl.
+  - destruct ℓ ; [ apply H | discriminate ].
+  - simpl.
     rewrite in_fset.
     rewrite mem_cat.
-    simpl.
-    destruct (ℓ == d) eqn:is_eq.
+    apply /orP.
+    destruct (ℓ == d.+1) eqn:is_eq.
     {
+      right.
+
       apply (ssrbool.elimT eqP) in is_eq.
       subst.
-      now rewrite H.
+      simpl.
+
+      simpl.
+
+      apply H.
     }
     {
       apply (ssrbool.elimF eqP) in is_eq.
+      simpl.
       rewrite IHd ; [ easy | Lia.lia ].
     }
 Qed.
@@ -696,30 +798,45 @@ Qed.
 
 (* idents (f d) :#: idents (interface_hierarchy f d) *)
 
+(* (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f n) :#: idents (f ℓ)), *)
+
 Lemma idents_interface_hierachy :
-  forall f n d,
-    (n >= d)%nat ->
-    (forall x, (d > x)%nat -> idents (f n) :#: idents (f x)) ->
-    idents (f n) :#: idents (interface_hierarchy f d).
+  ∀ f n ℓ,
+    (n > ℓ)%nat ->
+    (forall (ℓ : nat) , (n > ℓ)%nat -> idents (f ℓ) :#: idents (f n)) ->
+     idents (interface_hierarchy f ℓ) :#: idents (f n).
 Proof.
   clear ; intros.
   unfold idents.
-  induction d ; simpl.
-  - rewrite <- !fset0E.
-    rewrite imfset0.
-    apply fdisjoints0.
+  induction ℓ ; simpl.
+  - easy.
   - rewrite imfsetU.
-    rewrite fdisjointUr.
-    rewrite IHd.
-    + intros.
-      rewrite Bool.andb_true_r.
-      apply H0.
-      easy.
+    rewrite fdisjointUl.
+    rewrite IHℓ.
+    + simpl.
+      now apply H0.
     + Lia.lia.
-    + intros.
-      apply H0.
-      Lia.lia.
 Qed.
+
+(*   forall f n d, *)
+(*     (n > d)%nat -> *)
+(*     (forall x, (d >= x)%nat -> idents (f n) :#: idents (f x)) -> *)
+(*     idents (f n) :#: idents (interface_hierarchy f d). *)
+(* Proof. *)
+(*   clear ; intros. *)
+(*   unfold idents. *)
+(*   induction d ; simpl. *)
+(*   - now apply H0. *)
+(*   - rewrite imfsetU. *)
+(*     rewrite fdisjointUr. *)
+(*     rewrite IHd. *)
+(*     + intros. *)
+(*       now apply H0. *)
+(*     + Lia.lia. *)
+(*     + intros. *)
+(*       apply H0. *)
+(*       Lia.lia. *)
+(* Qed. *)
 
 Fixpoint valid_pairs L I E P :=
   match I, E, P with
@@ -744,41 +861,6 @@ Fixpoint all_idents_disjoint {A} f I :=
       idents (f x) :#: idents (interface_foreach (A := A) f xs) /\ all_idents_disjoint f xs
   end.
 
-Lemma trimmed_parallel_raw : forall {A} f I L,
-    all_idents_disjoint f I ->
-    trimmed_pairs (List.map f I) L ->
-    trimmed (interface_foreach (A := A) f I) (parallel_raw L).
-Proof.
-  intros.
-  unfold parallel_raw.
-
-  unfold interface_foreach.
-  destruct L, I ; [ apply trimmed_empty_package | destruct I ; contradiction.. | ].
-  simpl.
-  generalize dependent a.
-  generalize dependent r.
-  generalize dependent I.
-  (induction L ; destruct I) ; intros ; [ apply H0 | destruct I ; destruct H0 ; contradiction.. | ].
-
-  setoid_rewrite fold_left_to_fsetU.
-  simpl.
-  rewrite fold_left_to_par.
-  rewrite <- par_assoc.
-  rewrite <- fold_left_to_par.
-  rewrite fset0U.
-  apply trimmed_par.
-  3: apply IHL ; [ apply H | apply H0 ].
-  2: apply H0.
-  1:{
-    rewrite <- (IHL I _ a0) ; [ | apply H | apply H0 ].
-    simpl in H0.
-    rewrite <- (proj1 H0).
-    apply @parable.
-    solve_Parable.
-    apply H.
-  }
-Qed.
-
 Lemma interface_foreach_cons : forall {A} f n E,
     interface_foreach f (n :: E) = f n :|: interface_foreach (A := A) f E.
 Proof.
@@ -788,10 +870,242 @@ Proof.
     rewrite fsetU0.
     reflexivity.
   - simpl.
-    rewrite fold_left_to_fsetU.
-    rewrite <- fsetUA.
-    rewrite <- fold_left_to_fsetU.
+    (* rewrite fold_left_to_fsetU. *)
+    (* rewrite <- fsetUA. *)
+    (* rewrite <- fold_left_to_fsetU. *)
     reflexivity.
+Qed.
+
+Lemma interface_foreach_U : forall {A} f g E,
+    interface_foreach f E :|: interface_foreach g E
+    = interface_foreach (A := A) (fun n => f n :|: g n) E.
+Proof.
+  intros.
+  induction E.
+  - simpl.
+    rewrite <- fset0E.
+    rewrite fsetU0.
+    reflexivity.
+  - rewrite !interface_foreach_cons.
+    rewrite fsetUA.
+    rewrite (fsetUC _ (g a)).
+    rewrite fsetUA.
+    rewrite (fsetUC _ (f a)).
+    rewrite <- fsetUA.
+    rewrite IHE.
+    reflexivity.
+Qed.
+
+Lemma interface_hierarchy_U : (forall f g ℓ,
+  (interface_hierarchy f ℓ :|: interface_hierarchy g ℓ)
+  = interface_hierarchy (fun n => f n :|: g n) ℓ).
+Proof.
+  intros.
+  induction ℓ.
+  - reflexivity.
+  - simpl.
+    rewrite <- IHℓ.
+    rewrite fsetUA.
+    rewrite fsetUA.
+    f_equal.
+    rewrite fsetUC.
+    rewrite fsetUA.
+    f_equal.
+    apply fsetUC.
+Qed.
+
+Lemma interface_hierarchy_foreachU : (forall {A} f g L (d : nat),
+  (interface_hierarchy_foreach f L d :|: interface_hierarchy_foreach g L d)
+  = interface_hierarchy_foreach (A := A) (fun n d => f n d :|: g n d) L d).
+Proof.
+  intros.
+  unfold interface_hierarchy_foreach.
+  rewrite interface_hierarchy_U.
+  f_equal.
+  setoid_rewrite interface_foreach_U.
+  reflexivity.
+Qed.
+
+Lemma interface_foreach_disjoint :
+  forall {A} (f : A -> _) g (L : list A),
+    (forall n m, f n :#: g m) ->
+    forall a, f a :#: interface_foreach g L.
+Proof.
+  clear ; intros.
+  induction L.
+  - simpl.
+    rewrite <- fset0E.
+    apply fdisjoints0.
+  - rewrite interface_foreach_cons.
+    rewrite fdisjointUr.
+    rewrite IHL.
+    rewrite H.
+    reflexivity.
+Qed.
+
+Lemma foreach_disjoint_foreach :
+  (forall {A} f g (L : list A),
+      (forall n m, f n :#: g m) ->
+      interface_foreach f L :#: interface_foreach g L).
+Proof.
+  intros.
+  induction L.
+  - simpl.
+    rewrite <- fset0E.
+    apply fdisjoints0.
+  - rewrite interface_foreach_cons.
+    rewrite interface_foreach_cons.
+    rewrite fdisjointUl.
+    rewrite !fdisjointUr.
+    rewrite H.
+    rewrite IHL.
+    rewrite Bool.andb_true_r.
+    simpl.
+    rewrite interface_foreach_disjoint.
+    2: apply H.
+    rewrite fdisjointC.
+    rewrite interface_foreach_disjoint.
+    2: intros ; rewrite fdisjointC ; apply H.
+    reflexivity.
+Qed.
+
+Lemma foreach_imfset :
+  (forall {A} g f (L : list A),
+      g @: (interface_foreach f L) = interface_foreach (fun n => g @: f n) L).
+Proof.
+  intros.
+  induction L.
+  - simpl.
+    rewrite <- fset0E.
+    rewrite imfset0.
+    reflexivity.
+  - rewrite interface_foreach_cons.
+    rewrite interface_foreach_cons.
+    rewrite !imfsetU.
+    rewrite IHL.
+    reflexivity.
+Qed.
+
+Lemma idents_interface_foreach_disjoint :
+  forall {A} (f : A -> _) g (L : list A),
+    (forall n m, idents (f n) :#: idents (g m)) ->
+    forall a, idents (f a) :#: idents (interface_foreach g L).
+Proof.
+  clear ; intros.
+  induction L.
+  - simpl.
+    rewrite <- fset0E.
+    unfold idents.
+    rewrite imfset0.
+    apply fdisjoints0.
+  - rewrite interface_foreach_cons.
+    unfold idents.
+    rewrite imfsetU.
+    rewrite fdisjointUr.
+    rewrite IHL.
+    rewrite H.
+    reflexivity.
+Qed.
+
+Lemma idents_foreach_disjoint_foreach :
+  (forall {A} f g (L : list A),
+      (forall n m, idents (f n) :#: idents (g m)) ->
+      idents (interface_foreach f L) :#: idents (interface_foreach g L)).
+Proof.
+  intros.
+  induction L.
+  - simpl.
+    rewrite <- fset0E.
+    unfold idents.
+    rewrite imfset0.
+    apply fdisjoints0.
+  - rewrite interface_foreach_cons.
+    rewrite interface_foreach_cons.
+    unfold idents.
+    rewrite !imfsetU.
+    rewrite fdisjointUl.
+    rewrite !fdisjointUr.
+    rewrite H.
+    rewrite IHL.
+    rewrite Bool.andb_true_r.
+    simpl.
+    rewrite idents_interface_foreach_disjoint.
+    2: apply H.
+    rewrite fdisjointC.
+    rewrite idents_interface_foreach_disjoint.
+    2: intros ; rewrite fdisjointC ; apply H.
+    reflexivity.
+Qed.
+
+Lemma idents_interface_foreach_disjoint_same :
+  forall {A : eqType} (f : A -> _) (L : list A),
+    (forall n m, (n <> m) -> idents (f n) :#: idents (f m)) ->
+    forall a, uniq (a :: L) ->
+    idents (f a) :#: idents (interface_foreach f L).
+Proof.
+  clear ; intros.
+  induction L.
+  - simpl.
+    rewrite <- fset0E.
+    unfold idents.
+    rewrite imfset0.
+    apply fdisjoints0.
+  - rewrite interface_foreach_cons.
+    unfold idents.
+    rewrite imfsetU.
+    rewrite fdisjointUr.
+    rewrite IHL.
+    2:{
+      apply (ssrbool.elimT andP) in H0 as []. 
+      apply (ssrbool.elimT andP) in H1 as [].
+      apply (ssrbool.introT andP).
+      fold (uniq L) in *.
+      split.
+      - rewrite notin_cons in H0.
+        apply (ssrbool.elimT andP) in H0.
+        apply H0.
+      - apply H2.
+    }
+    rewrite H ; [ reflexivity | ].
+    red ; intros.
+    subst.
+    apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq L) in *.
+    rewrite notin_cons in H0.
+    apply (ssrbool.elimT andP) in H0 as [].
+    now apply (ssrbool.elimN eqP) in H0.
+Qed.
+
+Lemma trimmed_parallel_raw : forall {A : eqType} f I L,
+    (∀ x y : A, x ≠ y → idents (f x) :#: idents (f y)) -> uniq I ->
+    (* all_idents_disjoint f I -> *)
+    trimmed_pairs (List.map f I) L ->
+    trimmed (interface_foreach (A := A) f I) (parallel_raw L).
+Proof.
+  intros.
+  unfold parallel_raw.
+  destruct L, I ; [ apply trimmed_empty_package | destruct I ; contradiction.. | ].
+
+  generalize dependent s.
+  generalize dependent r.
+  generalize dependent I.
+  (induction L ; destruct I) ; intros ; [ apply H1 | destruct I ; destruct H1 ; contradiction.. | ].
+
+  rewrite interface_foreach_cons.
+  simpl List.fold_left.
+  rewrite fold_left_to_par.
+  rewrite <- par_assoc.
+  rewrite <- fold_left_to_par.
+  apply trimmed_par.
+  3: apply IHL ; [ now apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq (s :: I)) in H0 | apply H1 ].
+  2: apply H1.
+  1:{
+    rewrite <- (IHL I _ s) ; [ | now apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq (s :: I)) in H0 | apply H1 ].
+    simpl in H0.
+    rewrite <- (proj1 H1).
+    apply @parable.
+    solve_Parable.
+    now apply idents_interface_foreach_disjoint_same.
+  }
 Qed.
 
 Lemma parallel_raw_cons : forall n E,
@@ -817,8 +1131,8 @@ Proof.
 Qed.
 
 Theorem valid_parable :
-  forall {N} (P : list raw_package) f g L I E,
-    all_idents_disjoint f E ->
+  forall {N : eqType} (P : list raw_package) f g L I E,
+    (∀ x y, x ≠ y → idents (f x) :#: idents (f y)) -> uniq E ->
     trimmed_pairs (List.map f E) P ->
     valid_pairs L (List.map g I) (List.map f E) P ->
     valid_package L (interface_foreach (A := N) g I) (interface_foreach (A := N) f E) (parallel_raw P).
@@ -832,8 +1146,8 @@ Proof.
     simpl.
     constructor.
     intros ? ?.
-    rewrite in_fset in H2.
-    inversion H2.
+    rewrite in_fset in H3.
+    inversion H3.
   }
   intros.
   rewrite interface_foreach_cons.
@@ -844,26 +1158,26 @@ Proof.
 
   apply valid_par.
   3:{
-    destruct I, E , P ; [ | destruct H1 ; try destruct I ; try destruct E ; contradiction .. | ].
+    destruct I, E , P ; [ | destruct H2 ; try destruct I ; try destruct E ; contradiction .. | ].
     {
       simpl.
       constructor.
       intros ? ?.
-      rewrite <- fset0E in H2.
-      inversion H2.
+      rewrite <- fset0E in H3.
+      inversion H3.
     }
-    apply IHP ; [ apply H | apply H0 | apply H1 ].
+    apply IHP ;[ now apply (ssrbool.elimT andP) in H0 as [] | apply H1 | apply H2 ].
   }
   2:{
-    simpl in H1.
-    destruct (List.map g I), (List.map f E), P in H1 ; apply H1.
+    simpl in H2.
+    destruct (List.map g I), (List.map f E), P in H2 ; apply H2.
   }
   {
-    clear -H0 H.
+    clear -H H1 H0.
     generalize dependent E.
-    generalize dependent n.
+    generalize dependent s.
     generalize dependent a.
-    induction P ; intros.
+    induction P as [ | p ] ; intros a s E ? ?.
     {
       simpl.
       unfold Parable.
@@ -871,31 +1185,30 @@ Proof.
       apply fdisjoints0.
     }
     {
-      generalize dependent a0.
-      generalize dependent n.
-      destruct E ; intros.
+      generalize dependent a.
+      generalize dependent s.
+      destruct E as [ | e ] ; intros s ? a ?.
       {
-        destruct H0 ; contradiction.
+        destruct H1 ; contradiction.
       }
       {
-        specialize (IHP a0 n0 E).
+        specialize (IHP a s E).
 
-        assert (idents (f n0) :#: idents (f n) /\ all_idents_disjoint f (n0 :: E)).
-        {
-          clear -H.
-          (* unfold all_idents_disjoint. *)
-          (* fold all_idents_disjoint. *)
-          destruct E ; [ easy | ].
-          destruct H as [? []].
-          rewrite interface_foreach_idents_cons in H.
-          now rewrite fdisjointUr in H.
-        }
-        destruct H1.
-        specialize (IHP H2).
-
-        assert (trimmed_pairs (List.map f [:: n0 & E]) (a0 :: P)).
+        assert (uniq (s :: E)).
         {
           clear -H0.
+          apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq (s :: E)) in H0.
+          apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq E) in H1.
+          simpl.
+          rewrite notin_cons in H.
+          apply (ssrbool.elimT andP) in H as [].
+          easy.
+        }
+        specialize (IHP H2).
+
+        assert (trimmed_pairs (List.map f [:: s & E]) (a :: P)).
+        {
+          clear -H1.
           now simpl in * ; destruct (List.map f E), P.
         }
         specialize (IHP H3).
@@ -907,9 +1220,9 @@ Proof.
         apply /andP.
         split ; apply @parable.
         {
-          destruct H0.
-          rewrite <- H0.
-          destruct E, P ; [ | destruct H4 ; try destruct E ; contradiction.. |  ] ; [ | destruct H4] ; rewrite <- H4 ; solve_Parable ; apply H1.
+          destruct H1.
+          rewrite <- H1.
+          destruct E, P ; [ | destruct H4 ; try destruct E ; contradiction.. |  ] ; [ | destruct H4] ; rewrite <- H4 ; solve_Parable ; apply H ; apply (ssrbool.elimT andP) in H0 as [? _] ; rewrite notin_cons in H0 ; apply (ssrbool.elimT andP) in H0 as [] ; now apply /eqP. 
         }
         {
           apply IHP.
@@ -919,54 +1232,71 @@ Proof.
   }
 Qed.
 
-Lemma interface_hierarchy_foreachU : (forall {A} f g L (d : nat),
-  (interface_hierarchy_foreach f L d :|: interface_hierarchy_foreach g L d)
-  = interface_hierarchy_foreach (A := A) (fun n d => f n d :|: g n d) L d).
+Definition name_eq (x y : name) : bool :=
+  match x, y with
+  | BOT, BOT => true
+
+  | ES, ES => true
+  | EEM, EEM => true
+  | CET, CET => true
+  | BIND, BIND => true
+  | BINDER, BINDER => true
+  | HS, HS => true
+  | SHT, SHT => true
+  | CHT, CHT => true
+  | HSALT, HSALT => true
+  | AS, AS => true
+  | RM, RM => true
+  | CAT, CAT => true
+  | SAT, SAT => true
+  | EAM, EAM => true
+  | PSK, PSK => true
+
+  | ZERO_SALT, ZERO_SALT => true
+  | ESALT, ESALT => true
+  | DH, DH => true
+  | ZERO_IKM, ZERO_IKM => true
+  | _, _ => false
+  end.
+
+Definition name_equality :
+  Equality.axiom (T:=name) name_eq.
 Proof.
-  intros.
-  unfold interface_hierarchy_foreach.
-  induction d.
-  - simpl.
-    rewrite <- fset0E.
-    rewrite !fset0U.
-    reflexivity.
-  - simpl.
-
-    rewrite fsetUA.
-    rewrite (fsetUC _ (interface_foreach _ _)).
-    rewrite fsetUA.
-    rewrite <- fsetUA.
-    rewrite IHd.
-    f_equal.
-
-    clear IHd.
-    induction L.
-    {
-      simpl.
-      rewrite <- fset0E.
-      rewrite !fset0U.
-      reflexivity.
-    }
-    {
-      rewrite !interface_foreach_cons.
-
-      rewrite fsetUA.
-      rewrite (fsetUC _ (f _ _)).
-      rewrite fsetUA.
-      rewrite <- fsetUA.
-
-      rewrite IHL.
-      reflexivity.
-    }
+  intros ? ?.
+  destruct x, y.
+  all: try now apply Bool.ReflectF.
+  all: now apply Bool.ReflectT.
 Qed.
 
-Theorem valid_forall : forall {A} g f u Names (d ℓ : nat),
-    (d > ℓ)%nat ->
-    all_idents_disjoint f Names ->
+HB.instance Definition _ : Equality.axioms_ name :=
+  {|
+    Equality.eqtype_hasDecEq_mixin :=
+      {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+  |}.
+
+Lemma all_idents_disjoint_foreach :
+  (forall {A : eqType} f (L : list A),
+      (forall x y, x <> y -> idents (f x) :#: idents (f y)) ->
+      uniq L ->
+      all_idents_disjoint f L).
+Proof.
+  intros.
+  induction L ; [ easy | ].
+  destruct L ; [ easy | ].
+  split ; [ | apply IHL ].
+  2: apply (ssrbool.elimT andP) in H0 as [] ; apply H1.
+  apply idents_interface_foreach_disjoint_same.
+  2: easy.
+  apply H.
+Qed.
+
+Theorem valid_forall : forall {A : eqType} {L} g f u Names (d ℓ : nat),
+    (d >= ℓ)%nat ->
+    (∀ x y : A, x ≠ y → idents (f x) :#: idents (f y)) -> uniq Names ->
     trimmed_pairs (List.map f Names) (List.map (u ℓ) Names) ->
-    (valid_pairs f_parameter_cursor_loc (List.map (g^~ ℓ) Names) (List.map f Names)
+    (valid_pairs L (List.map (g^~ ℓ) Names) (List.map f Names)
     (List.map (u ℓ) Names)) ->
-  ValidPackage f_parameter_cursor_loc
+  ValidPackage L
     (interface_hierarchy_foreach g Names d)
     (interface_foreach (A := A) f Names) (parallel_raw (List.map (u ℓ) Names)).
 Proof.
@@ -977,30 +1307,68 @@ Proof.
     unfold interface_hierarchy_foreach.
     unfold interface_hierarchy ; fold interface_hierarchy.
 
-    (* apply fsubsetU. *)
-    (* apply /orP. *)
-    (* right. *)
-
     induction d.
-    + discriminate.
+    + simpl.
+      destruct ℓ ; [ | discriminate ].
+      apply fsubsetxx.
     + apply fsubsetU. fold interface_hierarchy.
       apply /orP.
-      destruct (ℓ == d) eqn:is_eq.
+      destruct (ℓ == d.+1) eqn:is_eq.
       * apply (ssrbool.elimT eqP) in is_eq.
         subst.
-        left.
+        right.
         apply fsubsetxx.
       * apply (ssrbool.elimF eqP) in is_eq.
-        right.
+        left.
         apply IHd.
         Lia.lia.
-  - apply valid_parable.
-    + apply H0.
-    + apply H1.
-    + apply H2.
+  - now apply valid_parable.
+    (* + apply H0. *)
+    (* + apply H1. *)
+    (* + apply H2. *)
+    (* + apply H3. *)
 Qed.
 
-Check ℓ_raw_packages.
+
+Theorem valid_forall_map_with_in : forall {A : eqType} {L} g f Names u (d ℓ : nat),
+    (d >= ℓ)%nat ->
+    (∀ x y : A, x ≠ y → idents (f x) :#: idents (f y)) -> uniq Names ->
+    trimmed_pairs (List.map f Names) (map_with_in Names (u ℓ)) ->
+    (valid_pairs L (List.map (g^~ ℓ) Names) (List.map f Names)
+    (map_with_in Names (u ℓ))) ->
+  ValidPackage L
+    (interface_hierarchy_foreach g Names d)
+    (interface_foreach (A := A) f Names) (parallel_raw (map_with_in Names (u ℓ))).
+Proof.
+  intros.
+  eapply valid_package_inject_import.
+  - instantiate (1 := interface_foreach (g^~ ℓ) Names).
+
+    unfold interface_hierarchy_foreach.
+    unfold interface_hierarchy ; fold interface_hierarchy.
+
+    induction d.
+    + simpl.
+      destruct ℓ ; [ | discriminate ].
+      apply fsubsetxx.
+    + apply fsubsetU. fold interface_hierarchy.
+      apply /orP.
+      destruct (ℓ == d.+1) eqn:is_eq.
+      * apply (ssrbool.elimT eqP) in is_eq.
+        subst.
+        right.
+        apply fsubsetxx.
+      * apply (ssrbool.elimF eqP) in is_eq.
+        left.
+        apply IHd.
+        Lia.lia.
+  - now apply valid_parable.
+    (* + apply H0. *)
+    (* + apply H1. *)
+    (* + apply H2. *)
+    (* + apply H3. *)
+Qed.
+
 
 (* Lemma ℓ_raw_level_Parable *)
 (*   (d : nat) *)
@@ -1042,15 +1410,19 @@ Theorem ℓ_raw_package_trimmed :
     {f : nat -> Interface}
     (p : forall (n : nat) , (n <= d)%N → package L I (f n))
     (H_trim_p : forall ℓ (H_le : (ℓ <= d)%N), trimmed (f ℓ) (p ℓ H_le))
-    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d > n)%nat -> idents (f n) :#: idents (f ℓ)),
+    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n)),
     trimmed (interface_hierarchy f d) (ℓ_raw_packages d p).
 Proof.
   intros.
-  induction d.
+
+  induction d ; intros.
   - simpl.
-    unfold trimmed ; now setoid_rewrite filterm0.
-  - simpl.
-    apply (trimmed_par (p d _) (ℓ_raw_packages d (λ (n : nat) _, p n _))).
+    apply H_trim_p.
+  - unfold ℓ_raw_packages.
+    unfold interface_hierarchy ; fold interface_hierarchy.
+    unfold map_with_in_num ; fold map_with_in_num.
+
+    apply trimmed_par.
     {
       apply @parable.
       rewrite <- H_trim_p.
@@ -1059,7 +1431,7 @@ Proof.
         solve_Parable.
         clear -Hdisj.
 
-        apply idents_interface_hierachy.
+        apply (idents_interface_hierachy). 
         - Lia.lia.
         - intros.
           now apply Hdisj.
@@ -1074,15 +1446,9 @@ Proof.
       }
     }
     {
-      apply H_trim_p.
+      apply IHd ; intros ; [ now apply H_trim_p | now apply Hdisj ].
     }
     {
-      apply IHd.
-      2:{
-        intros.
-        now apply Hdisj.
-      }
-      intros.
       apply H_trim_p.
     }
 Qed.
@@ -1093,13 +1459,13 @@ Definition ℓ_packages {L I}
   (p : forall (n : nat), (d >= n)%nat → package L I (f n))
   (H : ∀ (d : nat) H, ValidPackage L I (f d) (p d H))
   (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
-  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d > n)%nat -> idents (f n) :#: idents (f ℓ))
+  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n))
   : package L I (interface_hierarchy f d).
 Proof.
   refine {package ℓ_raw_packages d p}.
   induction d.
   - simpl.
-    apply valid_empty_package.
+    apply p.
   - simpl.
     rewrite <- (fsetUid L).
     rewrite <- (fsetUid I).
@@ -1123,12 +1489,55 @@ Proof.
       apply idents_interface_hierachy.
       2: intros ; now apply Hdisj.
       Lia.lia.
-    + apply H.
     + apply IHd.
       * intros.
         apply H.
       * intros.
         apply H_trim_p.
       * intros ; now apply Hdisj.
+    + apply H.
 Defined.
 
+Lemma interface_foreach_trivial : forall i L (* d *),
+    L <> [] ->
+    i = (interface_foreach (λ (n : name), i) L ).
+Proof.
+  intros.
+  destruct L ; [ easy | ].
+  clear H.
+  generalize dependent n.
+  induction L ; intros.
+  {
+    rewrite interface_foreach_cons.
+    simpl.
+    rewrite <- fset0E.
+    rewrite fsetU0.
+    reflexivity.
+  }
+  {
+    rewrite interface_foreach_cons.
+    rewrite <- IHL.
+    now rewrite fsetUid.
+  }
+Qed.
+
+Lemma interface_hierarchy_trivial : forall i L d,
+    L <> [] ->
+    i = (interface_hierarchy_foreach (λ (n : name) (d0 : nat), i) L d ).
+Proof.
+  intros.
+
+  unfold interface_hierarchy_foreach.
+  simpl.
+  induction d.
+  {
+    now apply interface_foreach_trivial.
+  }
+  {
+    simpl.
+    rewrite <- IHd.
+    rewrite <- interface_foreach_trivial.
+    2: easy.
+    now rewrite fsetUid.
+  }
+Qed.
