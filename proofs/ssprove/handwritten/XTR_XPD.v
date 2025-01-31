@@ -327,8 +327,8 @@ Section XTR_XPD.
       [] (* or exactly on sibling of n is contained in XPR *).
 
   Definition XPD_n_ℓ (* (d : nat) *) :=
-    interface_hierarchy_foreach (fun n d' => [interface
-                                             #val #[ XPD n d' (* d *) ] : chXPDinp → chXPDout
+    interface_hierarchy_foreach (fun n ℓ => [interface
+                                             #val #[ XPD n ℓ (* d *) ] : chXPDinp → chXPDout
       ]) XPR d.
 
   Definition GET_XPD : Interface :=
@@ -352,25 +352,26 @@ Section XTR_XPD.
 
   Lemma valid_xpd_level :
     forall (* d *) ℓ,
-      (ℓ <= d)%N ->
+      (ℓ <= d)%nat ->
       ValidPackage f_parameter_cursor_loc (GET_XPD :|: SET_XPD :|: [interface #val #[ HASH ] : chHASHinp → chHASHout])
         (interface_foreach (fun n => [interface #val #[XPD n ℓ (* d *)] : chXPDinp → chXPDout]) XPR)
         (xpd_level_raw ℓ (* d *)).
   Proof.
     intros.
 
-    unfold XPR.
+    (* unfold XPR. *)
     unfold "++".
     rewrite (interface_hierarchy_trivial [interface #val #[HASH] : chHASHout → chHASHout ] XPR d).
     2: easy.
     rewrite interface_hierarchy_foreachU.
+    rewrite interface_hierarchy_foreachU.
 
-    setoid_rewrite interface_hierarchy_foreachU.
+    (* setoid_rewrite interface_hierarchy_foreachU. *)
 
     apply (valid_forall
-             (λ (n : name) (d0 : nat),
-               [interface #val #[GET n d0 d] : chXPDout → chGETout ]
-                 :|: [interface #val #[SET n d0 d] : chSETinp → chSETout ]
+             (λ (n : name) (ℓ : nat),
+               [interface #val #[GET n ℓ d] : chXPDout → chGETout ]
+                 :|: [interface #val #[SET n ℓ d] : chSETinp → chSETout ]
                  :|: [interface #val #[HASH] : chHASHout → chHASHout ])
              (λ n : name, [interface #val #[XPD n ℓ (* d *)] : chXPDinp → chXPDout ])
              (λ ℓ (n : name), _)
@@ -432,7 +433,7 @@ Section XTR_XPD.
     package fset0 ((GET_XPD :|: SET_XPD) :|:
                      [interface #val #[ HASH ] : chHASHinp → chHASHout]) (XPD_n_ℓ (* d *)).
   Proof.
-    refine (ℓ_packages d (fun y i => xpd_level (* _ *) _ _) _ _ _).
+    refine (ℓ_packages d (fun ℓ H => xpd_level ℓ H) _ _ _).
     {
       intros.
       apply trimmed_xpd_level.

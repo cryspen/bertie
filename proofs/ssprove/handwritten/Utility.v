@@ -583,6 +583,20 @@ Proof.
     now apply IHindex2.
 Qed.
 
+Lemma serialize_name_notin_smaller_than_start :
+  forall d,
+  forall (ℓ : nat),
+  forall  (n : name),
+  forall (index : nat),
+  forall k,
+    (k < 100)%nat ->
+      serialize_name n ℓ d index <> k.
+Proof.
+  intros.
+  unfold serialize_name.
+  Lia.lia.
+Qed.
+
 Ltac solve_imfset_disjoint :=
   (* try rewrite !imfsetU *)
   (* ; try rewrite !fdisjointUr *)
@@ -604,6 +618,7 @@ try rewrite !imfsetU
 ; try (now apply serialize_name_notin)
 ; try (now apply serialize_name_notin_different_name)
 ; try (now apply serialize_name_notin_different_index)
+; try (now apply serialize_name_notin_smaller_than_start)
 (* ; try (idtac ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ]) *)
 (* ; setoid_rewrite Bool.orb_false_r *)
 (* ; simpl *)
@@ -1369,41 +1384,6 @@ Proof.
     (* + apply H3. *)
 Qed.
 
-
-(* Lemma ℓ_raw_level_Parable *)
-(*   (d : nat) *)
-(*   (p : forall (n : nat), (d >= n)%nat -> _) *)
-(*   (Hdisj : *)
-(*     ∀ (n ℓ : nat) *)
-(*       (H_le : (n <= d)%N) *)
-(*       (H_n_le : (ℓ <= n)%N), *)
-(*       Parable (p n H_le) (p ℓ (leq_trans H_n_le H_le))) *)
-(*   (H_le : (d <= d)%nat) : *)
-(*   Parable (p d H_le) (ℓ_raw_packages d p). *)
-(* Proof. *)
-(*   (* set (leqnn _). *) *)
-(* Admitted. *)
-(* (*   set d in i at 3. *) *)
-  
-(*   generalize dependent i. *)
-(*   (* generalize dependent n. *) *)
-(*   unfold Parable. *)
-(*   induction d; intros. *)
-(*   { *)
-(*     unfold domm. *)
-(*     rewrite <- fset0E. *)
-(*     now rewrite fdisjoints0. *)
-(*   } *)
-(*   { *)
-(*     unfold ℓ_raw_packages ; fold ℓ_raw_packages. *)
-(*     rewrite (domm_union). *)
-(*     rewrite fdisjointUr. *)
-(*     rewrite IHℓ ; [ | Lia.lia | apply H0 ]. *)
-(*     rewrite Bool.andb_true_r. *)
-(*     apply (H0 n ℓ H). *)
-(*   } *)
-(* Qed. *)
-
 Theorem ℓ_raw_package_trimmed :
   forall {L I}
     (d : nat)
@@ -1540,4 +1520,60 @@ Proof.
     2: easy.
     now rewrite fsetUid.
   }
+Defined.
+
+Definition trimmed_ℓ_packages {L I}
+  (d : nat)
+  {f : nat -> Interface}
+  (p : forall (n : nat), (d >= n)%nat → package L I (f n))
+  (H : ∀ (d : nat) H, ValidPackage L I (f d) (p d H))
+  (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
+  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n))
+  : trimmed (interface_hierarchy f d) (ℓ_packages d p H H_trim_p Hdisj).
+Proof.
+  induction d ; intros.
+  - apply H_trim_p.
+  - simpl.
+    apply trimmed_par.
+    2:{
+      apply ℓ_raw_package_trimmed.
+      - intros ; apply H_trim_p.
+      - now intros ; apply Hdisj.
+    }
+    2:{
+      apply H_trim_p.
+    }
+    apply @parable.
+    rewrite <- ℓ_raw_package_trimmed.
+    2: intros ; apply H_trim_p.
+    2: now intros ; apply Hdisj.
+
+    rewrite <- H_trim_p.
+    solve_Parable.
+    now apply idents_interface_hierachy.
+Qed.
+
+Lemma trimmed_eq_rect :
+  forall L I1 I2 E (m : package L I1 E) (f : I2 = I1),
+    trimmed E (eq_rect_r (fun I => package L I E) m f) = trimmed E m.
+Proof. now destruct f. Qed.
+
+
+Lemma idents_interface_hierachy3 :
+  forall g f d,
+    (forall x, (x <= d)%nat -> idents g :#: idents (f x)) ->
+    idents g :#: idents (interface_hierarchy f d).
+Proof.
+  clear ; intros.
+  unfold idents.
+  induction d ; simpl.
+  - apply H.
+    reflexivity.
+  - rewrite imfsetU.
+    rewrite fdisjointUr.
+    rewrite IHd.
+    + apply H.
+      easy.
+    + intros. apply H.
+      Lia.lia.
 Qed.

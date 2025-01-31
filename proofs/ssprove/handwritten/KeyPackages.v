@@ -137,10 +137,6 @@ Fail Next Obligation.
 (* Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool. *)
 (* Definition chK_table := chFin (mkpos #|fin_K_table|). *)
 
-(* Definition fset_K_table : {fset Location}. Admitted. *)
-(* Lemma in_K_table : forall x, ('option chK_table; K_table x) \in fset_K_table. *)
-(* Proof. Admitted. *)
-
 Definition K_package (n : name) (ℓ : nat) (* (d : nat) *) (_ : (ℓ <= d)%nat) (b : bool) :
   package
     L_K
@@ -332,7 +328,7 @@ Proof.
       unfold valid_pairs ; fold valid_pairs.
 
       destruct Names ; [ apply (L_package a P) | split ; [ apply (L_package a P)  | apply IHNames ] ].
-Qed.
+Defined.
 
 Definition Ks (Names : list name) (b : bool) :
   uniq Names ->

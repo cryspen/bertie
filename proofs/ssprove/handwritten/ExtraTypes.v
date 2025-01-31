@@ -74,7 +74,7 @@ Notation " 'chTranscript' " :=
   (t_Handle)
     (in custom pack_type at level 2).
 
-Definition KS : nat := 0%nat.
+(* Definition KS : nat := 0%nat. *)
 
 (* Fig. 12, p. 18 *)
 (* Fig.29, P.63 *)

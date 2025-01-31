@@ -148,7 +148,11 @@ Fixpoint sum_accum (fuel : nat) (index : nat) (f : nat -> nat) (accum : nat) : n
 
 Axiom sumR : nat -> nat -> (nat -> R) -> R.
 
-Axiom sumR_le : forall l u f g, (forall v, (f v <= g v))%R -> (sumR l u f <= sumR l u g)%R.
+Axiom sumR_H : forall (l u : nat), (forall (ℓ : nat), (ℓ <= u)%nat -> R) -> R.
+
+Axiom sumR_to_H : forall l u f, sumR l u f = sumR_H l u (fun n _ => f n).
+
+Axiom sumR_le : forall l u f g, (forall v Hf Hg, (f v Hf <= g v Hg))%R -> (sumR_H l u f  <= sumR_H l u g)%R.
 
 Axiom sumR_l : forall {T : Type}, list T -> (T -> R) -> R.
 (* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)

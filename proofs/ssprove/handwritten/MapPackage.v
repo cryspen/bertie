@@ -504,6 +504,7 @@ Definition R_ch_map_XPD_packages  (* (d : nat) *) (M : chHandle -> nat) :
 Defined.
 Fail Next Obligation.
 
+
 (* R_ch_map, fig.25, Fig. 27, Fig. 29 *)
 (* GET_o_star_ℓ d *)
 Definition R_ch_map (* (d : nat) *) :
@@ -565,20 +566,66 @@ Definition R_ch_map (* (d : nat) *) :
     unfold FDisjoint.
     apply @parable.
 
-    eassert (trimmed _ (R_ch_map_XTR_packages M H)).
+    eassert (trimmed (XTR_n_ℓ (* d *)) (R_ch_map_XTR_packages M H)).
     {
-      admit.
+      rewrite trimmed_eq_rect_r.
+      apply trimmed_ℓ_packages.
     }
     rewrite <- H.
 
-    eassert (trimmed _ base_package).
+    eassert (trimmed ([interface
+       #val #[ SET PSK 0 d ] : chSETinp → chSETout ;
+       #val #[ DHGEN ] : 'unit → 'unit ;
+       #val #[ DHEXP ] : 'unit → 'unit
+    ]) base_package).
     {
-      admit.
+      unfold trimmed.
+      unfold base_package.
+      unfold pack.
+      do 3 apply trimmed_package_cons ; apply trimmed_empty_package.
     }
     rewrite <- H0.
 
     solve_Parable.
-    admit.
+
+    unfold idents.
+    rewrite fset_cons.
+    rewrite fset_cons.
+    rewrite <- fset1E.
+    unfold XTR_n_ℓ.
+    apply idents_interface_hierachy3.
+    intros.
+    unfold idents.
+    rewrite imfsetU.
+    rewrite imfsetU.
+    rewrite fsetUA.
+    rewrite !fdisjointUl.
+    repeat (apply /andP ; split).
+    - rewrite fset1E.
+      rewrite (interface_foreach_trivial ([interface #val #[SET PSK 0 d] : chUNQinp → chXPDout ]) XTR_names).
+      2: now unfold XTR_names.
+      apply idents_foreach_disjoint_foreach.
+      intros.
+      unfold idents.
+      rewrite <- !fset1E.
+
+      solve_imfset_disjoint.
+    - rewrite fset1E.
+      rewrite (interface_foreach_trivial [interface #val #[DHGEN] : 'unit → 'unit ] XTR_names).
+      2: now unfold XTR_names.
+      apply idents_foreach_disjoint_foreach.
+      intros.
+      unfold idents.
+      rewrite <- !fset1E.
+      solve_imfset_disjoint.
+    - rewrite fset1E.
+      rewrite (interface_foreach_trivial [interface #val #[DHEXP] : 'unit → 'unit ] XTR_names).
+      2: now unfold XTR_names.
+      apply idents_foreach_disjoint_foreach.
+      intros.
+      unfold idents.
+      rewrite <- !fset1E.
+      solve_imfset_disjoint.
   }
   {
     rewrite fsetUid.
@@ -626,13 +673,11 @@ Definition R_ch_map (* (d : nat) *) :
       apply eqxx.
     }
     {
-      admit.
+      apply Dependencies.H.
+      apply BOT.
     }
   }
-  Unshelve.
-  1,2: admit.
-Admitted.
-Admit Obligations.
+Defined.
 Fail Next Obligation.
 
 Program Definition Gks_real_map (* (d : nat) *) :
@@ -661,122 +706,127 @@ Program Definition Gks_ideal_map (* (d : nat) *) (Score : Simulator) :
     ] := {package (R_ch_map (* d *) ∘ (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E) ) ∘ *) Gcore_ideal (* d *) Score) }.
 Fail Next Obligation.
 
+Definition KS_interface :=
+  ([interface #val #[SET PSK 0 d] : chSETinp → chSETout ; #val #[DHGEN] : 'unit → 'unit ;
+    #val #[DHEXP] : 'unit → 'unit ]).
+
 Lemma map_intro_c2 :
   (* forall (d : nat), *)
   forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE
        (Gks_real (* d *))
        (Gks_real_map (* d *)) A = 0
     )%R.
 Proof.
   intros.
-  admit.
   
-(*   (* (* unfold Gks_real. *) *) *)
-(*   (* (* unfold Gks_real_map. *) *) *)
-(*   (* (* unfold pack. *) *) *)
-(*   (* (* unfold Gcore_real. *) *) *)
+  (* unfold Gks_real. *)
+  (* unfold Gks_real_map. *)
+  (* unfold pack. *)
+  (* unfold Gcore_real. *)
 
-(*   (* (* simpl. *) *) *)
+  (* simpl. *)
 
-(*   (* apply: eq_rel_perf_ind_ignore. *) *)
-(*   (* 2: { *) *)
-(*   (*   eapply valid_link. *) *)
-(*   (*   - apply (pack_valid (R_ch_map d M H)). *) *)
-(*   (*   - epose (pack_valid (Gcore_real (ord := ord) (E := E) d)). *) *)
-(*   (*     admit. *) *)
-(*   (* } *) *)
-(*   (* 1: { *) *)
-(*   (*   epose (pack_valid (Gks_real ord E d)). *) *)
-(*   (*   admit. *) *)
-(*   (*   (* apply (pack_valid (Gcore_real d _ _)). *) *) *)
-(*   (* } *) *)
-(*   (* 1: apply fsubsetxx. *) *)
-(*   (* 2:{ *) *)
-(*   (*   admit. *) *)
-(*   (* } *) *)
-(*   (* 2: apply fdisjoints0. *) *)
-(*   (* 2: admit. (* rewrite fsetU0 ; apply fdisjoints0. *) *) *)
+  apply: eq_rel_perf_ind_ignore.
+  2: {
+    eapply valid_link.
+    - apply (pack_valid (R_ch_map)).
+    - epose (pack_valid (Gcore_real)).
+      
+      admit.
+  }
+  1: {
+    (* epose (pack_valid (Gks_real ord E d)). *)
+    admit.
+    (* apply (pack_valid (Gcore_real d _ _)). *)
+  }
+  1: apply fsubsetxx.
+  2:{
+    admit.
+  }
+  2: apply fdisjoints0.
+  2: admit. (* rewrite fsetU0 ; apply fdisjoints0. *)
 
-(*   (* induction d. *) *)
-(*   (* - unfold XTR_n_ℓ. unfold XPD_n_ℓ. simpl. *) *)
-(*   (*   rewrite <- fset0E. rewrite !fsetU0. *) *)
-(*   (*   unfold eq_up_to_inv. *) *)
-(*   (*   simplify_eq_rel inp_unit. *) *)
-(*   (*   + admit. (* SET PSK 0 *) *) *)
-(*   (*   + admit. (* DHGEN *) *) *)
-(*   (*   + admit. (* DHEXP *) *) *)
-(*   (* - *) *)
-(*   (*   assert (forall {n} (x : Simulator (S n)), Simulator n). *) *)
-(*   (*   { *) *)
-(*   (*     clear. *) *)
-(*   (*     intros. *) *)
-(*   (*     unfold Simulator in *. *) *)
-(*   (*     refine {package (pack x)}. *) *)
-(*   (*     eapply (valid_package_inject_import _ _ _ _ _ _ (pack_valid x)). *) *)
-(*   (*   } *) *)
-(*   (*   specialize (IHd (X _ Score)). clear X. *) *)
+  induction d.
+  - unfold XTR_n_ℓ. unfold XPD_n_ℓ. (* simpl. *)
+    admit.
+    (* rewrite <- fset0E. rewrite !fsetU0. *)
+    (* unfold eq_up_to_inv. *)
+    (* simplify_eq_rel inp_unit. *)
+    (* + admit. (* SET PSK 0 *) *)
+    (* + admit. (* DHGEN *) *)
+    (* + admit. (* DHEXP *) *)
+  (* - *)
+  (*   assert (forall {n} (x : Simulator (S n)), Simulator n). *)
+  (*   { *)
+  (*     clear. *)
+  (*     intros. *)
+  (*     unfold Simulator in *. *)
+  (*     refine {package (pack x)}. *)
+  (*     eapply (valid_package_inject_import _ _ _ _ _ _ (pack_valid x)). *)
+  (*   } *)
+  (*   specialize (IHd (X _ Score)). clear X. *)
 
-(*   (*   unfold eq_up_to_inv. *) *)
-(*   (*   intros. *) *)
+  (*   unfold eq_up_to_inv. *)
+  (*   intros. *)
 
-(*   (*   eassert ([interface #val #[SET_psk 0] : chSETinp → chSETout ; #val #[DHGEN] : 'unit → 'unit ; *) *)
-(*   (*                       #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d.+1 :|:  *) *)
-(*   (*              XPD_n_ℓ d.+1 :|: GET_o_star_ℓ d.+1 = *) *)
-(*   (*             ([interface #val #[SET_psk 0] : chSETinp → chSETout ; #val #[DHGEN] : 'unit → 'unit ; *) *)
-(*   (*              #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|:  *) *)
-(*   (*             XPD_n_ℓ d :|: GET_o_star_ℓ d) :|: _ *) *)
-(*   (*           ). *) *)
-(*   (*   { *) *)
-(*   (*     unfold XTR_n_ℓ ; unfold interface_hierarchy ; fold interface_hierarchy ; fold (@XTR_n_ℓ d). *) *)
-(*   (*     unfold XPD_n_ℓ ; unfold interface_hierarchy ; fold interface_hierarchy ; fold (@XPD_n_ℓ d). *) *)
-(*   (*     unfold GET_o_star_ℓ ; fold GET_o_star_ℓ. *) *)
-(*   (*     rewrite <- !fsetUA. *) *)
-(*   (*     f_equal. *) *)
-(*   (*     rewrite fsetUC. *) *)
-(*   (*     rewrite <- !fsetUA. *) *)
-(*   (*     f_equal. *) *)
-(*   (*     rewrite fsetUC. *) *)
-(*   (*     rewrite <- !fsetUA. *) *)
-(*   (*     f_equal. *) *)
-(*   (*     rewrite fsetUC. *) *)
-(*   (*     rewrite <- !fsetUA. *) *)
-(*   (*     f_equal. *) *)
-(*   (*   } *) *)
-(*   (*   rewrite H1 in H0. clear H1. *) *)
-(*   (*   rewrite in_fsetU in H0. *) *)
-(*   (*   apply (ssrbool.elimT orP) in H0. *) *)
-(*   (*   destruct H0. *) *)
-(*   (*   + specialize (IHd id S T x H0). *) *)
-(*   (*     clear H0. *) *)
+  (*   eassert ([interface #val #[SET_psk 0] : chSETinp → chSETout ; #val #[DHGEN] : 'unit → 'unit ; *)
+  (*                       #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d.+1 :|: *)
+  (*              XPD_n_ℓ d.+1 :|: GET_o_star_ℓ d.+1 = *)
+  (*             ([interface #val #[SET_psk 0] : chSETinp → chSETout ; #val #[DHGEN] : 'unit → 'unit ; *)
+  (*              #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|: *)
+  (*             XPD_n_ℓ d :|: GET_o_star_ℓ d) :|: _ *)
+  (*           ). *)
+  (*   { *)
+  (*     unfold XTR_n_ℓ ; unfold interface_hierarchy ; fold interface_hierarchy ; fold (@XTR_n_ℓ d). *)
+  (*     unfold XPD_n_ℓ ; unfold interface_hierarchy ; fold interface_hierarchy ; fold (@XPD_n_ℓ d). *)
+  (*     unfold GET_o_star_ℓ ; fold GET_o_star_ℓ. *)
+  (*     rewrite <- !fsetUA. *)
+  (*     f_equal. *)
+  (*     rewrite fsetUC. *)
+  (*     rewrite <- !fsetUA. *)
+  (*     f_equal. *)
+  (*     rewrite fsetUC. *)
+  (*     rewrite <- !fsetUA. *)
+  (*     f_equal. *)
+  (*     rewrite fsetUC. *)
+  (*     rewrite <- !fsetUA. *)
+  (*     f_equal. *)
+  (*   } *)
+  (*   rewrite H1 in H0. clear H1. *)
+  (*   rewrite in_fsetU in H0. *)
+  (*   apply (ssrbool.elimT orP) in H0. *)
+  (*   destruct H0. *)
+  (*   + specialize (IHd id S T x H0). *)
+  (*     clear H0. *)
 
-(*   (*     replace (get_op_default *) *)
-(*   (*      (par (par (XPD_packages d.+1 _ _) (XTR_packages d.+1 _ _)) DH_package *) *)
-(*   (*       ∘ DH_package ∘ Gcore_hyb d.+1) (id, (S, T))) with *) *)
-(*   (*       (get_op_default *) *)
-(*   (*      (par (par (XPD_packages d PrntN Labels) (XTR_packages d PrntN Labels)) DH_package *) *)
-(*   (*       ∘ DH_package ∘ Gcore_hyb d) (id, (S, T))) by admit. *) *)
-(*   (*     replace (get_op_default (R_ch_map d.+1 _ ∘ Gcore_real d.+1 _ _) (id, (S, T))) with *) *)
-(*   (*       (get_op_default (R_ch_map d M ∘ Gcore_real d PrntN Labels) (id, (S, T))) by admit. *) *)
+  (*     replace (get_op_default *)
+  (*      (par (par (XPD_packages d.+1 _ _) (XTR_packages d.+1 _ _)) DH_package *)
+  (*       ∘ DH_package ∘ Gcore_hyb d.+1) (id, (S, T))) with *)
+  (*       (get_op_default *)
+  (*      (par (par (XPD_packages d PrntN Labels) (XTR_packages d PrntN Labels)) DH_package *)
+  (*       ∘ DH_package ∘ Gcore_hyb d) (id, (S, T))) by admit. *)
+  (*     replace (get_op_default (R_ch_map d.+1 _ ∘ Gcore_real d.+1 _ _) (id, (S, T))) with *)
+  (*       (get_op_default (R_ch_map d M ∘ Gcore_real d PrntN Labels) (id, (S, T))) by admit. *)
 
-(*   (*     apply IHd. *) *)
-(*   (*   + rewrite <- !fset_cat in H0. *) *)
-(*   (*     simpl in H0. *) *)
-(*   (*     generalize dependent H0. *) *)
-(*   (*     generalize dependent x. *) *)
-(*   (*     generalize dependent T. *) *)
-(*   (*     generalize dependent S. *) *)
-(*   (*     generalize dependent id. *) *)
-(*   (*     simplify_eq_rel inp_unit. *) *)
-(*   (*     * admit. (* XTR ES d *) *) *)
-(*   (*     * admit. (* XTR HS d *) *) *)
-(*   (*     * admit. (* XTR AS d *) *) *)
-(*   (*     * admit. (* XPD N d *) *) *)
-(*   (*     * admit. (* XPD PSK d *) *) *)
-(*   (*     * admit. (* XPD ESALT d *) *) *)
-(*   (*     * admit. (* GET_o_star TODO d *) *) *)
+  (*     apply IHd. *)
+  (*   + rewrite <- !fset_cat in H0. *)
+  (*     simpl in H0. *)
+  (*     generalize dependent H0. *)
+  (*     generalize dependent x. *)
+  (*     generalize dependent T. *)
+  (*     generalize dependent S. *)
+  (*     generalize dependent id. *)
+  (*     simplify_eq_rel inp_unit. *)
+  (*     * admit. (* XTR ES d *) *)
+  (*     * admit. (* XTR HS d *) *)
+  (*     * admit. (* XTR AS d *) *)
+  (*     * admit. (* XPD N d *) *)
+  (*     * admit. (* XPD PSK d *) *)
+  (*     * admit. (* XPD ESALT d *) *)
+  (*     * admit. (* GET_o_star TODO d *) *)
 Admitted.
 
 Axiom AdvantageFrame : forall G0 G1 G2 G3 A,
@@ -788,7 +838,7 @@ Lemma map_outro_c5 :
   (* forall (d : nat), *)
   forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE
        (Gks_real (* d *))
        (Gks_ideal (* d *) Score) (A) =

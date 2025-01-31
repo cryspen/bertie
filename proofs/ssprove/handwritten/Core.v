@@ -158,9 +158,24 @@ Section Core.
     all: Lia.lia.
   Qed.
 
+Lemma trimmed_eq_rect_r :
+  forall L I1 I2 E (m : package L I1 E) (f : I2 = I1),
+    trimmed E (eq_rect_r (fun I => package L I E) m f) = trimmed E m.
+Proof. now destruct f. Qed.
+
+Lemma trimmed_eq_rect_r2 :
+  forall L I E1 E2 (m : package L I E1) (f : E2 = E1),
+    trimmed E1 (eq_rect_r [eta package L I] m f) = trimmed E2 m.
+Proof. now destruct f. Qed.
+
+Lemma trimmed_eq_rect :
+  forall L I E1 E2 (m : package L I E1) g H,
+    trimmed E2 (eq_rect E1 (fun E => package L I E) m g H) = trimmed E2 m.
+Proof. now destruct H. Qed.
+
   Obligation Tactic := (* try timeout 8 *) idtac.
   Program Definition Gcore_real (* (d : nat) *) :
-    package L_K
+    package (L_K :|: L_L)
       ((GET_XPD
           :|: SET_XPD
           :|: DH_Set_interface
@@ -172,9 +187,69 @@ Section Core.
     (*   #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|: XPD_n_ℓ d :|:  *)
     (*    GET_o_star_ℓ d) *)
     :=
-    {package (K_O_star false) ∘ ((* Gcore_hyb ∘ *) (par (par (XPD_packages (* d *)) (XTR_packages (* d *))) (DH_package)))}.
+    {package ((* par  *)(K_O_star false) ∘ (Ls O_star F (erefl))) ∘ ((* Gcore_hyb ∘ *)
+         (par (par (XPD_packages (* d *)) (XTR_packages (* d *))) (DH_package)))}.
   Final Obligation.
-  Admitted.
+
+  rewrite <- fsetU0.
+  eapply valid_link.
+  {
+    eapply valid_link.
+    2: apply (Ls _ _ _).
+    1: apply K_O_star.
+  }
+  ssprove_valid.
+    - 
+    apply @parable.
+    rewrite <- trimmed_dh.
+    eassert (trimmed _ XPD_packages) by apply trimmed_ℓ_packages.
+    rewrite <- H ; clear H.
+    eassert (trimmed _ XTR_packages) by apply trimmed_ℓ_packages.
+    rewrite <- H ; clear H.
+    solve_Parable.
+    {
+      rewrite fdisjointC.
+      apply idents_interface_hierachy2.
+      intros.
+      unfold idents.
+      unfold DH_interface.
+      rewrite fset_cons.
+      solve_imfset_disjoint.
+      all: unfold DHGEN, DHEXP, XPD, serialize_name ; Lia.lia.
+    }
+    {
+      rewrite fdisjointC.
+      apply idents_interface_hierachy2.
+      intros.
+      unfold idents.
+      unfold DH_interface.
+      rewrite fset_cons.
+      solve_imfset_disjoint.
+      all: unfold DHGEN, DHEXP, XTR, serialize_name ; Lia.lia.
+    }
+  - apply @parable.
+    eassert (trimmed _ XPD_packages) by apply trimmed_ℓ_packages.
+    rewrite <- H ; clear H.
+    eassert (trimmed _ XTR_packages) by apply trimmed_ℓ_packages.
+    rewrite <- H ; clear H.
+    solve_Parable.
+    {
+      apply idents_interface_hierachy2.
+      intros.
+      rewrite fdisjointC.
+      apply idents_interface_hierachy2.
+      intros.
+      unfold idents.
+      solve_imfset_disjoint.
+    }
+  - rewrite fsetUid.
+    apply fsubsetxx.
+  - apply fsubsetxx.
+  - apply fsubsetxx.
+  - rewrite fsetUid.
+    apply fsubsetxx.
+  - solve_in_fset.
+  Defined.
   Fail Next Obligation.
 
   Program Definition Gcore_ideal (* (d : nat) *) (Score : Simulator) :

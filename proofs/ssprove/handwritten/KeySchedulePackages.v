@@ -103,7 +103,7 @@ Section KeySchedulePackages.
   Obligation Tactic := (* try timeout 8 *) idtac.
   Definition Gks_real (* (d : nat) *) :
     package
-      L_K
+      (L_K :|: L_L)
       (GET_XPD :|: SET_XPD :|: DH_Set_interface :|: [interface #val #[HASH] : chHASHout → chHASHout ] :|: (GET_XTR :|: SET_XTR))
       (SET_O_star_ℓ :|: GET_O_star_ℓ)
     (* ] *) :=

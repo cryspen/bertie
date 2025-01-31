@@ -113,7 +113,7 @@ Lemma core_theorem :
   (* forall (d : nat), *)
   forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE
        (Gcore_real (* d *))
        (Gcore_ideal (* d *) Score) (A (* ∘ R d M H *))
@@ -127,7 +127,7 @@ Lemma equation20_lhs :
   forall (Score : Simulator),
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE Gcore_sodh (Gcore_hyb 0) (Ai A i) = 0)%R.
 Proof. Admitted.
 
@@ -136,7 +136,7 @@ Lemma equation20_rhs :
   forall (Score : Simulator),
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE Gcore_ki (Gcore_hyb d) (Ai A i) = 0)%R.
 Proof. Admitted.
 
@@ -146,7 +146,7 @@ Lemma hyb_telescope :
   (* forall (K_table : chHandle -> nat), *)
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
       (AdvantageE (Gcore_hyb 0) (Gcore_hyb d) (Ai A i)
        = sumR 0 (d-1) (fun ℓ => AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ+1)) (Ai A i))
       )%R.
@@ -158,7 +158,7 @@ Lemma equation20_eq :
   (* forall (K_table : chHandle -> nat), *)
   forall i,
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE Gcore_sodh (Gcore_ideal (* d *) Score) (Ai A i)
      <= AdvantageE Gcore_ki (Gcore_ideal (* d *) Score) (Ai A i)
      +sumR 0 (d-1) (fun ℓ => AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ + 1)) (Ai A i))

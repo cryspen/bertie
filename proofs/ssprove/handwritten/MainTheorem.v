@@ -83,7 +83,6 @@ From KeyScheduleTheorem Require Import KeySchedulePackages.
 From KeyScheduleTheorem Require Import MapPackage.
 From KeyScheduleTheorem Require Import CoreTheorem.
 
-
 (*** Key Schedule theorem *)
 
 Section MainTheorem.
@@ -91,24 +90,11 @@ Section MainTheorem.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-Notation " 'chTranscript' " :=
-  (t_Handle)
-    (in custom pack_type at level 2).
-
 (* Definition KS : nat := 0%nat. *)
 
 (* Fig. 12, p. 18 *)
 (* Fig.29, P.63 *)
 
-
-
-Notation " 'chKinp' " :=
-  (chHandle × 'bool × chKey)
-    (in custom pack_type at level 2).
-Notation " 'chKout' " :=
-  (chHandle)
-    (in custom pack_type at level 2).
-(* Definition K (n : chName) (ℓ : nat) := 10%nat. *)
 
 (* Fig 13-14. K key and log *)
 
@@ -147,7 +133,7 @@ Axiom level : chHandle -> nat.
 Lemma main_reduction :
   forall (Score : Simulator),
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+      ValidPackage LA KS_interface A_export A →
     (AdvantageE
        (Gks_real)
        (Gks_ideal Score) A =
@@ -197,112 +183,109 @@ Axiom hash : package fset0 [interface] [interface #val #[ HASH ] : chHASHinp →
 Lemma trimmed_K_XPD (b : bool) : (trimmed (SET_XPD :|: GET_XPD) (K_XPD b)). Admitted.
 Lemma trimmed_hash : (trimmed ([interface #val #[ HASH ] : chHASHinp → chHASHout]) hash). Admitted.
 
-Definition Gxpds : forall (ℓ : nat) (P : ZAF),
-    (ℓ <= d)%N ->
-      loc_GamePair
-      (interface_foreach
-          (λ n : name, [interface #val #[XPD n ℓ] : ((chKout) × ('bool)) × (chHASHout) → chKout ])
-          XPR).
-Proof.
-  intros.
-  refine (fun b => {| locs := L_K :|: L_L ;
-                  locs_pack := {package xpd_level _ H ∘ ((par (K_XPD b) hash) ∘ (Ls XPR P erefl)) }
-                |}).
-  eapply valid_link_upto.
-  1: apply (pack_valid (xpd_level _ _)).
-  2: apply fsub0set.
-  2: apply fsubsetxx.
-  eapply valid_link_upto.
-  2: apply Ls.
-  3: apply fsubsetUr.
-  2: apply fsubsetUl.
-  eapply valid_par_upto.
-  3: apply hash.
-  3: rewrite fsetU0 ; apply fsubsetxx.
-  3: rewrite <- fset0E ; rewrite fsetU0 ; apply fsubsetxx.
-  3: apply fsubsetxx.
-  1:{
-    rewrite <- trimmed_K_XPD.
-    rewrite <- trimmed_hash.
-    solve_Parable.
-    unfold idents.
-    rewrite imfsetU.
-    rewrite fdisjointUl.
-    apply /andP ; split.
-    - unfold SET_XPD.
-      unfold interface_hierarchy_foreach.
-      rewrite fdisjointC.
-      apply (idents_interface_hierachy2).
-      intros.
-      unfold idents.
-      solve_imfset_disjoint.
-      all: unfold HASH, SET, serialize_name ; Lia.lia.
-    - unfold GET_XPD.
-      unfold interface_hierarchy_foreach.
-      rewrite fdisjointC.
-      apply (idents_interface_hierachy2).
-      intros.
-      unfold idents.
-      solve_imfset_disjoint.
-      all: unfold HASH, GET, serialize_name ; Lia.lia.
-  }
-  eapply valid_package_inject_import.
-  2: rewrite fsetUC ; apply (pack_valid (K_XPD b)).
-  unfold UNQ_XPD.
-  apply fsubsetxx.
-Qed.
+(* Definition Gxpds : forall (ℓ : nat) (P : ZAF), *)
+(*     (ℓ <= d)%N -> *)
+(*       loc_GamePair *)
+(*       (interface_foreach *)
+(*           (λ n : name, [interface #val #[XPD n ℓ] : ((chKout) × ('bool)) × (chHASHout) → chKout ]) *)
+(*           XPR). *)
+(* Proof. *)
+(*   intros. *)
+(*   refine (fun b => {| locs := L_K :|: L_L ; *)
+(*                   locs_pack := {package xpd_level _ H ∘ ((par (K_XPD b) hash) ∘ (Ls XPR P erefl)) } *)
+(*                 |}). *)
+(*   eapply valid_link_upto. *)
+(*   1: apply (pack_valid (xpd_level _ _)). *)
+(*   2: apply fsub0set. *)
+(*   2: apply fsubsetxx. *)
+(*   eapply valid_link_upto. *)
+(*   2: apply Ls. *)
+(*   3: apply fsubsetUr. *)
+(*   2: apply fsubsetUl. *)
+(*   eapply valid_par_upto. *)
+(*   3: apply hash. *)
+(*   3: rewrite fsetU0 ; apply fsubsetxx. *)
+(*   3: rewrite <- fset0E ; rewrite fsetU0 ; apply fsubsetxx. *)
+(*   3: apply fsubsetxx. *)
+(*   1:{ *)
+(*     rewrite <- trimmed_K_XPD. *)
+(*     rewrite <- trimmed_hash. *)
+(*     solve_Parable. *)
+(*     unfold idents. *)
+(*     rewrite imfsetU. *)
+(*     rewrite fdisjointUl. *)
+(*     apply /andP ; split. *)
+(*     - unfold SET_XPD. *)
+(*       unfold interface_hierarchy_foreach. *)
+(*       rewrite fdisjointC. *)
+(*       apply (idents_interface_hierachy2). *)
+(*       intros. *)
+(*       unfold idents. *)
+(*       solve_imfset_disjoint. *)
+(*       all: unfold HASH, SET, serialize_name ; Lia.lia. *)
+(*     - unfold GET_XPD. *)
+(*       unfold interface_hierarchy_foreach. *)
+(*       rewrite fdisjointC. *)
+(*       apply (idents_interface_hierachy2). *)
+(*       intros. *)
+(*       unfold idents. *)
+(*       solve_imfset_disjoint. *)
+(*       all: unfold HASH, GET, serialize_name ; Lia.lia. *)
+(*   } *)
+(*   eapply valid_package_inject_import. *)
+(*   2: rewrite fsetUC ; apply (pack_valid (K_XPD b)). *)
+(*   unfold UNQ_XPD. *)
+(*   apply fsubsetxx. *)
+(* Qed. *)
 
-Definition Gxpd : forall (n : name) (ℓ : nat) (P : ZAF),
+Definition Gxpd : forall (n : name) (ℓ : nat),
     (ℓ <= d)%N ->
       loc_GamePair
-      ([interface #val #[XPD n ℓ] : ((chKout) × ('bool)) × (chHASHout) → chKout ]).
+      ([interface #val #[XPD n ℓ] : ((chSETout) × ('bool)) × (chHASHout) → chSETout ]).
 Proof.
   intros.
   refine (fun b => {| locs := L_K :|: L_L ;
-                  locs_pack := {package xpd_level ℓ H ∘ ((par (K_package n ℓ H b) hash) ∘ (L_package n P)) }
+                  locs_pack := {package Xpd n ℓ ∘ ((par (K_package n ℓ H b) hash) ∘ (L_package n F)) }
                 |}).
   eapply valid_link_upto.
-  1: apply (pack_valid (xpd_level ℓ H)).
+  1: apply (pack_valid (Xpd n ℓ (GET := GET n ℓ d) (SET := SET n ℓ d) (HASH := HASH))).
   2: apply fsub0set.
   2: apply fsubsetxx.
   eapply valid_link_upto.
-  2: apply Ls.
+  2: apply L_package.
   3: apply fsubsetUr.
   2: apply fsubsetUl.
   eapply valid_par_upto.
   3: apply hash.
   3: rewrite fsetU0 ; apply fsubsetxx.
   3: rewrite <- fset0E ; rewrite fsetU0 ; apply fsubsetxx.
-  3: apply fsubsetxx.
+  3:{
+    do 2 rewrite fset_cons.
+    rewrite fset1E.
+    rewrite fset1E.
+    rewrite fsetUA.
+    apply fsubsetxx.
+  }
   1:{
-    rewrite <- trimmed_K_XPD.
+    assert (trimmed [interface
+       #val #[ SET n ℓ d ] : chSETinp → chSETout ;
+       #val #[ GET n ℓ d ] : chGETinp → chGETout
+    ] (K_package n ℓ H b)).
+    {
+      do 2 apply trimmed_package_cons.
+      apply trimmed_empty_package.
+    }
+    rewrite <- H0.
     rewrite <- trimmed_hash.
     solve_Parable.
     unfold idents.
-    rewrite imfsetU.
-    rewrite fdisjointUl.
-    apply /andP ; split.
-    - unfold SET_XPD.
-      unfold interface_hierarchy_foreach.
-      rewrite fdisjointC.
-      apply (idents_interface_hierachy2).
-      intros.
-      unfold idents.
-      solve_imfset_disjoint.
-      all: unfold HASH, SET, serialize_name ; Lia.lia.
-    - unfold GET_XPD.
-      unfold interface_hierarchy_foreach.
-      rewrite fdisjointC.
-      apply (idents_interface_hierachy2).
-      intros.
-      unfold idents.
-      solve_imfset_disjoint.
-      all: unfold HASH, GET, serialize_name ; Lia.lia.
+    rewrite fset_cons.
+    solve_imfset_disjoint.
+    all: unfold HASH, GET, SET, serialize_name ; Lia.lia.
   }
-  eapply valid_package_inject_import.
-  2: rewrite fsetUC ; apply (pack_valid (K_XPD b)).
-  unfold UNQ_XPD.
-  apply fsubsetxx.
+  rewrite fsetUC.
+  rewrite <- fset_cat.
+  apply (pack_valid (K_package n ℓ H b)).
 Qed.
 
 (* Axiom Gxpd : name -> nat -> loc_GamePair *)
@@ -320,19 +303,20 @@ Ltac split_advantage O :=
       symmetry ] ; revgoals.
 
 Axiom ki_hybrid :
-  forall (ℓ : nat),
+  forall (ℓ : nat) (H_le : (ℓ <= d)%nat),
   forall (LA : {fset Location}) (A : raw_package),
   forall i,
-    ValidPackage LA [interface #val #[ KS ] : 'unit → chTranscript ] A_export A →
+    ValidPackage LA ([interface #val #[SET PSK 0 d] : chSETinp → chSETout ; #val #[DHGEN] : 'unit → 'unit ;
+                   #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ :|: XPD_n_ℓ) A_export A →
   (AdvantageE (Gcore_hyb ℓ) (Gcore_hyb (ℓ + 1)) (Ai (A ∘ R_ch_map) i) <=
   Advantage (λ x : bool, Gxtr_es ℓ x) (Ai (A) i ∘ R_es ℓ) + Advantage (λ x : bool, Gxtr_hs ℓ x) (Ai (A) i ∘ R_hs ℓ) +
-    Advantage (λ x : bool, Gxtr_as ℓ x) (Ai (A) i ∘ R_as ℓ) + sumR_l XPR (λ n : name, Advantage (λ x : bool, Gxpd n ℓ x) (Ai (A) i ∘ R_ n ℓ)))%R.
+    Advantage (λ x : bool, Gxtr_as ℓ x) (Ai (A) i ∘ R_as ℓ) + sumR_l XPR (λ n : name, Advantage (λ x : bool, Gxpd n ℓ H_le x ) (Ai (A) i ∘ R_ n ℓ)))%R.
 
 Lemma key_schedule_theorem :
   forall (S : Simulator),
   forall (hash : nat),
   forall (LA : {fset Location}) (A : raw_package),
-    ValidPackage LA ([interface #val #[ KS ] : 'unit → chTranscript ]) A_export A →
+    ValidPackage LA KS_interface A_export A →
   forall (H_ε_acr : (sumR_l [:: R_cr; R_Z; R_D] (λ R : package f_parameter_cursor_loc (fset [::]) (fset [::]), Advantage (λ x : bool, Gacr x) ((A ∘ R_ch_map) ∘ R)) <= ε_acr)%R),
   forall (H_ε_sodh_ki : (forall i, Advantage (λ x : bool, Gsodh x) (Ai (A ∘ R_ch_map) i ∘ R_sodh) + AdvantageE Gcore_ki (Gcore_ideal S) (Ai (A ∘ R_ch_map) i) <= ε_sodh_ki i)%R),
     (AdvantageE
@@ -341,11 +325,11 @@ Lemma key_schedule_theorem :
      ε_acr +
      maxR (fun i =>
       ε_sodh_ki i
-      +sumR 0 (d-1) (fun ℓ =>
+      +sumR_H 0 (d-1) (fun ℓ H =>
          Advantage (Gxtr_es ℓ) (Ai A i ∘ R_es ℓ)
         +Advantage (Gxtr_hs ℓ) (Ai A i ∘ R_hs ℓ)
         +Advantage (Gxtr_as ℓ) (Ai A i ∘ R_as ℓ)
-        +sumR_l XPR (fun n => Advantage (Gxpd n ℓ) (Ai A i ∘ R_ n ℓ)
+        +sumR_l XPR (fun n => Advantage (Gxpd n ℓ (ltac:(Lia.lia))) (Ai A i ∘ R_ n ℓ)
        )))
     )%R.
 Proof.
@@ -354,27 +338,34 @@ Proof.
 
   eapply Order.le_trans.
   - eapply (core_theorem _ _ _).
+
+    eapply valid_link_upto.
+    2:{
+      epose (pack_valid R_ch_map).
     
     ssprove_valid.
-    1:{ admit. }
+    1:{ epose (pack_valid R_ch_map).
+        apply p.
+      admit. }
     1,2: apply fsubsetxx.
-    
+
   - apply Num.Theory.lerD ; [ apply H_ε_acr | ].
     apply max_leq.
     intros i.
 
     eapply Order.le_trans.
     + apply Num.Theory.lerD ; [ easy | ].
-      epose (equation20_eq S i).
-      eapply i0.
+      eapply (equation20_eq S i).
 
       ssprove_valid.
       1:{ admit. }
       1,2: apply fsubsetxx.
     + rewrite addrA.
       apply Num.Theory.lerD ; [ apply H_ε_sodh_ki | ].
+      epose sumR_le.
+      rewrite sumR_to_H.
       apply sumR_le.
-      intros ℓ.
+      intros ℓ ? ?.
       eapply ki_hybrid.
       easy.
 Admitted.
