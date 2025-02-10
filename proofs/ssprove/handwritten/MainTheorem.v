@@ -178,11 +178,6 @@ Axiom Gxtr_hs : nat -> loc_GamePair
          (* #val #[ HS ] : 'unit → 'unit *)
       ].
 
-Axiom hash : package fset0 [interface] [interface #val #[ HASH ] : chHASHinp → chHASHout].
-
-Lemma trimmed_K_XPD (b : bool) : (trimmed (SET_XPD :|: GET_XPD) (K_XPD b)). Admitted.
-Lemma trimmed_hash : (trimmed ([interface #val #[ HASH ] : chHASHinp → chHASHout]) hash). Admitted.
-
 (* Definition Gxpds : forall (ℓ : nat) (P : ZAF), *)
 (*     (ℓ <= d)%N -> *)
 (*       loc_GamePair *)
@@ -325,7 +320,7 @@ Lemma key_schedule_theorem :
      ε_acr +
      maxR (fun i =>
       ε_sodh_ki i
-      +sumR_H 0 (d-1) (fun ℓ H =>
+      +sumR_H 0 (d-1) (ltac:(easy)) (fun ℓ H =>
          Advantage (Gxtr_es ℓ) (Ai A i ∘ R_es ℓ)
         +Advantage (Gxtr_hs ℓ) (Ai A i ∘ R_hs ℓ)
         +Advantage (Gxtr_as ℓ) (Ai A i ∘ R_as ℓ)
@@ -340,11 +335,24 @@ Proof.
   - eapply (core_theorem _ _ _).
 
     eapply valid_link_upto.
-    2:{
+    1 :{
+      apply H.
+    }
+    1:{
       epose (pack_valid R_ch_map).
+      unfold KS_interface.
+
+      eapply valid_package_inject_import.
+      2: apply v.
+      solve_in_fset.
+      
+      
+      
     
     ssprove_valid.
     1:{ epose (pack_valid R_ch_map).
+        unfold KS_interface.
+        
         apply p.
       admit. }
     1,2: apply fsubsetxx.
@@ -381,3 +389,4 @@ Admitted.
 (* Admitted. *)
 
 End MainTheorem.
+

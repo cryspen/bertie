@@ -123,4 +123,4 @@ Notation " 'chDHEXPout' " :=
     (in custom pack_type at level 2).
 Definition DHEXP : nat := 12.
 
-Definition SET_DH : nat := 13.
+(* Definition SET_DH : nat := 13. *)

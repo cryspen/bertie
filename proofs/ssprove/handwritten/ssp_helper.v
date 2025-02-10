@@ -146,13 +146,33 @@ Fixpoint sum_accum (fuel : nat) (index : nat) (f : nat -> nat) (accum : nat) : n
   | S n' => sum_accum n' (index + 1%nat) f (accum + f index)
   end.
 
-Axiom sumR : nat -> nat -> (nat -> R) -> R.
+Definition sumR : nat -> nat -> (nat -> R) -> R :=
+  (fun l u f => (List.fold_left (fun y x => y + f x) (iota l u) 0)%R).
 
-Axiom sumR_H : forall (l u : nat), (forall (ℓ : nat), (ℓ <= u)%nat -> R) -> R.
+Fixpoint sumR_H_prime (start : nat) (fuel : nat) (f : forall (ℓ : nat), (ℓ <= start + fuel)%nat -> R) {struct fuel} : R.
+  refine (
+  match fuel as k return (k <= fuel)%nat -> _ with
+  | O => fun _ => 0
+  | S n => fun _ => f start _ + sumR_H_prime (S start) n _
+  end _).
+  - Lia.lia.
+  - intros.
+    eapply (f ℓ).
+    Lia.lia.
+  - Lia.lia.
+Defined.  
 
-Axiom sumR_to_H : forall l u f, sumR l u f = sumR_H l u (fun n _ => f n).
+Definition sumR_H (l u : nat) (H_ul : (u >= l)%nat) (f : forall (ℓ : nat), (ℓ <= u)%nat -> R) : R.
+Proof.
+  refine (sumR_H_prime l (u - l) _).
+  intros.
+  refine (f ℓ _).
+  Lia.lia.
+Defined.
 
-Axiom sumR_le : forall l u f g, (forall v Hf Hg, (f v Hf <= g v Hg))%R -> (sumR_H l u f  <= sumR_H l u g)%R.
+Axiom sumR_to_H : forall l u H_ul f, sumR l u f = sumR_H l u H_ul (fun n _ => f n).
+
+Axiom sumR_le : forall l u H_ul f g, (forall v Hf Hg, (f v Hf <= g v Hg))%R -> (sumR_H l u H_ul f  <= sumR_H l u H_ul g)%R.
 
 Axiom sumR_l : forall {T : Type}, list T -> (T -> R) -> R.
 (* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)

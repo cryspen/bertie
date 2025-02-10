@@ -83,16 +83,28 @@ Section Core.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-  Definition Simulator :=
+  Axiom Gcore_ki : package fset0 [interface] [interface].
+  Axiom Gcore_hyb : forall d (ℓ : nat),
+      package f_parameter_cursor_loc
+        ((GET_XPD d :|: SET_XPD d)
+           :|: (GET_DH d :|: SET_DH d)
+           :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]
+           :|: (GET_XTR d :|: SET_XTR d))
+        (SET_O_star_ℓ d :|: GET_O_star_ℓ d).
+
+  Axiom hash : package fset0 [interface] [interface #val #[ HASH ] : chHASHinp → chHASHout].
+  Lemma trimmed_hash : (trimmed ([interface #val #[ HASH ] : chHASHinp → chHASHout]) hash). Admitted.
+
+  Definition Simulator d :=
     (package
        fset0
        ([interface
            #val #[ SET PSK 0 d ] : chSETinp → chSETout
          ]
           :|: DH_interface
-          :|: XTR_n_ℓ (* d *)
-          :|: XPD_n_ℓ (* d *))
-       UNQ_O_star
+          :|: XTR_n_ℓ d
+          :|: XPD_n_ℓ d)
+       (UNQ_O_star d)
     ).
 
   Lemma idents_interface_hierachy2 :
@@ -110,18 +122,13 @@ Section Core.
       apply H.
   Qed.
 
-  Axiom Gcore_ki : package fset0 [interface] [interface].
-  Axiom Gcore_hyb : forall (ℓ : nat), package f_parameter_cursor_loc
-                      ((GET_XPD :|: SET_XPD :|: DH_Set_interface :|: [interface #val #[ HASH ] : chHASHinp → chHASHout]) :|: (GET_XTR :|: SET_XTR))
-                      (SET_O_star_ℓ :|: GET_O_star_ℓ).
-
-  Lemma xtr_dh : (* forall (d : nat), *)
-    domm (pack (XTR_packages (* d *))) :#: domm (pack (DH_package)) = true.
+  Lemma xtr_dh : forall (d : nat),
+    domm (pack (XTR_packages d)) :#: domm (pack (DH_package d)) = true.
   Proof.
     intros.
     unfold pack.
 
-    erewrite <- (trimmed_xtr_package (* d *)).
+    erewrite <- (trimmed_xtr_package d).
     rewrite <- (trimmed_dh).
 
     apply domm_trim_disjoint_is_ident.
@@ -136,13 +143,13 @@ Section Core.
     all: Lia.lia.
   Qed.
 
-  Lemma xpd_dh : (* forall (d : nat), *)
-    domm (pack (XPD_packages (* d *))) :#: domm (pack (DH_package)) = true.
+  Lemma xpd_dh : forall (d : nat),
+    domm (pack (XPD_packages d)) :#: domm (pack (DH_package d)) = true.
   Proof.
     intros.
     unfold pack.
 
-    erewrite <- (trimmed_xpd_package (* d *)).
+    erewrite <- (trimmed_xpd_package d).
     rewrite <- (trimmed_dh).
 
     apply domm_trim_disjoint_is_ident.
@@ -158,125 +165,183 @@ Section Core.
     all: Lia.lia.
   Qed.
 
-Lemma trimmed_eq_rect_r :
-  forall L I1 I2 E (m : package L I1 E) (f : I2 = I1),
-    trimmed E (eq_rect_r (fun I => package L I E) m f) = trimmed E m.
-Proof. now destruct f. Qed.
+  Obligation Tactic := (* try timeout 8 *) idtac.
+  Program Definition XPD_DH_XTR d :
+    package
+      (L_K :|: L_L)
+      [interface]
+      (XPD_n_ℓ d :|: (DH_interface :|: XTR_n_ℓ d)) :=
+    {package
+       (par
+          (XPD_packages d ∘ (par (Ks d XPR false erefl ∘ Ls d XPR F erefl) hash))
+          (par (DH_package d ∘ (Ks d [DH] false erefl ∘ Ls d [DH] F erefl))
+             (XTR_packages d ∘ (Ks d XTR_names false erefl ∘ Ls d XTR_names F erefl))))
+       ∘ (Ks d O_star false erefl ∘ Ls d O_star F (erefl))}.
+  Final Obligation.
+    intros.
+    rewrite <- fsetUid.
+    eapply valid_link.
+    2:{
+      eapply valid_package_inject_import.
+      2: eapply valid_link ; [ apply Ks | apply Ls ].
+      rewrite <- fset0E.
+      apply fsub0set.
+    }
 
-Lemma trimmed_eq_rect_r2 :
-  forall L I E1 E2 (m : package L I E1) (f : E2 = E1),
-    trimmed E1 (eq_rect_r [eta package L I] m f) = trimmed E2 m.
-Proof. now destruct f. Qed.
+    rewrite <- trimmed_xpd_package.
+    rewrite <- trimmed_dh.
+    rewrite <- trimmed_hash.
+    rewrite <- trimmed_xtr_package.
 
-Lemma trimmed_eq_rect :
-  forall L I E1 E2 (m : package L I E1) g H,
-    trimmed E2 (eq_rect E1 (fun E => package L I E) m g H) = trimmed E2 m.
-Proof. now destruct H. Qed.
+    eapply valid_par_upto.
+    2:{
+      eapply valid_link.
+      1: apply valid_trim ; apply (pack_valid (XPD_packages d)).
+      apply valid_par.
+      2: rewrite (fsetUC) ; eapply valid_link ; apply pack_valid.
+      2: apply valid_trim ; apply pack_valid.
+      rewrite <- trimmed_Ks.
+      rewrite link_trim_commut.
+      solve_Parable.
+      rewrite fdisjointC.
+      apply idents_interface_hierachy3.
+      intros.
+      rewrite function_fset_cat.
+      unfold idents.
+      solve_imfset_disjoint.
+    }
+
+    2:{
+      apply valid_par.
+      2:{
+        eapply valid_link.
+        2:{
+          eapply valid_link.
+          - apply (Ks _ _ _).
+          - apply (Ls _ _ _).
+        }
+        apply valid_trim ; eapply valid_package_inject_import ; [ | apply pack_valid ].
+        1: unfold SET_DH , interface_hierarchy_foreach, interface_foreach ; solve_in_fset.
+      }
+      1:{
+        rewrite !link_trim_commut.
+        solve_Parable.
+
+        unfold XTR_n_ℓ.
+        apply idents_interface_hierachy3.
+        intros.
+        unfold DH_interface.
+        rewrite fset_cons.
+        unfold idents.
+        solve_imfset_disjoint.
+      }
+      {
+        eapply valid_link.
+        2:{
+          eapply valid_link.
+          - apply (Ks _ _ _).
+          - apply (Ls _ _ _).
+        }
+        apply valid_trim ; eapply valid_package_inject_import ; [ | apply pack_valid ].
+        1: fold (GET_XTR d) ; fold (SET_XTR d) ; solve_in_fset.
+      }
+    }
+
+    1:{
+      rewrite !link_trim_commut.
+      solve_Parable.
+
+      {
+        unfold XPD_n_ℓ.
+        rewrite fdisjointC.
+        apply idents_interface_hierachy3.
+        intros.
+        unfold DH_interface.
+        rewrite fset_cons.
+        unfold idents.
+        solve_imfset_disjoint.
+      }
+      {
+        apply idents_interface_hierachy3.
+        intros.
+        rewrite fdisjointC.
+        apply idents_interface_hierachy3.
+        intros.
+        unfold idents.
+        solve_imfset_disjoint.
+      }
+    }
+    1: solve_in_fset.
+    1:{
+      rewrite <- !fset0E.
+      rewrite !fsetU0.
+      apply fsub0set.
+      (* rewrite !fset0U. *)
+      (* fold SET_O_star_ℓ. *)
+      (* fold GET_O_star_ℓ. *)
+
+      (* apply required_O_subset. *)
+    }
+    apply fsubsetxx.
+  Defined.
 
   Obligation Tactic := (* try timeout 8 *) idtac.
-  Program Definition Gcore_real (* (d : nat) *) :
+  Program Definition Gcore_real (d : nat) :
     package (L_K :|: L_L)
-      ((GET_XPD
-          :|: SET_XPD
-          :|: DH_Set_interface
-          :|: [interface #val #[ HASH ] : chHASHinp → chHASHout])
-         :|: (GET_XTR :|: SET_XTR))
-      (SET_O_star_ℓ :|: GET_O_star_ℓ)
+            [interface]
+      (* ((GET_XPD :|: SET_XPD) *)
+      (*     :|: DH_Set_interface *)
+      (*     :|: [interface #val #[ HASH ] : chHASHinp → chHASHout] *)
+      (*    :|: (GET_XTR :|: SET_XTR)) *)
+      ((* SET_O_star_ℓ d :|:  *)GET_O_star_ℓ d)
     (* ([interface #val #[SET_psk 0] : chSETinp → chSETout ; *)
     (*   #val #[DHGEN] : 'unit → 'unit ; *)
     (*   #val #[DHEXP] : 'unit → 'unit ] :|: XTR_n_ℓ d :|: XPD_n_ℓ d :|:  *)
     (*    GET_o_star_ℓ d) *)
     :=
-    {package ((* par  *)(K_O_star false) ∘ (Ls O_star F (erefl))) ∘ ((* Gcore_hyb ∘ *)
-         (par (par (XPD_packages (* d *)) (XTR_packages (* d *))) (DH_package)))}.
+    {package (Ks d O_star false erefl ∘ Ls d O_star F erefl) ∘ XPD_DH_XTR d}.
   Final Obligation.
-
-  rewrite <- fsetU0.
-  eapply valid_link.
-  {
+    intros.
+    rewrite <- fsetUid.
     eapply valid_link.
+    2: apply XPD_DH_XTR.
+    eapply valid_link.
+  - eapply valid_package_inject_export.
+    2: apply (Ks _ _ _).
+    unfold GET_O_star_ℓ.
+    solve_in_fset.
+  - eapply valid_package_inject_import.
     2: apply (Ls _ _ _).
-    1: apply K_O_star.
-  }
-  ssprove_valid.
-    - 
-    apply @parable.
-    rewrite <- trimmed_dh.
-    eassert (trimmed _ XPD_packages) by apply trimmed_ℓ_packages.
-    rewrite <- H ; clear H.
-    eassert (trimmed _ XTR_packages) by apply trimmed_ℓ_packages.
-    rewrite <- H ; clear H.
-    solve_Parable.
-    {
-      rewrite fdisjointC.
-      apply idents_interface_hierachy2.
-      intros.
-      unfold idents.
-      unfold DH_interface.
-      rewrite fset_cons.
-      solve_imfset_disjoint.
-      all: unfold DHGEN, DHEXP, XPD, serialize_name ; Lia.lia.
-    }
-    {
-      rewrite fdisjointC.
-      apply idents_interface_hierachy2.
-      intros.
-      unfold idents.
-      unfold DH_interface.
-      rewrite fset_cons.
-      solve_imfset_disjoint.
-      all: unfold DHGEN, DHEXP, XTR, serialize_name ; Lia.lia.
-    }
-  - apply @parable.
-    eassert (trimmed _ XPD_packages) by apply trimmed_ℓ_packages.
-    rewrite <- H ; clear H.
-    eassert (trimmed _ XTR_packages) by apply trimmed_ℓ_packages.
-    rewrite <- H ; clear H.
-    solve_Parable.
-    {
-      apply idents_interface_hierachy2.
-      intros.
-      rewrite fdisjointC.
-      apply idents_interface_hierachy2.
-      intros.
-      unfold idents.
-      solve_imfset_disjoint.
-    }
-  - rewrite fsetUid.
-    apply fsubsetxx.
-  - apply fsubsetxx.
-  - apply fsubsetxx.
-  - rewrite fsetUid.
-    apply fsubsetxx.
-  - solve_in_fset.
+    rewrite <- fset0E.
+    solve_in_fset.
   Defined.
   Fail Next Obligation.
 
-  Program Definition Gcore_ideal (* (d : nat) *) (Score : Simulator) :
+  Program Definition Gcore_ideal (d : nat) (Score : Simulator d) :
     package
       L_K
       ([interface
           #val #[ SET PSK 0 d ] : chSETinp → chSETout
         ] :|: DH_interface :|:
-         XTR_n_ℓ (* d *) :|:
-         XPD_n_ℓ (* d *) :|:
-         GET_O_star_ℓ)
-      (GET_O_star_ℓ) :=
-    {package (K_O_star true ∘ Score) }.
+         XTR_n_ℓ d :|:
+         XPD_n_ℓ d :|:
+         GET_O_star_ℓ d)
+      (GET_O_star_ℓ d) :=
+    {package (Ks d O_star true erefl ∘ Score) }.
   Final Obligation.
-  intros.
-  rewrite <- fsetUid.
-  eapply (valid_link_upto L_K _ _ _ UNQ_O_star).
-  - epose (pack_valid (K_O_star true)).
-    eapply valid_package_inject_export.
-    2: apply v.
-    solve_in_fset.
-  - epose (pack_valid Score).
-    eapply valid_package_inject_import.
-    2: apply v.
-    solve_in_fset.
-  - solve_in_fset.
-  - solve_in_fset.
+    intros.
+    rewrite <- fsetUid.
+    eapply (valid_link_upto L_K _ _ _ (UNQ_O_star d)).
+    - epose (pack_valid (Ks d O_star true erefl)).
+      eapply valid_package_inject_export.
+      2: apply v.
+      unfold GET_O_star_ℓ.
+      solve_in_fset.
+    - eapply valid_package_inject_import.
+      2: apply (pack_valid Score).
+      solve_in_fset.
+    - solve_in_fset.
+    - solve_in_fset.
   Defined.
   Fail Next Obligation.
 

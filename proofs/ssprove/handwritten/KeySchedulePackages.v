@@ -85,47 +85,74 @@ Section KeySchedulePackages.
   Context {Dependencies : Dependencies}.
   Existing Instance Dependencies.
 
-  Definition key_schedule_interface (* d *) :=
+  Definition key_schedule_interface d :=
     ([interface
         #val #[ SET PSK 0 d ] : chSETinp → chSETout
       ]
        :|: DH_interface (* DHEXP, DHGEN *)
-       :|: XTR_n_ℓ (* d *) (* {ES,HS,AS},  0..d *)
-       :|: XPD_n_ℓ (* d *) (* XPN,         0..d *)
-       :|: GET_O_star_ℓ).
+       :|: XTR_n_ℓ d (* {ES,HS,AS},  0..d *)
+       :|: XPD_n_ℓ d (* XPN,         0..d *)
+       :|: GET_O_star_ℓ d).
 
-  Definition key_schedule_export (* d *) :=
-    GET_O_star_ℓ :|: SET_O_star_ℓ.
+  Definition key_schedule_export d :=
+    GET_O_star_ℓ d :|: SET_O_star_ℓ d.
 
   (* Context {ord : chGroup → nat} {E : nat -> nat}. *)
 
+  Lemma required_O_subset d : SET_DH d :<=: SET_O_star_ℓ d :|: GET_O_star_ℓ d.
+  Proof.
+    (* DH must be in O_star *)
+    unfold SET_DH.
+    unfold O_star.
+    rewrite interface_hierarchy_foreachU.
+    unfold interface_hierarchy_foreach.
+
+    set d at 1 3 4.
+    generalize dependent n.
+    induction d ; intros.
+    - simpl.
+      unfold interface_hierarchy_foreach.
+      unfold interface_hierarchy.
+      unfold interface_foreach.
+      rewrite !fsetUA.
+      repeat (apply fsubsetU ; apply /orP ; ((right ; apply fsubsetxx) || left)).
+    - unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsubUset.
+      apply /andP ; split ; apply fsubsetU ; apply /orP ; [ left | right ].
+      + apply IHd.
+      + simpl.
+        unfold interface_hierarchy_foreach.
+        unfold interface_hierarchy.
+        unfold interface_foreach.
+        rewrite !fsetUA.
+        repeat (apply fsubsetU ; apply /orP ; ((right ; apply fsubsetxx) || left)).
+  Qed.
+
   (* Fig.11, p.17 *)
-  Obligation Tactic := (* try timeout 8 *) idtac.
-  Definition Gks_real (* (d : nat) *) :
+  Program Definition Gks_real (d : nat) :
     package
       (L_K :|: L_L)
-      (GET_XPD :|: SET_XPD :|: DH_Set_interface :|: [interface #val #[HASH] : chHASHout → chHASHout ] :|: (GET_XTR :|: SET_XTR))
-      (SET_O_star_ℓ :|: GET_O_star_ℓ)
-    (* ] *) :=
+      [interface]
+      (GET_O_star_ℓ d) :=
     {package
-       (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-       Gcore_real (* d *)
+       Gcore_real d (* ∘ XPD_DH_XTR *)
        #with
-      _
+     _
     }.
-  Fail Next Obligation.
+    Fail Next Obligation.
 
   (* Look into the use nominal sets (PR - Markus?)! *)
 
-  Program Definition Gks_ideal (* d *) (S : Simulator) :
+  Obligation Tactic := idtac.
+  Program Definition Gks_ideal d (S : Simulator d) :
     package
       L_K
-      (key_schedule_interface (* d *))
-      GET_O_star_ℓ
+      (key_schedule_interface d)
+      (GET_O_star_ℓ d)
     :=
     {package
        (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-       K_O_star true ∘ S
+       (Ks d O_star true erefl) ∘ S
     }.
   Final Obligation.
     intros.
@@ -133,7 +160,8 @@ Section KeySchedulePackages.
     eapply valid_link_upto.
     1:{
       eapply valid_package_inject_export.
-      2: apply (pack_valid (K_O_star true)).
+      2: apply (pack_valid (Ks d O_star true erefl)).
+      unfold GET_O_star_ℓ.
       solve_in_fset.
     }
     1:{

@@ -188,14 +188,25 @@ Definition tag : chHash -> chName -> chKey (* TODO: should be key *) :=
 
 From KeyScheduleTheorem Require Import ssp_helper.
 
-Fixpoint map_with_in {A B} (l : list A) (f : forall (x : A), (List.In x l) -> B) : list B :=
+Fixpoint map_with_in {A: eqType} {B} (l : list A) (f : forall (x : A), (x \in l) -> B) : list B :=
   match l as k return (k = l -> _) with
   | [] => fun _ => []
   | ( x :: xs ) =>
       fun H =>
-        f x (eq_ind (x :: xs) (List.In x) (or_introl erefl) _ H)
-          :: map_with_in xs (fun y H0 => f y (eq_ind (x :: xs) (List.In y) (or_intror H0) _ H))
+        f x (eq_ind (x :: xs) (fun l => x \in l) (mem_head x xs) _ H)
+          :: map_with_in xs (fun y H0 => f y (eq_ind (x :: xs)%SEQ
+                                            (λ l0 : seq A, (∀ x0 : A, x0 \in l0 → B) → (y \in l0) = true)
+                                            (λ f0 : ∀ x0 : A, x0 \in (x :: xs)%SEQ → B,
+                                               (eq_ind_r (Logic.eq^~ true) ([eta introTF (c:=true) orP] (or_intror H0)) (in_cons (T:=A) x xs y)))
+                                            l H f))
   end erefl.
+
+Fixpoint map_with_in_rel  {A : eqType} {B} (l : list A) (l' : list A) {H_in : forall a, a \in l' -> a \in l} (f : forall (x : A), (x \in l) -> B) {struct l'} : list B :=
+  match l' as k return (forall a, a \in k -> a \in l)%nat -> _ with
+  | [] => fun H => [::]
+  | (x :: xs) =>
+      fun H => (f x (H x (mem_head x xs))) :: (map_with_in_rel l xs (H_in := fun a H0 => H a (eq_ind_r [eta is_true] ([eta introTF (c:=true) orP] (or_intror H0)) (in_cons (T:=A) x xs a))) f)
+  end H_in.
 
 Fixpoint map_with_in_num (d : nat) (f : forall (x : nat), (x <= d)%nat -> raw_package) {struct d} : raw_package
   :=
@@ -205,8 +216,15 @@ Fixpoint map_with_in_num (d : nat) (f : forall (x : nat), (x <= d)%nat -> raw_pa
       fun H => par (map_with_in_num n (fun y Hf => f y (leq_trans Hf (leq_trans (leqnSn n) H)))) (f (S n) H)
   end (leqnn d).
 
+Fixpoint map_with_in_num_upper (d : nat) (i : nat) {H_le : (i <= d)%nat} (f : forall (x : nat), (x <= d)%nat -> raw_package) {struct i} : raw_package :=
+  match i as k return (k <= d)%nat -> _ with
+  | O => fun H => f O H
+  | S n =>
+      fun H => par (map_with_in_num_upper d n (H_le := (leq_trans (leqnSn n) H)) f) (f (S n) H)
+  end H_le.
+
 Definition ℓ_raw_packages (d : nat) (p : forall (n : nat), (n <= d)%nat ->  raw_package) : raw_package :=
-  map_with_in_num d p.
+  map_with_in_num_upper d d (H_le := leqnn d) p.
 
 (* Fixpoint ℓ_raw_packages_inner *)
 (*   (u : nat) (d : nat) (H : (u >= d)%nat) *)
@@ -1384,66 +1402,77 @@ Proof.
     (* + apply H3. *)
 Qed.
 
-Theorem ℓ_raw_package_trimmed :
-  forall {L I}
+Theorem map_with_in_num_upper_trimmed :
+  forall (* {L I} *)
     (d : nat)
     {f : nat -> Interface}
-    (p : forall (n : nat) , (n <= d)%N → package L I (f n))
+    (p : forall (ℓ : nat) , (ℓ <= d)%N → raw_package (* L I (f ℓ) *))
     (H_trim_p : forall ℓ (H_le : (ℓ <= d)%N), trimmed (f ℓ) (p ℓ H_le))
     (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n)),
-    trimmed (interface_hierarchy f d) (ℓ_raw_packages d p).
+    forall k (K_le : (k <= d)%nat),
+    trimmed (interface_hierarchy f k) (map_with_in_num_upper d k (H_le := K_le) p).
 Proof.
   intros.
-
-  induction d ; intros.
+  induction k ; intros.
   - simpl.
+    (* destruct k ; [ | discriminate ]. *)
     apply H_trim_p.
   - unfold ℓ_raw_packages.
     unfold interface_hierarchy ; fold interface_hierarchy.
-    unfold map_with_in_num ; fold map_with_in_num.
 
     apply trimmed_par.
     {
       apply @parable.
       rewrite <- H_trim_p.
-      rewrite <- IHd.
+      unfold ℓ_raw_packages in IHk.
+      rewrite <- IHk ; try auto.
       {
         solve_Parable.
-        clear -Hdisj.
+        clear -K_le Hdisj.
 
         apply (idents_interface_hierachy). 
         - Lia.lia.
         - intros.
           now apply Hdisj.
       }
-      {
-        intros.
-        apply H_trim_p.
-      }
-      {
-        intros.
-        now apply Hdisj.
-      }
     }
     {
-      apply IHd ; intros ; [ now apply H_trim_p | now apply Hdisj ].
+      apply IHk ; auto.
     }
     {
       apply H_trim_p.
     }
 Qed.
 
+Theorem ℓ_raw_package_trimmed :
+  forall (* {L I} *)
+    (d : nat)
+    {f : nat -> Interface}
+    (p : forall (ℓ : nat) , (ℓ <= d)%N → raw_package (* L I (f ℓ) *))
+    (H_trim_p : forall ℓ (H_le : (ℓ <= d)%N), trimmed (f ℓ) (p ℓ H_le))
+    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n)),
+    trimmed (interface_hierarchy f d) (ℓ_raw_packages d p).
+Proof.
+  intros.
+  unfold map_with_in_num_upper ; fold map_with_in_num_upper.
+  now apply map_with_in_num_upper_trimmed.
+Qed.
+
 Definition ℓ_packages {L I}
   (d : nat)
   {f : nat -> Interface}
   (p : forall (n : nat), (d >= n)%nat → package L I (f n))
-  (H : ∀ (d : nat) H, ValidPackage L I (f d) (p d H))
   (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
   (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n))
   : package L I (interface_hierarchy f d).
 Proof.
   refine {package ℓ_raw_packages d p}.
-  induction d.
+  unfold ℓ_raw_packages.
+  set (leqnn d).
+  set d in i at 2 |- * at 1 3.
+  generalize dependent i.
+  generalize dependent n.
+  induction n ; intros.
   - simpl.
     apply p.
   - simpl.
@@ -1453,7 +1482,7 @@ Proof.
     apply valid_par.
     + (* epose ℓ_raw_level_Parable. *)
       rewrite <- H_trim_p.
-      rewrite <- ℓ_raw_package_trimmed.
+      rewrite <- map_with_in_num_upper_trimmed.
       2:{
         intros.
         apply H_trim_p.
@@ -1461,7 +1490,7 @@ Proof.
       2:{
         intros.
         apply Hdisj.
-        - apply H0.
+        - apply H.
         - Lia.lia.
       }
       solve_Parable.
@@ -1469,13 +1498,9 @@ Proof.
       apply idents_interface_hierachy.
       2: intros ; now apply Hdisj.
       Lia.lia.
-    + apply IHd.
-      * intros.
-        apply H.
-      * intros.
-        apply H_trim_p.
-      * intros ; now apply Hdisj.
-    + apply H.
+    + fold map_with_in_num_upper.
+      apply IHn.
+    + apply p.
 Defined.
 
 Lemma interface_foreach_trivial : forall i L (* d *),
@@ -1526,17 +1551,16 @@ Definition trimmed_ℓ_packages {L I}
   (d : nat)
   {f : nat -> Interface}
   (p : forall (n : nat), (d >= n)%nat → package L I (f n))
-  (H : ∀ (d : nat) H, ValidPackage L I (f d) (p d H))
   (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
   (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n))
-  : trimmed (interface_hierarchy f d) (ℓ_packages d p H H_trim_p Hdisj).
+  : trimmed (interface_hierarchy f d) (ℓ_packages d p H_trim_p Hdisj).
 Proof.
   induction d ; intros.
   - apply H_trim_p.
   - simpl.
     apply trimmed_par.
     2:{
-      apply ℓ_raw_package_trimmed.
+      apply map_with_in_num_upper_trimmed.
       - intros ; apply H_trim_p.
       - now intros ; apply Hdisj.
     }
@@ -1544,7 +1568,7 @@ Proof.
       apply H_trim_p.
     }
     apply @parable.
-    rewrite <- ℓ_raw_package_trimmed.
+    rewrite <- map_with_in_num_upper_trimmed.
     2: intros ; apply H_trim_p.
     2: now intros ; apply Hdisj.
 
@@ -1553,10 +1577,20 @@ Proof.
     now apply idents_interface_hierachy.
 Qed.
 
-Lemma trimmed_eq_rect :
+Lemma trimmed_eq_rect_r :
   forall L I1 I2 E (m : package L I1 E) (f : I2 = I1),
     trimmed E (eq_rect_r (fun I => package L I E) m f) = trimmed E m.
 Proof. now destruct f. Qed.
+
+Lemma trimmed_eq_rect_r2 :
+  forall L I E1 E2 (m : package L I E1) (f : E2 = E1),
+    trimmed E1 (eq_rect_r [eta package L I] m f) = trimmed E2 m.
+Proof. now destruct f. Qed.
+
+Lemma trimmed_eq_rect :
+  forall L I E1 E2 (m : package L I E1) g H,
+    trimmed E2 (eq_rect E1 (fun E => package L I E) m g H) = trimmed E2 m.
+Proof. now destruct H. Qed.
 
 
 Lemma idents_interface_hierachy3 :

@@ -88,15 +88,16 @@ Section CoreTheorem.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-Axiom R_cr : package fset0 [interface] [interface].
-Axiom R_Z : package fset0 [interface] [interface].
-Axiom R_D : package fset0 [interface] [interface].
+  Axiom R_cr : package fset0 [interface] [interface].
+  Axiom R_Z : package fset0 [interface] [interface].
+  Axiom R_D : package fset0 [interface] [interface].
 
 Axiom Gacr :
     loc_GamePair
       [interface
          (* #val #[ ACR ] : 'unit → 'unit *)
       ].
+(* HASH(t) .. *)
 
 Axiom Gsodh :
     loc_GamePair
@@ -120,7 +121,12 @@ Lemma core_theorem :
      <= sumR_l [R_cr; R_Z; R_D] (fun R => Advantage Gacr (A ∘ R))
      +maxR (fun i => Advantage Gsodh (Ai A i ∘ R_sodh) + AdvantageE Gcore_sodh (Gcore_ideal (* d *) Score) (Ai A i))
     )%R.
-Proof. Admitted.
+Proof.
+  intros.
+  
+  
+  
+Admitted.
 
 Lemma equation20_lhs :
   (* forall (d : nat), *)
