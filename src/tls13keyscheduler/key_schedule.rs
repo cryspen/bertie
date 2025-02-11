@@ -367,10 +367,10 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
         .get(n1.unwrap(), l, (h1.name, h1.alg, h1.level))
         .ok_or(INCORRECT_STATE)?;
 
-    let k: TagKey;
+    let k: TagKey = 
     if n == PSK {
         l = l + 1;
-        k = xpd(
+        xpd(
             &TagKey {
                 alg: h1.alg,
                 tag: h1.name,
@@ -378,10 +378,10 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
             },
             label,
             args,
-        )?;
+        )?
     } else {
         let d = KS::hash(args);
-        k = xpd(
+        xpd(
             &TagKey {
                 alg: h1.alg,
                 tag: h1.name,
@@ -389,8 +389,8 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
             },
             label,
             &d,
-        )?;
-    }
+        )?
+    };
     // let h =
     let _ = ks.set(n, l, (h.name, h.alg, h.level), k.val);
     // set(&mut self, name: N, level: u8, h: (N, HashAlgorithm, u8), hon: bool, k: (N, Key));
