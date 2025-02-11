@@ -367,8 +367,7 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
         .get(n1.unwrap(), l, (h1.name, h1.alg, h1.level))
         .ok_or(INCORRECT_STATE)?;
 
-    let k: TagKey = 
-    if n == PSK {
+    let k: TagKey = if n == PSK {
         l = l + 1;
         xpd(
             &TagKey {
@@ -534,7 +533,6 @@ pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
 //         return (k, hon)
 //     }
 // }
-
 
 // pub(crate) fn nextKeys(key: &TagKey, extra: Bytes, digest: &Digest, aead_algorithm: &AeadAlgorithm,) -> Vec<TagKey> {
 //     // 0-RTT (k_cet)

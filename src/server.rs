@@ -55,7 +55,12 @@ pub(crate) fn lookup_db(
     sni: &Bytes,
     tkt: &Option<Bytes>,
 ) -> Result<ServerInfo, TLSError> {
-    println!("sni {:?} {:?} {}", sni, db.server_name, eq(sni, &db.server_name));
+    println!(
+        "sni {:?} {:?} {}",
+        sni,
+        db.server_name,
+        eq(sni, &db.server_name)
+    );
     if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
         match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
             (true, Some(ctkt), Some((stkt, psk))) => {

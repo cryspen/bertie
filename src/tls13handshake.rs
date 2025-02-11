@@ -564,7 +564,6 @@ fn get_server_hello(
     let transcript = state.transcript.add(&sh);
     let transcript_hash = transcript.transcript_hash()?;
 
-
     // hax-issue: can't use mutating map here
     let psk_handle = state.server.psk_opt.clone();
     let psk_handle = match psk_handle {
@@ -579,7 +578,7 @@ fn get_server_hello(
         }
         None => None,
     };
-    
+
     let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
         &state.ciphersuite.hash,
         &shared_secret_handle,

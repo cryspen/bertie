@@ -115,8 +115,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hash digest.
-    pub// (crate)
-    fn hash_len(&self) -> usize {
+    pub fn hash_len(&self) -> usize {
         match self {
             HashAlgorithm::SHA256 => digest::digest_size(digest::Algorithm::Sha256),
             HashAlgorithm::SHA384 => digest::digest_size(digest::Algorithm::Sha384),
