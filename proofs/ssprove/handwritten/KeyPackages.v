@@ -76,64 +76,6 @@ From KeyScheduleTheorem Require Import BasePackages.
 
 (*** Helper *)
 
-
-  Lemma trimmed_eq_rect_r :
-    forall L I1 I2 E (m : package L I1 E) (f : I2 = I1),
-      trimmed E (eq_rect_r (fun I => package L I E) m f) = trimmed E m.
-  Proof. now destruct f. Qed.
-
-  Lemma trimmed_eq_rect_r2 :
-    forall L I E1 E2 (m : package L I E1) (f : E2 = E1),
-      trimmed E1 (eq_rect_r [eta package L I] m f) = trimmed E2 m.
-  Proof. now destruct f. Qed.
-
-  Lemma trimmed_eq_rect :
-    forall L I E1 E2 (m : package L I E1) g H,
-      trimmed E2 (eq_rect E1 (fun E => package L I E) m g H) = trimmed E2 m.
-  Proof. now destruct H. Qed.
-
-  Lemma trimmed_eq_rect2 :
-    forall L I E1 E2 (m : package L I E1) g H,
-      trimmed E2 (eq_rect E1 [eta package L I] m g H) = trimmed E2 m.
-  Proof. now destruct H. Qed.
-
-  Lemma trimmed_pairs_cons :
-    forall {A : Type} (f : A -> Interface) g l,
-      (forall a, trimmed (f a) (g a)) ->
-      trimmed_pairs
-        (List.map f l)
-        (List.map g l).
-  Proof.
-    intros.
-    induction l.
-    - reflexivity.
-    - unfold List.map ; fold (List.map f l); fold (List.map g l).
-      simpl.
-      destruct l.
-      + apply H.
-      + simpl.
-        split ; [ apply H | apply IHl ].
-  Qed.
-
-  Lemma valid_pairs_cons :
-    forall {A : Type} L i (f : A -> Interface) g l,
-      (forall a, valid_package L (i a) (f a) (g a)) ->
-      valid_pairs L (List.map i l)
-        (List.map f l)
-        (List.map g l).
-  Proof.
-    intros.
-    induction l.
-    - 
-      reflexivity.
-    - unfold List.map ; fold (List.map f l); fold (List.map g l).
-      simpl.
-      destruct l.
-      + apply H.
-      + simpl.
-        split ; [ apply H | apply IHl ].
-  Qed.
-
 (*** Key packages *)
 
 Section KeyPackages.
@@ -262,23 +204,16 @@ Definition Ls d (Names : list name) (P : ZAF) :
     ]) Names).
 Proof.
   intros.
-  epose ({package parallel_raw (List.map (fun y => pack (L_package d y P)) Names)
-           #with
-            valid_parable _ (λ n : name, [interface #val #[UNQ n d] : chUNQinp → chDHEXPout ]) (fun x => [interface]) _ Names Names _ H _ _}).
-  destruct Names ; [ refine {package _ #with valid_empty_package _ _} | ].
-  rewrite <- interface_foreach_trivial in p ; [ | easy ].
-  apply p.
-  Unshelve.
-  - intros.
-    unfold idents.
-    solve_imfset_disjoint.
-  - apply trimmed_pairs_cons.
-    intros.
-    apply trimmed_package_cons.
-    apply trimmed_empty_package.
-  - apply valid_pairs_cons.
-    intros.
-    apply L_package.
+  destruct Names.
+  - exact ({package emptym #with valid_empty_package L_L [interface]}).
+  - rewrite (interface_foreach_trivial [interface] (n :: Names)) ; [ | easy ].
+    refine (parallel_package d (n :: Names) (fun a => L_package _ _ P) _ _ H).
+    + intros.
+      unfold idents.
+      solve_imfset_disjoint.
+    + intros.
+      apply trimmed_package_cons.
+      apply trimmed_empty_package.
 Defined.
 
 Lemma trimmed_Ls d (Names : _) :
@@ -299,7 +234,7 @@ Proof.
     unfold idents.
     solve_imfset_disjoint.
   - apply H.
-  - apply trimmed_pairs_cons.
+  - apply trimmed_pairs_map.
     intros.
     apply trimmed_package_cons.
     apply trimmed_empty_package.
@@ -316,14 +251,8 @@ Definition combined (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (n
   ℓ_packages
     d
     (fun n H_le =>
-       {package
-          parallel_raw _ #with
-         valid_parable _ _ _ _ _ _
-           (H n H_le)
-           H3
-           (trimmed_pairs_cons _ _ _ (H1 n H_le))
-           (valid_pairs_cons _ _ _ _ _ (fun m => pack_valid (i n H_le m)))
-    })
+       parallel_package d Names (i n H_le) (H n H_le) (H1 n H_le) H3
+    )
     (fun n H_le =>
        trimmed_parallel_raw
          (g^~ n)
@@ -331,7 +260,7 @@ Definition combined (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (n
          _
          (H n H_le)
          H3
-         (trimmed_pairs_cons _ _ _ (H1 n H_le)))
+         (trimmed_pairs_map _ _ _ (H1 n H_le)))
     (fun n ℓ i0 i1 => idents_foreach_disjoint_foreach _ _ Names (H0 n ℓ i0 i1)).
 
 Lemma function_fset_cat :
@@ -394,6 +323,7 @@ Proof.
   set (ℓ_packages _ _ _ _).
   rewrite trimmed_eq_rect.
   destruct (function2_fset_cat _ _).
+  
   refine (trimmed_ℓ_packages d (λ (n : nat) (H0 : (n <= d)%N), {package parallel_raw (List.map (λ y : name, _) Names) }) _ _).
 Qed.
 

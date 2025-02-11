@@ -154,7 +154,7 @@ Notation " 'chXTRout' " :=
 
 (* fig. 29 *)
 Definition R_ch_map_XTR_package d (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
-  (List.In n XTR_names) ->
+  (n \in XTR_names) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
   package L_M (XTR_n_ℓ d (* ℓ.+1 *))
     [interface
@@ -231,7 +231,8 @@ Proof.
     rewrite !in_fset1.
     unfold XTR_names in H.
 
-    repeat (destruct H as [ | H ] ; [subst ; repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP | ]) ; contradiction.
+    rewrite !in_cons in H.
+    repeat (move: H => /orP [ /eqP H | H ] ; subst) ; (repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP).
   }
   {
     unfold set_at.
@@ -260,7 +261,7 @@ Proof.
 
   assert (H3 : forall ℓ, trimmed_pairs
     (List.map (fun n : name => [interface #val #[(@XTR n ℓ d)] : chXTRinp → chXTRout ]) XTR_names)
-    (map_with_in XTR_names (fun (x : name) H0 => pack (R_ch_map_XTR_package d ℓ x (fun _ : name => M) H0 H_inLM)))) by now repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
+    (map_with_in_rel XTR_names XTR_names (H_in := fun a H0 => H0) (fun (x : name) H0 => pack (R_ch_map_XTR_package d ℓ x (fun _ : name => M) H0 H_inLM)))) by now repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
 
   set (XTR_n_ℓ) at 2.
   rewrite (interface_hierarchy_trivial (XTR_n_ℓ d) XTR_names d _).
@@ -268,18 +269,21 @@ Proof.
   subst i.
   refine (ℓ_packages
             d
-            (fun ℓ H => {package parallel_raw (map_with_in XTR_names (fun x H0 => pack (R_ch_map_XTR_package d ℓ x (fun _ => M) H0 H_inLM)))
-                        #with
-                 (valid_forall_map_with_in
-                    (λ (n : name) (ℓ : nat), (XTR_n_ℓ d) (* [interface #val #[XTR n ℓ] : chXTRinp → chXTRout ] *))
-                    (λ n : name, [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ])
-                    XTR_names
-                    (λ ℓ (x : name) (H0 : List.In x XTR_names), R_ch_map_XTR_package d ℓ x (λ _ : name, M) H0 H_inLM)
-                    d
-                    ℓ
-                    H (H1 _) H2 (H3 _) _ ) })
+            (fun ℓ H =>
+               (parallel_package d XTR_names)
+               (* {package parallel_raw (map_with_in_rel XTR_names XTR_names (H_in := fun a H0 => H0) (fun x H0 => pack (R_ch_map_XTR_package d ℓ x (fun _ => M) H0 H_inLM))) *)
+               (*          #with *)
+               (*   (valid_forall_map_with_in_rel *)
+               (*      (λ (n : name) (ℓ : nat), (XTR_n_ℓ d) (* [interface #val #[XTR n ℓ] : chXTRinp → chXTRout ] *)) *)
+               (*      (λ n : name, [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ]) *)
+               (*      XTR_names *)
+               (*      (λ ℓ (x : name) (H0 : x \in XTR_names), R_ch_map_XTR_package d ℓ x (λ _ : name, M) H0 H_inLM) *)
+               (*      d *)
+               (*      ℓ *)
+            (*      H (H1 _) H2 (H3 _) _ ) } *)
+            )
             (fun _ _ => trimmed_parallel_raw _ _ _ (H1 _) H2 (H3 _)) _ ).
-  - unfold XTR_names, map_with_in, List.map.
+  - unfold XTR_names, map_with_in_rel, List.map.
     unfold valid_pairs.
     split ; [ | split ] ; apply R_ch_map_XTR_package.
   - intros.
@@ -299,7 +303,7 @@ Notation " 'chXPDout' " :=
 (* Context {xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle}. *)
 
 Definition R_ch_map_XPD_package d (ℓ : nat) (n : name) (M : name -> chHandle -> nat) (M_ℓ : name -> nat -> chHandle -> nat) :
-  (List.In n XPR) ->
+  (n \in XPR) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
   (forall s1 s k, ('option ('fin #|fin_handle|); M_ℓ s1 s k) \in L_M) ->
   package L_M (XPD_n_ℓ d (* ℓ.+1 *))
@@ -360,7 +364,10 @@ Definition R_ch_map_XPD_package d (ℓ : nat) (n : name) (M : name -> chHandle -
     rewrite !in_fsetU.
     rewrite !in_fset1.
     unfold XPR, "++" in H.
-    repeat (destruct H as [ | H ] ; [subst ; repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP | ]) ; contradiction.
+
+    rewrite !in_cons in H.
+    repeat (move: H => /orP [ /eqP H | H ] ; subst).
+    all: (repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP).
 Defined.
 Fail Next Obligation.
 
@@ -383,8 +390,8 @@ Lemma trimmed_parallel_raw_R_ch_map_XPD :
     trimmed (interface_foreach (fun n => [interface
        #val #[ XPD n d d (* d.+1 *) ] : chXPDinp → chXPDout
     ]) XPR) (parallel_raw
-       (map_with_in XPR
-          (λ (x : name) (H0 : List.In x XPR),
+       (map_with_in_rel XPR XPR (H_in := fun a H0 => H0)
+          (λ (x : name) (H0 : x \in XPR),
              pack (R_ch_map_XPD_package d d x (λ _ : name, M) (λ (_ : name) (_ : nat), M) H0
                      (λ _ : name, H_L_M) (λ (_ : name) (_ : nat), H_L_M))))).
 Proof.
@@ -404,8 +411,7 @@ Proof.
     unfold XPR.
     unfold "++".
     unfold List.map.
-    unfold map_with_in.
-    unfold eq_ind.
+    unfold map_with_in_rel.
     unfold trimmed_pairs.
 
     repeat split.
@@ -449,20 +455,15 @@ Proof.
              (@pair nat (prod choice_type choice_type) (@XPD n ℓ d)
                 (@pair choice_type choice_type (chProd (chProd chHandle chBool) bitvec) chHandle))
              (@nil (prod nat (prod choice_type choice_type))))) XPR)
-    (@map_with_in (Equality.sort ExtraTypes_name__canonical__eqtype_Equality) raw_package XPR
-       (fun (x : name) (H0 : @List.In name x XPR) =>
+    (map_with_in_rel XPR XPR (H_in := fun a H0 => H0)
+       (fun (x : name) (H0 : x \in XPR) =>
         @pack _ _ _
           (R_ch_map_XPD_package d ℓ x (fun _ : name => M) (fun (_ : name) (_ : nat) => M) H0
              (fun _ => H_L_M) (fun _ _ => H_L_M))))).
   {
     intros.
     unfold pack.
-    unfold map_with_in, XPR.
-    unfold parallel_raw.
-    unfold List.fold_left.
-    unfold List.map.
-    unfold "++".
-    unfold trimmed_pairs.
+    unfold trimmed_pairs, XPR, "++", List.map, R_ch_map_XPD_package, map_with_in.
     repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
   }
 
@@ -472,20 +473,26 @@ Proof.
   subst i.
   refine (ℓ_packages
             d
-            (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H0 => pack (R_ch_map_XPD_package d ℓ x (fun _ => M) (fun _ _ => M) H0 (fun _ => H_L_M) (fun _ _ => H_L_M))))
+            (fun ℓ H => {package parallel_raw (map_with_in_rel XPR XPR (H_in := fun a H0 => H0) (fun x H0 => pack (R_ch_map_XPD_package d ℓ x (fun _ => M) (fun _ _ => M) H0 (fun _ => H_L_M) (fun _ _ => H_L_M))))
                         #with
-                 (valid_forall_map_with_in
+                 (valid_forall_map_with_in_rel
                     (λ (n : name) (ℓ : nat), (XPD_n_ℓ d) (* [interface #val #[XPD n ℓ] : chXPDinp → chXPDout ] *))
                     (λ n : name, [interface #val #[XPD n ℓ d] : chXPDinp → chXPDout ])
                     XPR
-                    (λ ℓ (x : name) (H0 : List.In x XPR), R_ch_map_XPD_package d ℓ x (λ _ : name, M) (λ _ _ , M) H0 _ _)
+                    (λ ℓ (x : name) (H0 : x \in XPR), R_ch_map_XPD_package d ℓ x (λ _ : name, M) (λ _ _ , M) H0 _ _)
                     d
                     ℓ
                     H (H1 _) H2 (H3 _) _ ) })
             (fun _ _ => trimmed_parallel_raw _ _ _ (H1 _) H2 (H3 _)) _ ).
-  - unfold XPR, map_with_in, List.map, "++".
+  - (* unfold map_with_in_rel. *)
+    (* unfold XPR. , List.map, "++". *)
     unfold valid_pairs.
-    repeat split. all: apply R_ch_map_XPD_package.
+    unfold XPR.
+    unfold "++".
+    unfold List.map.
+    unfold map_with_in_rel.
+    repeat split.
+    all: apply R_ch_map_XPD_package.
   - intros.
     apply idents_foreach_disjoint_foreach.
     intros.
@@ -493,40 +500,6 @@ Proof.
     solve_imfset_disjoint.
 Defined.
 Fail Next Obligation.
-
-Lemma idents_disjoint_foreach :
-  (forall {A} f g (L : list A),
-      (forall m, idents f :#: idents (g m)) ->
-      idents f :#: idents (interface_foreach g L)).
-Proof.
-  intros.
-  induction L.
-  + simpl.
-    rewrite <- fset0E.
-    unfold idents.
-    rewrite imfset0.
-    apply fdisjoints0.
-  + rewrite interface_foreach_cons.
-    unfold idents.
-    rewrite !imfsetU.
-    rewrite fdisjointUr.
-    rewrite IHL ; clear IHL.
-    rewrite Bool.andb_true_r.
-    apply H.
-Qed.
-
-Lemma idents_foreach_disjoint_foreach_different :
-  (forall {A} f g (Lf Lg : list A),
-      (forall n m, idents (f n) :#: idents (g m)) ->
-      idents (interface_foreach f Lf) :#: idents (interface_foreach g Lg)).
-Proof.
-  intros.
-  apply idents_disjoint_foreach ; intros.
-  rewrite fdisjointC.
-  apply idents_disjoint_foreach ; intros.
-  rewrite fdisjointC.
-  apply H.
-Qed.
 
 
 (* R_ch_map, fig.25, Fig. 27, >> Fig. 29 << *)
@@ -1002,9 +975,6 @@ Fail Next Obligation.
 (*   := *)
 (*   {package (Gks_real (* d *) ∘ ((par XPD_packages (par DH_package (par hash XTR_packages))) ∘ (Ks O_star false erefl ∘ Ls O_star F erefl))) #with _}. *)
 
-Lemma map_eta : forall {A B} (f : A -> B) a l, List.map f (a :: l) = f a :: List.map f l.
-Proof. reflexivity. Qed.
-
 Lemma map_with_in_num_trivial : forall k n, map_with_in_num n (fun a b => k) = k.
 Proof.
   clear ; intros.
@@ -1239,40 +1209,6 @@ Qed.
 
 (* (parallel_raw (List.map (fun y => (pack (K_package d y n x1 false))) O_star)) *)
 
-Definition parallel_package
-  (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (a : A), package L (f a) (g a))
-    (H : ∀ x y : A, x ≠ y → idents (g x) :#: idents (g y))
-    (H1 : ∀ a : A, trimmed (g a) (i a))
-    (H3 : uniq Names) :
-  package L
-    (interface_foreach f Names)
-    (interface_foreach g Names) :=
-  {package
-     parallel_raw _ #with
-    valid_parable _ _ _ _ _ _
-    (H)
-    H3
-    (trimmed_pairs_cons _ _ _ (H1))
-    (valid_pairs_cons _ _ _ _ _ (fun m => pack_valid (i m))) }.
-
-Lemma trimmed_pairs_cons :
-  forall {A : eqType} (l : list A) (f : forall (a : A), (a \in l) -> Interface) g,
-    (forall a, (a \in l) -> trimmed (f a _) (g a _)) ->
-    trimmed_pairs
-      (map_with_in l f)
-      (map_with_in l g).
-Proof.
-  intros.
-  induction l.
-  - reflexivity.
-  - unfold List.map ; fold (List.map f l); fold (List.map g l).
-    simpl.
-    destruct l.
-    + apply H.
-    + simpl.
-      split ; [ apply H | apply IHl ].
-Qed.
-
 Definition parallel_in_package
   (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (a : A) (_ : a \in Names), package L (f a) (g a))
     (H : ∀ x y : A, x ≠ y → idents (g x) :#: idents (g y))
@@ -1286,7 +1222,7 @@ Definition parallel_in_package
     valid_parable _ _ _ _ _ _
     (H)
     H3
-    (trimmed_pairs_cons _ _ _ (fun a => H1 _ _))
+    (trimmed_pairs_cons_map_with_in_rel _ _ _ _ _ (fun a _ => H1 _ _))
     (valid_pairs_cons _ _ _ _ _ (fun m => pack_valid (i _ m))) }.
 
 Lemma ℓ_list :
