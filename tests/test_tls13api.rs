@@ -222,7 +222,6 @@ fn test_full_round_trip() {
     assert!(b);
 }
 
-
 #[test]
 fn test_full_round_trip_with_psk() {
     let cr = random_bytes(32);

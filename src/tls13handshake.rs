@@ -201,15 +201,19 @@ fn put_server_hello(
     };
     set_by_handle(ks, &shared_secret_handle, shared_secret);
 
-    let psk_handle = psk.map(|x| {
-        let handle = Handle {
-            alg: ciphersuite.hash,
-            name: PSK,
-            level: 0,
-        };
-        set_by_handle(ks, &handle, x);
-        handle
-    });
+    // hax-issue: can't use mutating map here
+    let psk_handle = match psk {
+        Some(bytes) => {
+            let handle = Handle {
+                alg: ciphersuite.hash,
+                name: PSK,
+                level: 0,
+            };
+            set_by_handle(ks, &handle, bytes);
+            Some(handle)
+        }
+        None => None,
+    };
 
     let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
         &ciphersuite.hash,
@@ -560,15 +564,20 @@ fn get_server_hello(
     let transcript = state.transcript.add(&sh);
     let transcript_hash = transcript.transcript_hash()?;
 
-    let psk_handle = state.server.psk_opt.clone().map(|x| {
-        let handle = Handle {
-            alg: state.ciphersuite.hash,
-            name: PSK,
-            level: 0,
-        };
-        set_by_handle(ks, &handle, x);
-        handle
-    });
+    // hax-issue: can't use mutating map here
+    let psk_handle = state.server.psk_opt.clone();
+    let psk_handle = match psk_handle {
+        Some(bytes) => {
+            let handle = Handle {
+                alg: state.ciphersuite.hash,
+                name: PSK,
+                level: 0,
+            };
+            set_by_handle(ks, &handle, bytes);
+            Some(handle)
+        }
+        None => None,
+    };
 
     let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
         &state.ciphersuite.hash,
