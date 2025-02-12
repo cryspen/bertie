@@ -90,8 +90,8 @@ Section KeySchedulePackages.
         #val #[ SET PSK 0 d ] : chSETinp → chSETout
       ]
        :|: DH_interface (* DHEXP, DHGEN *)
-       :|: XTR_n_ℓ d (* {ES,HS,AS},  0..d *)
-       :|: XPD_n_ℓ d (* XPN,         0..d *)
+       :|: XTR_n d (* {ES,HS,AS},  0..d *)
+       :|: XPD_n d (* XPN,         0..d *)
        :|: GET_O_star_ℓ d).
 
   Definition key_schedule_export d :=

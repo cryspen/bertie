@@ -102,8 +102,8 @@ Section Core.
            #val #[ SET PSK 0 d ] : chSETinp → chSETout
          ]
           :|: DH_interface
-          :|: XTR_n_ℓ d
-          :|: XPD_n_ℓ d)
+          :|: XTR_n d
+          :|: XPD_n d)
        (UNQ_O_star d)
     ).
 
@@ -170,7 +170,7 @@ Section Core.
     package
       (L_K :|: L_L)
       [interface]
-      (XPD_n_ℓ d :|: (DH_interface :|: XTR_n_ℓ d)) :=
+      (XPD_n d :|: (DH_interface :|: XTR_n d)) :=
     {package
        (par
           (XPD_packages d ∘ (par (Ks d XPR false erefl ∘ Ls d XPR F erefl) hash))
@@ -323,8 +323,8 @@ Section Core.
       ([interface
           #val #[ SET PSK 0 d ] : chSETinp → chSETout
         ] :|: DH_interface :|:
-         XTR_n_ℓ d :|:
-         XPD_n_ℓ d :|:
+         XTR_n d :|:
+         XPD_n d :|:
          GET_O_star_ℓ d)
       (GET_O_star_ℓ d) :=
     {package (Ks d O_star true erefl ∘ Score) }.

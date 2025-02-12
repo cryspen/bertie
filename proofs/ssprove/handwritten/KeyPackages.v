@@ -240,29 +240,6 @@ Proof.
     apply trimmed_empty_package.
 Qed.
 
-Definition combined (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (n : nat), (n <= d)%nat -> forall (a : A), package L (f a) (g a n))
-    (H : forall n, (n <= d)%nat -> ∀ x y : A, x ≠ y → idents (g x n) :#: idents (g y n))
-    (H0 : forall n ℓ, (ℓ < n)%nat -> (n <= d)%nat -> ∀ x y : A, idents (g x ℓ) :#: idents (g y n))
-    (H1 : forall n (H_le : (n <= d)%nat), ∀ a : A, trimmed (g a n) (i n H_le a))
-    (H3 : uniq Names) :
-  package L
-    (interface_foreach f Names)
-    (interface_hierarchy_foreach g Names d) :=
-  ℓ_packages
-    d
-    (fun n H_le =>
-       parallel_package d Names (i n H_le) (H n H_le) (H1 n H_le) H3
-    )
-    (fun n H_le =>
-       trimmed_parallel_raw
-         (g^~ n)
-         Names
-         _
-         (H n H_le)
-         H3
-         (trimmed_pairs_map _ _ _ (H1 n H_le)))
-    (fun n ℓ i0 i1 => idents_foreach_disjoint_foreach _ _ Names (H0 n ℓ i0 i1)).
-
 Lemma function_fset_cat :
   forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
 Proof. now setoid_rewrite <- (fset_cat). Qed.
@@ -320,11 +297,11 @@ Proof.
   intros.
   unfold Ks.
   unfold combined.
-  set (ℓ_packages _ _ _ _).
+
   rewrite trimmed_eq_rect.
   destruct (function2_fset_cat _ _).
-  
-  refine (trimmed_ℓ_packages d (λ (n : nat) (H0 : (n <= d)%N), {package parallel_raw (List.map (λ y : name, _) Names) }) _ _).
+  rewrite trimmed_eq_rect_r.
+  apply (trimmed_ℓ_packages d).
 Qed.
 
 (* Fig 15 *)
@@ -399,6 +376,10 @@ Next Obligation.
   rewrite fset_cons ; rewrite imfsetU ; rewrite <- fset1E.
   rewrite fset_cons ; rewrite imfsetU ; rewrite <- fset1E.
   solve_imfset_disjoint.
+Qed.
+Next Obligation.
+  intros.
+  now rewrite <- interface_hierarchy_trivial.
 Qed.
 Fail Next Obligation.
 

@@ -140,7 +140,7 @@ Axiom level : chHandle -> code fset0 [interface] (chOption chNat).
 Definition KS_interface d :=
   ([interface #val #[SET PSK 0 d] : chSETinp → chSETout ]
      :|: DH_interface
-     :|: (XPD_n_ℓ d :|: XTR_n_ℓ d)
+     :|: (XPD_n d :|: XTR_n d)
      :|: GET_O_star_ℓ d
   ).
 
@@ -156,7 +156,7 @@ Notation " 'chXTRout' " :=
 Definition R_ch_map_XTR_package d (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
   (n \in XTR_names) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
-  package L_M (XTR_n_ℓ d (* ℓ.+1 *))
+  package L_M (XTR_n_ℓ d ℓ (* ℓ.+1 *))
     [interface
        #val #[ XTR n ℓ d (* ℓ.+1 *)] : chXTRinp → chXTRout
     ].
@@ -181,7 +181,7 @@ Proof.
           end ;;
         (* *)
 
-        assertD (ℓ' <= d)%nat (fun H =>
+        assertD (ℓ' <= ℓ)%nat (fun H =>
         #import {sig #[ XTR n ℓ' d (* ℓ.+1 *) ] : chXTRinp → chXTRout }
         as XTR_fn ;;
         h ← xtr_angle n h1 h2 ;;
@@ -232,7 +232,8 @@ Proof.
     unfold XTR_names in H.
 
     rewrite !in_cons in H.
-    repeat (move: H => /orP [ /eqP H | H ] ; subst) ; (repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP).
+    repeat (move: H => /orP [ /eqP H | H ] ; subst).
+    all: try (repeat (apply /orP ; ((left ; now apply /eqP) || right)) ; now apply /eqP).
   }
   {
     unfold set_at.
@@ -241,56 +242,70 @@ Proof.
 Defined.
 Fail Next Obligation.
 
+Lemma interface_hierarchy_idemp :
+  forall d f,
+  (interface_hierarchy (λ (ℓ : nat), interface_hierarchy f ℓ) d) =
+    interface_hierarchy f d.
+Proof.
+  intros.
+  induction d.
+  - reflexivity.
+  - simpl.
+    rewrite IHd.
+    rewrite fsetUA.
+    rewrite fsetUid.
+    reflexivity.
+Defined.
+
+Lemma interface_hierarchy_interface_foreach_swap :
+  forall {A} (L : list A) d f,
+    (interface_hierarchy (λ (ℓ : nat), interface_foreach (f ℓ) L) d) =
+    (interface_foreach (λ n, interface_hierarchy (f^~ n) d) L).
+Proof.
+  intros.
+  induction d.
+  - reflexivity.
+  - simpl.
+    rewrite IHd.
+    now rewrite interface_foreach_U.
+Defined.
+
+Lemma interface_hierarchy_foreach_idemp :
+  forall {A} (L : list A) d f,
+  (interface_hierarchy_foreach
+     (λ (_ : A) (ℓ : nat),
+       interface_hierarchy_foreach f L ℓ) L d) =
+    interface_hierarchy_foreach f L d.
+Proof.
+  intros.
+  destruct L.
+  - simpl.
+    unfold interface_hierarchy_foreach.
+    now rewrite interface_hierarchy_empty.
+  - unfold interface_hierarchy_foreach.
+    rewrite interface_hierarchy_interface_foreach_swap.
+    rewrite (interface_hierarchy_idemp d (λ ℓ0 : nat, interface_foreach (f^~ ℓ0) _)).
+    rewrite interface_hierarchy_interface_foreach_swap.
+    now rewrite <- interface_foreach_trivial.
+Defined.
 
 Definition R_ch_map_XTR_packages (d : nat) (M : chHandle -> nat)
   (H_inLM : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M) :
-  package L_M (XTR_n_ℓ d) (XTR_n_ℓ d).
+  package L_M (XTR_n d) (XTR_n d).
 Proof.
-  assert (H1 : forall n, ∀ x y : ExtraTypes_name__canonical__eqtype_Equality,
-             x ≠ y
-             → idents [interface #val #[XTR x n d] : chXTRinp → chXTRout ]
-                 :#: idents [interface #val #[XTR y n d] : chXTRinp → chXTRout ]
+  unfold XTR_n at 1.
+  rewrite <- (interface_hierarchy_foreach_idemp XTR_names d (λ (n : name) (ℓ : nat), [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ])).
+  refine (ℓ_parallel XTR_names XTR_names d
+                    (* (g := (λ (n : name) (ℓ : nat), [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ])) *)
+           (fun ℓ H_le a H => R_ch_map_XTR_package d ℓ a (fun _ => M) H H_inLM)
+           (fun a H => H)
+           _ _ _
          ).
-  {
-    intros.
-    unfold idents.
-    solve_imfset_disjoint.
-  }
-
-  assert (H2 : uniq XTR_names) by reflexivity.
-
-  assert (H3 : forall ℓ, trimmed_pairs
-    (List.map (fun n : name => [interface #val #[(@XTR n ℓ d)] : chXTRinp → chXTRout ]) XTR_names)
-    (map_with_in_rel XTR_names XTR_names (H_in := fun a H0 => H0) (fun (x : name) H0 => pack (R_ch_map_XTR_package d ℓ x (fun _ : name => M) H0 H_inLM)))) by now repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
-
-  set (XTR_n_ℓ) at 2.
-  rewrite (interface_hierarchy_trivial (XTR_n_ℓ d) XTR_names d _).
-  2: easy.
-  subst i.
-  refine (ℓ_packages
-            d
-            (fun ℓ H =>
-               (parallel_package d XTR_names)
-               (* {package parallel_raw (map_with_in_rel XTR_names XTR_names (H_in := fun a H0 => H0) (fun x H0 => pack (R_ch_map_XTR_package d ℓ x (fun _ => M) H0 H_inLM))) *)
-               (*          #with *)
-               (*   (valid_forall_map_with_in_rel *)
-               (*      (λ (n : name) (ℓ : nat), (XTR_n_ℓ d) (* [interface #val #[XTR n ℓ] : chXTRinp → chXTRout ] *)) *)
-               (*      (λ n : name, [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ]) *)
-               (*      XTR_names *)
-               (*      (λ ℓ (x : name) (H0 : x \in XTR_names), R_ch_map_XTR_package d ℓ x (λ _ : name, M) H0 H_inLM) *)
-               (*      d *)
-               (*      ℓ *)
-            (*      H (H1 _) H2 (H3 _) _ ) } *)
-            )
-            (fun _ _ => trimmed_parallel_raw _ _ _ (H1 _) H2 (H3 _)) _ ).
-  - unfold XTR_names, map_with_in_rel, List.map.
-    unfold valid_pairs.
-    split ; [ | split ] ; apply R_ch_map_XTR_package.
   - intros.
-    apply idents_foreach_disjoint_foreach.
-    intros.
     unfold idents.
-    solve_imfset_disjoint.
+    destruct H ; solve_imfset_disjoint.
+  - reflexivity.
+  - repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
 Defined.
 Fail Next Obligation.
 
@@ -306,7 +321,7 @@ Definition R_ch_map_XPD_package d (ℓ : nat) (n : name) (M : name -> chHandle -
   (n \in XPR) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
   (forall s1 s k, ('option ('fin #|fin_handle|); M_ℓ s1 s k) \in L_M) ->
-  package L_M (XPD_n_ℓ d (* ℓ.+1 *))
+  package L_M (XPD_n_ℓ d ℓ (* ℓ.+1 *))
     [interface
        #val #[ XPD n ℓ d (* ℓ.+1 *) ] : chXPDinp → chXPDout
     ].
@@ -324,7 +339,7 @@ Definition R_ch_map_XPD_package d (ℓ : nat) (n : name) (M : name -> chHandle -
             | None => @fail 'nat ;; ret (chCanonical 'nat) (* fail? *)
             end) ;;
         (* *)
-        assertD (ℓ1 <= d)%nat (fun H =>
+        assertD (ℓ1 <= ℓ)%nat (fun H =>
             h ← xpd_angle n label h1 args ;;
 
             #import {sig #[ XPD n ℓ1 d (* ℓ.+1 *) ] : chXPDinp → chXPDout }
@@ -421,83 +436,22 @@ Qed.
 
 Definition R_ch_map_XPD_packages  (d : nat) (M : chHandle -> nat) :
   (forall s, ('option ('fin #|fin_handle|); M s) \in L_M) ->
-  package L_M (XPD_n_ℓ d) (XPD_n_ℓ d).
+  package L_M (XPD_n d) (XPD_n d).
 Proof.
   intros H_L_M.
-  (* refine (ℓ_packages *)
-  (*           d (fun ℓ H => {package parallel_raw (map_with_in XPR (fun x H => pack (R_ch_map_XPD_package ℓ x (fun _ => M) (fun _ _ => M) H (fun _ => H_L_M) (fun _ _ => H_L_M)))) #with _ }) *)
-  (*   _ _ _). *)
-
-  (* 2: intros ; apply trimmed_parallel_raw_R_ch_map_XPD. *)
-  (* 2: now apply interface_foreach_idents_XPD. *)
-
-  assert (H1 : forall n, ∀ x y : ExtraTypes_name__canonical__eqtype_Equality,
-             x ≠ y
-             → idents [interface #val #[XPD x n d] : chXPDinp → chXPDout ]
-                 :#: idents [interface #val #[XPD y n d] : chXPDinp → chXPDout ]
+  unfold XPD_n at 1.
+  rewrite <- (interface_hierarchy_foreach_idemp XPR d _).
+  refine (ℓ_parallel XPR XPR d
+                    (* (g := (λ (n : name) (ℓ : nat), [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ])) *)
+           (fun ℓ H_le a H => R_ch_map_XPD_package d ℓ a (fun _ => M) (fun _ _ => M) H (fun _ => H_L_M) (fun _ _ => H_L_M))
+           (fun a H => H)
+           _ _ _
          ).
-  {
-    intros.
-    unfold idents.
-    solve_imfset_disjoint.
-  }
-
-  assert (H2 : uniq XPR) by reflexivity.
-
-  eassert (H3 : forall ℓ, trimmed_pairs
-    (@List.map (Equality.sort ExtraTypes_name__canonical__eqtype_Equality) Interface
-       (fun n : name =>
-        @fset
-          (Datatypes_prod__canonical__Ord_Ord Datatypes_nat__canonical__Ord_Ord
-             (Datatypes_prod__canonical__Ord_Ord choice_type_choice_type__canonical__Ord_Ord
-                choice_type_choice_type__canonical__Ord_Ord))
-          (@cons (prod nat (prod choice_type choice_type))
-             (@pair nat (prod choice_type choice_type) (@XPD n ℓ d)
-                (@pair choice_type choice_type (chProd (chProd chHandle chBool) bitvec) chHandle))
-             (@nil (prod nat (prod choice_type choice_type))))) XPR)
-    (map_with_in_rel XPR XPR (H_in := fun a H0 => H0)
-       (fun (x : name) (H0 : x \in XPR) =>
-        @pack _ _ _
-          (R_ch_map_XPD_package d ℓ x (fun _ : name => M) (fun (_ : name) (_ : nat) => M) H0
-             (fun _ => H_L_M) (fun _ _ => H_L_M))))).
-  {
-    intros.
-    unfold pack.
-    unfold trimmed_pairs, XPR, "++", List.map, R_ch_map_XPD_package, map_with_in.
-    repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
-  }
-
-  set (XPD_n_ℓ) at 2.
-  rewrite (interface_hierarchy_trivial (XPD_n_ℓ d) XPR d _).
-  2: easy.
-  subst i.
-  refine (ℓ_packages
-            d
-            (fun ℓ H => {package parallel_raw (map_with_in_rel XPR XPR (H_in := fun a H0 => H0) (fun x H0 => pack (R_ch_map_XPD_package d ℓ x (fun _ => M) (fun _ _ => M) H0 (fun _ => H_L_M) (fun _ _ => H_L_M))))
-                        #with
-                 (valid_forall_map_with_in_rel
-                    (λ (n : name) (ℓ : nat), (XPD_n_ℓ d) (* [interface #val #[XPD n ℓ] : chXPDinp → chXPDout ] *))
-                    (λ n : name, [interface #val #[XPD n ℓ d] : chXPDinp → chXPDout ])
-                    XPR
-                    (λ ℓ (x : name) (H0 : x \in XPR), R_ch_map_XPD_package d ℓ x (λ _ : name, M) (λ _ _ , M) H0 _ _)
-                    d
-                    ℓ
-                    H (H1 _) H2 (H3 _) _ ) })
-            (fun _ _ => trimmed_parallel_raw _ _ _ (H1 _) H2 (H3 _)) _ ).
-  - (* unfold map_with_in_rel. *)
-    (* unfold XPR. , List.map, "++". *)
-    unfold valid_pairs.
-    unfold XPR.
-    unfold "++".
-    unfold List.map.
-    unfold map_with_in_rel.
-    repeat split.
-    all: apply R_ch_map_XPD_package.
   - intros.
-    apply idents_foreach_disjoint_foreach.
-    intros.
     unfold idents.
-    solve_imfset_disjoint.
+    destruct H ; solve_imfset_disjoint.
+  - reflexivity.
+  - repeat split ; apply trimmed_package_cons ; apply trimmed_empty_package.
 Defined.
 Fail Next Obligation.
 
@@ -508,15 +462,16 @@ Definition R_ch_map (d : nat) :
   package (L_M :|: (L_K :|: L_L))
     ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout] :|:
        DH_interface :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d)
+    XTR_n d :|:
+    XPD_n d)
     (KS_interface d)
-    (* (SET_O_star_ℓ :|: GET_O_star_ℓ) *).
+(* (SET_O_star_ℓ :|: GET_O_star_ℓ) *).
+Proof.
   refine (let base_package : package L_M
     ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout] :|:
        DH_interface :|:
-    XTR_n_ℓ d :|:
-    XPD_n_ℓ d) ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout] :|: DH_interface)
+    XTR_n d :|:
+    XPD_n d) ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout] :|: DH_interface)
   :=
     [package
      #def #[ SET PSK 0 d ] ('(h,hon,k) : chSETinp) : chSETout {
@@ -545,44 +500,49 @@ Definition R_ch_map (d : nat) :
   1: refine ({package
      par (base_package
      ) (par (par
-          (R_ch_map_XPD_packages d _ _)
+          (R_ch_map_XPD_packages d M _)
           (R_ch_map_XTR_packages d M H))
             (Ks d O_star false erefl ∘ Ls d O_star F erefl)
        ) }).
   1:{
+    assert (H_trim_ch_map_XTR : trimmed (XTR_n d) (R_ch_map_XTR_packages d M H)).
+    {
+      unfold R_ch_map_XTR_packages.
+      unfold eq_rect.
+      destruct (interface_hierarchy_foreach_idemp).
+      apply trimmed_ℓ_packages.
+    }
+
+    assert (H_trim_ch_map_XPD : trimmed (XPD_n d) (R_ch_map_XPD_packages d M (H BOT))).
+    {
+      unfold R_ch_map_XPD_packages.
+      unfold eq_rect.
+      destruct (interface_hierarchy_foreach_idemp).
+      apply trimmed_ℓ_packages.
+    }
+
+    assert (H_trim_PSK : trimmed ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout] :|: DH_interface) base_package).
+    {
+      unfold DH_interface.
+      rewrite <- fset_cat.
+      simpl fset.
+
+      unfold trimmed.
+      unfold base_package.
+      unfold pack.
+
+      do 3 apply trimmed_package_cons ; apply trimmed_empty_package.
+    }
+
     ssprove_valid.
     {
       (* simpl. *)
       unfold FDisjoint.
       apply @parable.
 
-      eassert (trimmed (XTR_n_ℓ d) (R_ch_map_XTR_packages d M H)).
-      {
-        rewrite trimmed_eq_rect_r.
-        apply trimmed_ℓ_packages.
-      }
-      rewrite <- H. clear H.
-
-      eassert (trimmed (XPD_n_ℓ d) (R_ch_map_XPD_packages d M (H BOT))).
-      {
-        rewrite trimmed_eq_rect_r.
-        apply trimmed_ℓ_packages.
-      }
-      rewrite <- H. clear H.
-
-      eassert (trimmed ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout] :|: DH_interface) base_package).
-      {
-        unfold DH_interface.
-        rewrite <- fset_cat.
-        simpl fset.
-
-        unfold trimmed.
-        unfold base_package.
-        unfold pack.
-
-        do 3 apply trimmed_package_cons ; apply trimmed_empty_package.
-      }
-      rewrite <- H. clear H.
+      rewrite <- H_trim_ch_map_XTR.
+      rewrite <- H_trim_ch_map_XPD.
+      rewrite <- H_trim_PSK.
 
       rewrite <- trimmed_Ks.
       rewrite !link_trim_commut.
@@ -615,10 +575,32 @@ Definition R_ch_map (d : nat) :
         (* apply idents_interface_foreach_disjoint. *)
         rewrite imfsetU.
         rewrite fdisjointUl.
-        apply /andP ; split ; [ solve_imfset_disjoint | ].
-        apply idents_disjoint_foreach ; intros.
-        unfold idents.
-        solve_imfset_disjoint.
+        apply /andP ; split.
+        {
+          assert (PSK \notin O_star) by easy.
+          induction O_star.
+          - simpl.
+            rewrite <- fset0E.
+            rewrite imfset0.
+            apply fdisjoints0.
+          - rewrite interface_foreach_cons.
+            rewrite !imfsetU.
+            rewrite !fdisjointUr.
+
+            rewrite notin_cons in H0.
+            move: H0 => /andP [ /eqP H0 H1 ].
+
+            repeat (apply /andP ; split).
+            + clear -H0.
+              solve_imfset_disjoint.
+            + solve_imfset_disjoint.
+            + now apply IHl.
+        }
+        {
+          apply idents_disjoint_foreach ; intros.
+          unfold idents.
+          solve_imfset_disjoint.
+        }
       }
     }
     {
@@ -626,23 +608,12 @@ Definition R_ch_map (d : nat) :
       unfold FDisjoint.
       apply @parable.
 
-      eassert (trimmed (XTR_n_ℓ d) (R_ch_map_XTR_packages d M H)).
-      {
-        rewrite trimmed_eq_rect_r.
-        apply trimmed_ℓ_packages.
-      }
-      rewrite <- H. clear H.
-
-      eassert (trimmed (XPD_n_ℓ d) (R_ch_map_XPD_packages d M (H BOT))).
-      {
-        rewrite trimmed_eq_rect_r.
-        apply trimmed_ℓ_packages.
-      }
-      rewrite <- H. clear H.
+      rewrite <- H_trim_ch_map_XTR.
+      rewrite <- H_trim_ch_map_XPD.
 
       rewrite <- trimmed_Ks.
       rewrite !link_trim_commut.
-      
+
       solve_Parable.
 
       {
@@ -681,20 +652,9 @@ Definition R_ch_map (d : nat) :
       unfold FDisjoint.
       apply @parable.
 
-      eassert (trimmed (XTR_n_ℓ d) (R_ch_map_XTR_packages d M H)).
-      {
-        rewrite trimmed_eq_rect_r.
-        apply trimmed_ℓ_packages.
-      }
-      rewrite <- H. clear H.
+      rewrite <- H_trim_ch_map_XTR.
+      rewrite <- H_trim_ch_map_XPD.
 
-      eassert (trimmed (XPD_n_ℓ d) (R_ch_map_XPD_packages d M (H BOT))).
-      {
-        rewrite trimmed_eq_rect_r.
-        apply trimmed_ℓ_packages.
-      }
-      rewrite <- H. clear H.
-      
       solve_Parable.
 
       {
@@ -707,6 +667,8 @@ Definition R_ch_map (d : nat) :
         intros.
         (* apply idents_foreach_disjoint_foreach_different ; intros. *)
         unfold idents.
+
+        clear.
         solve_imfset_disjoint.
       }
     }
@@ -829,6 +791,7 @@ Program Definition Gks_real_map (d : nat) :
      ∘ (par (XPD_DH_XTR d) (K_package d PSK O erefl false ∘ L_package d PSK F)) }.
 Next Obligation.
   intros.
+
   rewrite <- fsetUid.
   eapply valid_link.
   2:{
@@ -851,13 +814,24 @@ Next Obligation.
       unfold pack.
 
       (* assert (trimmed _ (XPD_packages d)). *)
-      unfold XPD_packages ; rewrite <- trimmed_ℓ_packages ; fold (XPD_packages d).
+
+      unfold XPD_packages.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct (Logic.eq_sym _).
+      destruct (Logic.eq_sym _).
+      destruct (Logic.eq_sym _).
+      rewrite <- trimmed_ℓ_packages.
       rewrite !link_trim_commut.
 
       rewrite <- trimmed_dh.
       rewrite !link_trim_commut.
 
-      unfold XTR_packages ; rewrite <- trimmed_ℓ_packages ; fold (XTR_packages d).
+      unfold XTR_packages.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct (Logic.eq_sym _).
+      rewrite <- (trimmed_ℓ_packages d (λ (ℓ : nat) (H : (ℓ <= d)%N), xtr_level d ℓ H)) ; fold (XTR_packages d).
       rewrite !link_trim_commut.
 
       (* rewrite <- (trimmed_Ks d O_star). *)
@@ -964,7 +938,7 @@ Program Definition Gks_ideal_map (d : nat) (Score : Simulator d) :
   package
     fset0
     (KS_interface d)
-    (GET_O_star_ℓ d) := {package Score ∘ (R_ch_map d) }.
+    (GET_O_star_ℓ d) := {package (R_ch_map d) ∘ Score }.
 Next Obligation.
   admit.
 Admitted.
@@ -1064,15 +1038,42 @@ Proof.
     now rewrite IHk.
 Qed.
 
+Lemma get_map_with_in_num_notin2 :
+  forall (d : nat) k (Hk_le : (k <= d)%nat) x index n m,
+  forall  (p : forall n, (d >= n)%nat → raw_package),
+    (n > k)%nat ->
+    (forall k Hk_le, (k < n)%nat -> getm (p k Hk_le) (serialize_name x n m index) = None) ->
+    map_with_in_num_upper d k
+      (H_le := Hk_le)
+      (λ (n : nat) (x1 : (n <= d)%N), p n x1)
+      (serialize_name x n m index)
+    = None.
+Proof.
+  clear.
+  intros.
+  induction k.
+  - simpl.
+    intros.
+    now rewrite H0.
+  - intros.
+    simpl.
+    rewrite unionmE.
+
+    replace (isSome (getm (map_with_in_num_upper _ _ _) _)) with false ; [ | symmetry ].
+    1: now rewrite H0.
+
+    now rewrite IHk.
+Qed.
+
 Lemma map_with_in_num_upper_getm :
   forall (d : nat) (k : nat) (Hk_le : (k <= d)%nat)
-    (p : forall d n, (d >= n)%nat → raw_package)
+    (p : forall n, (d >= n)%nat → raw_package)
     x x0 index m,
   forall (H_le : (x0 <= k)%nat),
     (x0 <= m)%nat ->
-    (forall n k Hk_le, (k <> n)%nat -> (n <= m)%nat -> getm (p d k Hk_le) (serialize_name x n m index) = None) ->
-      getm (map_with_in_num_upper d k (H_le := Hk_le) (λ (n : nat) (x1 : (n <= d)%N), p d n x1)) (serialize_name x x0 m index)
-      = getm (p d x0 (leq_trans H_le Hk_le)) (serialize_name x x0 m index).
+    (forall n k Hk_le, (k <> n)%nat -> (n <= m)%nat -> getm (p k Hk_le) (serialize_name x n m index) = None) ->
+      getm (map_with_in_num_upper d k (H_le := Hk_le) (λ (n : nat) (x1 : (n <= d)%N), p n x1)) (serialize_name x x0 m index)
+      = getm (p x0 (leq_trans H_le Hk_le)) (serialize_name x x0 m index).
 Proof.
   intros.
   induction k.
@@ -1092,7 +1093,7 @@ Proof.
       replace (isSome _) with false ; [ | symmetry ].
       1: now replace (leq_trans _ _) with (Hk_le).
 
-      rewrite get_map_with_in_num_notin ; [ reflexivity | .. ].
+      rewrite get_map_with_in_num_notin2 ; [ reflexivity | .. ].
       1: apply H_le.
       intros.
       now rewrite H0.
@@ -1104,7 +1105,7 @@ Proof.
       rewrite !IHk.
       - Lia.lia.
       - intros.
-        destruct (p d x0 _ _) eqn:pd_is.
+        destruct (p x0 _ _) eqn:pd_is.
         + unfold isSome.
           set (leq_trans _ _) in pd_is.
           replace (leq_trans _ _) with i by easy.
@@ -1119,29 +1120,29 @@ Proof.
 Qed.
 
 Lemma ℓ_package_getm :
-  forall {L I} (d : nat)
-    {f : nat -> nat -> Interface}
-    (p : forall d (n : nat), (d >= n)%nat → package L (I d) (f d n))
-    (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f d n) (p d n H_ge))
-    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f d ℓ) :#: idents (f d n)),
+  forall {L} (d : nat)
+    {g : nat -> Interface}
+    {f : nat -> Interface}
+    (p : forall (n : nat), (d >= n)%nat → package L (g n) (f n))
+    (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
+    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n)),
   forall x x0 index,
     (forall (H_le : (x0 <= d)%nat),
         (∀ (n k : nat) (Hk_le : (k <= d)%N),
-    k ≠ n → (n <= d)%N → getm (pack (p d k Hk_le)) (serialize_name x n d index) = None) ->
-    getm (pack (ℓ_packages d (p d) H_trim_p Hdisj)) (serialize_name x x0 d index) =
-    getm (pack (p d x0 H_le)) (serialize_name x x0 d index)
+    k ≠ n → (n <= d)%N → getm (pack (p k Hk_le)) (serialize_name x n d index) = None) ->
+    getm (pack (ℓ_packages d (p) H_trim_p Hdisj)) (serialize_name x x0 d index) =
+    getm (pack (p x0 H_le)) (serialize_name x x0 d index)
   ).
 Proof.
   intros.
   unfold ℓ_packages.
   unfold pack.
+  unfold ℓ_raw_packages.
   rewrite (map_with_in_num_upper_getm d d (leqnn d) p x x0 index d).
   - now replace (leq_trans _ _) with (H_le).
   - assumption.
   - apply H.
 Qed.
-
-(* parallel_raw (List.map (λ y : name, K_package d y x0 H1 false) O_star) (serialize_name x x0 d 1) *)
 
 Lemma getm_parallel_raw :
   forall x y m (f : name -> raw_package) l index,
@@ -1207,66 +1208,50 @@ Proof.
            ++ now apply IHl.
 Qed.
 
-(* (parallel_raw (List.map (fun y => (pack (K_package d y n x1 false))) O_star)) *)
-
-Definition parallel_in_package
-  (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (a : A) (_ : a \in Names), package L (f a) (g a))
-    (H : ∀ x y : A, x ≠ y → idents (g x) :#: idents (g y))
-    (H1 : ∀ (a : A) (_ : a \in Names), trimmed (g a) (i a _))
-    (H3 : uniq Names) :
-  package L
-    (interface_foreach f Names)
-    (interface_foreach g Names) :=
-  {package
-     parallel_raw _ #with
-    valid_parable _ _ _ _ _ _
-    (H)
-    H3
-    (trimmed_pairs_cons_map_with_in_rel _ _ _ _ _ (fun a _ => H1 _ _))
-    (valid_pairs_cons _ _ _ _ _ (fun m => pack_valid (i _ m))) }.
-
 Lemma ℓ_list :
   forall {L I} (d : nat) (l : seq name) (l_uniq : uniq l)
     {f : nat -> name -> nat -> Interface}
-    (p : forall d (a : name) (n : nat), (d >= n)%nat → package L (I d a) (f d a n))
-    (H_trim_p : forall d a n, forall (H_ge : (d >= n)%nat), trimmed (f d a n) (p d a n H_ge))
+    (p : forall (a : name) (n : nat), (d >= n)%nat → package L (I d a) (f d a n))
+    (H_trim_p : forall a n, forall (H_ge : (d >= n)%nat), trimmed (f d a n) (p a n H_ge))
     (Hdisj : ∀ d a y n (ℓ : nat), ((a <> y /\ n = ℓ) \/ (n > ℓ)%nat) -> (d >= n)%nat -> idents (f d a ℓ) :#: idents (f d y n)),
   forall x x0 index (_ : x \in l),
     (forall (H_le : (x0 <= d)%nat),
         (∀ d (a x1 : name) x0 H_le n,
             (x0 <= d)%N /\ (n <= d)%N ->
             ((a ≠ x1) \/ (a = x1 /\ x0 <> n)) →
-            getm (pack (p d a x0 H_le)) (serialize_name x1 n d index) = None) ->
+            getm (pack (p a x0 H_le)) (serialize_name x1 n d index) = None) ->
         getm
           (pack (ℓ_packages d
-                   (fun n x1 => parallel_package _ d L _ _ _ (fun a => p d a n x1) (fun a y H => Hdisj d a y n n (or_introl (conj H erefl)) x1) (fun a => H_trim_p d a n x1) l_uniq)
+                   (fun n x1 => parallel_package d l
+                               (fun a => p a n x1)
+                               (fun a y H => Hdisj d a y n n (or_introl (conj H erefl)) x1)
+                               (fun a => H_trim_p a n x1)
+                               l_uniq)
                    (fun n x1 =>
                       trimmed_parallel_raw
-                        _
-                        l
-                        _
                         (fun x y H => Hdisj d x y n n (or_introl (conj H erefl)) x1)
                         l_uniq
-                        (trimmed_pairs_cons _ _ _ (fun x => H_trim_p _ _ _ _)))
-                   (fun n ℓ H1 H2 => idents_foreach_disjoint_foreach _ _ l (fun a b => Hdisj _ _ _ _ _ (or_intror H1) H2 )) (* (Hdisj x) *)))
+                        (trimmed_pairs_map _ _ _ (fun x => H_trim_p _ _ _)))
+                   (fun n ℓ H1 H2 => idents_foreach_disjoint_foreach _ _ l
+                                    (fun a b => Hdisj _ _ _ _ _ (or_intror H1) H2 ))))
           (serialize_name x x0 d index) =
-    getm (pack (p d x x0 H_le)) (serialize_name x x0 d index)
+    getm (pack (p x x0 H_le)) (serialize_name x x0 d index)
   ).
 Proof.
   intros.
 
   set (tp := fun _ _ => _).
-  pattern d in tp.
+  (* pattern d in tp. *)
   set (ℓp := fun _ _ => _) in tp.
   subst tp.
 
   set (t_trim := fun _ _ => _).
-  pattern d in t_trim.
+  (* pattern d in t_trim. *)
   set (ℓ_trim := fun _ _ => _) in t_trim.
   subst t_trim.
 
   set (t_disj := fun _ _ _ _ => _).
-  pattern d in t_disj.
+  (* pattern d in t_disj. *)
   set (ℓ_disj := fun _ _ _ _ => _) in t_disj.
   subst t_disj.
 
@@ -1300,8 +1285,7 @@ Lemma map_intro_c2 :
 Proof.
   intros.
 
-  apply: eq_rel_perf_ind_ignore.
-  1: apply fsubsetxx.
+  apply: eq_rel_perf_ind_eq.
   2: now  rewrite fdisjointUr in H0 ; apply (ssrbool.elimT andP) in H0 as [].
   2: apply H0.
   1:{
@@ -1419,67 +1403,91 @@ Proof.
             destruct function2_fset_cat.
 
             unfold combined.
+            unfold eq_rect_r.
+            destruct Logic.eq_sym.
+            unfold eq_rect.
 
-            epose (ℓ_list d O_star erefl
-                     (fun d a n H_le => K_package d a n H_le false) _ _ x x0 1%nat _ _ _).
-            Unshelve.
-            1: erewrite e.
-            1:{
+            rewrite (ℓ_package_getm d).
+            - unfold parallel_package.
+              unfold pack.
+
+              induction O_star ; [ easy | ].
+              move: H2 => /orP [ /eqP H2 | H2 ] ; subst.
+              + rewrite map_eta.
+                rewrite parallel_raw_cons.
+                rewrite unionmE.
+
+                unfold K_package.
+
+                set ([fmap _ ; _ ]).
+                set (Option_Some _).
+                assert (getm f (serialize_name a x0 d 1) = o) ; subst f o.
+                {
+                  unfold K_package.
+                  rewrite !setmE.
+                  unfold ".1", ".2".
+                  unfold SET.
+
+                  replace (_ == _) with false.
+                  2: symmetry ; apply /eqP ; solve_imfset_disjoint.
+
+                  rewrite eqxx.
+                  reflexivity.
+                }
+                rewrite H2.
+                unfold isSome.
+                reflexivity.
+              + rewrite map_eta.
+                rewrite parallel_raw_cons.
+                rewrite unionmE.
+
+                unfold K_package.
+                rewrite !setmE.
+                unfold ".1", ".2".
+                unfold SET.
+
+                replace (_ == _) with false.
+                2: symmetry ; apply /eqP ; solve_imfset_disjoint.
+
+                destruct (x == a) eqn:s_eq ; move: s_eq => /eqP s_eq ; subst.
+                * rewrite eqxx.
+                  reflexivity.
+                * replace (_ == _) with false ; [ | symmetry ; apply /eqP ].
+                  2: now apply serialize_name_notin_different_name.
+                  rewrite emptymE.
+                  unfold isSome.
+
+                  apply IHl.
+                  apply H2.
+            - intros.
+              unfold parallel_package.
+              unfold pack.
+
+              clear H2.
+              induction O_star ; [ easy | ].
+
+              rewrite map_eta.
+              rewrite parallel_raw_cons.
+              rewrite unionmE.
+
               unfold K_package.
-              rewrite setmE.
+
+              unfold K_package.
+              rewrite !setmE.
               unfold ".1", ".2".
               unfold SET.
 
               replace (_ == _) with false.
               2: symmetry ; apply /eqP ; solve_imfset_disjoint.
 
-              rewrite setmE.
-
               unfold GET.
-
-              rewrite eqxx.
-              reflexivity.
-            }
-            {
-              intros ; hnf.
-              do 2 apply trimmed_package_cons.
-              apply trimmed_empty_package.
-            }
-            {
-              intros.
-              hnf.
-              rewrite fset_cons.
-              rewrite fdisjointC.
-              rewrite fset_cons.
-              unfold idents.
-              destruct H3 ; solve_imfset_disjoint.
-            }
-            {
-              assumption.
-            }
-            {
-              assumption.
-            }
-            {
-              intros.
-              hnf.
-              unfold K_package.
-              rewrite setmE.
-              unfold ".1", ".2".
-              unfold SET.
 
               replace (_ == _) with false.
               2: symmetry ; apply /eqP ; solve_imfset_disjoint.
 
-              rewrite setmE.
-
-              unfold GET.
-
-              replace (_ == _) with false.
-              2: symmetry ; apply /eqP ; destruct H4 ; solve_imfset_disjoint.
-
-              now rewrite emptymE.
-            }
+              rewrite emptymE.
+              unfold isSome.
+              apply IHl.
           }
 
           erewrite (lookup_op_spec_inv (R_ch_map d) (GET x x0 d)).
@@ -1509,166 +1517,195 @@ Proof.
                 unfold R_ch_map_XPD_packages.
 
                 unfold eq_rect_r.
+                (* unfold eq_rect. *)
+                destruct interface_hierarchy_foreach_idemp.
                 unfold eq_rect.
-                destruct Logic.eq_sym.
+                unfold ℓ_parallel.
 
-                epose (ℓ_list d XPR erefl
-                         (fun d a n H_le => R_ch_map_XPD_package d n _ (λ _ : name, M) (λ (_ : name) (_ : nat), M) _ _ _) _ _ x x0 1%nat _ _ _).
-                erewrite e.
+                set (p := fun _ _ => _).
+                set (H_abc := fun _ _ => _).
+                set (H_abcd := fun _ _ => _).
 
-                erewrite (ℓ_package_getm d d (fun d n x1 => {package (parallel_raw (map_with_in XPR (fun y _ => pack (R_ch_map_XPD_package d n _ (λ _ : name, M) (λ (_ : name) (_ : nat), M) _ _ _))))}) _ _ _ x x0 1%nat H1).
+                rewrite (ℓ_package_getm d p).
+                - unfold parallel_package.
+                  unfold pack.
 
-                unfold ℓ_packages.
-                unfold pack.
-                unfold ℓ_raw_packages.
+                  subst p.
+                  hnf.
+                  unfold parallel_package_with_in_rel_hierarchy.
 
-                (* Set Printing Implicit. *)
-                erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (map_with_in XPR (fun y _ => pack (R_ch_map_XPD_package d n _ (λ _ : name, M) (λ (_ : name) (_ : nat), M) _ _ _)))) x x0 1 d _ H1).
-                {
-                  unfold XPR.
-                  unfold "++".
-                  unfold map_with_in.
-                  rewrite !parallel_raw_cons.
-                  rewrite unionmE.
+                  induction O_star.
+                  + easy.
+                  + move: H2 => /orP [ /eqP H2 | H2 ] ; subst.
+                    * clear IHl.
+                      unfold R_ch_map_XPD_package.
+                      unfold pack.
 
-                  assert (forall a b c d e f g x0,
-                             (x0 <= d)%nat ->
-                             getm (pack (R_ch_map_XPD_package d x0 a b c e f g)) (serialize_name x x0 d 1) = None).
-                  {
-                    intros.
-                    unfold R_ch_map_XPD_package.
-                    rewrite setmE.
-                    unfold ".1", ".2".
-                    unfold SET, GET.
-                    unfold XPD.
+                      clear H_abc H_abcd.
 
-                    replace (_ == _) with false ; [ | symmetry ].
-                    2: apply /eqP ; solve_imfset_disjoint.
-                    now rewrite emptymE.
-                  }
+                      set (H_in := fun _ H => H).
+                      generalize dependent H_in.
 
-                  repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H3] ; try rewrite unionmE).
-                  now rewrite emptymE.
-                }
-                Unshelve.
-                2:{ admit. }
-                2:{ apply H1. }
+                      set (XPR) at 2 3 5.
+                      generalize dependent l0.
 
-                {
-                  admit.
-                  (*   intros. *)
-                  (*   unfold XPR. *)
+                      induction XPR ; intros.
+                      -- easy.
+                      -- rewrite !map_with_in_rel_eta.
+                         rewrite !parallel_raw_cons.
+                         rewrite unionmE.
+                         rewrite !setmE.
+                         unfold ".1", ".2".
+                         unfold XPD.
 
-                  (*   Optimize Heap. *)
-                  (*   (* Optimize Proof. *) *)
-                  
-                  (*   unfold "++". *)
-                  (*   unfold map_with_in. *)
-                  (*   rewrite parallel_raw_cons. *)
-                  (*   (* rewrite !parallel_raw_cons. *) *)
-                  (*   Time Optimize Heap. *)
-                  (*   rewrite unionmE. *)
+                         replace (_ == _) with false.
+                         2: symmetry ; apply /eqP ; solve_imfset_disjoint.
 
-                  (*   unfold R_ch_map_XPD_package. *)
-                  (*   rewrite setmE. *)
-                  (*   unfold ".1", ".2". *)
-                  (*   unfold SET, GET. *)
-                  (*   unfold XPD. *)
+                         rewrite emptymE.
+                         unfold isSome at 2.
 
-                  (*   replace (_ == _) with false ; [ | symmetry ]. *)
-                  (*   2: apply /eqP ; solve_imfset_disjoint. *)
-                  (*   now rewrite emptymE. *)
-                  (* } *)
+                         apply IHl0.
+                    * now apply IHl.
+                - intros.
 
-                  (* repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H3] ; try rewrite unionmE). *)
-                  (* now rewrite emptymE. *)
-                  (*   replace (isSome (getm _ _)) with false ; [ | symmetry ]. *)
-                  (*   2: now rewrite H3. *)
-                  (*   2:{ *)
-                  (*     unfold R_ch_map_XPD_package. *)
-                  (*     rewrite setmE. *)
-                  (*     unfold ".1", ".2". *)
-                  (*     unfold SET, GET. *)
-                  (*     unfold XPD. *)
+                  subst p.
+                  hnf.
+                  unfold parallel_package_with_in_rel_hierarchy.
+                  unfold pack.
 
-                  (*     replace (_ == _) with false ; [ | symmetry ]. *)
-                  (*     2: apply /eqP ; solve_imfset_disjoint. *)
+                  induction O_star.
+                  + easy.
+                  + move: H2 => /orP [ /eqP H2 | H2 ] ; subst.
+                    * clear IHl.
+                      unfold R_ch_map_XPD_package.
+                      unfold pack.
 
-                  (*     now rewrite emptymE. *)
-                  (*   } *)
-                }
+                      clear H_abc H_abcd.
+
+                      set (H_in := fun _ H => H).
+                      generalize dependent H_in.
+
+                      set (XPR) at 2 3 5.
+                      generalize dependent l0.
+
+                      induction XPR ; intros.
+                      -- easy.
+                      -- rewrite !map_with_in_rel_eta.
+                         rewrite !parallel_raw_cons.
+                         rewrite unionmE.
+                         rewrite !setmE.
+                         unfold ".1", ".2".
+                         unfold XPD.
+
+                         replace (_ == _) with false.
+                         2: symmetry ; apply /eqP ; solve_imfset_disjoint.
+
+                         rewrite emptymE.
+                         unfold isSome.
+
+                         apply IHl0.
+                    * now apply IHl.
               }
               {
                 unfold R_ch_map_XTR_packages.
 
                 unfold eq_rect_r.
+                (* unfold eq_rect. *)
+                destruct interface_hierarchy_foreach_idemp.
                 unfold eq_rect.
-                destruct Logic.eq_sym.
+                unfold ℓ_parallel.
 
-                unfold ℓ_packages.
-                unfold pack.
-                unfold ℓ_raw_packages.
+                (* epose (ℓ_list d XPR erefl *)
+                (*          (fun ℓ H_le a H => R_ch_map_XPD_package d ℓ _ (fun _ => M) (fun _ _ => M) _ (fun _ => _) (fun _ _ => _)) *)
+                (*          _ _ x x0 1%nat _ _ _). *)
+                (* erewrite e. *)
 
-                (* Set Printing Implicit. *)
-                erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (map_with_in XTR_names (fun y _ => pack (R_ch_map_XTR_package d n _ (λ _ : name, M) _ _)))) x x0 1 d _ H1).
-                {
-                  unfold XTR_names.
-                  unfold "++".
-                  unfold map_with_in.
-                  rewrite !parallel_raw_cons.
-                  rewrite unionmE.
+                (* epose (ℓ_package_getm d (fun d n x1 => {package (parallel_raw (map_with_in XPR (fun y _ => pack (R_ch_map_XPD_package d n _ (λ _ : name, M) (λ (_ : name) (_ : nat), M) _ _ _))))}) _ _ x x0 1%nat H1). *)
+                (* rewrite e. *)
 
-                  assert (forall a b c d e x0,
-                             (x0 <= d)%nat ->
-                             getm (pack (R_ch_map_XTR_package d x0 a b c e)) (serialize_name x x0 d 1) = None).
-                  {
-                    intros.
-                    unfold R_ch_map_XTR_package.
-                    rewrite setmE.
-                    unfold ".1", ".2".
-                    unfold SET, GET.
-                    unfold XTR_names.
+                set (p := fun _ _ => _).
+                set (H_abc := fun _ _ => _).
+                set (H_abcd := fun _ _ => _).
 
-                    replace (_ == _) with false ; [ | symmetry ].
-                    2: apply /eqP ; solve_imfset_disjoint.
-                    now rewrite emptymE.
-                  }
+                rewrite (ℓ_package_getm d p).
+                - unfold parallel_package.
+                  unfold pack.
 
-                  repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H3] ; try rewrite unionmE).
-                  now rewrite emptymE.
-                }
-                Unshelve.
-                2: apply H1.
-                {
-                  intros.
+                  subst p.
+                  hnf.
+                  unfold parallel_package_with_in_rel_hierarchy.
 
-                  unfold XTR_names.
-                  unfold "++".
-                  unfold map_with_in.
-                  rewrite !parallel_raw_cons.
-                  rewrite unionmE.
-                  
-                  assert (forall a b c d e k x0,
-                             (k <= d)%nat ->
-                             (x0 <= d)%nat ->
-                             getm (pack (R_ch_map_XTR_package d k a b c e)) (serialize_name x x0 d 1) = None).
-                  {
-                    intros.
-                    unfold R_ch_map_XTR_package.
-                    rewrite setmE.
-                    unfold ".1", ".2".
-                    unfold SET, GET.
-                    unfold XTR_names.
+                  induction O_star.
+                  + easy.
+                  + move: H2 => /orP [ /eqP H2 | H2 ] ; subst.
+                    * clear IHl.
+                      unfold R_ch_map_XTR_package.
+                      unfold pack.
 
-                    replace (_ == _) with false ; [ | symmetry ].
-                    2: apply /eqP ; solve_imfset_disjoint.
-                    now rewrite emptymE.
-                  }
+                      clear H_abc H_abcd.
 
-                  rewrite unionmE.
-                  repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H5] ; try rewrite unionmE).
-                  now rewrite emptymE.
-                }
+                      set (H_in := fun _ H => H).
+                      generalize dependent H_in.
+
+                      set (XTR_names) at 2 3 5.
+                      generalize dependent l0.
+
+                      induction XTR_names ; intros.
+                      -- easy.
+                      -- rewrite !map_with_in_rel_eta.
+                         rewrite !parallel_raw_cons.
+                         rewrite unionmE.
+                         rewrite !setmE.
+                         unfold ".1", ".2".
+                         unfold XTR_names.
+
+                         replace (_ == _) with false.
+                         2: symmetry ; apply /eqP ; solve_imfset_disjoint.
+
+                         rewrite emptymE.
+                         unfold isSome at 2.
+
+                         apply IHl0.
+                    * now apply IHl.
+                - intros.
+
+                  subst p.
+                  hnf.
+                  unfold parallel_package_with_in_rel_hierarchy.
+                  unfold pack.
+
+                  induction O_star.
+                  + easy.
+                  + move: H2 => /orP [ /eqP H2 | H2 ] ; subst.
+                    * clear IHl.
+                      unfold R_ch_map_XTR_package.
+                      unfold pack.
+
+                      clear H_abc H_abcd.
+
+                      set (H_in := fun _ H => H).
+                      generalize dependent H_in.
+
+                      set (XTR_names) at 2 3 5.
+                      generalize dependent l0.
+
+                      induction XTR_names ; intros.
+                      -- easy.
+                      -- rewrite !map_with_in_rel_eta.
+                         rewrite !parallel_raw_cons.
+                         rewrite unionmE.
+                         rewrite !setmE.
+                         unfold ".1", ".2".
+                         unfold XTR_names.
+
+                         replace (_ == _) with false.
+                         2: symmetry ; apply /eqP ; solve_imfset_disjoint.
+
+                         rewrite emptymE.
+                         unfold isSome.
+
+                         apply IHl0.
+                    * now apply IHl.
               }
             }
 
@@ -1731,7 +1768,7 @@ Proof.
 
                     replace (_ == _) with false.
                     2: symmetry ; apply /eqP ; solve_imfset_disjoint.
-                    
+
                     destruct (x == a) eqn:s_eq ; move: s_eq => /eqP s_eq ; subst.
                     * rewrite eqxx.
                       reflexivity.
@@ -1743,13 +1780,21 @@ Proof.
                       apply IHl.
                       apply H2.
               }
-              
-              erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (List.map (fun y => pack (K_package d y n x1 false)) O_star)) x x0 1 d _ H1).
+
+              unfold eq_rect_r.
+              unfold eq_rect.
+              destruct Logic.eq_sym.
+
+              (* erewrite (map_with_in_num_upper_getm). *)
+              erewrite (map_with_in_num_upper_getm d d (leqnn d) (* (fun d n x1 => parallel_raw (List.map (fun y => pack (K_package d y n x1 false)) O_star)) *) _ x x0 1 d _ H1).
               {
                 now rewrite H3.
               }
               {
                 clear ; intros.
+
+                unfold parallel_package.
+                
                 induction O_star.
                 - easy.
                 - rewrite map_eta.
@@ -1773,34 +1818,6 @@ Proof.
             }
           }
 
-
-            erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (List.map (fun y => pack (K_package d y n x1 false)) O_star)) x x0 1 d _ H1).
-            {
-             now rewrite H3.
-            }
-            {
-              clear ; intros.
-              induction O_star.
-              - easy.
-              - rewrite map_eta.
-                rewrite parallel_raw_cons.
-                rewrite unionmE.
-
-                rewrite !setmE.
-                unfold ".1", ".2".
-                unfold SET, GET.
-
-                destruct (n == k) eqn:n_is_neq_k ; move: n_is_neq_k => /eqP n_is_neq_k ; subst.
-                * Lia.lia.
-                * replace (_ == _) with false ; [ | symmetry ].
-                  2: apply /eqP ; solve_imfset_disjoint.
-
-                  replace (_ == _) with false ; [ | symmetry ].
-                  2: apply /eqP ; solve_imfset_disjoint.
-
-                  now rewrite emptymE.
-            }
-          }
           Unshelve.
           2:{ apply H1. }
 
@@ -1808,323 +1825,27 @@ Proof.
           unfold bind ; fold @bind.
           unfold code_link ; fold @code_link.
 
-          erewrite (lookup_op_spec_inv (R_ch_map d) (GET x x0 d)).
-          2:{
-            rewrite !setmE.
-            unfold ".1", ".2".
-            unfold SET, GET.
-            replace (_ == _) with false ; [ | symmetry ].
-            2: apply /eqP ; solve_imfset_disjoint.
-
-            replace (_ == _) with false ; [ | symmetry ].
-            2: apply /eqP ; solve_imfset_disjoint.
-
-            replace (_ == _) with false ; [ | symmetry ].
-            2: apply /eqP ; solve_imfset_disjoint.
-
-            rewrite unionmE.
-
-            replace (isSome _) with false ; [ | symmetry ].
-            2:{
-              rewrite unionmE.
-              replace (isSome (getm _ _)) with false ; [ | symmetry ].
-              2:{
-                unfold R_ch_map_XPD_packages.
-
-                unfold eq_rect_r.
-                unfold eq_rect.
-                destruct Logic.eq_sym.
-
-                unfold ℓ_packages.
-                unfold pack.
-                unfold ℓ_raw_packages.
-
-                (* Set Printing Implicit. *)
-                erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (map_with_in XPR (fun y _ => pack (R_ch_map_XPD_package d n _ (λ _ : name, M) (λ (_ : name) (_ : nat), M) _ _ _)))) x x0 1 d _ H1).
-                {
-                  unfold XPR.
-                  unfold "++".
-                  unfold map_with_in.
-                  rewrite !parallel_raw_cons.
-                  rewrite unionmE.
-
-                  assert (forall a b c d e f g x0,
-                             (x0 <= d)%nat ->
-                             getm (pack (R_ch_map_XPD_package d x0 a b c e f g)) (serialize_name x x0 d 1) = None).
-                  {
-                    intros.
-                    unfold R_ch_map_XPD_package.
-                    rewrite setmE.
-                    unfold ".1", ".2".
-                    unfold SET, GET.
-                    unfold XPD.
-
-                    replace (_ == _) with false ; [ | symmetry ].
-                    2: apply /eqP ; solve_imfset_disjoint.
-                    now rewrite emptymE.
-                  }
-
-                  repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H3] ; try rewrite unionmE).
-                  now rewrite emptymE.
-                }
-                Unshelve.
-                2:{ admit. }
-                2:{ apply H1. }
-
-                {
-                  admit.
-                (*   intros. *)
-                (*   unfold XPR. *)
-
-                (*   Optimize Heap. *)
-                (*   (* Optimize Proof. *) *)
-                  
-                (*   unfold "++". *)
-                (*   unfold map_with_in. *)
-                (*   rewrite parallel_raw_cons. *)
-                (*   (* rewrite !parallel_raw_cons. *) *)
-                (*   Time Optimize Heap. *)
-                (*   rewrite unionmE. *)
-
-                (*   unfold R_ch_map_XPD_package. *)
-                (*   rewrite setmE. *)
-                (*   unfold ".1", ".2". *)
-                (*   unfold SET, GET. *)
-                (*   unfold XPD. *)
-
-                (*   replace (_ == _) with false ; [ | symmetry ]. *)
-                (*   2: apply /eqP ; solve_imfset_disjoint. *)
-                (*   now rewrite emptymE. *)
-                (* } *)
-
-                (* repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H3] ; try rewrite unionmE). *)
-                (* now rewrite emptymE. *)
-                (*   replace (isSome (getm _ _)) with false ; [ | symmetry ]. *)
-                (*   2: now rewrite H3. *)
-                (*   2:{ *)
-                (*     unfold R_ch_map_XPD_package. *)
-                (*     rewrite setmE. *)
-                (*     unfold ".1", ".2". *)
-                (*     unfold SET, GET. *)
-                (*     unfold XPD. *)
-
-                (*     replace (_ == _) with false ; [ | symmetry ]. *)
-                (*     2: apply /eqP ; solve_imfset_disjoint. *)
-
-                (*     now rewrite emptymE. *)
-                (*   } *)
-                }
-              }
-              {
-                unfold R_ch_map_XTR_packages.
-
-                unfold eq_rect_r.
-                unfold eq_rect.
-                destruct Logic.eq_sym.
-
-                unfold ℓ_packages.
-                unfold pack.
-                unfold ℓ_raw_packages.
-
-                (* Set Printing Implicit. *)
-                erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (map_with_in XTR_names (fun y _ => pack (R_ch_map_XTR_package d n _ (λ _ : name, M) _ _)))) x x0 1 d _ H1).
-                {
-                  unfold XTR_names.
-                  unfold "++".
-                  unfold map_with_in.
-                  rewrite !parallel_raw_cons.
-                  rewrite unionmE.
-
-                  assert (forall a b c d e x0,
-                             (x0 <= d)%nat ->
-                             getm (pack (R_ch_map_XTR_package d x0 a b c e)) (serialize_name x x0 d 1) = None).
-                  {
-                    intros.
-                    unfold R_ch_map_XTR_package.
-                    rewrite setmE.
-                    unfold ".1", ".2".
-                    unfold SET, GET.
-                    unfold XTR_names.
-
-                    replace (_ == _) with false ; [ | symmetry ].
-                    2: apply /eqP ; solve_imfset_disjoint.
-                    now rewrite emptymE.
-                  }
-
-                  repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H3] ; try rewrite unionmE).
-                  now rewrite emptymE.
-                }
-                Unshelve.
-                2: apply H1.
-                {
-                  intros.
-
-                  unfold XTR_names.
-                  unfold "++".
-                  unfold map_with_in.
-                  rewrite !parallel_raw_cons.
-                  rewrite unionmE.
-                  
-                  assert (forall a b c d e k x0,
-                             (k <= d)%nat ->
-                             (x0 <= d)%nat ->
-                             getm (pack (R_ch_map_XTR_package d k a b c e)) (serialize_name x x0 d 1) = None).
-                  {
-                    intros.
-                    unfold R_ch_map_XTR_package.
-                    rewrite setmE.
-                    unfold ".1", ".2".
-                    unfold SET, GET.
-                    unfold XTR_names.
-
-                    replace (_ == _) with false ; [ | symmetry ].
-                    2: apply /eqP ; solve_imfset_disjoint.
-                    now rewrite emptymE.
-                  }
-
-                  rewrite unionmE.
-                  repeat (replace (isSome (getm _ _)) with false ; [ | symmetry ] ; [ | now rewrite H5] ; try rewrite unionmE).
-                  now rewrite emptymE.
-                }
-            }
-          }
-
-          rewrite mapmE.
-          {
-            unfold Ks.
-            unfold eq_rect_r.
-            unfold eq_rect.
-            destruct Logic.eq_sym.
-            destruct function2_fset_cat.
-
-            unfold combined.
-
-            unfold ℓ_packages.
-            unfold pack.
-            unfold ℓ_raw_packages.
-
-            eassert (forall H_le,
-                        parallel_raw
-                          (List.map (λ y : name, pack (K_package d y x0 H_le false)) O_star)
-                          (serialize_name x x0 d 1)
-                        = some (_)).
-            {
-              clear -H2 ; intros.
-              induction O_star.
-              - easy.
-              - move: H2 => /orP [ /eqP H2 | H2 ] ; subst.
-                + rewrite map_eta.
-                  rewrite parallel_raw_cons.
-                  rewrite unionmE.
-
-                  unfold K_package.
-
-                  set ([fmap _ ; _ ]).
-                  set (Option_Some _).
-                  assert (getm f (serialize_name a x0 d 1) = o) ; subst f o.
-                  {
-                    unfold K_package.
-                    rewrite !setmE.
-                    unfold ".1", ".2".
-                    unfold SET.
-
-                    replace (_ == _) with false.
-                    2: symmetry ; apply /eqP ; solve_imfset_disjoint.
-
-                    rewrite eqxx.
-                    reflexivity.
-                  }
-                  rewrite H2.
-                  unfold isSome.
-                  reflexivity.
-                + rewrite map_eta.
-                  rewrite parallel_raw_cons.
-                  rewrite unionmE.
-
-                  unfold K_package.
-                  rewrite !setmE.
-                  unfold ".1", ".2".
-                  unfold SET.
-
-                  replace (_ == _) with false.
-                  2: symmetry ; apply /eqP ; solve_imfset_disjoint.
-                  
-                  destruct (x == a) eqn:s_eq ; move: s_eq => /eqP s_eq ; subst.
-                  * rewrite eqxx.
-                    reflexivity.
-                  * replace (_ == _) with false ; [ | symmetry ; apply /eqP ].
-                    2: now apply serialize_name_notin_different_name.
-                    rewrite emptymE.
-                    unfold isSome.
-
-                    apply IHl.
-                    apply H2.
-            }
-            
-            erewrite (map_with_in_num_upper_getm d d (leqnn d) (fun d n x1 => parallel_raw (List.map (fun y => pack (K_package d y n x1 false)) O_star)) x x0 1 d _ H1).
-            {
-             now rewrite H3.
-            }
-            {
-              clear ; intros.
-              induction O_star.
-              - easy.
-              - rewrite map_eta.
-                rewrite parallel_raw_cons.
-                rewrite unionmE.
-
-                rewrite !setmE.
-                unfold ".1", ".2".
-                unfold SET, GET.
-
-                destruct (n == k) eqn:n_is_neq_k ; move: n_is_neq_k => /eqP n_is_neq_k ; subst.
-                * Lia.lia.
-                * replace (_ == _) with false ; [ | symmetry ].
-                  2: apply /eqP ; solve_imfset_disjoint.
-
-                  replace (_ == _) with false ; [ | symmetry ].
-                  2: apply /eqP ; solve_imfset_disjoint.
-
-                  now rewrite emptymE.
-            }
-          }
-          }
-          Unshelve.
-          2: apply H1.
-
-          
-          (* epose getmP. *)
-
-          unfold get_or_fn.
-          unfold bind ; fold @bind.
-          unfold code_link ; fold @code_link.
-          
-          ssprove_sync.
-          1: admit.
+          ssprove_sync_eq.
           intros.
 
-          destruct a.
-          + simpl.
-            apply r_ret.
-            intros.
-            split.
-            * reflexivity.
-            * apply H3.
-          + simpl.
-            ssprove_sync.
-            intros.
-            apply r_ret.
-            split.
-            * reflexivity.
-            * apply H3.
+          destruct a ; [ now apply r_ret | ].
+          simpl.
+          ssprove_sync_eq.
+          intros.
+          now apply r_ret.
       }
   }
-Admitted.
+Defined.
 
 Axiom AdvantageFrame : forall G0 G1 G2 G3 A,
     (AdvantageE G0 G1 A = 0)%R ->
     (AdvantageE G2 G3 A = 0)%R ->
     AdvantageE G0 G2 A = AdvantageE G1 G3 A.
+
+Axiom Gks : forall Names,
+    loc_GamePair (interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (Names) d
+     :|: interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (Names) d
+  ).
 
 Lemma map_outro_c5 :
   forall (d : nat),
@@ -2152,9 +1873,41 @@ Proof.
 
   unfold Gcore_ideal.
 
-  (* rewrite <- link_assoc. *)
+  unfold Gcore_real.
+
+  unfold R_ch_map.
+  set ({package _}).
+
+  epose Advantage_par.
+
+  rewrite <- !link_assoc.
+  rewrite <- Advantage_link.
+  replace (Ks d O_star false erefl) with (Ks d O_star true erefl) by admit.
+  rewrite <- Advantage_link.
+
+  unfold XPD_DH_XTR.
+  unfold pack.
+
+  (* erewrite <- interchange. *)
+  (* 1:{ *)
+  (*   erewrite <- interchange. *)
+
+
+  (* rewrite par_link. *)
+
+  (* Advantage_par *)
+  (* interchange *)
+
+  (* rewrite <- !link_assoc. *)
+  (* (* epose Advantage_link. *) *)
   (* epose Advantage_link. *)
   (* rewrite <- Advantage_link. *)
+
+  (* epose Advantage_triangle. *)
+
+  (* replace (Ks d O_star false erefl) with (Ks d O_star true erefl) by admit. *)
+  (* rewrite <- Advantage_link. *)
+
   (* rewrite <- Advantage_link. *)
   (* rewrite <- Advantage_link. *)
 
