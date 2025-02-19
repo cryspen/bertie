@@ -96,7 +96,19 @@ Notation " 'chHASHinp' " :=
 Notation " 'chHASHout' " :=
   (bitvec)
     (in custom pack_type at level 2).
-Definition HASH := 1%nat.
+(* Definition HASH := 1%nat. *)
+
+Inductive HashFunction :=
+| f_hash
+| f_xtr
+| f_xpd.
+
+Definition HASH (f : HashFunction) : nat :=
+  22%nat + match f with
+         | f_hash => 0
+         | f_xtr => 1
+         | f_xpd => 2
+         end.
 
 Notation " 'chUNQinp' " :=
   (chHandle × 'bool × chKey)

@@ -86,11 +86,17 @@ Section KeyPackages.
   Definition UNQ_O_star d : Interface :=
     interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) (O_star).
 
-  Definition SET_O_star_ℓ d : Interface :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (O_star) d.
+  Definition SET_O_star d k : Interface :=
+    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ k ] : chSETinp → chSETout]) (O_star) d.
 
-  Definition GET_O_star_ℓ d : Interface :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (O_star) d.
+  Definition SET_O_star_ℓ d ℓ : Interface :=
+    interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (O_star).
+
+  Definition GET_O_star d k : Interface :=
+    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) (O_star) d.
+
+  Definition GET_O_star_ℓ d ℓ : Interface :=
+    interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (O_star).
 
   (* Fig 13-14. K key and log *)
 
@@ -145,7 +151,7 @@ Section KeyPackages.
       ]
       [interface
          #val #[ SET n ℓ d ] : chSETinp → chSETout ;
-       #val #[ GET n ℓ d ] : chGETinp → chGETout
+         #val #[ GET n ℓ d ] : chGETinp → chGETout
       ].
   Proof.
     refine [package
@@ -194,131 +200,134 @@ Section KeyPackages.
   Defined.
   Fail Next Obligation.
 
-Definition Ls d (Names : list name) (P : ZAF) :
-  uniq Names ->
-  package
-    (L_L)
-    [interface]
-    (interface_foreach (fun n =>[interface
-       #val #[ UNQ n d ] : chUNQinp → chUNQout
-    ]) Names).
-Proof.
-  intros.
-  destruct Names.
-  - exact ({package emptym #with valid_empty_package L_L [interface]}).
-  - rewrite (interface_foreach_trivial [interface] (n :: Names)) ; [ | easy ].
-    refine (parallel_package d (n :: Names) (fun a => L_package _ _ P) _ _ H).
-    + intros.
+  Definition Ls d (Names : list name) (P : ZAF) :
+    uniq Names ->
+    package
+      (L_L)
+      [interface]
+      (interface_foreach (fun n => [interface
+         #val #[ UNQ n d ] : chUNQinp → chUNQout
+       ]) Names).
+  Proof.
+    intros.
+    destruct Names.
+    - exact ({package emptym #with valid_empty_package L_L [interface]}).
+    - rewrite (interface_foreach_trivial [interface] (n :: Names)) ; [ | easy ].
+      refine (parallel_package d (n :: Names) (fun a => L_package _ _ P) _ _ H).
+      + intros.
+        unfold idents.
+        solve_imfset_disjoint.
+      + intros.
+        apply trimmed_package_cons.
+        apply trimmed_empty_package.
+  Defined.
+
+  Lemma trimmed_Ls d (Names : _) :
+    forall (H : uniq Names),
+      trimmed (interface_foreach (fun n =>[interface
+                                          #val #[ UNQ n d ] : chUNQinp → chUNQout
+                 ]) Names) (Ls d Names F H).
+  Proof.
+    intros.
+    unfold Ls.
+    destruct Names ; [ intros ; apply trimmed_empty_package | ].
+    rewrite trimmed_eq_rect_r.
+    unfold pack.
+    set (s :: Names) in *. replace (s :: _) with l by reflexivity.
+
+    apply trimmed_parallel_raw.
+    - intros.
       unfold idents.
       solve_imfset_disjoint.
-    + intros.
+    - apply H.
+    - apply trimmed_pairs_map.
+      intros.
       apply trimmed_package_cons.
       apply trimmed_empty_package.
-Defined.
+  Qed.
 
-Lemma trimmed_Ls d (Names : _) :
-  forall (H : uniq Names),
-  trimmed (interface_foreach (fun n =>[interface
-       #val #[ UNQ n d ] : chUNQinp → chUNQout
-                                         ]) Names) (Ls d Names F H).
-Proof.
-  intros.
-  unfold Ls.
-  destruct Names ; [ intros ; apply trimmed_empty_package | ].
-  rewrite trimmed_eq_rect_r.
-  unfold pack.
-  set (s :: Names) in *. replace (s :: _) with l by reflexivity.
+  Lemma function_fset_cons :
+    forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
+  Proof. now setoid_rewrite <- (fset_cat). Qed.
 
-  apply trimmed_parallel_raw.
-  - intros.
-    unfold idents.
-    solve_imfset_disjoint.
-  - apply H.
-  - apply trimmed_pairs_map.
+  Lemma function2_fset_cat :
+    forall {A B : eqType} {T} x xs, (fun (a : A) (b : B) => fset (x a b :: xs a b)) = (fun (a : A) (b : B) => fset (T := T) ([x a b]) :|: fset (xs a b)).
+  Proof. now setoid_rewrite <- (fset_cat). Qed.
+
+  Definition Ks (d k : nat) (H_lt : (d <= k)%nat) (Names : list name) (b : bool) :
+    uniq Names ->
+    package
+      (L_K)
+      (interface_foreach (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout]) Names)
+      (interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ k ] : chSETinp → chSETout]) (Names) d
+         :|: interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) (Names) d
+      ).
+  Proof.
     intros.
-    apply trimmed_package_cons.
-    apply trimmed_empty_package.
-Qed.
+    rewrite interface_hierarchy_foreachU.
 
-Lemma function_fset_cat :
-  forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
-Proof. now setoid_rewrite <- (fset_cat). Qed.
+    rewrite <- function2_fset_cat.
+    refine (combined _ d L_K
+              (λ n : name, [interface #val #[UNQ n k] : chUNQinp → chUNQout ])
+              (λ (n : name) (ℓ : nat),
+                [interface #val #[SET n ℓ k] : chUNQinp → chDHEXPout
+                 ; #val #[GET n ℓ k] : chDHEXPout → chGETout])
+              Names (fun n H0 y => K_package k y n (leq_trans H0 H_lt) b) _ _ _ H).
+    - intros.
+      rewrite fset_cons.
+      rewrite fdisjointC.
+      rewrite fset_cons.
+      unfold idents.
+      solve_imfset_disjoint.
+    - intros.
+      rewrite fset_cons.
+      rewrite fdisjointC.
+      rewrite fset_cons.
+      unfold idents.
+      solve_imfset_disjoint.
+    - intros.
+      apply trimmed_package_cons.
+      apply trimmed_package_cons.
+      apply trimmed_empty_package.
+  Defined.
+  Fail Next Obligation.
 
-Lemma function2_fset_cat :
-  forall {A B : eqType} {T} x xs, (fun (a : A) (b : B) => fset (x a b :: xs a b)) = (fun (a : A) (b : B) => fset (T := T) ([x a b]) :|: fset (xs a b)).
-Proof. now setoid_rewrite <- (fset_cat). Qed.
+  Lemma trimmed_Ks d k H_lt (Names : _) b :
+    forall (H : uniq Names),
+      trimmed (interface_hierarchy_foreach
+                 (λ (n : name) (ℓ : nat),
+                   [interface
+                      #val #[SET n ℓ k] : chSETinp → chSETout ;
+                    #val #[GET n ℓ k] : chGETinp → chGETout ]) Names d) (Ks d k H_lt Names b H).
+  Proof.
+    intros.
+    unfold Ks.
+    unfold combined.
 
-Definition Ks (d : nat) (Names : list name) (b : bool) :
-  uniq Names ->
-  package
-  (L_K)
-  (interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) Names)
-  (interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (Names) d
-     :|: interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (Names) d
-  ).
-Proof.
-  intros.
-  rewrite interface_hierarchy_foreachU.
-
-  rewrite <- function2_fset_cat.
-  refine (combined _ d L_K
-            (λ n : name, [interface #val #[UNQ n d] : chUNQinp → chUNQout ])
-            (λ (n : name) (ℓ : nat),
-             [interface #val #[SET n ℓ d] : chUNQinp → chDHEXPout
-              ; #val #[GET n ℓ d] : chDHEXPout → chGETout])
-            Names (fun n H0 y => K_package d y n H0 b) _ _ _ H).
-  - intros.
-    rewrite fset_cons.
-    rewrite fdisjointC.
-    rewrite fset_cons.
-    unfold idents.
-    solve_imfset_disjoint.
-  - intros.
-    rewrite fset_cons.
-    rewrite fdisjointC.
-    rewrite fset_cons.
-    unfold idents.
-    solve_imfset_disjoint.
-  - intros.
-    apply trimmed_package_cons.
-    apply trimmed_package_cons.
-    apply trimmed_empty_package.
-Defined.
-Fail Next Obligation.
-
-Lemma trimmed_Ks d (Names : _) b :
-  forall (H : uniq Names),
-  trimmed (interface_hierarchy_foreach
-             (λ (n : name) (ℓ : nat),
-            [interface
-               #val #[SET n ℓ d] : chSETinp → chSETout ;
-               #val #[GET n ℓ d] : chGETinp → chGETout ]) Names d) (Ks d Names b H).
-Proof.
-  intros.
-  unfold Ks.
-  unfold combined.
-
-  rewrite trimmed_eq_rect.
-  destruct (function2_fset_cat _ _).
-  rewrite trimmed_eq_rect_r.
-  apply (trimmed_ℓ_packages d).
-Qed.
+    rewrite trimmed_eq_rect.
+    destruct (function2_fset_cat _ _).
+    unfold eq_rect.
+    unfold eq_rect_r.
+    unfold eq_rect.
+    destruct Logic.eq_sym.
+    apply (trimmed_ℓ_packages).
+  Qed.
 
 (* Fig 15 *)
 
-Definition Nk_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) :
+Definition Nk_package (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) :
   package
     L_K
     [interface
-       #val #[ UNQ n d ] : chUNQinp → chUNQout
+       #val #[ UNQ DH d ] : chUNQinp → chUNQout
     ]
     [interface
-       #val #[ SET n ℓ d ] : chSETinp → chSETout ;
-       #val #[ GET n ℓ d ] : chGETinp → chGETout
+       #val #[ SET DH ℓ d ] : chSETinp → chSETout ;
+       #val #[ GET DH ℓ d ] : chGETinp → chGETout
     ].
   refine [package
-      #def #[ SET n ℓ d ] ('(h,hon,k) : chSETinp) : chSETout {
-        #import {sig #[ UNQ n d ] : chUNQinp → chUNQout }
+      #def #[ SET DH ℓ d ] ('(h,hon,k) : chSETinp) : chSETout {
+        #import {sig #[ UNQ DH d ] : chUNQinp → chUNQout }
         as unq_fn ;;
         get_or_case_fn (K_table h) fin_K_table chHandle (
             unq_fn (h, hon, k) ;;
@@ -326,7 +335,7 @@ Definition Nk_package (n : name) (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) :
             ret h
           ) (fun _ => ret h)
       } ;
-      #def #[ GET n ℓ d ] (h : chGETinp) : chGETout {
+      #def #[ GET DH ℓ d ] (h : chGETinp) : chGETout {
         p ← get_or_fail (K_table h) fin_K_table ;;
         let (k, hon) :=
           (fto (fst (otf p)) , snd (otf p) : 'bool) : (chProd chKey 'bool)
@@ -353,7 +362,7 @@ Notation " 'chKinp' " :=
 Notation " 'chKout' " :=
   (chHandle)
     (in custom pack_type at level 2).
-Definition K (n : chName) (ℓ : nat) := 10%nat.
+(* Definition K (n : chName) (ℓ : nat) := 10%nat. *)
 
 (**** *)
 

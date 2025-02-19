@@ -141,7 +141,7 @@ Definition KS_interface d :=
   ([interface #val #[SET PSK 0 d] : chSETinp → chSETout ]
      :|: DH_interface
      :|: (XPD_n d :|: XTR_n d)
-     :|: GET_O_star_ℓ d
+     :|: GET_O_star d
   ).
 
 Notation " 'chXTRinp' " :=
@@ -156,7 +156,7 @@ Notation " 'chXTRout' " :=
 Definition R_ch_map_XTR_package d (ℓ : nat) (n : name) (M : name -> chHandle -> nat) :
   (n \in XTR_names) ->
   (forall s1 s, ('option ('fin #|fin_handle|); M s1 s) \in L_M) ->
-  package L_M (XTR_n_ℓ d ℓ (* ℓ.+1 *))
+  package L_M (interface_hierarchy (XTR_n_ℓ d) ℓ (* ℓ.+1 *))
     [interface
        #val #[ XTR n ℓ d (* ℓ.+1 *)] : chXTRinp → chXTRout
     ].
@@ -719,8 +719,8 @@ Proof.
       rewrite fset1E.
       rewrite <- fset0E ; rewrite fsetU0.
 
-      fold (GET_O_star_ℓ d).
-      fold (SET_O_star_ℓ d).
+      fold (GET_O_star d).
+      fold (SET_O_star d).
       solve_in_fset.
     }
   }
@@ -784,7 +784,7 @@ Program Definition Gks_real_map (d : nat) :
     (L_M :|: (L_K :|: L_L))
     [interface]
     (* ([interface #val #[ SET PSK 0 d ] : chSETinp → chSETout]) *)
-    (GET_O_star_ℓ d) :=
+    (GET_O_star d) :=
   {package
      (* (Ks d O_star false erefl ∘ Ls d O_star F erefl) ∘ *)
      R_ch_map d
@@ -938,7 +938,7 @@ Program Definition Gks_ideal_map (d : nat) (Score : Simulator d) :
   package
     fset0
     (KS_interface d)
-    (GET_O_star_ℓ d) := {package (R_ch_map d) ∘ Score }.
+    (GET_O_star d) := {package (R_ch_map d) ∘ Score }.
 Next Obligation.
   admit.
 Admitted.
@@ -1276,7 +1276,7 @@ Lemma map_intro_c2 :
   (* forall (d : nat), *)
   forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
-    ValidPackage LA (GET_O_star_ℓ d) A_export A →
+    ValidPackage LA (GET_O_star d) A_export A →
     LA :#: L_M :|: (L_K :|: L_L) ->
     (AdvantageE
        (Gks_real d)
@@ -1306,8 +1306,8 @@ Proof.
       clear -hin.
 
       simpl in hin.
-      unfold SET_O_star_ℓ in hin.
-      unfold GET_O_star_ℓ in hin.
+      unfold SET_O_star in hin.
+      unfold GET_O_star in hin.
 
       unfold interface_hierarchy_foreach in hin.
 

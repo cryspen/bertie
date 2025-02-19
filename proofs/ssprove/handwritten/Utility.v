@@ -124,8 +124,6 @@ Definition get_or_sample (n : nat) (T : finType) `{Positive #|T|} : raw_code ('f
 
 Definition untag : chKey -> chKey := id.
 
-Axiom xpn_eq : name -> name -> bool.
-
 Definition nfto (x : chName) : name :=
   match (nat_of_ord (otf x)) as k return (k < 20)%nat -> _ with
   | 0 => fun _ => BOT
@@ -177,6 +175,14 @@ Definition name_to_chName (n : name) : chName := fto (inord (
   | DH => 18
   | ZERO_IKM => 19
   end)).
+
+Lemma nfto_name_to_chName_cancel : forall a, nfto (name_to_chName a) = a.
+Proof.
+  intros.
+  unfold nfto, name_to_chName ; rewrite otf_fto.
+  unfold inord, insubd, odflt, oapp, insub.
+  destruct idP, a ; (reflexivity || Lia.lia).
+Qed.
 
 Axiom len : chKey -> chNat (* TODO: should be key *).
 Definition alg : chKey -> chHash := (fun x => fto (fst (otf x))). (* TODO: should be key *)
@@ -572,7 +578,7 @@ Lemma serialize_name_notin_different_index :
       serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
 Proof.
   intros.
-  
+
   unfold serialize_name.
   set 100%N.
   generalize dependent n.
@@ -1099,7 +1105,7 @@ Proof.
     rewrite fdisjointUr.
     rewrite IHL.
     2:{
-      apply (ssrbool.elimT andP) in H0 as []. 
+      apply (ssrbool.elimT andP) in H0 as [].
       apply (ssrbool.elimT andP) in H1 as [].
       apply (ssrbool.introT andP).
       fold (uniq L) in *.
@@ -1277,7 +1283,7 @@ Proof.
         {
           destruct H1.
           rewrite <- H1.
-          destruct E, P ; [ | destruct H4 ; try destruct E ; contradiction.. |  ] ; [ | destruct H4] ; rewrite <- H4 ; solve_Parable ; apply H ; apply (ssrbool.elimT andP) in H0 as [? _] ; rewrite notin_cons in H0 ; apply (ssrbool.elimT andP) in H0 as [] ; now apply /eqP. 
+          destruct E, P ; [ | destruct H4 ; try destruct E ; contradiction.. |  ] ; [ | destruct H4] ; rewrite <- H4 ; solve_Parable ; apply H ; apply (ssrbool.elimT andP) in H0 as [? _] ; rewrite notin_cons in H0 ; apply (ssrbool.elimT andP) in H0 as [] ; now apply /eqP.
         }
         {
           apply IHP.
@@ -1502,7 +1508,7 @@ Qed.
     (*   rewrite IHLg ; clear IHLg. *)
     (*   rewrite Bool.andb_true_r. *)
     (*   apply H. *)
-    
+
     intros.
     apply idents_disjoint_foreach ; intros.
     rewrite fdisjointC.
@@ -1510,7 +1516,7 @@ Qed.
     rewrite fdisjointC.
     apply H.
   Qed.
-  
+
   Theorem valid_parable_map_with_in_rel :
     forall {N : eqType} (P : list raw_package) L I E2 E1 H_in f g,
       (∀ (x y : N) Hx Hy, x ≠ y → idents (f x Hx) :#: idents (f y Hy)) -> uniq E1 ->
@@ -1637,7 +1643,7 @@ Qed.
       }
     }
   Qed.
-  
+
   Definition parallel_package_with_in_rel
     {A : eqType} (d : nat) {L} Names {f : A -> _} {g : forall (a : A), (a \in Names) -> _} (i : forall (a : A) (H : a \in Names), package L (f a) (g a H))
     (H : ∀ (x y : A) Hx Hy, x ≠ y → idents (g x Hx) :#: idents (g y Hy))
@@ -1879,7 +1885,7 @@ Proof.
         solve_Parable.
         clear -K_le Hdisj.
 
-        apply (idents_interface_hierachy). 
+        apply (idents_interface_hierachy).
         - Lia.lia.
         - intros.
           now apply Hdisj.

@@ -92,14 +92,14 @@ Section KeySchedulePackages.
        :|: DH_interface (* DHEXP, DHGEN *)
        :|: XTR_n d (* {ES,HS,AS},  0..d *)
        :|: XPD_n d (* XPN,         0..d *)
-       :|: GET_O_star_ℓ d).
+       :|: GET_O_star d).
 
   Definition key_schedule_export d :=
-    GET_O_star_ℓ d :|: SET_O_star_ℓ d.
+    GET_O_star d :|: SET_O_star d.
 
   (* Context {ord : chGroup → nat} {E : nat -> nat}. *)
 
-  Lemma required_O_subset d : SET_DH d :<=: SET_O_star_ℓ d :|: GET_O_star_ℓ d.
+  Lemma required_O_subset d : SET_DH d :<=: SET_O_star d :|: GET_O_star d.
   Proof.
     (* DH must be in O_star *)
     unfold SET_DH.
@@ -133,7 +133,7 @@ Section KeySchedulePackages.
     package
       (L_K :|: L_L)
       [interface]
-      (GET_O_star_ℓ d) :=
+      (GET_O_star d) :=
     {package
        Gcore_real d (* ∘ XPD_DH_XTR *)
        #with
@@ -148,7 +148,7 @@ Section KeySchedulePackages.
     package
       L_K
       (key_schedule_interface d)
-      (GET_O_star_ℓ d)
+      (GET_O_star d)
     :=
     {package
        (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
@@ -161,7 +161,7 @@ Section KeySchedulePackages.
     1:{
       eapply valid_package_inject_export.
       2: apply (pack_valid (Ks d O_star true erefl)).
-      unfold GET_O_star_ℓ.
+      unfold GET_O_star.
       solve_in_fset.
     }
     1:{

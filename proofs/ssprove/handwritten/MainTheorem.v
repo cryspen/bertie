@@ -131,19 +131,20 @@ Axiom level : chHandle -> nat.
 (* Fig 12. the real XPD and XTR games *)
 
 Lemma main_reduction :
-  forall (Score : Simulator),
+  forall d,
+  forall (Score : Simulator d),
   forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA KS_interface A_export A →
+      ValidPackage LA (KS_interface d) A_export A →
     (AdvantageE
-       (Gks_real)
-       (Gks_ideal Score) A =
+       (Gks_real d)
+       (Gks_ideal d Score) A =
      AdvantageE
-       (Gcore_real)
-       (Gcore_ideal Score) (A ∘ R_ch_map)
+       (Gcore_real d)
+       (Gcore_ideal d Score) (A ∘ R_ch_map d)
     )%R.
 Proof.
   intros.
-  rewrite (map_outro_c5 Score LA).
+  rewrite (map_outro_c5 d Score LA).
   unfold Gks_real_map , Gks_ideal_map , pack.
   unfold Gcore_real.
 
@@ -236,7 +237,7 @@ Axiom Gxtr_hs : nat -> loc_GamePair
 Definition Gxpd : forall (n : name) (ℓ : nat),
     (ℓ <= d)%N ->
       loc_GamePair
-      ([interface #val #[XPD n ℓ] : ((chSETout) × ('bool)) × (chHASHout) → chSETout ]).
+      ([interface #val #[XPD n ℓ d] : ((chSETout) × ('bool)) × (chHASHout) → chSETout ]).
 Proof.
   intros.
   refine (fun b => {| locs := L_K :|: L_L ;
