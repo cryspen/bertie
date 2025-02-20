@@ -85,21 +85,21 @@ Section KeySchedulePackages.
   Context {Dependencies : Dependencies}.
   Existing Instance Dependencies.
 
-  Definition key_schedule_interface d :=
+  Definition key_schedule_interface d k :=
     ([interface
-        #val #[ SET PSK 0 d ] : chSETinp → chSETout
+        #val #[ SET PSK 0 k ] : chSETinp → chSETout
       ]
        :|: DH_interface (* DHEXP, DHGEN *)
-       :|: XTR_n d (* {ES,HS,AS},  0..d *)
-       :|: XPD_n d (* XPN,         0..d *)
-       :|: GET_O_star d).
+       :|: XTR_n d k (* {ES,HS,AS},  0..d *)
+       :|: XPD_n d k (* XPN,         0..d *)
+       :|: GET_O_star d k).
 
-  Definition key_schedule_export d :=
-    GET_O_star d :|: SET_O_star d.
+  Definition key_schedule_export d k :=
+    GET_O_star d k :|: SET_O_star d k.
 
   (* Context {ord : chGroup → nat} {E : nat -> nat}. *)
 
-  Lemma required_O_subset d : SET_DH d :<=: SET_O_star d :|: GET_O_star d.
+  Lemma required_O_subset d k : SET_DH d k :<=: SET_O_star d k :|: GET_O_star d k.
   Proof.
     (* DH must be in O_star *)
     unfold SET_DH.
@@ -107,8 +107,8 @@ Section KeySchedulePackages.
     rewrite interface_hierarchy_foreachU.
     unfold interface_hierarchy_foreach.
 
-    set d at 1 3 4.
-    generalize dependent n.
+    (* set d at 1 3 4. *)
+    (* generalize dependent n. *)
     induction d ; intros.
     - simpl.
       unfold interface_hierarchy_foreach.
@@ -129,13 +129,13 @@ Section KeySchedulePackages.
   Qed.
 
   (* Fig.11, p.17 *)
-  Program Definition Gks_real (d : nat) :
+  Program Definition Gks_real (d k : nat) H_lt :
     package
       (L_K :|: L_L)
       [interface]
-      (GET_O_star d) :=
+      (GET_O_star d k) :=
     {package
-       Gcore_real d (* ∘ XPD_DH_XTR *)
+       Gcore_real d k H_lt (* ∘ XPD_DH_XTR *)
        #with
      _
     }.
@@ -144,15 +144,15 @@ Section KeySchedulePackages.
   (* Look into the use nominal sets (PR - Markus?)! *)
 
   Obligation Tactic := idtac.
-  Program Definition Gks_ideal d (S : Simulator d) :
+  Program Definition Gks_ideal d k H_lt (S : Simulator d k) :
     package
       L_K
-      (key_schedule_interface d)
-      (GET_O_star d)
+      (key_schedule_interface d k)
+      (GET_O_star d k)
     :=
     {package
        (* (par (par (XPD_packages d) (XTR_packages d)) (DH_package ord E)) ∘ *)
-       (Ks d O_star true erefl) ∘ S
+       (Ks d k H_lt O_star true erefl) ∘ S
     }.
   Final Obligation.
     intros.
@@ -160,7 +160,7 @@ Section KeySchedulePackages.
     eapply valid_link_upto.
     1:{
       eapply valid_package_inject_export.
-      2: apply (pack_valid (Ks d O_star true erefl)).
+      2: apply (pack_valid (Ks d k H_lt O_star true erefl)).
       unfold GET_O_star.
       solve_in_fset.
     }

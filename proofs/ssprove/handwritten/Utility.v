@@ -631,6 +631,91 @@ Proof.
   Lia.lia.
 Qed.
 
+Definition name_eq (x y : name) : bool :=
+  match x, y with
+  | BOT, BOT => true
+
+  | ES, ES => true
+  | EEM, EEM => true
+  | CET, CET => true
+  | BIND, BIND => true
+  | BINDER, BINDER => true
+  | HS, HS => true
+  | SHT, SHT => true
+  | CHT, CHT => true
+  | HSALT, HSALT => true
+  | AS, AS => true
+  | RM, RM => true
+  | CAT, CAT => true
+  | SAT, SAT => true
+  | EAM, EAM => true
+  | PSK, PSK => true
+
+  | ZERO_SALT, ZERO_SALT => true
+  | ESALT, ESALT => true
+  | DH, DH => true
+  | ZERO_IKM, ZERO_IKM => true
+  | _, _ => false
+  end.
+
+Definition name_equality :
+  Equality.axiom (T:=name) name_eq.
+Proof.
+  intros ? ?.
+  destruct x, y.
+  all: try now apply Bool.ReflectF.
+  all: now apply Bool.ReflectT.
+Qed.
+
+HB.instance Definition _ : Equality.axioms_ name :=
+  {|
+    Equality.eqtype_hasDecEq_mixin :=
+      {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+  |}.
+
+Lemma serialize_name_notin_all :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+  forall (n1 n2 : name),
+  forall (index1 index2 : nat),
+    (index1 = index2) /\ ((ℓ1 <> ℓ2)%N \/ (n1 <> n2)%N) \/ ((index1 <> index2)%nat /\ (ℓ1 <= d)%N /\ (ℓ2 <= d)%N) ->
+     serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
+Proof.
+  intros.
+  destruct H as [[? [ | ]] | ] ; subst.
+  + now apply serialize_name_notin.
+  + now apply serialize_name_notin_different_name.
+  + now apply serialize_name_notin_different_index.
+Qed.
+
+Lemma serialize_name_notin_all_iff :
+  forall d,
+  forall (ℓ1 ℓ2 : nat),
+  forall (n1 n2 : name),
+  forall (index1 index2 : nat),
+    (index1 = index2) /\ ((ℓ1 <> ℓ2)%N \/ (n1 <> n2)%N) \/ ((index1 <> index2)%nat /\ (ℓ1 <= d)%N /\ (ℓ2 <= d)%N) <->
+     serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
+Proof.
+  intros.
+  split ; intros.
+  - destruct H as [[? [ | ]] | ] ; subst.
+    + now apply serialize_name_notin.
+    + now apply serialize_name_notin_different_name.
+    + now apply serialize_name_notin_different_index.
+  - destruct (index1 == index2) eqn:index_eq ; move: index_eq => /eqP index_eq ; subst.
+    + left ; split ; [ reflexivity | ].
+      destruct (ℓ1 == ℓ2) eqn:l_eq ; move: l_eq => /eqP l_eq ; subst.
+      * right.
+        destruct (n1 == n2) eqn:n_eq ; move: n_eq => /eqP n_eq ; subst.
+        -- contradiction.
+        -- assumption.
+      * left.
+        assumption.
+    + right ; split ; [ assumption | ].
+
+      admit.
+Admitted.
+
 Ltac solve_imfset_disjoint :=
   (* try rewrite !imfsetU *)
   (* ; try rewrite !fdisjointUr *)
@@ -649,10 +734,11 @@ try rewrite !imfsetU
 ; try rewrite !fdisjoints1
 ; repeat (apply /andP ; split)
 ; try (rewrite (ssrbool.introF (fset1P _ _)) ; [ reflexivity | ])
-; try (now apply serialize_name_notin)
-; try (now apply serialize_name_notin_different_name)
-; try (now apply serialize_name_notin_different_index)
-; try (now apply serialize_name_notin_smaller_than_start)
+; try (now apply serialize_name_notin_all ; (now left ; split ; [ reflexivity | ((now right) || (now left)) ]) || (now right ; split ; [ discriminate | split ; [ Lia.lia | Lia.lia ] ]))
+(* ; try (now apply serialize_name_notin ; Lia.lia) *)
+(* ; try (now apply serialize_name_notin_different_name ; Lia.lia) *)
+(* ; try (now apply serialize_name_notin_different_index ; Lia.lia) *)
+; try (now apply serialize_name_notin_smaller_than_start ; try Lia.lia)
 (* ; try (idtac ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ]) *)
 (* ; setoid_rewrite Bool.orb_false_r *)
 (* ; simpl *)
@@ -1668,48 +1754,6 @@ Qed.
     - intros.
       apply i.
   Defined.
-
-  Definition name_eq (x y : name) : bool :=
-    match x, y with
-    | BOT, BOT => true
-
-    | ES, ES => true
-    | EEM, EEM => true
-    | CET, CET => true
-    | BIND, BIND => true
-    | BINDER, BINDER => true
-    | HS, HS => true
-    | SHT, SHT => true
-    | CHT, CHT => true
-    | HSALT, HSALT => true
-    | AS, AS => true
-    | RM, RM => true
-    | CAT, CAT => true
-    | SAT, SAT => true
-    | EAM, EAM => true
-    | PSK, PSK => true
-
-    | ZERO_SALT, ZERO_SALT => true
-    | ESALT, ESALT => true
-    | DH, DH => true
-    | ZERO_IKM, ZERO_IKM => true
-    | _, _ => false
-    end.
-
-Definition name_equality :
-  Equality.axiom (T:=name) name_eq.
-Proof.
-  intros ? ?.
-  destruct x, y.
-  all: try now apply Bool.ReflectF.
-  all: now apply Bool.ReflectT.
-Qed.
-
-HB.instance Definition _ : Equality.axioms_ name :=
-  {|
-    Equality.eqtype_hasDecEq_mixin :=
-      {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
-  |}.
 
 Lemma all_idents_disjoint_foreach :
   (forall {A : eqType} f (L : list A),
