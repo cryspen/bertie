@@ -146,6 +146,10 @@ Fixpoint sum_accum (fuel : nat) (index : nat) (f : nat -> nat) (accum : nat) : n
   | S n' => sum_accum n' (index + 1%nat) f (accum + f index)
   end.
 
+Definition mem_tail : forall {A : eqType} a (l : list A), forall {x}, x \in l -> x \in a :: l :=
+  fun A a l x H =>
+    (eq_ind_r [eta is_true] ([eta introTF (c:=true) orP] (or_intror H)) (in_cons (T:=A) a l x)).
+
 Definition sumR : forall (l u : nat), (l <= u)%nat -> (nat -> R) -> R :=
   (fun l u H f => (List.fold_left (fun y x => y + f x) (iota l (u - l)) 0)%R).
 
@@ -287,6 +291,14 @@ Fixpoint sumR_l {T : Type} (l : list T) (f : T -> R) : R :=
   | [] => 0%R
   | (x :: xs) => f x + sumR_l xs f
   end.
+(* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)
+
+Fixpoint sumR_l_in_rel {T : eqType} (l : list T) (l' : list T) (H_in : forall x, x \in l' -> x \in l) (f : forall (a : T), (a \in l)  -> R) : R :=
+  match l' return (forall x, x \in l' -> x \in l) -> _ with
+  | [] => fun _ => 0%R
+  | (x :: xs) =>
+      fun H_in => f x (H_in x (mem_head x xs)) + sumR_l_in_rel l xs (fun a H => H_in a (mem_tail x xs H)) f
+  end H_in.
 (* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)
 
 Definition max_val : R -> R -> R :=

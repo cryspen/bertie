@@ -137,13 +137,6 @@ Section MapPackages.
   (* Axiom XPN_LABAL_from_index : nat -> name. *)
   Axiom level : chHandle -> code fset0 [interface] (chOption chNat).
 
-  Definition KS_interface d k :=
-    ([interface #val #[SET PSK 0 k] : chSETinp → chSETout ]
-       :|: DH_interface
-       :|: (XPD_n d k :|: XTR_n d k)
-       :|: GET_O_star d k
-    ).
-
   Notation " 'chXTRinp' " :=
     (chHandle × chHandle)
       (in custom pack_type at level 2).

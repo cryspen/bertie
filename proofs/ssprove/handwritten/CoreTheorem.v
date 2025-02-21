@@ -79,7 +79,7 @@ From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
 
 From KeyScheduleTheorem Require Import Core.
-From KeyScheduleTheorem Require Import MapPackage.
+(* From KeyScheduleTheorem Require Import MapPackage. *)
 
 (*** Core theorem *)
 

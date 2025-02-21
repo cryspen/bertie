@@ -734,7 +734,7 @@ try rewrite !imfsetU
 ; try rewrite !fdisjoints1
 ; repeat (apply /andP ; split)
 ; try (rewrite (ssrbool.introF (fset1P _ _)) ; [ reflexivity | ])
-; try (now apply serialize_name_notin_all ; (now left ; split ; [ reflexivity | ((now right) || (now left)) ]) || (now right ; split ; [ discriminate | split ; [ Lia.lia | Lia.lia ] ]))
+; try (now apply serialize_name_notin_all ; (now left ; split ; [ reflexivity | ((timeout 5 now right) || (timeout 5 now left)) ]) || (now right ; split ; [ discriminate | split ; [ Lia.lia | Lia.lia ] ]))
 (* ; try (now apply serialize_name_notin ; Lia.lia) *)
 (* ; try (now apply serialize_name_notin_different_name ; Lia.lia) *)
 (* ; try (now apply serialize_name_notin_different_index ; Lia.lia) *)

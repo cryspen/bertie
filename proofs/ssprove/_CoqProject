@@ -39,9 +39,11 @@
 
 ./handwritten/Core.v
 ./handwritten/KeySchedulePackages.v
-./handwritten/MapPackage.v
 
 ./handwritten/CoreTheorem.v
+
+./handwritten/MapPackage.v
+
 # ./handwritten/ModularTheorem.v
 ./handwritten/MainTheorem.v
 

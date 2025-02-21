@@ -90,6 +90,13 @@ Section Core.
     (chHandle)
       (in custom pack_type at level 2).
 
+  Definition KS_interface d k :=
+    ([interface #val #[SET PSK 0 k] : chSETinp → chSETout ]
+       :|: DH_interface
+       :|: (XPD_n d k :|: XTR_n d k)
+       :|: GET_O_star d k
+    ).
+
   Definition Gcore_sodh (d : nat) :
     package fset0
       ([interface
