@@ -161,8 +161,7 @@ Section KeySchedulePackages.
     1:{
       eapply valid_package_inject_export.
       2: apply (pack_valid (Ks d k H_lt O_star true erefl)).
-      unfold GET_O_star.
-      solve_in_fset.
+      apply fsubsetUr.
     }
     1:{
       eapply valid_package_inject_import.

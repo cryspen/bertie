@@ -87,18 +87,6 @@ Section XTR_XPD.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-  Definition SET_ℓ Names d ℓ : Interface :=
-    interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) Names.
-
-  Definition SET_n Names d k : Interface :=
-    interface_hierarchy (SET_ℓ Names k) d.
-
-  Definition GET_ℓ Names d ℓ : Interface :=
-    interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) Names.
-
-  Definition GET_n Names d k : Interface :=
-    interface_hierarchy (GET_ℓ Names k) d.
-
   (* p. 5,6 *)
   (* Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}. *)
   (* Context {xtr : chKey -> chKey -> code fset0 fset0 chKey}. *)

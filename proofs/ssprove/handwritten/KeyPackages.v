@@ -259,8 +259,8 @@ Section KeyPackages.
     package
       (L_K)
       (interface_foreach (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout]) Names)
-      (interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ k ] : chSETinp → chSETout]) (Names) d
-         :|: interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) (Names) d
+      (SET_n (Names) d k
+         :|: GET_n (Names) d k
       ).
   Proof.
     intros.
@@ -315,35 +315,72 @@ Section KeyPackages.
 
 (* Fig 15 *)
 
-Definition Nk_package (ℓ : nat) (d : nat) (_ : (ℓ <= d)%nat) :
+Definition Nk_package (d k : nat) (_ : (d <= k)%nat) :
   package
     L_K
     [interface
-       #val #[ UNQ DH d ] : chUNQinp → chUNQout
+       #val #[ UNQ DH k ] : chUNQinp → chUNQout
     ]
-    [interface
-       #val #[ SET DH ℓ d ] : chSETinp → chSETout ;
-       #val #[ GET DH ℓ d ] : chGETinp → chGETout
-    ].
-  refine [package
-      #def #[ SET DH ℓ d ] ('(h,hon,k) : chSETinp) : chSETout {
-        #import {sig #[ UNQ DH d ] : chUNQinp → chUNQout }
+    (SET_n [DH] d k :|: GET_n [DH] d k)
+    (* [interface *)
+    (*    #val #[ SET DH ℓ k ] : chSETinp → chSETout ; *)
+    (*    #val #[ GET DH ℓ k ] : chGETinp → chGETout *)
+(* ] *).
+  epose ℓ_packages.
+  unfold SET_n.
+  unfold GET_n.
+  rewrite interface_hierarchy_U.
+  rewrite (interface_hierarchy_trivial [interface #val #[UNQ DH k] : chUNQinp → chDHEXPout ] d).
+  refine (ℓ_packages d
+            (fun ℓ _ =>
+            [package
+      #def #[ SET DH ℓ k ] ('(h,hon,key) : chSETinp) : chSETout {
+        #import {sig #[ UNQ DH k ] : chUNQinp → chUNQout }
         as unq_fn ;;
-        get_or_case_fn (K_table h) fin_K_table chHandle (
-            unq_fn (h, hon, k) ;;
-            set_at (K_table h) fin_K_table (otf k, hon) ;;
+        get_or_case_fn (K_table h) (H := pos_prod pos_key pos_bool) fin_K_table chHandle (
+            unq_fn (h, hon, key) ;;
+            set_at (K_table h)(H := pos_prod pos_key pos_bool) fin_K_table (otf key, hon) ;;
             ret h
           ) (fun _ => ret h)
       } ;
-      #def #[ GET DH ℓ d ] (h : chGETinp) : chGETout {
-        p ← get_or_fail (K_table h) fin_K_table ;;
+      #def #[ GET DH ℓ k ] (h : chGETinp) : chGETout {
+        p ← get_or_fail (K_table h) (H := pos_prod pos_key pos_bool) fin_K_table ;;
         let (k, hon) :=
           (fto (fst (otf p)) , snd (otf p) : 'bool) : (chProd chKey 'bool)
         in
         ret (k, hon)
       }
-    ].
+            ]) _ _).
+  {
+    intros.
+    unfold SET_ℓ, GET_ℓ.
+    unfold interface_foreach.
+    unfold pack.
+    rewrite <- fset1E.
+    rewrite <- fset_cons.
+    apply (trimmed_package_cons).
+    apply (trimmed_package_cons).
+    apply (trimmed_empty_package).
+  }
+  {
+    intros.
+    unfold SET_ℓ, GET_ℓ.
+    unfold interface_foreach.
+    unfold idents.
+    solve_imfset_disjoint.
+  }
 
+  Unshelve.
+  all: try apply DepInstance.
+
+  unfold SET_ℓ, GET_ℓ.
+  unfold interface_foreach.
+  set ([interface #val #[UNQ DH k] : chUNQinp → chDHEXPout ]).
+  rewrite <- (fset1E ).
+  rewrite <- fset_cons.
+  subst f.
+
+  
   unfold get_or_fn.
   unfold get_or_case_fn.
   unfold get_or_fail.
