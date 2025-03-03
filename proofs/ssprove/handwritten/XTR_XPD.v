@@ -213,26 +213,26 @@ Section XTR_XPD.
   Definition XTR_n_ℓ d ℓ :=
     interface_foreach (fun n => [interface #val #[ XTR n ℓ d ] : chXTRinp → chXTRout]) XTR_names.
 
-  Lemma trimmed_Xtr : forall ℓ n d,
+  Lemma trimmed_Xtr : forall ℓ n d b,
       trimmed
         [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ]
-        (Xtr n ℓ d false).
+        (Xtr n ℓ d b).
   Proof.
     intros.
     unfold trimmed.
     trim_is_interface.
   Qed.
 
-  Definition xtr_level_raw (ℓ : nat) (d : nat) :=
-    parallel_raw (List.map (fun n => pack (Xtr n ℓ d false)) XTR_names).
+  Definition xtr_level_raw (ℓ : nat) (d : nat) (b : name -> bool) :=
+    parallel_raw (List.map (fun n => pack (Xtr n ℓ d (b n))) XTR_names).
 
   Lemma valid_xtr_level :
-    forall d ℓ,
+    forall d ℓ b,
       (ℓ <= d)%N ->
       ValidPackage f_parameter_cursor_loc
         (GET_ℓ XTR_parent_names d ℓ :|: SET_ℓ XTR_names d ℓ)
         (interface_foreach (fun n => [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout]) XTR_names)
-        (xtr_level_raw ℓ d).
+        (xtr_level_raw ℓ d b).
   Proof.
     intros.
 
@@ -247,7 +247,7 @@ Section XTR_XPD.
                 #val #[GET (nfto (snd (PrntN n))) ℓ d] : chXTRout → chGETout]
                  :|: [interface #val #[SET n ℓ d] : chSETinp → chSETout ])
              (λ n : name, [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ])
-             (λ ℓ (n : name), pack (Xtr n ℓ d false))
+             (λ ℓ (n : name), pack (Xtr n ℓ d (b n)))
              XTR_names
              d
              ℓ
@@ -274,17 +274,17 @@ Section XTR_XPD.
 
       unfold XTR_names, valid_pairs, List.map.
       repeat split  ; match goal with
-                     | |- context [ Xtr ?n _ _ ] => apply (pack_valid (@Xtr _ ℓ d false))
+                     | |- context [ Xtr ?n _ _ ] => apply (pack_valid (@Xtr _ ℓ d (b n)))
                       end.
   Qed.
 
-  Definition xtr_level d ℓ (H : (ℓ <= d)%N) :=
-    {package (xtr_level_raw ℓ d) #with (valid_xtr_level d ℓ H)}.
+  Definition xtr_level d ℓ b (H : (ℓ <= d)%N) :=
+    {package (xtr_level_raw ℓ d b) #with (valid_xtr_level d ℓ b H)}.
 
-  Lemma trimmed_xtr_level d ℓ (H : (ℓ <= d)%N) :
+  Lemma trimmed_xtr_level d ℓ b (H : (ℓ <= d)%N) :
     trimmed
       (interface_foreach (fun n => [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout]) XTR_names)
-      (xtr_level d ℓ H).
+      (xtr_level d ℓ b H).
   Proof.
     apply (trimmed_parallel_raw).
     - intros ; unfold idents ; solve_imfset_disjoint.
@@ -292,12 +292,12 @@ Section XTR_XPD.
     - repeat split ; apply trimmed_Xtr.
   Qed.
 
-  Definition XTR_packages (d k : nat) (H_lt : (d <= k)%nat) :
+  Definition XTR_packages (d k : nat) (b : name -> bool) (H_lt : (d <= k)%nat) :
     package fset0 (GET_n XTR_parent_names d k :|: SET_n XTR_names d k) (XTR_n d k).
   Proof.
     unfold GET_n.
     rewrite interface_hierarchy_U.
-    refine (ℓ_packages d (g := fun ℓ => GET_ℓ XTR_parent_names k ℓ :|: SET_ℓ XTR_names k ℓ) (fun ℓ H => xtr_level k ℓ (leq_trans H H_lt)) _ _).
+    refine (ℓ_packages d (g := fun ℓ => GET_ℓ XTR_parent_names k ℓ :|: SET_ℓ XTR_names k ℓ) (fun ℓ H => xtr_level k ℓ b (leq_trans H H_lt)) _ _).
     {
       intros ℓ ?.
       apply trimmed_xtr_level.
@@ -799,11 +799,11 @@ Section XTR_XPD.
      #val #[DHGEN] : chDHGENout → chDHGENout ;
      #val #[DHEXP] : chDHEXPinp → chXPDout ].
 
-  Definition DH_package d k :
+  Definition DH_package k :
     (* (G : {fset finGroupType}) *)
     package
       fset0
-      (SET_DH d k)
+      (SET_DH 0 k)
       DH_interface.
     intros.
     refine [package
@@ -820,7 +820,7 @@ Section XTR_XPD.
   Defined.
   Fail Next Obligation.
 
-  Lemma trimmed_dh d k : trimmed DH_interface (pack (DH_package d k)).
+  Lemma trimmed_dh k : trimmed DH_interface (pack (DH_package k)).
   Proof.
     intros.
     unfold DH_package.
@@ -863,11 +863,6 @@ Section XTR_XPD.
     rewrite interface_hierarchy_foreach_cons.
     apply trimmed_par.
     {
-      apply @parable.
-      rewrite <- trimmed_ℓ_packages.
-      set (ℓ_packages _).
-      rewrite <- (trimmed_ℓ_packages).
-      solve_Parable.
       apply idents_interface_hierachy3.
       intros.
       rewrite fdisjointC.
@@ -884,15 +879,15 @@ Section XTR_XPD.
     }
   Qed.
 
-  Lemma trimmed_xtr_package : forall (d k : nat) H_lt,
-    trimmed (XTR_n d k) (XTR_packages d k H_lt).
+  Lemma trimmed_xtr_package : forall (d k : nat) b H_lt,
+    trimmed (XTR_n d k) (XTR_packages d k b H_lt).
   Proof.
     intros.
     simpl.
     unfold XTR_packages.
     unfold eq_rect_r.
     destruct (Logic.eq_sym _).
-    erewrite <- (ℓ_raw_package_trimmed d (fun ℓ H => [eta xtr_level] k ℓ (leq_trans H H_lt))).
+    erewrite <- (ℓ_raw_package_trimmed d (fun ℓ H => [eta xtr_level] k ℓ b (leq_trans H H_lt))).
     2:{
       intros ℓ ?.
       apply (trimmed_xtr_level k ℓ).

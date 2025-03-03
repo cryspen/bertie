@@ -289,7 +289,7 @@ Qed.
 Theorem trimmed_par :
   forall {E1 E2}
     (p1 : raw_package) (p2 : raw_package)
-    (Hdisj : domm (p1) :#: domm (p2))
+    (H_disj : idents E1 :#: idents E2)
     (H_trim_p1 : trimmed E1 p1) (H_trim_p2 : trimmed E2 p2),
     trimmed (E1 :|: E2) (par p1 p2).
 Proof.
@@ -324,17 +324,14 @@ Proof.
                         ((n, (So, To)) \in E2)) (p2))).
   {
     rewrite filterm_union.
-    2: apply Hdisj.
-    (* 2:{ *)
-    (*   epose (domm_trimmed E1 p1 H_trim_p1). *)
-    (*   epose (domm_trimmed E2 p2 H_trim_p2). *)
+    2:{
+      apply @parable.
+      rewrite <- H_trim_p1.
+      rewrite <- H_trim_p2.
+      solve_Parable.
 
-    (*   epose proof (fdisjoint_trans i Hdisj). *)
-    (*   rewrite fdisjointC in H. *)
-    (*   epose proof (fdisjoint_trans i0 H). *)
-    (*   rewrite fdisjointC in H0. *)
-    (*   apply H0. *)
-    (* } *)
+      apply H_disj.
+    }
     f_equal.
     {
       setoid_rewrite H_trim_p1.
@@ -739,6 +736,7 @@ try rewrite !imfsetU
 (* ; try (now apply serialize_name_notin_different_name ; Lia.lia) *)
 (* ; try (now apply serialize_name_notin_different_index ; Lia.lia) *)
 ; try (now apply serialize_name_notin_smaller_than_start ; try Lia.lia)
+; try (now symmetry ; apply serialize_name_notin_smaller_than_start ; try Lia.lia)
 (* ; try (idtac ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ]) *)
 (* ; setoid_rewrite Bool.orb_false_r *)
 (* ; simpl *)
@@ -1233,14 +1231,7 @@ Proof.
   apply trimmed_par.
   3: apply IHL ; [ now apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq (s :: I)) in H0 | apply H1 ].
   2: apply H1.
-  1:{
-    rewrite <- (IHL I _ s) ; [ | now apply (ssrbool.elimT andP) in H0 as [] ; fold (uniq (s :: I)) in H0 | apply H1 ].
-    simpl in H0.
-    rewrite <- (proj1 H1).
-    apply @parable.
-    solve_Parable.
-    now apply idents_interface_foreach_disjoint_same.
-  }
+  1: now apply idents_interface_foreach_disjoint_same.
 Qed.
 
 Lemma parallel_raw_cons : forall n E,
@@ -1921,19 +1912,10 @@ Proof.
 
     apply trimmed_par.
     {
-      apply @parable.
-      rewrite <- H_trim_p.
-      unfold ℓ_raw_packages in IHk.
-      rewrite <- IHk ; try auto.
-      {
-        solve_Parable.
-        clear -K_le Hdisj.
-
-        apply (idents_interface_hierachy).
-        - Lia.lia.
-        - intros.
-          now apply Hdisj.
-      }
+      apply (idents_interface_hierachy).
+      - Lia.lia.
+      - intros.
+        now apply Hdisj.
     }
     {
       apply IHk ; auto.
@@ -2110,16 +2092,15 @@ Definition ℓ_parallel {A : eqType} {L} {g f} Names l  (d : nat) (u : forall �
      ℓ_packages d
        (λ ℓ H_le, parallel_package_with_in_rel_hierarchy Names l d u H_in H H0 H1 ℓ H_le)
        (fun a H_le => trimmed_parallel_raw (fun _ _ H_neq => H _ _ _ _ (or_introl H_neq)) H0 (H1 _ _))
-       (fun n ℓ H_le H_ge => idents_foreach_disjoint_foreach _ _ _
-                            (fun _ _ =>
-                               H _ _ _ _
-                                 (or_intror
-                                    ((eq_ind_r (λ ℓ0 : nat, (ℓ0 < n)%N → False) (λ H_le0 : (n < n)%N,
-                                            (eq_ind_r (λ b : bool, b → False) (λ H_le1 : false,
-                                                   False_ind False (eq_ind false (λ e : bool, if e then False else True) I true H_le1)) (ltnn n))
-                                              H_le0) (y:=ℓ))^~
-                                       H_le
-                                    )
+       (fun n ℓ H_le H_ge =>
+          idents_foreach_disjoint_foreach _ _ _
+            (fun _ _ =>
+               H _ _ _ _
+                 (or_intror
+                    ((eq_ind_r
+                        (λ ℓ0 : nat, (ℓ0 < n)%N → False)
+                        (λ H_le0 : (n < n)%N,
+                            (eq_ind_r (λ b : bool, b → False) (λ H_le1 : false, False_ind False (eq_ind false (λ e : bool, if e then False else True) I true H_le1)) (ltnn n)) H_le0) (y:=ℓ))^~ H_le)
          )))).
 
 Definition trimmed_ℓ_packages {L}
@@ -2143,13 +2124,6 @@ Proof.
     2:{
       apply H_trim_p.
     }
-    apply @parable.
-    rewrite <- map_with_in_num_upper_trimmed.
-    2: intros ; apply H_trim_p.
-    2: now intros ; apply Hdisj.
-
-    rewrite <- H_trim_p.
-    solve_Parable.
     now apply idents_interface_hierachy.
 Qed.
 
