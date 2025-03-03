@@ -25,27 +25,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: hacspec/hax-actions@main
+        with: 
+          fstar: v2025.02.17
 
       - name: Update dependencies
         run: cargo update
-
-      - name: 🔨 OCaml Setup
-        uses: ocaml/setup-ocaml@v3
-        with:
-          ocaml-compiler: 5.2.0
-
-      - name: ⤵ Clone hax repository
-        uses: actions/checkout@v4
-        with:
-          repository: hacspec/hax
-          path: hax
-
-      - name: 🔨 Setup hax
-        working-directory: hax
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes nodejs
-          ./setup.sh
 
       - name: 🏃🏻‍♀️ Run hax extraction
         run: |
