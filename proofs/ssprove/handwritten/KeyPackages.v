@@ -100,10 +100,10 @@ Section KeyPackages.
 
   (* Fig 13-14. K key and log *)
 
-  (* Axiom exists_h_star : (chHandle -> raw_code 'unit) -> raw_code 'unit. *)
+  Axiom exists_h_star : (chHandle -> raw_code 'unit) -> code L_L [interface] 'unit.
   Inductive ZAF := | Z | A | F | D | R.
 
-  (* Axiom level : chHandle -> nat. *)
+  Axiom level : chHandle -> nat.
 
   (* Fig 13 *)
   Definition L_package d (n : name) (P : ZAF) :
@@ -117,24 +117,39 @@ Section KeyPackages.
   Proof.
     refine [package
       #def #[ UNQ n d (* n ℓ *) ] ('(h,hon,k) : chUNQinp) : chUNQout {
-         (* (exists_h_star (fun h_star =>  *)
-         (*   '(h',hon',k) ← get_or_fn (Log_table h_star) (chHandle × 'bool × chKey) (@fail _ ;; ret (chCanonical (chHandle × 'bool × chKey))) ;; *)
-         (*   r ← ret (level h) ;; *)
-         (*   r' ← ret (level h_star) ;; *)
-         (*   match P with *)
-         (*   | Z => ret Datatypes.tt *)
-         (*   | A => if Datatypes.andb (hon == hon' == false) (r == r' == false) *)
-         (*         then @fail _ ;; ret Datatypes.tt *)
-         (*         else ret Datatypes.tt *)
-         (*   | F => @fail _ ;; ret Datatypes.tt *)
-         (*   end)) ;; *)
+         (exists_h_star (fun h_star =>
+           temp ← get_or_fail (L_table h_star) fin_L_table ;;
+           let '(h',hon',k) := (fto (fst (fst (otf temp))) , snd (fst (otf temp)) , snd (otf temp)) : _ in
+           r ← ret (level h) ;;
+           r' ← ret (level h_star) ;;
+           match P with
+           | Z => ret Datatypes.tt
+           | A => if Datatypes.andb (hon == hon' == false) (r == r' == false)
+                 then @fail _ ;; ret Datatypes.tt
+                 else ret Datatypes.tt
+           | F => @fail _ ;; ret Datatypes.tt
+           | D => if hon == hon' == false then @fail _ ;; ret Datatypes.tt else ret Datatypes.tt
+           | R => if hon == hon' == false
+                 then @fail _ ;; ret Datatypes.tt (* abort *)
+                 else @fail _ ;; ret Datatypes.tt (* win *)
+           end)) ;;
          set_at (L_table h) fin_L_table (otf h, hon, otf k) ;;
          ret h
       }
     ].
 
     unfold set_at.
-    ssprove_valid ; apply (in_L_table _).
+    ssprove_valid ; try apply (in_L_table _).
+    apply prog_valid.
+
+    Unshelve.
+    1: apply DepInstance.
+    1:{
+      apply pos_prod ; [ | apply pos_key ].
+      apply pos_prod ; [ | apply pos_bool ].
+      apply pos_handle.
+    }
+    all: apply 'unit.
   Defined.
   Fail Next Obligation.
 

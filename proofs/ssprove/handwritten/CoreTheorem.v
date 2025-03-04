@@ -112,21 +112,24 @@ Section CoreTheorem.
   (*   intros. *)
   (* Admitted. *)
 
+  Axiom hash : nat -> nat.
   Definition Gacr (f : HashFunction) (b : bool) :
     package fset0
       [interface]
       [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout].
-  Proof.
-    (* refine [package *)
-    (*           #def #[ HASH ] (t : chHASHinp) : chHASHout { *)
-    (*             (* get_or_fn _ _ _ *) *)
-    (*             d ← untag (f t) ;; *)
-    (*             if b && d \in Hash *)
-    (*             then fail *)
-    (*             else Hash *)
-    (*           } *)
-    (*   ]. *)
-    (* Qed. *)
+  (* Proof. *)
+  (*   refine [package *)
+  (*             #def #[ HASH ] (t : chHASHinp) : chHASHout { *)
+  (*               ret fail *)
+  (*               (* (* get_or_fn _ _ _ *) *) *)
+  (*               (* d ← untag (match f with | f_hash | f_xtr => xtr t end) ;; *) *)
+  (*               (* if b && d \in Hash *) *)
+  (*               (* then fail *) *)
+  (*               (* else *) *)
+  (*               (*   ret d *) *)
+  (*             } *)
+  (*     ]. *)
+  (*   Qed. *)
   Admitted.
 
   (* Definition Gacr : *)
@@ -135,6 +138,13 @@ Section CoreTheorem.
   (*        (* #val #[ ACR ] : 'unit → 'unit *) *)
   (*     ]. *)
   (* (* HASH(t) .. *) *)
+
+  Definition R_alg :
+    package fset0
+      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
+      [interface].
+  Proof.
+  Admitted.
 
   Definition R_cr :
     package fset0
@@ -148,9 +158,59 @@ Section CoreTheorem.
   Proof.
   Admitted.
 
-  Axiom R_D : package fset0 [interface] [interface].
+  Definition R_D (f : HashFunction) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_xtr (n : name) (ℓ : nat) :
+    n \in XTR_names ->
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_xpd (n : name) (ℓ : nat) :
+    n \in XPR ->
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_pi (L : list name) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
 
   Axiom Gsodh :
+    forall (d k : nat),
+      (d < k)%nat ->
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gxtr :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (n : name) (ℓ : nat),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gxpd :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (n : name) (ℓ : nat),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gpi :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (L : list name)
+      (f : ZAF),
     loc_GamePair
       [interface
          (* #val #[ SODH ] : 'unit → 'unit *)
@@ -651,7 +711,7 @@ Section CoreTheorem.
                         _ erefl _)
 
                ) ) ∘
-               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun _ => Z) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK Z)) (Hash true))
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun _ => Z) erefl) (K_package k PSK d H_lt false ∘ L_package k PSK Z)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
@@ -677,7 +737,7 @@ Section CoreTheorem.
                         _ erefl _)
 
                ) ) ∘
-               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun _ => D) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun _ => D) erefl) (K_package k PSK d H_lt false ∘ L_package k PSK D)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
@@ -703,7 +763,7 @@ Section CoreTheorem.
                         _ erefl _)
 
                ) ) ∘
-               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d H_lt false ∘ L_package k PSK D)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
@@ -730,16 +790,16 @@ Section CoreTheorem.
                         _ erefl _)
 
                ) ) ∘
-               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d H_lt false ∘ L_package k PSK D)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
 
-HB.instance Definition _ : Equality.axioms_ name :=
-  {|
-    Equality.eqtype_hasDecEq_mixin :=
-      {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
-  |}.
+  HB.instance Definition _ : Equality.axioms_ name :=
+    {|
+      Equality.eqtype_hasDecEq_mixin :=
+        {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+    |}.
 
   Definition N_star := all_names. (* TODO *)
   Program Definition G_core_hyb_ℓ (d k : nat) (H_lt : (d < k)%nat) (i : nat) :
@@ -769,7 +829,7 @@ HB.instance Definition _ : Equality.axioms_ name :=
                                                             if ℓ >=? i then false else true
                                                           else false) erefl
                             ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl)
-                       (K_package k PSK d.+1 H_lt (i == d.+1) ∘ L_package k PSK D)) (Hash true))
+                       (K_package k PSK d H_lt (i == d) ∘ L_package k PSK D)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
@@ -800,7 +860,7 @@ HB.instance Definition _ : Equality.axioms_ name :=
                                                           if (name \in N_star) || (name == PSK)
                                                           then
                                                             if (ℓ + (name \in C)) >=? i then false else true
-                                                          else false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+                                                          else false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d H_lt false ∘ L_package k PSK D)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
@@ -827,37 +887,10 @@ HB.instance Definition _ : Equality.axioms_ name :=
                         _ erefl _)
 
                ) ) ∘
-               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => true) erefl ∘ Ls k all_names (fun name => D) erefl) (K_package k PSK d.+1 H_lt true ∘ L_package k PSK D)) (Hash true))
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => true) erefl ∘ Ls k all_names (fun name => D) erefl) (K_package k PSK d H_lt true ∘ L_package k PSK D)) (Hash true))
     }.
   Admit Obligations.
   Fail Next Obligation.
-
-  Lemma core_theorem :
-    forall (d k : nat) H_lt,
-    forall (Score : Simulator d k),
-    forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA (KS_interface d k) A_export A →
-      (AdvantageE
-         (G_ks d k false H_lt)
-         (G_ks d k true H_lt) (A (* ∘ R d M H *))
-       <= sumR_l [R_cr; (R_Z f_hash); R_D] (fun R => Advantage (Gacr f_hash) (A ∘ R))
-         +maxR (fun i => Advantage Gsodh (Ai A i ∘ R_sodh) + AdvantageE (G_core_SODH d k H_lt) (G_ks d k true H_lt) (Ai A i))
-      )%R.
-  Proof.
-    intros.
-    unfold sumR_l.
-    rewrite addr0.
-    rewrite addrA.
-
-    (* unfold G_ks. *)
-    (* unfold pack. *)
-
-    (* epose Advantage_link. *)
-
-    (* unfold Gacr. *)
-    (* simpl. *)
-    (* simpl. *)
-  Admitted.
 
   Lemma advantage_reflexivity :
     forall P A, AdvantageE P P A = 0%R.
@@ -868,9 +901,146 @@ HB.instance Definition _ : Equality.axioms_ name :=
     rewrite Num.Theory.normr0.
     reflexivity.
   Qed.
-  
+
+  Lemma d2 :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (AdvantageE (G_core d k false H_lt) (G_core d k true H_lt) A
+       <= Advantage (Gacr f_hash) (A ∘ R_cr) +
+         AdvantageE (G_core_Hash d k H_lt) (G_core d k true H_lt) A)%R.
+  Proof.
+    intros.
+  Admitted.
+
+  Lemma d3 :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (AdvantageE (G_core_Hash d k H_lt) (G_core_D d k H_lt) A
+       <= Advantage (Gacr f_xtr) (A ∘ (R_Z f_xtr)) +
+         Advantage (Gacr f_xpd) (A ∘ (R_Z f_xpd)) +
+         Advantage (Gacr f_xtr) (A ∘ (R_D f_xtr)) +
+         Advantage (Gacr f_xpd) (A ∘ (R_D f_xpd)))%R.
+  Proof.
+    intros.
+  Admitted.
+
+  (* Lemma d4 : *)
+  (*   forall (d k : nat) H_lt, *)
+  (*   (* forall (Score : Simulator d k), *) *)
+  (*   forall (LA : {fset Location}) (A : raw_package), *)
+  (*     ValidPackage LA (KS_interface d k) A_export A → *)
+  (*     (AdvantageE (G_core_R_esalt d k H_lt) (G_core d k true H_lt) A *)
+  (*      >= maxR (fun i => AdvantageE (G_core_Hash d k H_lt) (G_core_D d k H_lt) (Ai A i)))%R. *)
+  (* Proof. *)
+  (*   intros. *)
+  (* Admitted. *)
+
+  Lemma d4 :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (AdvantageE (G_core_R_esalt d k H_lt) (G_core d k true H_lt) A
+       <= maxR (fun i => AdvantageE (G_core_D d k H_lt) (G_core d k true H_lt) (Ai A i)))%R.
+  Proof.
+    intros.
+  Admitted.
+
+  Lemma d5 :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (AdvantageE (G_core_R_esalt d k H_lt) (G_core_SODH d k H_lt) A
+       = Advantage (Gsodh d k H_lt) (A ∘ R_sodh))%R.
+  Proof.
+    intros.
+  Admitted.
+
+  (* d6: Hybrid lemma *)
+  Lemma d6 :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    (* forall (K_table : chHandle -> nat), *)
+    (* forall i, *)
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      forall ℓ, (ℓ <= d)%nat ->
+      (AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt ℓ.+1) A
+       <= Advantage (Gxtr d k H_lt ES ℓ) (A ∘ R_xtr ES ℓ erefl) +
+         Advantage (Gxtr d k H_lt HS ℓ) (A ∘ R_xtr HS ℓ erefl) +
+         Advantage (Gxtr d k H_lt AS ℓ) (A ∘ R_xtr AS ℓ erefl) +
+           sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (A ∘ R_xpd n ℓ H_in))%R
+      )%R.
+  Proof.
+    intros.
+  Admitted.
+
+  Lemma hyb_telescope :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    (* forall (K_table : chHandle -> nat), *)
+    forall i,
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (AdvantageE (G_core_hyb_ℓ d k H_lt 0) (G_core_hyb_ℓ d k H_lt d) (Ai A i)
+       <= sumR 0 d (leq0n d) (fun ℓ => AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt (ℓ+1)) (Ai A i))
+      )%R.
+  Proof.
+    intros.
+
+    set d in H, H_lt |- * at 1 2 6 7.
+    generalize dependent n.
+    generalize dependent (leq0n d).
+    induction d ; intros.
+    - unfold sumR.
+      (* simpl. *)
+      simpl iota.
+      unfold AdvantageE.
+      unfold List.fold_left.
+      rewrite subrr.
+
+      apply eq_ler.
+      rewrite Num.Theory.normr0.
+      reflexivity.
+      
+      
+      (* rewrite add0r. *)
+      (* rewrite add0n. *)
+    (* now apply eq_ler. *)
+      
+      (* reflexivity. *)
+    (* rewrite subrr. *)
+    (* rewrite Num.Theory.normr0. *)
+    (* reflexivity. *)
+
+    -
+
+      rewrite sumR_succ.
+
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      instantiate (1 := (G_core_hyb_ℓ n k H_lt d)).
+
+      eapply Order.le_trans.
+      1:{
+        apply Num.Theory.lerD ; [ | easy ].
+        eapply (IHd _ _ H_lt).
+        apply H.
+      }
+
+      rewrite addrC.
+      apply Num.Theory.lerD ; [ | easy ].
+      rewrite addn1.
+      easy.
+  Qed.
+
   Lemma equation20_lhs :
     forall (d k : nat) H_lt,
+      (d > 0)%nat ->
     (* forall (Score : Simulator d k), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
@@ -900,8 +1070,10 @@ HB.instance Definition _ : Equality.axioms_ name :=
     rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
     2: admit.
 
-    setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)).
-    2,3,4,5,6,7,8: admit.
+    replace (0 == d)%nat with false by easy.
+    
+    (* setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)). *)
+    (* 2,3,4,5,6,7,8: admit. *)
 
     replace (λ (ℓ : nat) (name : ExtraTypes.name),
               if (name \in N_star) || (name == PSK) then if ℓ >=? 0%N then false else true else false)
@@ -919,13 +1091,206 @@ HB.instance Definition _ : Equality.axioms_ name :=
     apply advantage_reflexivity.
   Admitted.
 
+  Lemma Advantage_par_emptyR :
+    ∀ G₀ G₁ A,
+      AdvantageE (par G₀ emptym) (par G₁ emptym) A = AdvantageE G₀ G₁ A.
+  Proof.
+    intros G₀ G₁ A.
+    unfold AdvantageE.
+    unfold par.
+    rewrite !unionm0.
+    reflexivity.
+  Qed.
+
+  Lemma Advantage_parR :
+    ∀ G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁,
+      ValidPackage L₀ Game_import E₀ G₀ →
+      ValidPackage L₁ Game_import E₁ G₁ →
+      ValidPackage L₁' Game_import E₁ G₁' →
+      flat E₁ →
+      trimmed E₀ G₀ →
+      trimmed E₁ G₁ →
+      trimmed E₁ G₁' →
+      AdvantageE (par G₁ G₀) (par G₁' G₀) A =
+        AdvantageE G₁ G₁' (A ∘ par (ID E₁) G₀).
+  Proof.
+    intros G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁.
+    intros Va0 Va1 Va1' Fe0 Te0 Te1 Te1'.
+    replace (par G₁ G₀) with ((par (ID E₁) G₀) ∘ (par G₁ (ID Game_import) )).
+    2:{
+      erewrite <- interchange.
+      all: ssprove_valid.
+      4:{
+        ssprove_valid.
+        rewrite domm_ID_fset.
+        rewrite -fset0E.
+        apply fdisjoints0.
+      }
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: apply trimmed_ID.
+      rewrite link_id.
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: assumption.
+      rewrite id_link.
+      2: assumption.
+      reflexivity.
+    }
+    replace (par G₁' G₀) with ((par (ID E₁) G₀) ∘ (par G₁' (ID Game_import))).
+    2:{
+      erewrite <- interchange.
+      all: ssprove_valid.
+      4:{
+        ssprove_valid.
+        rewrite domm_ID_fset.
+        rewrite -fset0E.
+        apply fdisjoints0.
+      }
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: apply trimmed_ID.
+      rewrite link_id.
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: assumption.
+      rewrite id_link.
+      2: assumption.
+      reflexivity.
+    }
+    rewrite -Advantage_link.
+    unfold Game_import. rewrite -fset0E.
+    rewrite Advantage_par_emptyR.
+    reflexivity.
+    Unshelve. all: auto.
+  Qed.
+
+  Lemma L_package_esalt_D_to_R :
+    forall k A,
+    AdvantageE
+      (Ls k all_names (λ _ : name, D) erefl)
+      (Ls k all_names
+         (λ name : ExtraTypes.name,
+             match name as name' return (name' = name → ZAF) with
+             | BOT => λ _ : BOT = name, D
+             | ES => λ _ : ES = name, D
+             | EEM => λ _ : EEM = name, D
+             | CET => λ _ : CET = name, D
+             | BIND => λ _ : BIND = name, D
+             | BINDER => λ _ : BINDER = name, D
+             | HS => λ _ : HS = name, D
+             | SHT => λ _ : SHT = name, D
+             | CHT => λ _ : CHT = name, D
+             | HSALT => λ _ : HSALT = name, D
+             | AS => λ _ : AS = name, D
+             | RM => λ _ : RM = name, D
+             | CAT => λ _ : CAT = name, D
+             | SAT => λ _ : SAT = name, D
+             | EAM => λ _ : EAM = name, D
+             | PSK => λ _ : PSK = name, D
+             | ZERO_SALT => λ _ : ZERO_SALT = name, D
+             | ESALT => λ _ : ESALT = name, R
+             | DH => λ _ : DH = name, D
+             | ZERO_IKM => λ _ : ZERO_IKM = name, D
+             end erefl) erefl) A = 0%R.
+  Proof.
+    intros.
+    unfold Ls.
+    unfold all_names.
+    unfold interface_foreach.
+    unfold eq_rect_r.
+    unfold eq_rect.
+    destruct Logic.eq_sym.
+    unfold parallel_package.
+    unfold List.map.
+    unfold parallel_raw.
+    unfold List.fold_left.
+    unfold pack.
+
+    repeat (erewrite (Advantage_parR ) ; [ | admit.. ]).
+    repeat (erewrite (Advantage_par ) ; [ | admit.. ]).
+
+    eapply eq_rel_perf_ind_eq.
+    1,2: apply pack_valid.
+    2: admit.
+    2,3: admit.
+
+    unfold eq_up_to_inv.
+    intros.
+
+    rewrite in_fset in H.
+    rewrite mem_seq1 in H.
+    move/eqP: H => H ; inversion_clear H.
+    
+    unfold get_op_default.
+    
+    unfold L_package.
+    unfold pack.
+
+    (* lookup_op_squeeze. *)
+
+    unfold lookup_op.
+    rewrite !mkfmapE.
+    unfold getm_def.
+    unfold ".1", ".2".
+    rewrite !eqxx.
+
+    unfold mkdef.
+
+    destruct choice_type_eqP.
+    2: apply r_ret ; easy.
+
+    destruct choice_type_eqP.
+    2: apply r_ret ; easy.
+
+    subst.
+    rewrite !cast_fun_K.
+
+    destruct x as [[]].
+
+    eapply r_bind.
+    2:{
+      intros.
+      instantiate (1 := fun '(_, s₀) '(_, s₁) => s₀ = s₁).
+      hnf.
+      unfold set_at.
+      unfold bind.
+      ssprove_sync_eq.
+      now apply r_ret.
+    }
+
+    admit.
+  Admitted.
+
+  Lemma D_to_R_esalt_is_zero :
+    forall d k H_lt A,
+      AdvantageE (G_core_D d k H_lt) (G_core_R_esalt d k H_lt) A = 0%R.
+  Proof.
+    intros.
+
+    unfold G_core_D.
+    unfold G_core_R_esalt.
+
+    unfold pack.
+    rewrite <- !Advantage_link.
+
+    setoid_rewrite (Advantage_parR (Hash true)).
+    2: apply pack_valid.
+    2,3,4,5,6,7: admit.
+
+    erewrite <- interchange.
+    2,3,4,5,6,7,8: admit.
+
+    erewrite (Advantage_parR ).
+    2,3,4,5,6,7,8: admit.
+
+    rewrite <- !Advantage_link.
+    apply L_package_esalt_D_to_R.
+  Admitted.
+
   Lemma equation20_rhs :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
-      (AdvantageE (G_core_ki d k H_lt) (G_core_hyb_ℓ d k H_lt d.+1) (Ai A i) = 0)%R.
+      (AdvantageE (G_core_ki d k H_lt) (G_core_hyb_ℓ d k H_lt d) (Ai A i) = 0)%R.
   Proof.
     intros.
 
@@ -951,66 +1316,40 @@ HB.instance Definition _ : Equality.axioms_ name :=
     2: admit.
 
     rewrite eqxx.
-    
-    setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)).
-    2,3,4,5,6,7,8: admit.
+
+    (* setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)). *)
+    (* 2,3,4,5,6,7,8: admit. *)
 
     replace (λ (ℓ : nat) (name : ExtraTypes.name),
-              if (name \in N_star) || (name == PSK) then if ℓ >=? d.+1 then false else true else false)
+              if (name \in N_star) || (name == PSK) then if ℓ >=? d then false else true else false)
       with
       (λ (ℓ : nat) (name : ExtraTypes.name), true).
     2:{
       admit.
     }
 
-    apply advantage_reflexivity.
-  Admitted.
+    erewrite (Advantage_par ).
+    2,3,4,5,6,7,8: admit.
 
-  Lemma hyb_telescope :
-    forall (d k : nat) H_lt,
-    forall (Score : Simulator d k),
-    (* forall (K_table : chHandle -> nat), *)
-    forall i,
-    forall (LA : {fset Location}) (A : raw_package),
-      ValidPackage LA (KS_interface d k) A_export A →
-      (AdvantageE (G_core_hyb_ℓ d k H_lt 0) (G_core_hyb_ℓ d k H_lt d.+1) (Ai A i)
-       = sumR 0 d.+1 (leq0n d) (fun ℓ => AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt (ℓ+1)) (Ai A i))
-      )%R.
-  Proof.
-    intros.
-    set d in H_lt |- * at 1 2 6 7.
-    generalize dependent n.
-    generalize dependent (leq0n d).
-    induction d ; intros.
-    - unfold sumR.
-      (* simpl. *)
-      simpl iota.
-      unfold AdvantageE.
-      unfold List.fold_left.
-      rewrite add0r.
-      rewrite add0n.
-      reflexivity.
-    (* rewrite subrr. *)
-    (* rewrite Num.Theory.normr0. *)
-    (* reflexivity. *)
+    erewrite <- interchange.
+    2,3,4,5,6,7,8: admit.
 
-    - rewrite sumR_succ.
-      epose (IHd _ _ _ _ H_lt).
-      rewrite <- e.
+    rewrite <- !Advantage_link.
 
-      admit.
+    apply L_package_esalt_D_to_R.
   Admitted.
 
   Lemma equation20_eq :
     forall (d k : nat) H_lt,
-    forall (Score : Simulator d k),
+      (d > 0)%nat ->
+    (* forall (Score : Simulator d k), *)
     (* forall (K_table : chHandle -> nat), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
-      (AdvantageE (G_core_SODH d k H_lt) (G_ks d k true H_lt) (Ai A i)
-       <= AdvantageE (G_core_ki d k H_lt) (G_ks d k true H_lt) (Ai A i)
-         +sumR 0 d.+1 (leq0n d) (fun ℓ => AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt (ℓ + 1)) (Ai A i))
+      (AdvantageE (G_core_SODH d k H_lt) (G_core d k true H_lt) (Ai A i)
+       <= AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i)
+         +sumR 0 d (leq0n d) (fun ℓ => AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt (ℓ + 1)) (Ai A i))
       )%R.
   Proof.
     intros.
@@ -1018,22 +1357,144 @@ HB.instance Definition _ : Equality.axioms_ name :=
     eapply Order.le_trans ; [ apply Advantage_triangle | ].
     instantiate (1 := (G_core_hyb_ℓ d k H_lt 0)).
     rewrite (equation20_lhs d k H_lt).
+    2: easy.
     rewrite add0r.
 
     eapply Order.le_trans ; [ apply Advantage_triangle | ].
     instantiate (1 := G_core_ki d k H_lt).
-    rewrite <- (addrC (AdvantageE (G_core_ki d k H_lt) (G_ks d k true H_lt) (Ai A i)))%R.
+    rewrite <- (addrC (AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i)))%R.
     apply Num.Theory.lerD ; [ easy | ].
 
     eapply Order.le_trans ; [ apply Advantage_triangle | ].
-    instantiate (1 := (G_core_hyb_ℓ d k H_lt d.+1)).
+    instantiate (1 := (G_core_hyb_ℓ d k H_lt d)).
 
     epose (e := equation20_rhs d k (* Score *)).
     setoid_rewrite (Advantage_sym _ _) in e.
+
     rewrite e ; clear e.
     rewrite addr0.
 
-    setoid_rewrite <- hyb_telescope ; easy.
+    eapply hyb_telescope.
+    apply H0.
+  Qed.
+
+
+  Lemma d7 :
+    forall (d k : nat) H_lt,
+    (* forall (Score : Simulator d k), *)
+    (* forall (K_table : chHandle -> nat), *)
+      forall i,
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i)
+       <= Advantage (λ x : bool, Gpi d k H_lt [:: ESALT] R x) (Ai A i ∘ R_pi [:: ESALT]) +
+   Advantage (λ x : bool, Gpi d k H_lt O_star R x) (Ai A i ∘ R_pi O_star)
+      )%R.
+  Proof.
+    intros.
+  Admitted.
+
+  Axiom sumR_leq : forall l u H_range f g,
+      (forall ℓ, (ℓ <= u)%nat -> f ℓ <= g ℓ)%R ->
+      (sumR l u H_range f <= sumR l u H_range g)%R.
+
+  Lemma core_theorem :
+    forall (d k : nat) H_lt (H_gt : (0 < d)%nat),
+    (* forall (Score : Simulator d k), *)
+    forall (LA : {fset Location}) (A : raw_package),
+      ValidPackage LA (KS_interface d k) A_export A →
+      (forall i, ValidPackage LA (KS_interface d k) A_export (Ai A i)) →
+      (AdvantageE
+         (G_core d k false H_lt)
+         (G_core d k true H_lt) (A (* ∘ R d M H *))
+       <= sumR_l [(R_cr, f_hash); (R_Z f_xtr, f_xtr); (R_Z f_xpd, f_xpd); (R_D f_xtr, f_xtr); (R_D f_xpd, f_xpd)] (fun R_hash_fn => Advantage (Gacr (snd R_hash_fn)) (A ∘ (fst R_hash_fn)))
+         +maxR (fun i =>
+                  Advantage (Gsodh d k H_lt) (Ai A i ∘ R_sodh) +
+                    Advantage (Gpi d k H_lt [ESALT] R) (Ai A i ∘ R_pi [ESALT]) +
+                    Advantage (Gpi d k H_lt O_star R) (Ai A i ∘ R_pi O_star) +
+                    sumR 0 d (leq0n d) (fun ℓ =>
+                                          Advantage (Gxtr d k H_lt ES ℓ) (Ai A i ∘ R_xtr ES ℓ erefl) +
+                                          Advantage (Gxtr d k H_lt HS ℓ) (Ai A i ∘ R_xtr HS ℓ erefl) +
+                                          Advantage (Gxtr d k H_lt AS ℓ) (Ai A i ∘ R_xtr AS ℓ erefl) +
+                                            sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (Ai A i ∘ R_xpd n ℓ H_in))%R)
+      ))%R.
+  Proof.
+    intros.
+    unfold sumR_l.
+    rewrite addr0.
+    rewrite addrA.
+
+    eapply Order.le_trans ; [ eapply d2 ; apply H | ].
+
+    eapply Order.le_trans.
+    1:{
+      apply Num.Theory.lerD ; [ easy | ].
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      apply Num.Theory.lerD ; [ | easy ].
+      eapply d3, H.
+    }
+    rewrite !addrA.
+    apply Num.Theory.lerD ; [ easy | ].
+
+    eapply Order.le_trans.
+    1:{
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      instantiate (2 := G_core_R_esalt d k H_lt).
+      rewrite D_to_R_esalt_is_zero.
+      rewrite add0r.
+      eapply d4, H.
+    }
+
+    apply max_leq.
+    intros i.
+
+    eapply Order.le_trans ; [ apply Advantage_triangle | ].
+    eapply Order.le_trans.
+    1:{
+      instantiate (2 := (G_core_SODH d k H_lt)).
+      apply Num.Theory.lerD ; [ | easy ].
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      instantiate (2 := (G_core_R_esalt d k H_lt)).
+      apply Num.Theory.lerD ; [ easy | ].
+      (* erewrite D_to_R_esalt_is_zero. *)
+      (* rewrite add0r. *)
+      erewrite d5 ; [ | apply H0 ].
+      easy.
+    }
+    rewrite <- (addrC (Advantage (λ x : bool, Gsodh d k H_lt x) (Ai A i ∘ R_sodh))).
+    rewrite <- !addrA.
+    apply Num.Theory.lerD ; [ easy | ].
+    rewrite addrA.
+
+    eapply Order.le_trans.
+    1:{
+      apply Num.Theory.lerD ; [ easy | ].
+      eapply Order.le_trans.
+      1: eapply equation20_eq, H ; apply H_gt.
+
+      apply Num.Theory.lerD ; [ easy | ].
+      apply sumR_leq.
+      intros.
+      rewrite addn1.
+      eapply d6 ; [ apply H0 | ].
+      apply H1.
+    }
+
+    rewrite addrA.
+    rewrite <- (addrC (AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i))).
+    rewrite <- (addrA (AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i))).
+    apply Num.Theory.lerD.
+    1:{
+      eapply Order.le_trans.
+      1: eapply d7, H.
+      easy.
+    }
+
+    rewrite D_to_R_esalt_is_zero.
+    rewrite add0r.
+    easy.
   Qed.
 
 End CoreTheorem.
+
+(* Why does this work with d = 0? *)
