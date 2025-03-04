@@ -179,7 +179,7 @@ fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, u
     let binders_len = binders.len();
     let ext = bytes2(0, 41).concat(encode_length_u16(identities.concat(binders))?);
     let ext_len = ext.len();
-    Ok((ext, ext_len+binders_len+199-16-82))
+    Ok((ext, ext_len + binders_len + 199 - 16 - 82))
 }
 
 fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(Bytes, Bytes), TLSError> {
@@ -191,7 +191,7 @@ fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(Bytes, Bytes), 
         if ch.len() - 5 - len_id != algs.hash().hash_len() {
             tlserr(parse_failed())
         } else {
-            Ok((Bytes::from(&ch[4..4+len_tkt]), Bytes::from([0; 0])))
+            Ok((Bytes::from(&ch[4..4 + len_tkt]), Bytes::from([0; 0])))
         }
     } else {
         tlserr(parse_failed())
@@ -291,13 +291,16 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
                 Err(_) => tlserr(MISSING_KEY_SHARE),
             },
             (0, 41) => {
-                let (tkt,binder) = check_psk_shared_key(algs, &bytes[4..4 + len])?;
-                Ok((4 + len, Extensions {
-                    sni: None,
-                    key_share: None,
-                    ticket: Some(tkt),
-                    binder: Some(binder),
-                }))
+                let (tkt, binder) = check_psk_shared_key(algs, &bytes[4..4 + len])?;
+                Ok((
+                    4 + len,
+                    Extensions {
+                        sni: None,
+                        key_share: None,
+                        ticket: Some(tkt),
+                        binder: Some(binder),
+                    },
+                ))
             }
             _ => Ok((4 + len, out)),
         }
