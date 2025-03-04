@@ -82,7 +82,7 @@ Definition fin_L_table : finType :=
 Definition chL_table := 'fin #|fin_L_table|.
 
 Class Dependencies := {
-    PrntN: name -> code fset0 fset0 (chName × chName) ;
+    (* PrntN: name -> (* code fset0 fset0 *) (chProd chName chName) ; *)
     Labels : name -> bool -> code fset0 fset0 chLabel ;
     (* O_star : list name ; *)
     xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey ;
@@ -110,6 +110,56 @@ Class Dependencies := {
     DHGEN_function : chGroup -> code fset0 fset0 chGroup ;
     DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle ;
   }.
+
+Definition PrntN (n : name) : chProd chName chName :=
+  let (a,b) :=
+    match n with
+    | ES => (ZERO_SALT, PSK)
+    | EEM | CET | ESALT | BIND => (ES, BOT)
+    | BINDER => (BIND, BOT)
+    | HS => (ESALT, DH)
+    | SHT | CHT | HSALT => (HS, BOT)
+    | AS => (HSALT, ZERO_IKM)
+    | CAT | SAT | RM | EAM => (AS, BOT)
+    | PSK => (RM, BOT)
+    | _ => (BOT, BOT)
+    end
+  in (name_to_chName a, name_to_chName b).
+
+Lemma TlsLikeKeySchedule :
+  (ZERO_SALT \in all_names)
+  /\ (PSK \in all_names)
+  /\ (ES \in all_names)
+  /\ (ESALT \in all_names)
+  /\ (DH \in all_names)
+  /\ (HS \in all_names)
+  /\ (HSALT \in all_names)
+  /\ (ZERO_IKM \in all_names)
+  /\ (AS \in all_names)
+  /\ (RM \in all_names)
+  (* Maps 0salt, dh and 0ikm to (⊥,⊥) *)
+  /\ PrntN ZERO_SALT = (name_to_chName BOT, name_to_chName BOT)
+  /\ PrntN DH = (name_to_chName BOT, name_to_chName BOT)
+  /\ PrntN ZERO_IKM = (name_to_chName BOT, name_to_chName BOT)
+  (* Maps es, hs and as by *)
+  /\ PrntN ES = (name_to_chName ZERO_SALT, name_to_chName PSK)
+  /\ PrntN HS = (name_to_chName ESALT, name_to_chName DH)
+  /\ PrntN AS = (name_to_chName HSALT, name_to_chName ZERO_IKM)
+  (* Remaining names *)
+  /\ forall n,
+      n \notin [:: ZERO_SALT; DH; ZERO_IKM; ES; HS; AS] ->
+      n \in all_names ->
+      exists n1, ((PrntN n = (name_to_chName n1, name_to_chName BOT)) /\ (n1 != BOT)).
+Proof.
+  repeat split.
+  intros.
+  rewrite !in_cons in H1.
+  rewrite !notin_cons in H0.
+  repeat (move: H0 => /andP [ /eqP ] ? H0) ; clear H0.
+  repeat (move: H1 => /orP [ /eqP ? | H1 ] ; subst) ; [ .. | discriminate ].
+  all: try contradiction.
+  all: try (eexists ; split ; [ reflexivity | apply /eqP ; try discriminate ]).
+Qed.
 
 Definition chFinGroup : finGroupType :=
   {| FinGroup.sort := chGroup; FinGroup.class := chGroup_is_finGroup |}.
