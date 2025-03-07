@@ -27,11 +27,6 @@ impl RngCore for TestRng {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         dest.copy_from_slice(self.bytes.drain(0..dest.len()).as_ref());
     }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
-        dest.copy_from_slice(self.bytes.drain(0..dest.len()).as_ref());
-        Ok(())
-    }
 }
 
 impl CryptoRng for TestRng {}

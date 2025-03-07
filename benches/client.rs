@@ -25,7 +25,7 @@ use bertie::{
     tls13utils::Bytes,
     Client, Server,
 };
-use libcrux::{digest, drbg::Drbg};
+use rand::RngCore;
 
 fn hs_per_second(d: Duration) -> f64 {
     // ITERATIONS per d
@@ -159,7 +159,7 @@ fn protocol() {
     println!("Client");
 
     for ciphersuite in CIPHERSUITES {
-        let mut rng = Drbg::new(digest::Algorithm::Sha256).unwrap();
+        let mut rng = rand::rng();
 
         // Server
         let server_name_str = "localhost";
@@ -178,7 +178,8 @@ fn protocol() {
 
         let mut handshake_time = Duration::ZERO;
         let mut application_time = Duration::ZERO;
-        let payload = rng.generate_vec(NUM_PAYLOAD_BYTES).unwrap();
+        let mut payload = vec![0u8; NUM_PAYLOAD_BYTES];
+        rng.fill_bytes(&mut payload);
         let mut size1: usize = 0;
         let mut size2: usize = 0;
         let mut size3: usize = 0;

@@ -235,7 +235,7 @@ impl BertieStream<ClientState<TcpStream>> {
 
 #[cfg(test)]
 mod tests {
-    use rand::thread_rng;
+    use rand::{self, rng};
 
     use crate::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
 
@@ -250,7 +250,7 @@ mod tests {
             host,
             port,
             SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
-            &mut thread_rng(),
+            &mut rng(),
         )
         .expect("Error connecting to server");
 

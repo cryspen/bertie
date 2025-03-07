@@ -7,7 +7,6 @@ use bertie::{
     tls13crypto::{Algorithms, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519},
     tls13utils::*,
 };
-use rand::thread_rng;
 use record::AppError;
 use tracing::{error, event, Level};
 
@@ -66,7 +65,7 @@ fn main() -> anyhow::Result<()> {
     event!(Level::DEBUG, "  {ciphersuite:#?}");
 
     // Initiate HTTPS connection to host:port.
-    let mut stream = BertieStream::client(&host, port, ciphersuite, &mut thread_rng())
+    let mut stream = BertieStream::client(&host, port, ciphersuite, &mut rand::rng())
         .expect("Error connecting to server");
 
     // Send HTTP GET
