@@ -301,7 +301,7 @@ val check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u
           with
           | Core.Result.Result_Ok (len, out) -> len >=. mk_usize 4
           | _ -> true)
-      (decreases Seq.length b)
+(decreases Seq.length b)
 
 /// ```TLS
 /// enum {
@@ -624,7 +624,20 @@ val client_hello
     : Prims.Pure
       (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result
+            (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8 =
+            result
+          in
+          match
+            result
+            <:
+            Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
+          with
+          | Core.Result.Result_Ok (ch, tl) ->
+            tl <=. (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len ch <: usize)
+          | _ -> true)
 
 val set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
@@ -831,7 +844,7 @@ val find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
-      (decreases Seq.length ch)
+(decreases Seq.length ch)
 
 val check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -854,7 +867,7 @@ val check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice 
     : Prims.Pure (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
-      (decreases Seq.length b)
+(decreases Seq.length b)
 
 val parse_server_hello
       (algs: Bertie.Tls13crypto.t_Algorithms)
@@ -866,7 +879,7 @@ val parse_server_hello
 /// For termination, needs: (decreases Seq.length b)
 val check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8) Prims.l_True (fun _ -> Prims.l_True)
-     (decreases Seq.length b)
+(decreases Seq.length b)
 
 val check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8) Prims.l_True (fun _ -> Prims.l_True)

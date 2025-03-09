@@ -537,6 +537,9 @@ fn get_psk_extensions(
 /// Build a ClientHello message.
 #[hax_lib::pv_constructor]
 #[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok((ch,tl)) => tl <= ch.len(),
+                                _ => true})]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
