@@ -76,6 +76,7 @@ impl U8 {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) trait Declassify<T> {
     fn declassify(self) -> T;
 }

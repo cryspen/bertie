@@ -255,8 +255,7 @@ pub(crate) fn aead_encrypt(
     // We only support Chacha20Poly1305 right now.
     let key = k
         .bytes
-        .as_raw()
-        .try_into()
+        .declassify_array()
         .map_err(|_| INCORRECT_ARRAY_LENGTH)?;
 
     let mut ctxt = vec![0u8; plain.len()];
@@ -294,8 +293,7 @@ pub(crate) fn aead_decrypt(
     let tag: [u8; 16] = tag.declassify_array()?;
     let key = k
         .bytes
-        .as_raw()
-        .try_into()
+        .declassify_array()
         .map_err(|_| INCORRECT_ARRAY_LENGTH)?;
     let mut ptxt = vec![0u8; ctxt.len()];
 

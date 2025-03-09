@@ -70,6 +70,7 @@ cargo_hax_into = [
     "-p",
     "rand_core",
     "--no-default-features",
+    "-F std",
     ";",
     "into",
 ]
