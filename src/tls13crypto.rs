@@ -91,6 +91,7 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
+#[hax_lib::attributes]
 impl HashAlgorithm {
     /// Get the libcrux hash algorithm
     fn libcrux_algorithm(&self) -> Result<Sha2Algorithm, TLSError> {
@@ -115,6 +116,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hash digest.
+    #[hax_lib::ensures(|result| result <= 64)]
     pub(crate) fn hash_len(&self) -> usize {
         match self {
             HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),

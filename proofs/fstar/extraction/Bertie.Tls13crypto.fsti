@@ -21,7 +21,7 @@ type t_RsaVerificationKey = {
 }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Fmt.t_Debug t_RsaVerificationKey
+val impl_5:Core.Fmt.t_Debug t_RsaVerificationKey
 
 /// Bertie public verification keys.
 type t_PublicVerificationKey =
@@ -29,7 +29,7 @@ type t_PublicVerificationKey =
   | PublicVerificationKey_Rsa : t_RsaVerificationKey -> t_PublicVerificationKey
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Fmt.t_Debug t_PublicVerificationKey
+val impl_6:Core.Fmt.t_Debug t_PublicVerificationKey
 
 /// Bertie hash algorithms.
 type t_HashAlgorithm =
@@ -41,19 +41,19 @@ val t_HashAlgorithm_cast_to_repr (x: t_HashAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8:Core.Clone.t_Clone t_HashAlgorithm
+val impl_7:Core.Clone.t_Clone t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Marker.t_Copy t_HashAlgorithm
+val impl_8:Core.Marker.t_Copy t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
+val impl_9:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
+val impl_10:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Fmt.t_Debug t_HashAlgorithm
+val impl_11:Core.Fmt.t_Debug t_HashAlgorithm
 
 /// Get the libcrux hash algorithm
 val impl_HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
@@ -68,15 +68,20 @@ val impl_HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-/// Get the size of the hash digest.
-val impl_HashAlgorithm__hash_len (self: t_HashAlgorithm)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
-
 /// Get the libcrux hmac algorithm.
 val impl_HashAlgorithm__hmac_algorithm (self: t_HashAlgorithm)
     : Prims.Pure (Core.Result.t_Result Libcrux_hmac.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+
+/// Get the size of the hash digest.
+val impl_HashAlgorithm__hash_len (self: t_HashAlgorithm)
+    : Prims.Pure usize
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:usize = result in
+          result <=. mk_usize 64)
 
 /// Get the size of the hmac tag.
 val impl_HashAlgorithm__hmac_tag_len (self: t_HashAlgorithm)
@@ -428,7 +433,7 @@ val impl_Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
 val impl_35:Core.Convert.t_TryFrom t_Algorithms string
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Fmt.t_Display t_Algorithms
+val impl_4:Core.Fmt.t_Display t_Algorithms
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with
