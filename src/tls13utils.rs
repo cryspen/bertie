@@ -1,11 +1,8 @@
 use core::ops::Range;
 
-<<<<<<< HEAD
-=======
 #[cfg(feature = "hax-fstar")]
 use hax_lib::{attributes, requires};
 
->>>>>>> main
 use crate::std::{format, string::String, vec, vec::Vec};
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
@@ -86,11 +83,8 @@ impl U8 {
     }
 }
 
-<<<<<<< HEAD
 #[hax_lib::attributes]
-=======
 #[allow(dead_code)]
->>>>>>> main
 pub(crate) trait Declassify<T> {
     #[requires(true)]
     fn declassify(self) -> T;
@@ -500,12 +494,9 @@ macro_rules! bytes_concat {
 }
 pub(crate) use bytes_concat;
 
-<<<<<<< HEAD
-=======
 #[cfg(feature = "hax-pv")]
 use hax_lib::{pv_constructor, pv_handwritten};
 
->>>>>>> main
 impl Bytes {
     /// Get a hex representation of self as [`String`].
     #[cfg(test)]
