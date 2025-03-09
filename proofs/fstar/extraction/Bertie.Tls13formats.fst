@@ -2993,51 +2993,96 @@ let parse_server_hello
                           | Core.Result.Result_Ok _ ->
                             let next:usize = next +! mk_usize 1 in
                             (match
-                                Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl_Bytes__slice_range
-                                      server_hello
-                                      ({
-                                          Core.Ops.Range.f_start = next;
-                                          Core.Ops.Range.f_end
-                                          =
-                                          Bertie.Tls13utils.impl_Bytes__len server_hello <: usize
-                                        }
-                                        <:
-                                        Core.Ops.Range.t_Range usize)
+                                Bertie.Tls13utils.check ((Bertie.Tls13utils.impl_Bytes__len server_hello
+
+                                      <:
+                                      usize) >=.
+                                    next
                                     <:
-                                    Bertie.Tls13utils.t_Bytes)
+                                    bool)
                                 <:
                                 Core.Result.t_Result Prims.unit u8
                               with
                               | Core.Result.Result_Ok _ ->
-                                let next:usize = next +! mk_usize 2 in
                                 (match
-                                    check_server_extensions algs
-                                      (server_hello.[ {
-                                            Core.Ops.Range.f_start = next;
-                                            Core.Ops.Range.f_end
-                                            =
-                                            Bertie.Tls13utils.impl_Bytes__len server_hello <: usize
-                                          }
-                                          <:
-                                          Core.Ops.Range.t_Range usize ]
+                                    Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl_Bytes__slice_range
+                                          server_hello
+                                          ({
+                                              Core.Ops.Range.f_start = next;
+                                              Core.Ops.Range.f_end
+                                              =
+                                              Bertie.Tls13utils.impl_Bytes__len server_hello
+                                              <:
+                                              usize
+                                            }
+                                            <:
+                                            Core.Ops.Range.t_Range usize)
                                         <:
-                                        t_Slice u8)
+                                        Bertie.Tls13utils.t_Bytes)
                                     <:
-                                    Core.Result.t_Result
-                                      (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+                                    Core.Result.t_Result Prims.unit u8
                                   with
-                                  | Core.Result.Result_Ok gy ->
-                                    (match gy <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes with
-                                      | Core.Option.Option_Some gy ->
-                                        Core.Result.Result_Ok
-                                        (srand, gy
-                                          <:
-                                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+                                  | Core.Result.Result_Ok _ ->
+                                    let next:usize = next +! mk_usize 2 in
+                                    (match
+                                        Bertie.Tls13utils.check ((Bertie.Tls13utils.impl_Bytes__len server_hello
+
+                                              <:
+                                              usize) >=.
+                                            next
+                                            <:
+                                            bool)
                                         <:
-                                        Core.Result.t_Result
-                                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
-                                      | _ ->
-                                        Core.Result.Result_Err Bertie.Tls13utils.v_MISSING_KEY_SHARE
+                                        Core.Result.t_Result Prims.unit u8
+                                      with
+                                      | Core.Result.Result_Ok _ ->
+                                        (match
+                                            check_server_extensions algs
+                                              (server_hello.[ {
+                                                    Core.Ops.Range.f_start = next;
+                                                    Core.Ops.Range.f_end
+                                                    =
+                                                    Bertie.Tls13utils.impl_Bytes__len server_hello
+                                                    <:
+                                                    usize
+                                                  }
+                                                  <:
+                                                  Core.Ops.Range.t_Range usize ]
+                                                <:
+                                                t_Slice u8)
+                                            <:
+                                            Core.Result.t_Result
+                                              (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
+                                          with
+                                          | Core.Result.Result_Ok gy ->
+                                            (match
+                                                gy <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+                                              with
+                                              | Core.Option.Option_Some gy ->
+                                                Core.Result.Result_Ok
+                                                (srand, gy
+                                                  <:
+                                                  (Bertie.Tls13utils.t_Bytes &
+                                                    Bertie.Tls13utils.t_Bytes))
+                                                <:
+                                                Core.Result.t_Result
+                                                  (Bertie.Tls13utils.t_Bytes &
+                                                    Bertie.Tls13utils.t_Bytes) u8
+                                              | _ ->
+                                                Core.Result.Result_Err
+                                                Bertie.Tls13utils.v_MISSING_KEY_SHARE
+                                                <:
+                                                Core.Result.t_Result
+                                                  (Bertie.Tls13utils.t_Bytes &
+                                                    Bertie.Tls13utils.t_Bytes) u8)
+                                          | Core.Result.Result_Err err ->
+                                            Core.Result.Result_Err err
+                                            <:
+                                            Core.Result.t_Result
+                                              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes
+                                              ) u8)
+                                      | Core.Result.Result_Err err ->
+                                        Core.Result.Result_Err err
                                         <:
                                         Core.Result.t_Result
                                           (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8

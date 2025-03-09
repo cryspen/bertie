@@ -147,7 +147,7 @@ fn key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(encode_length_u16(encode_length_u16(ks)?)?.prefix(PREFIX))
 }
 
-/// Needs decreases clause
+/// Needs: (decreases (Seq.length ch))
 #[hax_lib::fstar::verification_status(lax)]
 fn find_key_share(g: &Bytes, ch: &[U8]) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
@@ -335,6 +335,7 @@ fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<
     }
 }
 
+/// For termination, needs: (decreases Seq.length b)
 #[inline(always)]
 fn check_extensions_slice(algs: &Algorithms, b: &[U8]) -> Result<Extensions, TLSError> {
     let (len, out) = check_extension(algs, b)?;
@@ -356,6 +357,7 @@ fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError
     }
 }
 
+/// For termination, needs: (decreases Seq.length b)
 fn check_server_extensions(algs: &Algorithms, b: &[U8]) -> Result<Option<Bytes>, TLSError> {
     let (len, out) = check_server_extension(algs, b)?;
     if len == b.len() {
@@ -800,8 +802,10 @@ pub(crate) fn parse_server_hello(
         Err(_) => invalid_compression_method_alert(),
     })?;
     next += 1;
+    check(server_hello.len() >= next)?;
     check_length_encoding_u16(&server_hello.slice_range(next..server_hello.len()))?;
     next += 2;
+    check(server_hello.len() >= next)?;
     let gy = check_server_extensions(algs, &server_hello[next..server_hello.len()])?;
     if let Some(gy) = gy {
         Ok((srand, gy))

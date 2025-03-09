@@ -232,7 +232,9 @@ impl Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl From<&[u8]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == x.len())]
     fn from(x: &[u8]) -> Bytes {
         x.to_vec().into()
     }
@@ -245,13 +247,17 @@ impl From<&[U8]> for Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl<const C: usize> From<[u8; C]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == C)]
     fn from(x: [u8; C]) -> Bytes {
         x.to_vec().into()
     }
 }
 
+#[hax_lib::attributes]
 impl<const C: usize> From<&[u8; C]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == C)]
     fn from(x: &[u8; C]) -> Bytes {
         x.to_vec().into()
     }
@@ -512,6 +518,10 @@ impl Bytes {
 }
 
 /// Convert the bool `b` into a Result.
+#[hax_lib::ensures(|result| match result {
+                             Result::Ok(()) => b == true,
+                              _ => true
+                    })]
 pub(crate) fn check(b: bool) -> Result<(), TLSError> {
     if b {
         Ok(())

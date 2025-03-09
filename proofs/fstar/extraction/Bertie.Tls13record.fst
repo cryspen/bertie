@@ -96,10 +96,10 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
           let i:usize = i in
           let iv_ctr:Bertie.Tls13utils.t_Bytes =
             Rust_primitives.Hax.update_at iv_ctr
-              ((i +! (Bertie.Tls13utils.impl_Bytes__len iv <: usize) <: usize) -! mk_usize 8
+              (i +! ((Bertie.Tls13utils.impl_Bytes__len iv <: usize) -! mk_usize 8 <: usize)
                 <:
                 usize)
-              ((iv.[ (i +! (Bertie.Tls13utils.impl_Bytes__len iv <: usize) <: usize) -! mk_usize 8
+              ((iv.[ i +! ((Bertie.Tls13utils.impl_Bytes__len iv <: usize) -! mk_usize 8 <: usize)
                     <:
                     usize ]
                   <:
