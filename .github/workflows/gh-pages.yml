@@ -41,7 +41,7 @@ jobs:
           done
 
       - name: Upload Documentation Artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: "target/doc"
 
@@ -56,4 +56,4 @@ jobs:
     steps:
       - name: Deploy Documentation to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

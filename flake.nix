@@ -8,21 +8,25 @@
     };
     hax.url = "github:hacspec/hax";
   };
-  outputs =
-    inputs:
-    inputs.flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        hax = inputs.hax.packages.${system}.default;
-        pkgs = import inputs.nixpkgs { inherit system; };
-        craneLib = inputs.crane.mkLib pkgs;
-        src = ./.;
-        cargoArtifacts = craneLib.buildDepsOnly { inherit src; };
-        bertie = craneLib.buildPackage {
+  outputs = inputs: inputs.flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = import inputs.nixpkgs { inherit system; };
+      # Make an overrideable package.
+      bertie = { python3, craneLib, hax, runCommand, cargoLock }:
+        let
+          src = runCommand "bertie-src" { } ''
+            cp -r ${./.} $out
+            chmod u+w $out
+            rm -f $out/Cargo.lock
+            cp ${cargoLock} $out/Cargo.lock
+          '';
+          cargoArtifacts = craneLib.buildDepsOnly { inherit src; };
+        in
+        craneLib.buildPackage {
           inherit src cargoArtifacts;
           buildInputs = [
             hax
-            pkgs.python3
+            python3
           ];
           buildPhase = ''
             python hax-driver.py extract-fstar
@@ -31,9 +35,13 @@
           installPhase = "cp -r . $out";
           doCheck = false;
         };
-      in
-      {
-        packages.default = bertie;
-      }
-    );
+      hax = inputs.hax.packages.${system}.default;
+      craneLib = inputs.crane.mkLib pkgs;
+    in
+    {
+      # Takes the lockfile as input.
+      packages.default = cargoLock: pkgs.callPackage bertie { inherit hax craneLib cargoLock; };
+      devShells.default = craneLib.devShell { };
+    }
+  );
 }

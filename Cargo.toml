@@ -17,12 +17,12 @@ backtrace = "0.3.0"
 rand = "0.8.0"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = { git = "https://github.com/cryspen/libcrux", features = ["kyber"]}
+libcrux-kem = { git = "https://github.com/cryspen/libcrux", features = ["kyber"], rev = "2a3e2f22ec9e1f1f4ecf317338408b873e7f538a"}
 libcrux = { git = "https://github.com/cryspen/libcrux", features = [
     "rand",
-]}
-hax-lib = { git = "https://github.com/hacspec/hax/", branch= "pq11-fstar-libs" }
-
+], rev = "2a3e2f22ec9e1f1f4ecf317338408b873e7f538a"}
+hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
+hax-lib = { git = "https://github.com/hacspec/hax" }
 
 [features]
 default = ["api", "std"]
