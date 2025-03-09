@@ -719,13 +719,12 @@ let compute_psk_binder_zero_rtt
         Bertie.Tls13formats.t_Transcript) u8
 
 let build_client_hello
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (sn: Bertie.Tls13utils.t_Bytes)
       (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
   let tx:Bertie.Tls13formats.t_Transcript =
     Bertie.Tls13formats.impl_Transcript__new (Bertie.Tls13crypto.impl_Algorithms__hash ciphersuite
@@ -733,19 +732,19 @@ let build_client_hello
         Bertie.Tls13crypto.t_HashAlgorithm)
   in
   let client_random:t_Array u8 (mk_usize 32) = Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 32) in
-  let tmp0, tmp1:(iimpl_916461611_ & t_Array u8 (mk_usize 32)) =
-    Rand_core.f_fill_bytes #iimpl_916461611_ #FStar.Tactics.Typeclasses.solve rng client_random
+  let tmp0, tmp1:(iimpl_447424039_ & t_Array u8 (mk_usize 32)) =
+    Rand_core.f_fill_bytes #iimpl_447424039_ #FStar.Tactics.Typeclasses.solve rng client_random
   in
-  let rng:iimpl_916461611_ = tmp0 in
+  let rng:iimpl_447424039_ = tmp0 in
   let client_random:t_Array u8 (mk_usize 32) = tmp1 in
   let _:Prims.unit = () in
-  let tmp0, out:(iimpl_916461611_ &
+  let tmp0, out:(iimpl_447424039_ &
     Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-    Bertie.Tls13crypto.kem_keygen #iimpl_916461611_
+    Bertie.Tls13crypto.kem_keygen #iimpl_447424039_
       (Bertie.Tls13crypto.impl_Algorithms__kem ciphersuite <: Bertie.Tls13crypto.t_KemScheme)
       rng
   in
-  let rng:iimpl_916461611_ = tmp0 in
+  let rng:iimpl_447424039_ = tmp0 in
   match out <: Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 with
   | Core.Result.Result_Ok (kem_sk, kem_pk) ->
     (match
@@ -798,7 +797,7 @@ let build_client_hello
             in
             rng, hax_temp_output
             <:
-            (iimpl_916461611_ &
+            (iimpl_447424039_ &
               Core.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -812,7 +811,7 @@ let build_client_hello
                   Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   t_ClientPostClientHello) u8)
             <:
-            (iimpl_916461611_ &
+            (iimpl_447424039_ &
               Core.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -826,7 +825,7 @@ let build_client_hello
               Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               t_ClientPostClientHello) u8)
         <:
-        (iimpl_916461611_ &
+        (iimpl_447424039_ &
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -840,7 +839,7 @@ let build_client_hello
           Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           t_ClientPostClientHello) u8)
     <:
-    (iimpl_916461611_ &
+    (iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -1283,22 +1282,21 @@ let get_client_finished (handshake_state: t_ClientPostServerFinished) =
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8
 
 let client_init
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (sn: Bertie.Tls13utils.t_Bytes)
       (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
-  let tmp0, out:(iimpl_916461611_ &
+  let tmp0, out:(iimpl_447424039_ &
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
         t_ClientPostClientHello) u8) =
-    build_client_hello #iimpl_916461611_ algs sn tkt psk rng
+    build_client_hello #iimpl_447424039_ algs sn tkt psk rng
   in
-  let rng:iimpl_916461611_ = tmp0 in
+  let rng:iimpl_447424039_ = tmp0 in
   let hax_temp_output:Core.Result.t_Result
     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
       Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -1307,7 +1305,7 @@ let client_init
   in
   rng, hax_temp_output
   <:
-  (iimpl_916461611_ &
+  (iimpl_447424039_ &
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -1652,27 +1650,26 @@ let put_client_hello
       (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8
 
 let get_server_hello
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (state: t_ServerPostClientHello)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
   let server_random:t_Array u8 (mk_usize 32) = Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 32) in
-  let tmp0, tmp1:(iimpl_916461611_ & t_Array u8 (mk_usize 32)) =
-    Rand_core.f_fill_bytes #iimpl_916461611_ #FStar.Tactics.Typeclasses.solve rng server_random
+  let tmp0, tmp1:(iimpl_447424039_ & t_Array u8 (mk_usize 32)) =
+    Rand_core.f_fill_bytes #iimpl_447424039_ #FStar.Tactics.Typeclasses.solve rng server_random
   in
-  let rng:iimpl_916461611_ = tmp0 in
+  let rng:iimpl_447424039_ = tmp0 in
   let server_random:t_Array u8 (mk_usize 32) = tmp1 in
   let _:Prims.unit = () in
-  let tmp0, out:(iimpl_916461611_ &
+  let tmp0, out:(iimpl_447424039_ &
     Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
-    Bertie.Tls13crypto.kem_encap #iimpl_916461611_
+    Bertie.Tls13crypto.kem_encap #iimpl_447424039_
       state.f_ciphersuite.Bertie.Tls13crypto.f_kem
       state.f_gx
       rng
   in
-  let rng:iimpl_916461611_ = tmp0 in
+  let rng:iimpl_447424039_ = tmp0 in
   match out <: Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 with
   | Core.Result.Result_Ok (shared_secret, gy) ->
     (match
@@ -1748,7 +1745,7 @@ let get_server_hello
                 in
                 rng, hax_temp_output
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherStateH &
@@ -1762,7 +1759,7 @@ let get_server_hello
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       t_ServerPostServerHello) u8)
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherStateH &
@@ -1776,7 +1773,7 @@ let get_server_hello
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   t_ServerPostServerHello) u8)
             <:
-            (iimpl_916461611_ &
+            (iimpl_447424039_ &
               Core.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherStateH &
@@ -1790,7 +1787,7 @@ let get_server_hello
               Bertie.Tls13record.t_DuplexCipherStateH &
               t_ServerPostServerHello) u8)
         <:
-        (iimpl_916461611_ &
+        (iimpl_447424039_ &
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherStateH &
@@ -1804,18 +1801,17 @@ let get_server_hello
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8)
     <:
-    (iimpl_916461611_ &
+    (iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8)
 
 let get_rsa_signature
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (cert sk sigval: Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
   match
     Bertie.Tls13cert.verification_key_from_cert cert
@@ -1830,8 +1826,8 @@ let get_rsa_signature
         Core.Result.t_Result Bertie.Tls13crypto.t_RsaVerificationKey u8
       with
       | Core.Result.Result_Ok pk ->
-        let tmp0, out:(iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
-          Bertie.Tls13crypto.sign_rsa #iimpl_916461611_
+        let tmp0, out:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
+          Bertie.Tls13crypto.sign_rsa #iimpl_447424039_
             sk
             pk.Bertie.Tls13crypto.f_modulus
             pk.Bertie.Tls13crypto.f_exponent
@@ -1839,26 +1835,25 @@ let get_rsa_signature
             sigval
             rng
         in
-        let rng:iimpl_916461611_ = tmp0 in
+        let rng:iimpl_447424039_ = tmp0 in
         let hax_temp_output:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = out in
         rng, hax_temp_output
         <:
-        (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       | Core.Result.Result_Err err ->
         rng, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         <:
-        (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+        (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
   | Core.Result.Result_Err err ->
     rng, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
     <:
-    (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
 
 let get_server_signature_no_psk
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (state: t_ServerPostServerHello)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
   match
     Bertie.Tls13formats.encrypted_extensions state.f_ciphersuite
@@ -1893,7 +1888,7 @@ let get_server_signature_no_psk
                   Bertie.Tls13utils.t_Bytes)
                 transcript_hash
             in
-            let rng, hoist101:(iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+            let rng, hoist101:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             =
               match
                 Bertie.Tls13crypto.impl_Algorithms__signature state.f_ciphersuite
@@ -1901,9 +1896,9 @@ let get_server_signature_no_psk
                 Bertie.Tls13crypto.t_SignatureScheme
               with
               | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
-                let tmp0, out:(iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                let tmp0, out:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 =
-                  Bertie.Tls13crypto.sign #iimpl_916461611_
+                  Bertie.Tls13crypto.sign #iimpl_447424039_
                     (Bertie.Tls13crypto.impl_Algorithms__signature state.f_ciphersuite
                       <:
                       Bertie.Tls13crypto.t_SignatureScheme)
@@ -1911,26 +1906,26 @@ let get_server_signature_no_psk
                     sigval
                     rng
                 in
-                let rng:iimpl_916461611_ = tmp0 in
-                rng, out <: (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                let rng:iimpl_447424039_ = tmp0 in
+                rng, out <: (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               | Bertie.Tls13crypto.SignatureScheme_RsaPssRsaSha256  ->
-                let tmp0, out:(iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                let tmp0, out:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 =
-                  get_rsa_signature #iimpl_916461611_
+                  get_rsa_signature #iimpl_447424039_
                     state.f_server.Bertie.Server.f_cert
                     state.f_server.Bertie.Server.f_sk
                     sigval
                     rng
                 in
-                let rng:iimpl_916461611_ = tmp0 in
-                rng, out <: (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                let rng:iimpl_447424039_ = tmp0 in
+                rng, out <: (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               | Bertie.Tls13crypto.SignatureScheme_ED25519  ->
                 rng,
                 (Core.Result.Result_Err Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
                   <:
                   Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             in
             (match hoist101 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
               | Core.Result.Result_Ok sig ->
@@ -1975,7 +1970,7 @@ let get_server_signature_no_psk
                     in
                     rng, hax_temp_output
                     <:
-                    (iimpl_916461611_ &
+                    (iimpl_447424039_ &
                       Core.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -1991,7 +1986,7 @@ let get_server_signature_no_psk
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ServerPostCertificateVerify) u8)
                     <:
-                    (iimpl_916461611_ &
+                    (iimpl_447424039_ &
                       Core.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2007,7 +2002,7 @@ let get_server_signature_no_psk
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       t_ServerPostCertificateVerify) u8)
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2023,7 +2018,7 @@ let get_server_signature_no_psk
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   t_ServerPostCertificateVerify) u8)
             <:
-            (iimpl_916461611_ &
+            (iimpl_447424039_ &
               Core.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2039,7 +2034,7 @@ let get_server_signature_no_psk
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               t_ServerPostCertificateVerify) u8)
         <:
-        (iimpl_916461611_ &
+        (iimpl_447424039_ &
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2055,7 +2050,7 @@ let get_server_signature_no_psk
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           t_ServerPostCertificateVerify) u8)
     <:
-    (iimpl_916461611_ &
+    (iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2063,13 +2058,12 @@ let get_server_signature_no_psk
           t_ServerPostCertificateVerify) u8)
 
 let get_server_signature
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (state: t_ServerPostServerHello)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
-  let rng, hax_temp_output:(iimpl_916461611_ &
+  let rng, hax_temp_output:(iimpl_447424039_ &
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2077,18 +2071,18 @@ let get_server_signature
         t_ServerPostCertificateVerify) u8) =
     if ~.(Bertie.Tls13crypto.impl_Algorithms__psk_mode state.f_ciphersuite <: bool)
     then
-      let tmp0, out:(iimpl_916461611_ &
+      let tmp0, out:(iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             t_ServerPostCertificateVerify) u8) =
-        get_server_signature_no_psk #iimpl_916461611_ state rng
+        get_server_signature_no_psk #iimpl_447424039_ state rng
       in
-      let rng:iimpl_916461611_ = tmp0 in
+      let rng:iimpl_447424039_ = tmp0 in
       rng, out
       <:
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2104,7 +2098,7 @@ let get_server_signature
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             t_ServerPostCertificateVerify) u8)
       <:
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2113,7 +2107,7 @@ let get_server_signature
   in
   rng, hax_temp_output
   <:
-  (iimpl_916461611_ &
+  (iimpl_447424039_ &
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2331,13 +2325,12 @@ let put_client_finished
     Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8
 
 let server_init_no_psk
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
   match
     put_client_hello algs ch db
@@ -2346,14 +2339,14 @@ let server_init_no_psk
       (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8
   with
   | Core.Result.Result_Ok (cipher0, st) ->
-    let tmp0, out:(iimpl_916461611_ &
+    let tmp0, out:(iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8) =
-      get_server_hello #iimpl_916461611_ st rng
+      get_server_hello #iimpl_447424039_ st rng
     in
-    let rng:iimpl_916461611_ = tmp0 in
+    let rng:iimpl_447424039_ = tmp0 in
     (match
         out
         <:
@@ -2363,15 +2356,15 @@ let server_init_no_psk
             t_ServerPostServerHello) u8
       with
       | Core.Result.Result_Ok (sh, cipher_hs, st) ->
-        let tmp0, out:(iimpl_916461611_ &
+        let tmp0, out:(iimpl_447424039_ &
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               t_ServerPostCertificateVerify) u8) =
-          get_server_signature #iimpl_916461611_ st rng
+          get_server_signature #iimpl_447424039_ st rng
         in
-        let rng:iimpl_916461611_ = tmp0 in
+        let rng:iimpl_447424039_ = tmp0 in
         (match
             out
             <:
@@ -2428,7 +2421,7 @@ let server_init_no_psk
                 in
                 rng, hax_temp_output
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2448,7 +2441,7 @@ let server_init_no_psk
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2468,7 +2461,7 @@ let server_init_no_psk
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8)
             <:
-            (iimpl_916461611_ &
+            (iimpl_447424039_ &
               Core.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2488,7 +2481,7 @@ let server_init_no_psk
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8)
         <:
-        (iimpl_916461611_ &
+        (iimpl_447424039_ &
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2508,7 +2501,7 @@ let server_init_no_psk
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
     <:
-    (iimpl_916461611_ &
+    (iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2518,13 +2511,12 @@ let server_init_no_psk
           t_ServerPostServerFinished) u8)
 
 let server_init_psk
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
   match
     put_client_hello algs ch db
@@ -2533,14 +2525,14 @@ let server_init_psk
       (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8
   with
   | Core.Result.Result_Ok (cipher0, st) ->
-    let tmp0, out:(iimpl_916461611_ &
+    let tmp0, out:(iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8) =
-      get_server_hello #iimpl_916461611_ st rng
+      get_server_hello #iimpl_447424039_ st rng
     in
-    let rng:iimpl_916461611_ = tmp0 in
+    let rng:iimpl_447424039_ = tmp0 in
     (match
         out
         <:
@@ -2597,7 +2589,7 @@ let server_init_psk
                 in
                 rng, hax_temp_output
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2617,7 +2609,7 @@ let server_init_psk
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
                 <:
-                (iimpl_916461611_ &
+                (iimpl_447424039_ &
                   Core.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2637,7 +2629,7 @@ let server_init_psk
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8)
             <:
-            (iimpl_916461611_ &
+            (iimpl_447424039_ &
               Core.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2657,7 +2649,7 @@ let server_init_psk
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8)
         <:
-        (iimpl_916461611_ &
+        (iimpl_447424039_ &
           Core.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2677,7 +2669,7 @@ let server_init_psk
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
     <:
-    (iimpl_916461611_ &
+    (iimpl_447424039_ &
       Core.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2687,15 +2679,14 @@ let server_init_psk
           t_ServerPostServerFinished) u8)
 
 let server_init
-      (#iimpl_916461611_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_916461611_)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i2: Rand_core.t_RngCore iimpl_916461611_)
+      (#iimpl_447424039_: Type0)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
      =
-  let rng, hax_temp_output:(iimpl_916461611_ &
+  let rng, hax_temp_output:(iimpl_447424039_ &
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2705,7 +2696,7 @@ let server_init
         t_ServerPostServerFinished) u8) =
     match Bertie.Tls13crypto.impl_Algorithms__psk_mode algs <: bool with
     | false ->
-      let tmp0, out:(iimpl_916461611_ &
+      let tmp0, out:(iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2713,12 +2704,12 @@ let server_init
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) =
-        server_init_no_psk #iimpl_916461611_ algs ch db rng
+        server_init_no_psk #iimpl_447424039_ algs ch db rng
       in
-      let rng:iimpl_916461611_ = tmp0 in
+      let rng:iimpl_447424039_ = tmp0 in
       rng, out
       <:
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2727,7 +2718,7 @@ let server_init
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8)
     | true ->
-      let tmp0, out:(iimpl_916461611_ &
+      let tmp0, out:(iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2735,12 +2726,12 @@ let server_init
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) =
-        server_init_psk #iimpl_916461611_ algs ch db rng
+        server_init_psk #iimpl_447424039_ algs ch db rng
       in
-      let rng:iimpl_916461611_ = tmp0 in
+      let rng:iimpl_447424039_ = tmp0 in
       rng, out
       <:
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2751,7 +2742,7 @@ let server_init
   in
   rng, hax_temp_output
   <:
-  (iimpl_916461611_ &
+  (iimpl_447424039_ &
     Core.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &

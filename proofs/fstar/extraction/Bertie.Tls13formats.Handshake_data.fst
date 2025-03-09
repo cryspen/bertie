@@ -25,33 +25,33 @@ let t_HandshakeType_cast_to_repr (x: t_HandshakeType) =
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_2': Core.Clone.t_Clone t_HandshakeType
+val impl_1': Core.Clone.t_Clone t_HandshakeType
+
+let impl_1 = impl_1'
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+assume
+val impl_2': Core.Marker.t_Copy t_HandshakeType
 
 let impl_2 = impl_2'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_3': Core.Marker.t_Copy t_HandshakeType
+val impl_3': Core.Fmt.t_Debug t_HandshakeType
 
 let impl_3 = impl_3'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_4': Core.Fmt.t_Debug t_HandshakeType
+val impl_4': Core.Marker.t_StructuralPartialEq t_HandshakeType
 
 let impl_4 = impl_4'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_5': Core.Marker.t_StructuralPartialEq t_HandshakeType
+val impl_5': Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
 
 let impl_5 = impl_5'
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-assume
-val impl_6': Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
-
-let impl_6 = impl_6'
 
 let get_hs_type (t: u8) =
   match t <: u8 with
@@ -101,10 +101,10 @@ let get_hs_type (t: u8) =
     Core.Result.t_Result t_HandshakeType u8
   | _ -> Bertie.Tls13utils.tlserr #t_HandshakeType (Bertie.Tls13utils.parse_failed () <: u8)
 
-let impl_HandshakeData__len (self: t_HandshakeData) = Bertie.Tls13utils.impl_Bytes__len self._0
-
 let impl_HandshakeData__to_bytes (self: t_HandshakeData) =
   Core.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve self._0
+
+let impl_HandshakeData__len (self: t_HandshakeData) = Bertie.Tls13utils.impl_Bytes__len self._0
 
 let impl_HandshakeData__next_handshake_message (self: t_HandshakeData) =
   if (impl_HandshakeData__len self <: usize) <. mk_usize 4
@@ -163,48 +163,39 @@ let impl_HandshakeData__as_handshake_message
     Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
   with
   | Core.Result.Result_Ok (message, payload_rest) ->
-    (match
-        (if (impl_HandshakeData__len payload_rest <: usize) <>. mk_usize 0
-          then Bertie.Tls13utils.tlserr #t_HandshakeData (Bertie.Tls13utils.parse_failed () <: u8)
-          else Core.Result.Result_Ok message <: Core.Result.t_Result t_HandshakeData u8)
-        <:
-        Core.Result.t_Result t_HandshakeData u8
-      with
-      | Core.Result.Result_Ok (HandshakeData tagged_message_bytes) ->
-        let expected_bytes:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.bytes1 (t_HandshakeType_cast_to_repr expected_type <: u8)
-        in
-        (match
-            Bertie.Tls13utils.check_eq expected_bytes
-              (Bertie.Tls13utils.impl_Bytes__slice_range tagged_message_bytes
-                  ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = mk_usize 1 }
-                    <:
-                    Core.Ops.Range.t_Range usize)
-                <:
-                Bertie.Tls13utils.t_Bytes)
-            <:
-            Core.Result.t_Result Prims.unit u8
-          with
-          | Core.Result.Result_Ok _ ->
-            Core.Result.Result_Ok
-            (HandshakeData
-              (Bertie.Tls13utils.impl_Bytes__slice_range tagged_message_bytes
-                  ({
-                      Core.Ops.Range.f_start = mk_usize 4;
-                      Core.Ops.Range.f_end
-                      =
-                      Bertie.Tls13utils.impl_Bytes__len tagged_message_bytes <: usize
-                    }
-                    <:
-                    Core.Ops.Range.t_Range usize))
+    if (impl_HandshakeData__len payload_rest <: usize) <>. mk_usize 0
+    then Bertie.Tls13utils.tlserr #t_HandshakeData (Bertie.Tls13utils.parse_failed () <: u8)
+    else
+      let HandshakeData tagged_message_bytes:t_HandshakeData = message in
+      (match
+          Bertie.Tls13utils.check_eq1 (Bertie.Tls13utils.v_U8 (t_HandshakeType_cast_to_repr expected_type
+
+                  <:
+                  u8)
               <:
-              t_HandshakeData)
+              u8)
+            (tagged_message_bytes.[ mk_usize 0 ] <: u8)
+          <:
+          Core.Result.t_Result Prims.unit u8
+        with
+        | Core.Result.Result_Ok _ ->
+          Core.Result.Result_Ok
+          (HandshakeData
+            (Bertie.Tls13utils.impl_Bytes__slice_range tagged_message_bytes
+                ({
+                    Core.Ops.Range.f_start = mk_usize 4;
+                    Core.Ops.Range.f_end
+                    =
+                    Bertie.Tls13utils.impl_Bytes__len tagged_message_bytes <: usize
+                  }
+                  <:
+                  Core.Ops.Range.t_Range usize))
             <:
-            Core.Result.t_Result t_HandshakeData u8
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8)
+            t_HandshakeData)
+          <:
+          Core.Result.t_Result t_HandshakeData u8
+        | Core.Result.Result_Err err ->
+          Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8)
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
 
@@ -293,7 +284,7 @@ let impl_HandshakeData__to_four (self: t_HandshakeData) =
     Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl_1: Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes =
+let impl: Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes =
   {
     f_from_pre = (fun (value: Bertie.Tls13utils.t_Bytes) -> true);
     f_from_post = (fun (value: Bertie.Tls13utils.t_Bytes) (out: t_HandshakeData) -> true);
@@ -345,7 +336,7 @@ let rec impl_HandshakeData__find_handshake_message
       (handshake_type: t_HandshakeType)
       (start: usize)
      =
-  if (impl_HandshakeData__len self <: usize) <. (start +! mk_usize 4 <: usize)
+  if ((impl_HandshakeData__len self <: usize) -! start <: usize) <. mk_usize 4
   then false
   else
     match

@@ -216,15 +216,14 @@ val compute_psk_binder_zero_rtt
             Bertie.Tls13formats.t_Transcript) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val build_client_hello
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (sn: Bertie.Tls13utils.t_Bytes)
       (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -268,15 +267,14 @@ val get_client_finished (handshake_state: t_ClientPostServerFinished)
       (fun _ -> Prims.l_True)
 
 val client_init
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (sn: Bertie.Tls13utils.t_Bytes)
       (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
@@ -320,36 +318,33 @@ val put_client_hello
           u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val get_server_hello
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (state: t_ServerPostClientHello)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherStateH &
             t_ServerPostServerHello) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val get_rsa_signature
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (cert sk sigval: Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
-    : Prims.Pure (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      (rng: iimpl_447424039_)
+    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val get_server_signature_no_psk
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (state: t_ServerPostServerHello)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -357,13 +352,12 @@ val get_server_signature_no_psk
             t_ServerPostCertificateVerify) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val get_server_signature
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (state: t_ServerPostServerHello)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -399,15 +393,14 @@ val put_client_finished
       (fun _ -> Prims.l_True)
 
 val server_init_no_psk
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -417,15 +410,14 @@ val server_init_no_psk
             t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val server_init_psk
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -435,15 +427,14 @@ val server_init_psk
             t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val server_init
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
-      (rng: iimpl_916461611_)
+      (rng: iimpl_447424039_)
     : Prims.Pure
-      (iimpl_916461611_ &
+      (iimpl_447424039_ &
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
