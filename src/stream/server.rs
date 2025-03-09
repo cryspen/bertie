@@ -8,7 +8,7 @@ use std::{
     vec::Vec,
 };
 
-use rand::{CryptoRng, RngCore};
+use rand::CryptoRng;
 
 use crate::{
     server::ServerDB,
@@ -183,7 +183,7 @@ impl BertieStream<ServerState<TcpStream>> {
 
     /// Connect the incoming TLS stream.
     /// This function blocks until it was able to read the TLS client hello.
-    pub fn connect(&mut self, rng: &mut (impl RngCore + CryptoRng)) -> Result<(), BertieError> {
+    pub fn connect(&mut self, rng: &mut impl CryptoRng) -> Result<(), BertieError> {
         let client_hello = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
 
         match Server::accept(

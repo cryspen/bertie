@@ -9,11 +9,6 @@ let _ =
   let open Bertie.Tls13utils in
   ()
 
-let impl__ServerDB__new
-      (server_name cert sk: Bertie.Tls13utils.t_Bytes)
-      (psk_opt: Core.Option.t_Option (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
-     = { f_server_name = server_name; f_cert = cert; f_sk = sk; f_psk_opt = psk_opt } <: t_ServerDB
-
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
 val impl_1': Core.Fmt.t_Debug t_ServerDB
@@ -32,6 +27,11 @@ val impl_3': Core.Default.t_Default t_ServerDB
 
 let impl_3 = impl_3'
 
+let impl_ServerDB__new
+      (server_name cert sk: Bertie.Tls13utils.t_Bytes)
+      (psk_opt: Core.Option.t_Option (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+     = { f_server_name = server_name; f_cert = cert; f_sk = sk; f_psk_opt = psk_opt } <: t_ServerDB
+
 let lookup_db
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (db: t_ServerDB)
@@ -39,11 +39,11 @@ let lookup_db
       (tkt: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
      =
   if
-    Bertie.Tls13utils.eq sni (Bertie.Tls13utils.impl__Bytes__new () <: Bertie.Tls13utils.t_Bytes) ||
+    Bertie.Tls13utils.eq sni (Bertie.Tls13utils.impl_Bytes__new () <: Bertie.Tls13utils.t_Bytes) ||
     Bertie.Tls13utils.eq sni db.f_server_name
   then
     match
-      Bertie.Tls13crypto.impl__Algorithms__psk_mode ciphersuite, tkt, db.f_psk_opt
+      Bertie.Tls13crypto.impl_Algorithms__psk_mode ciphersuite, tkt, db.f_psk_opt
       <:
       (bool & Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
         Core.Option.t_Option (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))

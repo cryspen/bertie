@@ -14,22 +14,31 @@ path = "src/lib.rs"
 
 [dependencies]
 backtrace = "0.3.0"
-rand = "0.8.0"
+rand = "0.9"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = { git = "https://github.com/cryspen/libcrux", features = ["kyber"], rev = "2a3e2f22ec9e1f1f4ecf317338408b873e7f538a"}
-libcrux = { git = "https://github.com/cryspen/libcrux", features = [
+libcrux-kem = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux", features = [
+    "kyber",
+] }
+libcrux-sha2 = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux" }
+libcrux-hmac = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux" }
+libcrux-hkdf = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux" }
+libcrux-chacha20poly1305 = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux" }
+libcrux-rsa = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux" }
+libcrux-ed25519 = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux" }
+libcrux-ecdsa = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux", features = [
     "rand",
-], rev = "2a3e2f22ec9e1f1f4ecf317338408b873e7f538a"}
-hax-lib-macros = { git = "https://github.com/hacspec/hax", optional = true }
-hax-lib = { git = "https://github.com/hacspec/hax" }
+] }
+hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
 
 [features]
 default = ["api", "std"]
 std = []
 test_utils = []
 secret_integers = []
-api = []                           # The streaming Rust API that everyone should use but is not hacspec.
+api = []
+hax-fstar = []
+hax-pv = []
 
 [dev-dependencies]
 bertie = { path = ".", features = ["test_utils"] }

@@ -26,6 +26,9 @@ use handshake_data::{HandshakeData, HandshakeType};
 #[cfg(bench)]
 pub use handshake_data::{HandshakeData, HandshakeType};
 
+#[cfg(feature = "hax-pv")]
+use hax_lib::{pv_constructor, pv_handwritten};
+
 // Well Known Constants
 
 pub const LABEL_IV: [u8; 2] = [105, 118];

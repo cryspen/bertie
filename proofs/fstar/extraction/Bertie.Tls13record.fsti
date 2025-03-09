@@ -19,15 +19,27 @@ type t_ClientCipherState0 =
       Bertie.Tls13utils.t_Bytes
     -> t_ClientCipherState0
 
-type t_DuplexCipherState1 =
-  | DuplexCipherState1 :
-      Bertie.Tls13crypto.t_AeadAlgorithm ->
-      Bertie.Tls13crypto.t_AeadKeyIV ->
-      u64 ->
-      Bertie.Tls13crypto.t_AeadKeyIV ->
-      u64 ->
-      Bertie.Tls13utils.t_Bytes
-    -> t_DuplexCipherState1
+/// Build the initial client cipher state.
+val client_cipher_state0
+      (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
+      (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
+      (c: u64)
+      (k: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure t_ClientCipherState0 Prims.l_True (fun _ -> Prims.l_True)
+
+/// The AEAD state of the server with the key, iv, and counter.
+type t_ServerCipherState0 = {
+  f_key_iv:Bertie.Tls13crypto.t_AeadKeyIV;
+  f_counter:u64;
+  f_early_exporter_ms:Bertie.Tls13utils.t_Bytes
+}
+
+/// Create the initial cipher state for the server.
+val server_cipher_state0
+      (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
+      (counter: u64)
+      (early_exporter_ms: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure t_ServerCipherState0 Prims.l_True (fun _ -> Prims.l_True)
 
 /// Duplex cipher state with hello keys.
 type t_DuplexCipherStateH = {
@@ -38,27 +50,22 @@ type t_DuplexCipherStateH = {
 }
 
 /// Create a new state
-val impl__DuplexCipherStateH__new
+val impl_DuplexCipherStateH__new
       (sender_key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
       (sender_counter: u64)
       (receiver_key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
       (receiver_counter: u64)
     : Prims.Pure t_DuplexCipherStateH Prims.l_True (fun _ -> Prims.l_True)
 
-/// The AEAD state of the server with the key, iv, and counter.
-type t_ServerCipherState0 = {
-  f_key_iv:Bertie.Tls13crypto.t_AeadKeyIV;
-  f_counter:u64;
-  f_early_exporter_ms:Bertie.Tls13utils.t_Bytes
-}
-
-/// Build the initial client cipher state.
-val client_cipher_state0
-      (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
-      (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
-      (c: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure t_ClientCipherState0 Prims.l_True (fun _ -> Prims.l_True)
+type t_DuplexCipherState1 =
+  | DuplexCipherState1 :
+      Bertie.Tls13crypto.t_AeadAlgorithm ->
+      Bertie.Tls13crypto.t_AeadKeyIV ->
+      u64 ->
+      Bertie.Tls13crypto.t_AeadKeyIV ->
+      u64 ->
+      Bertie.Tls13utils.t_Bytes
+    -> t_DuplexCipherState1
 
 /// Create the next cipher state.
 val duplex_cipher_state1
@@ -70,18 +77,9 @@ val duplex_cipher_state1
       (k: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure t_DuplexCipherState1 Prims.l_True (fun _ -> Prims.l_True)
 
-/// Create the initial cipher state for the server.
-val server_cipher_state0
-      (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
-      (counter: u64)
-      (early_exporter_ms: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure t_ServerCipherState0 Prims.l_True (fun _ -> Prims.l_True)
-
 /// Derive the AEAD IV with counter `n`
 val derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes
-      (requires (Bertie.Tls13utils.impl__Bytes__len iv <: usize) >=. sz 8)
-      (fun _ -> Prims.l_True)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 /// Encrypt the record `payload` with the given `key_iv`.
 val encrypt_record_payload
@@ -94,8 +92,10 @@ val encrypt_record_payload
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+/// Encrypt 0-RTT `payload`.
+/// TODO: Implement 0-RTT
+val encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0)
+    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -110,10 +110,8 @@ val encrypt_handshake
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-/// Encrypt 0-RTT `payload`.
-/// TODO: Implement 0-RTT
-val encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
+val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1)
+    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -130,15 +128,10 @@ val decrypt_record_payload
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-val decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-val decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
-    : Prims.Pure
-      (Core.Result.t_Result
-          (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+/// Decrypt 0-RTT `ciphertext`.
+/// TODO: Implement 0-RTT
+val decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0)
+    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -150,9 +143,14 @@ val decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-/// Decrypt 0-RTT `ciphertext`.
-/// TODO: Implement 0-RTT
-val decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
+val decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
+    : Prims.Pure
+      (Core.Result.t_Result
+          (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
+    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)

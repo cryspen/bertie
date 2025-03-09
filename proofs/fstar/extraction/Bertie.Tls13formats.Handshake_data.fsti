@@ -9,26 +9,6 @@ let _ =
   let open Bertie.Tls13utils in
   ()
 
-let discriminant_HandshakeType_Certificate: u8 = 11uy
-
-let discriminant_HandshakeType_CertificateRequest: u8 = 13uy
-
-let discriminant_HandshakeType_CertificateVerify: u8 = 15uy
-
-let discriminant_HandshakeType_ClientHello: u8 = 1uy
-
-let discriminant_HandshakeType_EncryptedExtensions: u8 = 8uy
-
-let discriminant_HandshakeType_EndOfEarlyData: u8 = 5uy
-
-let discriminant_HandshakeType_Finished: u8 = 20uy
-
-let discriminant_HandshakeType_KeyUpdate: u8 = 24uy
-
-let discriminant_HandshakeType_MessageHash: u8 = 254uy
-
-let discriminant_HandshakeType_NewSessionTicket: u8 = 4uy
-
 /// ```TLS
 /// enum {
 ///     client_hello(1),
@@ -58,107 +38,116 @@ type t_HandshakeType =
   | HandshakeType_KeyUpdate : t_HandshakeType
   | HandshakeType_MessageHash : t_HandshakeType
 
-let discriminant_HandshakeType_ServerHello: u8 = 2uy
+let anon_const_HandshakeType_ClientHello__anon_const_0: u8 = mk_u8 1
+
+let anon_const_HandshakeType_ServerHello__anon_const_0: u8 = mk_u8 2
+
+let anon_const_HandshakeType_NewSessionTicket__anon_const_0: u8 = mk_u8 4
+
+let anon_const_HandshakeType_EndOfEarlyData__anon_const_0: u8 = mk_u8 5
+
+let anon_const_HandshakeType_EncryptedExtensions__anon_const_0: u8 = mk_u8 8
+
+let anon_const_HandshakeType_Certificate__anon_const_0: u8 = mk_u8 11
+
+let anon_const_HandshakeType_CertificateRequest__anon_const_0: u8 = mk_u8 13
+
+let anon_const_HandshakeType_CertificateVerify__anon_const_0: u8 = mk_u8 15
+
+let anon_const_HandshakeType_Finished__anon_const_0: u8 = mk_u8 20
+
+let anon_const_HandshakeType_KeyUpdate__anon_const_0: u8 = mk_u8 24
+
+let anon_const_HandshakeType_MessageHash__anon_const_0: u8 = mk_u8 254
 
 val t_HandshakeType_cast_to_repr (x: t_HandshakeType)
     : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
-/// Hadshake data of the TLS handshake.
-type t_HandshakeData = | HandshakeData : Bertie.Tls13utils.t_Bytes -> t_HandshakeData
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_2:Core.Clone.t_Clone t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
+val impl_3:Core.Marker.t_Copy t_HandshakeType
 
-/// Returns the length, in bytes.
-val impl__HandshakeData__len (self: t_HandshakeData)
-    : Prims.Pure usize
-      Prims.l_True
-      (ensures
-        fun result ->
-          let result:usize = result in
-          v result == Seq.length self._0._0)
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_4:Core.Fmt.t_Debug t_HandshakeType
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_5:Core.Marker.t_StructuralPartialEq t_HandshakeType
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_6:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
 
 val get_hs_type (t: u8)
     : Prims.Pure (Core.Result.t_Result t_HandshakeType u8) Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_1:Core.Clone.t_Clone t_HandshakeType
+/// Hadshake data of the TLS handshake.
+type t_HandshakeData = | HandshakeData : Bertie.Tls13utils.t_Bytes -> t_HandshakeData
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_2:Core.Marker.t_Copy t_HandshakeType
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_3:Core.Fmt.t_Debug t_HandshakeType
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_4:Core.Marker.t_StructuralPartialEq t_HandshakeType
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
+/// Returns the length, in bytes.
+val impl_HandshakeData__len (self: t_HandshakeData)
+    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
 
 /// Returns the handshake data bytes.
-val impl__HandshakeData__to_bytes (self: t_HandshakeData)
+val impl_HandshakeData__to_bytes (self: t_HandshakeData)
     : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Returns a new [`HandshakeData`] that contains the bytes of
-/// `other` appended to the bytes of `self`.
-val impl__HandshakeData__concat (self other: t_HandshakeData)
-    : Prims.Pure t_HandshakeData Prims.l_True (fun _ -> Prims.l_True)
 
 /// Attempt to parse a handshake message from the beginning of the payload.
 /// If successful, returns the parsed message and the unparsed rest of the
 /// payload. Returns a [TLSError] if the payload is too short to contain a
 /// handshake message or if the payload is shorter than the expected length
 /// encoded in its first three bytes.
-val impl__HandshakeData__next_handshake_message (self: t_HandshakeData)
+val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
-      (ensures
-        fun result ->
-          let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
-          match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
-          | Core.Result.Result_Ok (m, _) -> (impl__HandshakeData__len m <: usize) >=. sz 4
-          | _ -> true)
+      (fun _ -> Prims.l_True)
 
 /// Attempt to parse exactly one handshake message of the `expected_type` from
 /// `payload`.
 /// If successful, returns the parsed handshake message. Returns a [TLSError] if
 /// parsing is unsuccessful or the type of the parsed message disagrees with the
 /// expected type.
-val impl__HandshakeData__as_handshake_message
+val impl_HandshakeData__as_handshake_message
       (self: t_HandshakeData)
       (expected_type: t_HandshakeType)
     : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Attempt to parse exactly four handshake messages from `payload`.
-/// If successful, returns the parsed handshake messages. Returns a [TLSError]
-/// if parsing of any message fails or if the payload is not fully consumed
-/// by parsing four messages.
-val impl__HandshakeData__to_four (self: t_HandshakeData)
-    : Prims.Pure
-      (Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Attempt to parse exactly two handshake messages from `payload`.
 /// If successful, returns the parsed handshake messages. Returns a [TLSError]
 /// if parsing of either message fails or if the payload is not fully consumed
 /// by parsing two messages.
-val impl__HandshakeData__to_two (self: t_HandshakeData)
+val impl_HandshakeData__to_two (self: t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+/// Attempt to parse exactly four handshake messages from `payload`.
+/// If successful, returns the parsed handshake messages. Returns a [TLSError]
+/// if parsing of any message fails or if the payload is not fully consumed
+/// by parsing four messages.
+val impl_HandshakeData__to_four (self: t_HandshakeData)
+    : Prims.Pure
+      (Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData)
+          u8) Prims.l_True (fun _ -> Prims.l_True)
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_1:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
+
 /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
-val impl__HandshakeData__from_bytes
+val impl_HandshakeData__from_bytes
       (handshake_type: t_HandshakeType)
       (handshake_bytes: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
 
+/// Returns a new [`HandshakeData`] that contains the bytes of
+/// `other` appended to the bytes of `self`.
+val impl_HandshakeData__concat (self other: t_HandshakeData)
+    : Prims.Pure t_HandshakeData Prims.l_True (fun _ -> Prims.l_True)
+
 /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
 /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
-val impl__HandshakeData__find_handshake_message
+val impl_HandshakeData__find_handshake_message
       (self: t_HandshakeData)
       (handshake_type: t_HandshakeType)
       (start: usize)
-    : Prims.Pure bool (requires Seq.length self._0._0 >= v start) (fun _ -> Prims.l_True)
-      (decreases (Seq.length self._0._0 - v start))
+    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)

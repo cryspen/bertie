@@ -17,9 +17,18 @@ type t_ServerDB = {
   f_psk_opt:Core.Option.t_Option (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
 }
 
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_1:Core.Fmt.t_Debug t_ServerDB
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_2:Core.Clone.t_Clone t_ServerDB
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_3:Core.Default.t_Default t_ServerDB
+
 /// Create a new server database.
 /// Note that this only holds one value at a time right now. #51
-val impl__ServerDB__new
+val impl_ServerDB__new
       (server_name cert sk: Bertie.Tls13utils.t_Bytes)
       (psk_opt: Core.Option.t_Option (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
     : Prims.Pure t_ServerDB Prims.l_True (fun _ -> Prims.l_True)
@@ -30,15 +39,6 @@ type t_ServerInfo = {
   f_sk:Bertie.Tls13utils.t_Bytes;
   f_psk_opt:Core.Option.t_Option Bertie.Tls13utils.t_Bytes
 }
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_1:Core.Fmt.t_Debug t_ServerDB
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_2:Core.Clone.t_Clone t_ServerDB
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_3:Core.Default.t_Default t_ServerDB
 
 /// Look up a server for the given `ciphersuite`.
 /// The function returns a server with the first algorithm it finds.

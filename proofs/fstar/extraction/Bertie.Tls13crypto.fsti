@@ -7,29 +7,29 @@ let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
   (* The implicit dependencies arise from typeclasses instances. *)
   let open Bertie.Tls13utils in
-  let open Libcrux.Aead in
-  let open Libcrux.Signature.Rsa_pss in
+  let open Libcrux_ecdsa.P256.Conversions in
   let open Libcrux_kem in
+  let open Libcrux_rsa.Impl_hacl in
   let open Rand.Rng in
   let open Rand_core in
   ()
 
-/// AEAD Algorithms for Bertie
-type t_AeadAlgorithm =
-  | AeadAlgorithm_Chacha20Poly1305 : t_AeadAlgorithm
-  | AeadAlgorithm_Aes128Gcm : t_AeadAlgorithm
-  | AeadAlgorithm_Aes256Gcm : t_AeadAlgorithm
+/// An RSA public key.
+type t_RsaVerificationKey = {
+  f_modulus:Bertie.Tls13utils.t_Bytes;
+  f_exponent:Bertie.Tls13utils.t_Bytes
+}
 
-/// Get the length of the IV for this algorithm.
-val impl__AeadAlgorithm__iv_len (self: t_AeadAlgorithm)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_8:Core.Fmt.t_Debug t_RsaVerificationKey
 
-/// Get the key length of the AEAD algorithm in bytes.
-val impl__AeadAlgorithm__key_len (self: t_AeadAlgorithm)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+/// Bertie public verification keys.
+type t_PublicVerificationKey =
+  | PublicVerificationKey_EcDsa : Bertie.Tls13utils.t_Bytes -> t_PublicVerificationKey
+  | PublicVerificationKey_Rsa : t_RsaVerificationKey -> t_PublicVerificationKey
 
-val t_AeadAlgorithm_cast_to_repr (x: t_AeadAlgorithm)
-    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_9:Core.Fmt.t_Debug t_PublicVerificationKey
 
 /// Bertie hash algorithms.
 type t_HashAlgorithm =
@@ -39,326 +39,6 @@ type t_HashAlgorithm =
 
 val t_HashAlgorithm_cast_to_repr (x: t_HashAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
-
-/// Bertie KEM schemes.
-/// This includes ECDH curves.
-type t_KemScheme =
-  | KemScheme_X25519 : t_KemScheme
-  | KemScheme_Secp256r1 : t_KemScheme
-  | KemScheme_X448 : t_KemScheme
-  | KemScheme_Secp384r1 : t_KemScheme
-  | KemScheme_Secp521r1 : t_KemScheme
-  | KemScheme_X25519Kyber768Draft00 : t_KemScheme
-  | KemScheme_X25519MlKem768 : t_KemScheme
-
-val t_KemScheme_cast_to_repr (x: t_KemScheme)
-    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
-
-/// Signature schemes for Bertie.
-type t_SignatureScheme =
-  | SignatureScheme_RsaPssRsaSha256 : t_SignatureScheme
-  | SignatureScheme_EcdsaSecp256r1Sha256 : t_SignatureScheme
-  | SignatureScheme_ED25519 : t_SignatureScheme
-
-/// The algorithms for Bertie.
-/// Note that this is more than the TLS 1.3 ciphersuite. It contains all
-/// necessary cryptographic algorithms and options.
-type t_Algorithms = {
-  f_hash:t_HashAlgorithm;
-  f_aead:t_AeadAlgorithm;
-  f_signature:t_SignatureScheme;
-  f_kem:t_KemScheme;
-  f_psk_mode:bool;
-  f_zero_rtt:bool
-}
-
-/// Get the [`AeadAlgorithm`].
-val impl__Algorithms__aead (self: t_Algorithms)
-    : Prims.Pure t_AeadAlgorithm Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get the [`HashAlgorithm`].
-val impl__Algorithms__hash (self: t_Algorithms)
-    : Prims.Pure t_HashAlgorithm Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get the [`KemScheme`].
-val impl__Algorithms__kem (self: t_Algorithms)
-    : Prims.Pure t_KemScheme Prims.l_True (fun _ -> Prims.l_True)
-
-/// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
-val impl__Algorithms__new
-      (hash: t_HashAlgorithm)
-      (aead: t_AeadAlgorithm)
-      (sig: t_SignatureScheme)
-      (kem: t_KemScheme)
-      (psk zero_rtt: bool)
-    : Prims.Pure t_Algorithms Prims.l_True (fun _ -> Prims.l_True)
-
-/// Returns `true` when using the PSK mode and `false` otherwise.
-val impl__Algorithms__psk_mode (self: t_Algorithms)
-    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get the [`SignatureAlgorithm`].
-val impl__Algorithms__signature (self: t_Algorithms)
-    : Prims.Pure t_SignatureScheme Prims.l_True (fun _ -> Prims.l_True)
-
-/// Returns `true` when using zero rtt and `false` otherwise.
-val impl__Algorithms__zero_rtt (self: t_Algorithms)
-    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
-
-val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
-    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
-
-/// `TLS_AES_128_GCM_SHA256`
-/// with
-/// * P256 for key exchange
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes128Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_Secp256r1 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_128_GCM_SHA256`
-/// with
-/// * x25519 for key exchange
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes128Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_128_GCM_SHA256`
-/// with
-/// * P256 for key exchange
-/// * RSA PSS SHA256 for signatures
-let v_SHA256_Aes128Gcm_RsaPssRsaSha256_P256: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes128Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
-    (KemScheme_Secp256r1 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_128_GCM_SHA256`
-/// with
-/// * x25519 for key exchange
-/// * RSA PSS SHA256 for signatures
-let v_SHA256_Aes128Gcm_RsaPssRsaSha256_X25519: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes128Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
-    (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * P256 for key exchange
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_Secp256r1 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * x25519 for key exchange
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * X25519Kyber768Draft00 for key exchange (cf. https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-02.html)
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_X25519Kyber768Draft00 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * X25519MlKem768 for key exchange (cf. https://datatracker.ietf.org/doc/draft-kwiatkowski-tls-ecdhe-mlkem/)
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_X25519MlKem768 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * P256 for key exchange
-/// * RSA PSSS SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
-    (KemScheme_Secp256r1 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * x25519 for key exchange
-/// * RSA PSS SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
-    (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_256_GCM_SHA384`
-/// with
-/// * P256 for key exchange
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA384 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes256Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_Secp256r1 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_256_GCM_SHA384`
-/// with
-/// * x25519 for key exchange
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA384 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes256Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_256_GCM_SHA384`
-/// with
-/// * P256 for key exchange
-/// * RSA PSS SHA256 for signatures
-let v_SHA384_Aes256Gcm_RsaPssRsaSha256_P256: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA384 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes256Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
-    (KemScheme_Secp256r1 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_AES_256_GCM_SHA384`
-/// with
-/// * x25519 for key exchange
-/// * RSA PSS SHA256 for signatures
-let v_SHA384_Aes256Gcm_RsaPssRsaSha256_X25519: t_Algorithms =
-  impl__Algorithms__new (HashAlgorithm_SHA384 <: t_HashAlgorithm)
-    (AeadAlgorithm_Aes256Gcm <: t_AeadAlgorithm)
-    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
-    (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// An AEAD key.
-type t_AeadKey = {
-  f_bytes:Bertie.Tls13utils.t_Bytes;
-  f_alg:t_AeadAlgorithm
-}
-
-/// Create a new AEAD key from the raw bytes and the algorithm.
-val impl__AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (alg: t_AeadAlgorithm)
-    : Prims.Pure t_AeadKey Prims.l_True (fun _ -> Prims.l_True)
-
-/// An AEAD key and iv package.
-type t_AeadKeyIV = {
-  f_key:t_AeadKey;
-  f_iv:Bertie.Tls13utils.t_Bytes
-}
-
-/// Create a new [`AeadKeyIV`].
-val impl__AeadKeyIV__new (key: t_AeadKey) (iv: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure t_AeadKeyIV Prims.l_True (fun _ -> Prims.l_True)
-
-/// An RSA public key.
-type t_RsaVerificationKey = {
-  f_modulus:Bertie.Tls13utils.t_Bytes;
-  f_exponent:Bertie.Tls13utils.t_Bytes
-}
-
-/// Bertie public verification keys.
-type t_PublicVerificationKey =
-  | PublicVerificationKey_EcDsa : Bertie.Tls13utils.t_Bytes -> t_PublicVerificationKey
-  | PublicVerificationKey_Rsa : t_RsaVerificationKey -> t_PublicVerificationKey
-
-/// Determine if given public exponent is supported by `libcrux`, i.e. whether
-///  `e == 0x010001`.
-val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
-    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get the libcrux hash algorithm
-val impl__HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Libcrux.Digest.t_Algorithm u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Get the size of the hash digest.
-val impl__HashAlgorithm__hash_len (self: t_HashAlgorithm)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get the size of the hmac tag.
-val impl__HashAlgorithm__hmac_tag_len (self: t_HashAlgorithm)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get an empty key of the correct size.
-val zero_key (alg: t_HashAlgorithm)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Get the libcrux signature algorithm from the [`SignatureScheme`].
-val impl__SignatureScheme__libcrux_scheme (self: t_SignatureScheme)
-    : Prims.Pure (Core.Result.t_Result Libcrux.Signature.t_Algorithm u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Get the libcrux HKDF algorithm.
-val hkdf_algorithm (alg: t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Libcrux_hkdf.t_Algorithm u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Get the libcrux hmac algorithm.
-val impl__HashAlgorithm__hmac_algorithm (self: t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Libcrux_hmac.t_Algorithm u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Get the libcrux algorithm for this [`KemScheme`].
-val impl__KemScheme__libcrux_kem_algorithm (self: t_KemScheme)
-    : Prims.Pure (Core.Result.t_Result Libcrux_kem.t_Algorithm u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8:Core.Fmt.t_Debug t_RsaVerificationKey
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Fmt.t_Debug t_PublicVerificationKey
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_10:Core.Clone.t_Clone t_HashAlgorithm
@@ -375,6 +55,98 @@ val impl_13:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_14:Core.Fmt.t_Debug t_HashAlgorithm
 
+/// Get the libcrux hash algorithm
+val impl_HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
+    : Prims.Pure (Core.Result.t_Result Libcrux_sha2.Impl_hacl.t_Algorithm u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Hash `data` with the given `algorithm`.
+/// Returns the digest or an [`TLSError`].
+val impl_HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Get the size of the hash digest.
+val impl_HashAlgorithm__hash_len (self: t_HashAlgorithm)
+    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+
+/// Get the libcrux hmac algorithm.
+val impl_HashAlgorithm__hmac_algorithm (self: t_HashAlgorithm)
+    : Prims.Pure (Core.Result.t_Result Libcrux_hmac.t_Algorithm u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Get the size of the hmac tag.
+val impl_HashAlgorithm__hmac_tag_len (self: t_HashAlgorithm)
+    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+
+/// Compute the HMAC tag.
+/// Returns the tag [`Hmac`] or a [`TLSError`].
+val hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Verify a given HMAC `tag`.
+/// Returns `()` if successful or a [`TLSError`].
+val hmac_verify (alg: t_HashAlgorithm) (mk input tag: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Get an empty key of the correct size.
+val zero_key (alg: t_HashAlgorithm)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Get the libcrux HKDF algorithm.
+val hkdf_algorithm (alg: t_HashAlgorithm)
+    : Prims.Pure (Core.Result.t_Result Libcrux_hkdf.t_Algorithm u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// HKDF Extract.
+/// Returns the result as [`Bytes`] or a [`TLSError`].
+val hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// HKDF Expand.
+/// Returns the result as [`Bytes`] or a [`TLSError`].
+val hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// AEAD Algorithms for Bertie
+type t_AeadAlgorithm =
+  | AeadAlgorithm_Chacha20Poly1305 : t_AeadAlgorithm
+  | AeadAlgorithm_Aes128Gcm : t_AeadAlgorithm
+  | AeadAlgorithm_Aes256Gcm : t_AeadAlgorithm
+
+/// An AEAD key.
+type t_AeadKey = {
+  f_bytes:Bertie.Tls13utils.t_Bytes;
+  f_e_alg:t_AeadAlgorithm
+}
+
+/// An AEAD key and iv package.
+type t_AeadKeyIV = {
+  f_key:t_AeadKey;
+  f_iv:Bertie.Tls13utils.t_Bytes
+}
+
+/// Create a new [`AeadKeyIV`].
+val impl_AeadKeyIV__new (key: t_AeadKey) (iv: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure t_AeadKeyIV Prims.l_True (fun _ -> Prims.l_True)
+
+/// Create a new AEAD key from the raw bytes and the algorithm.
+val impl_AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (e_alg: t_AeadAlgorithm)
+    : Prims.Pure t_AeadKey Prims.l_True (fun _ -> Prims.l_True)
+
+val t_AeadAlgorithm_cast_to_repr (x: t_AeadAlgorithm)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
+
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_15:Core.Clone.t_Clone t_AeadAlgorithm
 
@@ -390,6 +162,35 @@ val impl_18:Core.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_19:Core.Fmt.t_Debug t_AeadAlgorithm
 
+/// Get the key length of the AEAD algorithm in bytes.
+val impl_AeadAlgorithm__key_len (self: t_AeadAlgorithm)
+    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+
+/// Get the length of the IV for this algorithm.
+val impl_AeadAlgorithm__iv_len (self: t_AeadAlgorithm)
+    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+
+/// AEAD encrypt
+val aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// AEAD decrypt.
+val aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Signature schemes for Bertie.
+type t_SignatureScheme =
+  | SignatureScheme_RsaPssRsaSha256 : t_SignatureScheme
+  | SignatureScheme_EcdsaSecp256r1Sha256 : t_SignatureScheme
+  | SignatureScheme_ED25519 : t_SignatureScheme
+
+val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
+
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_20:Core.Clone.t_Clone t_SignatureScheme
 
@@ -404,6 +205,62 @@ val impl_23:Core.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_24:Core.Fmt.t_Debug t_SignatureScheme
+
+/// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
+val sign
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      (algorithm: t_SignatureScheme)
+      (sk input: Bertie.Tls13utils.t_Bytes)
+      (rng: iimpl_447424039_)
+    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Determine if given modulus conforms to one of the key sizes supported by
+/// `libcrux`.
+val supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Determine if given public exponent is supported by `libcrux`, i.e. whether
+///  `e == 0x010001`.
+val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+
+/// Sign the `input` with the provided RSA key.
+val sign_rsa
+      (#iimpl_916461611_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
+      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (sk pk_modulus pk_exponent: Bertie.Tls13utils.t_Bytes)
+      (cert_scheme: t_SignatureScheme)
+      (input: Bertie.Tls13utils.t_Bytes)
+      (rng: iimpl_916461611_)
+    : Prims.Pure (iimpl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Verify the `input` bytes against the provided `signature`.
+/// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
+val verify
+      (alg: t_SignatureScheme)
+      (pk: t_PublicVerificationKey)
+      (input sig: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Bertie KEM schemes.
+/// This includes ECDH curves.
+type t_KemScheme =
+  | KemScheme_X25519 : t_KemScheme
+  | KemScheme_Secp256r1 : t_KemScheme
+  | KemScheme_X448 : t_KemScheme
+  | KemScheme_Secp384r1 : t_KemScheme
+  | KemScheme_Secp521r1 : t_KemScheme
+  | KemScheme_X25519Kyber768Draft00 : t_KemScheme
+  | KemScheme_X25519MlKem768 : t_KemScheme
+
+val t_KemScheme_cast_to_repr (x: t_KemScheme)
+    : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_25:Core.Clone.t_Clone t_KemScheme
@@ -423,8 +280,71 @@ val impl_29:Core.Cmp.t_Eq t_KemScheme
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_30:Core.Fmt.t_Debug t_KemScheme
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Fmt.t_Display t_Algorithms
+/// Get the libcrux algorithm for this [`KemScheme`].
+val impl_KemScheme__libcrux_kem_algorithm (self: t_KemScheme)
+    : Prims.Pure (Core.Result.t_Result Libcrux_kem.t_Algorithm u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Note that the `encode` in libcrux currently returns the raw
+/// concatenation of bytes. We have to prepend the 0x04 for
+/// uncompressed points on NIST curves.
+val encoding_prefix (alg: t_KemScheme)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Generate a new KEM key pair.
+val kem_keygen
+      (#iimpl_916461611_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
+      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (alg: t_KemScheme)
+      (rng: iimpl_916461611_)
+    : Prims.Pure
+      (iimpl_916461611_ &
+        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Note that the `encode` in libcrux operates on the raw
+/// concatenation of bytes. We have to work with uncompressed NIST points here.
+val into_raw (alg: t_KemScheme) (point: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// We only want the X coordinate for points on NIST curves.
+val to_shared_secret (alg: t_KemScheme) (shared_secret: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// KEM encapsulation
+val kem_encap
+      (#iimpl_916461611_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
+      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (alg: t_KemScheme)
+      (pk: Bertie.Tls13utils.t_Bytes)
+      (rng: iimpl_916461611_)
+    : Prims.Pure
+      (iimpl_916461611_ &
+        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// KEM decapsulation
+val kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// The algorithms for Bertie.
+/// Note that this is more than the TLS 1.3 ciphersuite. It contains all
+/// necessary cryptographic algorithms and options.
+type t_Algorithms = {
+  f_hash:t_HashAlgorithm;
+  f_aead:t_AeadAlgorithm;
+  f_signature:t_SignatureScheme;
+  f_kem:t_KemScheme;
+  f_psk_mode:bool;
+  f_zero_rtt:bool
+}
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_31:Core.Clone.t_Clone t_Algorithms
@@ -441,168 +361,192 @@ val impl_34:Core.Cmp.t_PartialEq t_Algorithms t_Algorithms
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_35:Core.Fmt.t_Debug t_Algorithms
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_36:Core.Convert.t_TryFrom t_Algorithms string
+/// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
+val impl_Algorithms__new
+      (hash: t_HashAlgorithm)
+      (aead: t_AeadAlgorithm)
+      (sig: t_SignatureScheme)
+      (kem: t_KemScheme)
+      (psk zero_rtt: bool)
+    : Prims.Pure t_Algorithms Prims.l_True (fun _ -> Prims.l_True)
 
-/// Note that the `encode` in libcrux operates on the raw
-/// concatenation of bytes. We have to work with uncompressed NIST points here.
-val into_raw (alg: t_KemScheme) (point: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+/// Get the [`HashAlgorithm`].
+val impl_Algorithms__hash (self: t_Algorithms)
+    : Prims.Pure t_HashAlgorithm Prims.l_True (fun _ -> Prims.l_True)
 
-/// Convert a raw AEAD key into a usable libcrux key.
-/// This copies the key.
-val impl__AeadKey__as_libcrux_key (self: t_AeadKey)
-    : Prims.Pure (Core.Result.t_Result Libcrux.Aead.t_Key u8) Prims.l_True (fun _ -> Prims.l_True)
+/// Get the [`AeadAlgorithm`].
+val impl_Algorithms__aead (self: t_Algorithms)
+    : Prims.Pure t_AeadAlgorithm Prims.l_True (fun _ -> Prims.l_True)
 
-/// Hash `data` with the given `algorithm`.
-/// Returns the digest or an [`TLSError`].
-val impl__HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+/// Get the [`SignatureAlgorithm`].
+val impl_Algorithms__signature (self: t_Algorithms)
+    : Prims.Pure t_SignatureScheme Prims.l_True (fun _ -> Prims.l_True)
 
-/// AEAD decrypt.
-val aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+/// Get the [`KemScheme`].
+val impl_Algorithms__kem (self: t_Algorithms)
+    : Prims.Pure t_KemScheme Prims.l_True (fun _ -> Prims.l_True)
 
-/// AEAD encrypt
-val aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+/// Returns `true` when using the PSK mode and `false` otherwise.
+val impl_Algorithms__psk_mode (self: t_Algorithms)
+    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 
-/// HKDF Expand.
-/// Returns the result as [`Bytes`] or a [`TLSError`].
-val hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// HKDF Extract.
-/// Returns the result as [`Bytes`] or a [`TLSError`].
-val hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Compute the HMAC tag.
-/// Returns the tag [`Hmac`] or a [`TLSError`].
-val hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Determine if given modulus conforms to one of the key sizes supported by
-/// `libcrux`.
-val supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// We only want the X coordinate for points on NIST curves.
-val to_shared_secret (alg: t_KemScheme) (shared_secret: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// KEM decapsulation
-val kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Verify the `input` bytes against the provided `signature`.
-/// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-val verify
-      (alg: t_SignatureScheme)
-      (pk: t_PublicVerificationKey)
-      (input sig: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Verify a given HMAC `tag`.
-/// Returns `()` if successful or a [`TLSError`].
-val hmac_verify (alg: t_HashAlgorithm) (mk input tag: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Sign the `input` with the provided RSA key.
-val sign_rsa
-      (#impl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
-      {| i2: Rand_core.t_RngCore impl_916461611_ |}
-      (sk pk_modulus pk_exponent: Bertie.Tls13utils.t_Bytes)
-      (cert_scheme: t_SignatureScheme)
-      (input: Bertie.Tls13utils.t_Bytes)
-      (rng: impl_916461611_)
-    : Prims.Pure (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+/// Returns `true` when using zero rtt and `false` otherwise.
+val impl_Algorithms__zero_rtt (self: t_Algorithms)
+    : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 
 /// Returns the TLS ciphersuite for the given algorithm when it is supported, or
 /// a [`TLSError`] otherwise.
-val impl__Algorithms__ciphersuite (self: t_Algorithms)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
-/// Check the ciphersuite in `bytes` against this ciphersuite.
-val impl__Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
-
-/// Returns the signature id for the given algorithm when it is supported, or a
-///  [`TLSError`] otherwise.
-val impl__Algorithms__signature_algorithm (self: t_Algorithms)
+val impl_Algorithms__ciphersuite (self: t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
 /// otherwise.
-val impl__Algorithms__supported_group (self: t_Algorithms)
+val impl_Algorithms__supported_group (self: t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-/// Note that the `encode` in libcrux currently returns the raw
-/// concatenation of bytes. We have to prepend the 0x04 for
-/// uncompressed points on NIST curves.
-val encoding_prefix (alg: t_KemScheme)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// KEM encapsulation
-val kem_encap
-      (#impl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
-      {| i2: Rand_core.t_RngCore impl_916461611_ |}
-      (alg: t_KemScheme)
-      (pk: Bertie.Tls13utils.t_Bytes)
-      (rng: impl_916461611_)
-    : Prims.Pure
-      (impl_916461611_ &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+/// Returns the signature id for the given algorithm when it is supported, or a
+///  [`TLSError`] otherwise.
+val impl_Algorithms__signature_algorithm (self: t_Algorithms)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-/// Generate a new KEM key pair.
-val kem_keygen
-      (#impl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
-      {| i2: Rand_core.t_RngCore impl_916461611_ |}
-      (alg: t_KemScheme)
-      (rng: impl_916461611_)
-    : Prims.Pure
-      (impl_916461611_ &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+/// Check the ciphersuite in `bytes` against this ciphersuite.
+val impl_Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
+    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
 
-/// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
-val sign
-      (#impl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng impl_916461611_ |}
-      {| i2: Rand_core.t_RngCore impl_916461611_ |}
-      (algorithm: t_SignatureScheme)
-      (sk input: Bertie.Tls13utils.t_Bytes)
-      (rng: impl_916461611_)
-    : Prims.Pure (impl_916461611_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_7:Core.Fmt.t_Display t_Algorithms
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * x25519 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: t_Algorithms =
+  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
+    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
+    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
+    (KemScheme_X25519 <: t_KemScheme)
+    false
+    false
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * X25519Kyber768Draft00 for key exchange (cf. https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-02.html)
+/// * EcDSA P256 SHA256 for signatures
+let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00: t_Algorithms =
+  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
+    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
+    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
+    (KemScheme_X25519Kyber768Draft00 <: t_KemScheme)
+    false
+    false
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * X25519MlKem768 for key exchange (cf. https://datatracker.ietf.org/doc/draft-kwiatkowski-tls-ecdhe-mlkem/)
+/// * EcDSA P256 SHA256 for signatures
+let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768: t_Algorithms =
+  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
+    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
+    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
+    (KemScheme_X25519MlKem768 <: t_KemScheme)
+    false
+    false
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * x25519 for key exchange
+/// * RSA PSS SHA256 for signatures
+let v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519: t_Algorithms =
+  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
+    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
+    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
+    (KemScheme_X25519 <: t_KemScheme)
+    false
+    false
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * P256 for key exchange
+/// * EcDSA P256 SHA256 for signatures
+let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256: t_Algorithms =
+  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
+    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
+    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
+    (KemScheme_Secp256r1 <: t_KemScheme)
+    false
+    false
+
+/// `TLS_CHACHA20_POLY1305_SHA256`
+/// with
+/// * P256 for key exchange
+/// * RSA PSSS SHA256 for signatures
+let v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: t_Algorithms =
+  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
+    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
+    (SignatureScheme_RsaPssRsaSha256 <: t_SignatureScheme)
+    (KemScheme_Secp256r1 <: t_KemScheme)
+    false
+    false
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+let impl_6: Core.Convert.t_TryFrom t_Algorithms string =
+  {
+    f_Error = Bertie.Tls13utils.t_Error;
+    f_try_from_pre = (fun (s: string) -> true);
+    f_try_from_post
+    =
+    (fun (s: string) (out: Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error) -> true);
+    f_try_from
+    =
+    fun (s: string) ->
+      match s <: string with
+      | "SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519" ->
+        Core.Result.Result_Ok v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+      | "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519" ->
+        Core.Result.Result_Ok v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+      | "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256" ->
+        Core.Result.Result_Ok v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+      | "SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256" ->
+        Core.Result.Result_Ok v_SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+      | "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00" ->
+        Core.Result.Result_Ok v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+      | "SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MLKEM768" ->
+        Core.Result.Result_Ok v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+      | _ ->
+        let res:Alloc.String.t_String =
+          Alloc.Fmt.format (Core.Fmt.impl_2__new_v1 (mk_usize 1)
+                (mk_usize 1)
+                (let list = ["Invalid ciphersuite description: "] in
+                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                  Rust_primitives.Hax.array_of_list 1 list)
+                (let list = [Core.Fmt.Rt.impl_1__new_display #string s <: Core.Fmt.Rt.t_Argument] in
+                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
+                  Rust_primitives.Hax.array_of_list 1 list)
+              <:
+              Core.Fmt.t_Arguments)
+        in
+        Core.Result.Result_Err
+        (Bertie.Tls13utils.Error_UnknownCiphersuite (Core.Hint.must_use #Alloc.String.t_String res)
+          <:
+          Bertie.Tls13utils.t_Error)
+        <:
+        Core.Result.t_Result t_Algorithms Bertie.Tls13utils.t_Error
+  }

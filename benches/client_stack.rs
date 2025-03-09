@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use bytesize::ByteSize;
-use rand::thread_rng;
 use std::alloc;
 use std::net::TcpListener;
 
@@ -117,7 +116,7 @@ fn protocol() {
                 BertieStream::server("127.0.0.1", port, stream, ciphersuite, cert_file, key_file)
                     .unwrap();
 
-            server.connect(&mut thread_rng()).unwrap();
+            server.connect(&mut rand::rng()).unwrap();
             server
         });
 
@@ -137,7 +136,7 @@ fn protocol() {
             }
 
             client = psm::on_stack(paintstack, STACK_SIZE, || {
-                BertieStream::client("127.0.0.1", port, ciphersuite, &mut thread_rng()).unwrap()
+                BertieStream::client("127.0.0.1", port, ciphersuite, &mut rand::rng()).unwrap()
             });
 
             for i in (0..STACK_SIZE).step_by(4) {
