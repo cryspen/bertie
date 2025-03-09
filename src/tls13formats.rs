@@ -634,6 +634,9 @@ pub fn bench_parse_client_hello(
 /// Parse the provided `client_hello` with the given `ciphersuite`.
 #[allow(clippy::type_complexity)]
 #[hax_lib::pv_handwritten]
+#[hax_lib::ensures(|result| match result {
+                Result::Ok((_, _, _, _, _, _, trunc_len)) => trunc_len <= client_hello.len(),
+                _ => true})]
 pub(super) fn parse_client_hello(
     ciphersuite: &Algorithms,
     client_hello: &HandshakeData,

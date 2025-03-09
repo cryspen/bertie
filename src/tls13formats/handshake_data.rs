@@ -98,6 +98,9 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake message. Returns a [TLSError] if
     /// parsing is unsuccessful or the type of the parsed message disagrees with the
     /// expected type.
+    #[hax_lib::ensures(|result| match result {
+        Result::Ok(d) => self.len() >= 4 && d.len() == self.len() - 4,
+        _ => true })]
     pub(crate) fn as_handshake_message(
         &self,
         expected_type: HandshakeType,
@@ -121,7 +124,7 @@ impl HandshakeData {
     /// handshake message or if the payload is shorter than the expected length
     /// encoded in its first three bytes.
     #[hax_lib::ensures(|result| match result {
-                                        Result::Ok((m,_)) => m.len() >= 4,
+                                        Result::Ok((m,r)) => m.len() >= 4 && self.len() >= m.len() && self.len() - m.len() == r.len(),
                                         _ => true })]
     pub(crate) fn next_handshake_message(&self) -> Result<(Self, Self), TLSError> {
         if (self.len()) < 4 {

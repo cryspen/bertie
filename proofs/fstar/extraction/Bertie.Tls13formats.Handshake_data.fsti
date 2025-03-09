@@ -109,7 +109,13 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
         fun result ->
           let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
           match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
-          | Core.Result.Result_Ok (m, _) -> (impl_HandshakeData__len m <: usize) >=. mk_usize 4
+          | Core.Result.Result_Ok (m, r) ->
+            (impl_HandshakeData__len m <: usize) >=. mk_usize 4 &&
+            (impl_HandshakeData__len self <: usize) >=. (impl_HandshakeData__len m <: usize) &&
+            ((impl_HandshakeData__len self <: usize) -! (impl_HandshakeData__len m <: usize)
+              <:
+              usize) =.
+            (impl_HandshakeData__len r <: usize)
           | _ -> true)
 
 /// Attempt to parse exactly one handshake message of the `expected_type` from
@@ -120,7 +126,17 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
 val impl_HandshakeData__as_handshake_message
       (self: t_HandshakeData)
       (expected_type: t_HandshakeType)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core.Result.t_Result t_HandshakeData u8 with
+          | Core.Result.Result_Ok d ->
+            (impl_HandshakeData__len self <: usize) >=. mk_usize 4 &&
+            (impl_HandshakeData__len d <: usize) =.
+            ((impl_HandshakeData__len self <: usize) -! mk_usize 4 <: usize)
+          | _ -> true)
 
 /// Attempt to parse exactly two handshake messages from `payload`.
 /// If successful, returns the parsed handshake messages. Returns a [TLSError]

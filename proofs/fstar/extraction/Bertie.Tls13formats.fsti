@@ -301,7 +301,7 @@ val check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u
           with
           | Core.Result.Result_Ok (len, out) -> len >=. mk_usize 4
           | _ -> true)
-     (decreases Seq.length b)
+      (decreases Seq.length b)
 
 /// ```TLS
 /// enum {
@@ -826,7 +826,7 @@ val impl_Transcript__transcript_hash_without_client_hello
         (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len client_hello <: usize))
       (fun _ -> Prims.l_True)
 
-/// Needs decreases clause
+/// Needs: (decreases (Seq.length ch))
 val find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
@@ -849,11 +849,13 @@ val check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8)
           | Core.Result.Result_Ok (len, exts) -> (Core.Slice.impl__len #u8 bytes <: usize) >=. len
           | _ -> true)
 
+/// For termination, needs: (decreases Seq.length b)
 val check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
       (decreases Seq.length b)
+
 val parse_server_hello
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (server_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -861,6 +863,7 @@ val parse_server_hello
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+/// For termination, needs: (decreases Seq.length b)
 val check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8) Prims.l_True (fun _ -> Prims.l_True)
      (decreases Seq.length b)
@@ -878,4 +881,29 @@ val parse_client_hello
             Bertie.Tls13utils.t_Bytes &
             Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
             Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-            usize) u8) Prims.l_True (fun _ -> Prims.l_True)
+            usize) u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result
+            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
+              Bertie.Tls13utils.t_Bytes &
+              Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+              Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+              usize) u8 =
+            result
+          in
+          match
+            result
+            <:
+            Core.Result.t_Result
+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
+                Bertie.Tls13utils.t_Bytes &
+                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                usize) u8
+          with
+          | Core.Result.Result_Ok (_, _, _, _, _, _, trunc_len) ->
+            trunc_len <=.
+            (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len client_hello <: usize)
+          | _ -> true)
