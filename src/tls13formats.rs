@@ -249,6 +249,9 @@ fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError> {
 }
 
 /// Check an extension for validity.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok((len,exts)) => bytes.len() >= len,
+                                _ => true})]
 fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions), TLSError> {
     if bytes.len() < 4 {
         Err(parse_failed())

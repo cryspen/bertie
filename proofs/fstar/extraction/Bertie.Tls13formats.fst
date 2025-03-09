@@ -3159,10 +3159,12 @@ let check_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: Bertie.Tls13uti
     Core.Result.t_Result (usize & t_Extensions) u8
   with
   | Core.Result.Result_Ok (len, out) ->
+    assert (Core.Slice.impl__len b >=. len);
     if len =. (Bertie.Tls13utils.impl_Bytes__len b <: usize)
     then Core.Result.Result_Ok out <: Core.Result.t_Result t_Extensions u8
     else
-      (match
+      (assert (Bertie.Tls13utils.impl_Bytes__len b >=. len);
+       match
           check_extensions_slice algs
             (Bertie.Tls13utils.impl_Bytes__raw_slice b
                 ({

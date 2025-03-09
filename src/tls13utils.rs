@@ -194,6 +194,7 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl Bytes {
     /// Add a prefix to these bytes and return it.
     #[hax_lib::pv_handwritten]
@@ -219,6 +220,7 @@ impl Bytes {
 
     /// Get a reference to the raw bytes.
     #[allow(dead_code)]
+    #[hax_lib::ensures(|result| result.len() == self.len())]
     pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }

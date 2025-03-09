@@ -842,7 +842,12 @@ val check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
 val check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (usize & t_Extensions) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result (usize & t_Extensions) u8 = result in
+          match result <: Core.Result.t_Result (usize & t_Extensions) u8 with
+          | Core.Result.Result_Ok (len, exts) -> (Core.Slice.impl__len #u8 bytes <: usize) >=. len
+          | _ -> true)
 
 val check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
