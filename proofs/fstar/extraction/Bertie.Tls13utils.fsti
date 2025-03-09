@@ -181,9 +181,6 @@ val impl_Bytes__new: Prims.unit -> Prims.Pure t_Bytes Prims.l_True (fun _ -> Pri
 /// Create new [`Bytes`].
 val impl_Bytes__new_alloc (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-/// Generate `len` bytes of `0`.
-val impl_Bytes__zeroes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
 /// Push `x` into these [`Bytes`].
 val impl_Bytes__push (self: t_Bytes) (x: u8)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -209,6 +206,15 @@ val impl_Bytes__concat_array (v_N: usize) (self: t_Bytes) (other: t_Array u8 v_N
 /// a copy as [`Bytes`].
 val impl_Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Generate `len` bytes of `0`.
+val impl_Bytes__zeroes (len: usize)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          Seq.length result._0 == v len)
 
 /// Get the length of these [`Bytes`].
 val impl_Bytes__len (self: t_Bytes)

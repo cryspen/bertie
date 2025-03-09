@@ -64,39 +64,51 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   let iv_ctr:Bertie.Tls13utils.t_Bytes =
     Rust_primitives.Hax.Folds.fold_range (mk_usize 0)
       ((Bertie.Tls13utils.impl_Bytes__len iv <: usize) -! mk_usize 8 <: usize)
-      (fun iv_ctr temp_1_ ->
+      (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
-          let _:usize = temp_1_ in
-          true)
+          let i:usize = i in
+          (Bertie.Tls13utils.impl_Bytes__len iv_ctr <: usize) =.
+          (Bertie.Tls13utils.impl_Bytes__len iv <: usize)
+          <:
+          bool)
       iv_ctr
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.update_at iv_ctr i (iv.[ i ] <: u8) <: Bertie.Tls13utils.t_Bytes)
+          let iv_ctr:Bertie.Tls13utils.t_Bytes =
+            Rust_primitives.Hax.update_at iv_ctr i (iv.[ i ] <: u8)
+          in
+          iv_ctr)
   in
   let iv_ctr:Bertie.Tls13utils.t_Bytes =
     Rust_primitives.Hax.Folds.fold_range (mk_usize 0)
       (mk_usize 8)
-      (fun iv_ctr temp_1_ ->
+      (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
-          let _:usize = temp_1_ in
-          true)
+          let i:usize = i in
+          (Bertie.Tls13utils.impl_Bytes__len iv_ctr <: usize) =.
+          (Bertie.Tls13utils.impl_Bytes__len iv <: usize)
+          <:
+          bool)
       iv_ctr
       (fun iv_ctr i ->
           let iv_ctr:Bertie.Tls13utils.t_Bytes = iv_ctr in
           let i:usize = i in
-          Rust_primitives.Hax.update_at iv_ctr
-            ((i +! (Bertie.Tls13utils.impl_Bytes__len iv <: usize) <: usize) -! mk_usize 8 <: usize)
-            ((iv.[ (i +! (Bertie.Tls13utils.impl_Bytes__len iv <: usize) <: usize) -! mk_usize 8
-                  <:
-                  usize ]
+          let iv_ctr:Bertie.Tls13utils.t_Bytes =
+            Rust_primitives.Hax.update_at iv_ctr
+              ((i +! (Bertie.Tls13utils.impl_Bytes__len iv <: usize) <: usize) -! mk_usize 8
                 <:
-                u8) ^.
-              (counter.[ i ] <: u8)
-              <:
-              u8)
-          <:
-          Bertie.Tls13utils.t_Bytes)
+                usize)
+              ((iv.[ (i +! (Bertie.Tls13utils.impl_Bytes__len iv <: usize) <: usize) -! mk_usize 8
+                    <:
+                    usize ]
+                  <:
+                  u8) ^.
+                (counter.[ i ] <: u8)
+                <:
+                u8)
+          in
+          iv_ctr)
   in
   iv_ctr
 

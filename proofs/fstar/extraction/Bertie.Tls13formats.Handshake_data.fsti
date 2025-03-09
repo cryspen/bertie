@@ -164,3 +164,4 @@ val impl_HandshakeData__find_handshake_message
       (handshake_type: t_HandshakeType)
       (start: usize)
     : Prims.Pure bool (requires Seq.length self._0._0 >= v start) (fun _ -> Prims.l_True)
+      (decreases (Seq.length self._0._0 - v start))

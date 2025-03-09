@@ -374,6 +374,7 @@ impl Bytes {
 
     /// Generate `len` bytes of `0`.
     #[hax_lib::pv_constructor]
+    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == v len"))]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }

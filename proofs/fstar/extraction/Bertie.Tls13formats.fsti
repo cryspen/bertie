@@ -301,6 +301,7 @@ val check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u
           with
           | Core.Result.Result_Ok (len, out) -> len >=. mk_usize 4
           | _ -> true)
+     (decreases Seq.length b)
 
 /// ```TLS
 /// enum {
@@ -830,6 +831,7 @@ val find_key_share (g: Bertie.Tls13utils.t_Bytes) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+      (decreases Seq.length ch)
 
 val check_key_shares (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -846,7 +848,7 @@ val check_server_extensions (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice 
     : Prims.Pure (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
-
+      (decreases Seq.length b)
 val parse_server_hello
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (server_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
