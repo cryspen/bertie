@@ -77,7 +77,8 @@ pub(crate) fn duplex_cipher_state1(
 }
 
 /// Derive the AEAD IV with counter `n`
-#[hax_lib::requires(iv.len() >= 8)]
+#[hax_lib::fstar::verification_status(lax)] // TODO: fix by making From<[u8;8]> transparent for Bytes
+#[hax_lib::requires(iv.len()  >= 8)]
 fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
     let counter: Bytes = n.to_be_bytes().into();
     let mut iv_ctr = AeadIV::zeroes(iv.len());
@@ -93,6 +94,7 @@ fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
 }
 
 /// Encrypt the record `payload` with the given `key_iv`.
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn encrypt_record_payload(
     key_iv: &AeadKeyIV,
     n: u64,
@@ -100,6 +102,7 @@ pub(crate) fn encrypt_record_payload(
     payload: Bytes,
     pad: usize,
 ) -> Result<Bytes, TLSError> {
+    check (key_iv.iv.len() >= 8)?;
     let iv_ctr = derive_iv_ctr(&key_iv.iv, n);
     let inner_plaintext = payload.concat(bytes1(ct as u8)).concat(Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
@@ -114,6 +117,9 @@ pub(crate) fn encrypt_record_payload(
     }
 }
 
+/// Needs: (decreases (v n))
+#[hax_lib::requires(b.len() >= n)]
+#[hax_lib::ensures(|out| out <= n)]
 fn padlen(b: &Bytes, n: usize) -> usize {
     if n > 0 && b[n - 1].declassify() == 0 {
         1 + padlen(b, n - 1)
@@ -128,6 +134,7 @@ fn decrypt_record_payload(
     n: u64,
     ciphertext: &Bytes,
 ) -> Result<(ContentType, Bytes), TLSError> {
+    check (kiv.iv.len() >= 8)?;
     let iv_ctr = derive_iv_ctr(&kiv.iv, n);
     let clen = ciphertext.len() - 5;
     if clen <= 65536 && clen > 16 {
@@ -165,6 +172,7 @@ fn encrypt_zerortt(
         payload.into_raw(),
         pad,
     )?;
+    check (n < u64::MAX)?;
     Ok((rec, ClientCipherState0(ae, kiv, n + 1, exp)))
 }
 
@@ -177,6 +185,7 @@ pub fn decrypt_zerortt(
 ) -> Result<(AppData, ServerCipherState0), TLSError> {
     let (ct, payload) = decrypt_record_payload(&state.key_iv, state.counter, ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
+    check(state.counter < u64::MAX)?;
     Ok((
         AppData::new(payload),
         ServerCipherState0 {
@@ -206,6 +215,7 @@ pub(crate) fn encrypt_handshake(
         pad,
     )?;
 
+    check(state.sender_counter < u64::MAX)?;
     state.sender_counter += 1;
     Ok((rec, state))
 }
@@ -223,6 +233,7 @@ pub(crate) fn decrypt_handshake(
         )
     } else {
         check(ct == ContentType::Handshake)?;
+        check(state.receiver_counter < u64::MAX)?;
         state.receiver_counter += 1;
         Ok((handshake_data::HandshakeData::from(payload), state))
     }
@@ -241,6 +252,7 @@ pub fn encrypt_data(
         payload.into_raw(),
         pad,
     )?;
+    check(n < u64::MAX)?;
     Ok((rec, DuplexCipherState1(ae, kiv, n + 1, x, y, exp)))
 }
 
@@ -250,6 +262,7 @@ pub fn decrypt_data_or_hs(
 ) -> Result<(ContentType, Bytes, DuplexCipherState1), TLSError> {
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
     let (ct, payload) = decrypt_record_payload(&kiv, n, ciphertext)?;
+    check(n < u64::MAX)?;
     Ok((ct, payload, DuplexCipherState1(ae, x, y, kiv, n + 1, exp)))
 }
 pub fn decrypt_data(
@@ -259,6 +272,7 @@ pub fn decrypt_data(
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
     let (ct, payload) = decrypt_record_payload(&kiv, n, ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
+    check(n < u64::MAX)?;
     Ok((
         AppData::new(payload),
         DuplexCipherState1(ae, x, y, kiv, n + 1, exp),

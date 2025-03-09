@@ -117,8 +117,14 @@ val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+/// Needs: (decreases (v n))
 val padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure usize
+      (requires (Bertie.Tls13utils.impl_Bytes__len b <: usize) >=. n)
+      (ensures
+        fun out ->
+          let rec out:usize = out in
+          out <=. n)
 
 /// AEAD decrypt the record `ciphertext`
 val decrypt_record_payload
