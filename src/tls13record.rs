@@ -82,11 +82,11 @@ fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
     let counter: Bytes = n.to_be_bytes().into();
     let mut iv_ctr = AeadIV::zeroes(iv.len());
     for i in 0..iv.len() - 8 {
-        hax_lib::loop_invariant!(|i:usize| iv_ctr.len() == iv.len());
+        hax_lib::loop_invariant!(|i: usize| iv_ctr.len() == iv.len());
         iv_ctr[i] = iv[i];
     }
     for i in 0..8 {
-        hax_lib::loop_invariant!(|i:usize| iv_ctr.len() == iv.len());
+        hax_lib::loop_invariant!(|i: usize| iv_ctr.len() == iv.len());
         iv_ctr[i + (iv.len() - 8)] = iv[i + (iv.len() - 8)] ^ counter[i];
     }
     iv_ctr

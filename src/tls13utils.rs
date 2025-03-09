@@ -220,7 +220,7 @@ impl Bytes {
 
     /// Get a reference to the raw bytes.
     #[allow(dead_code)]
-    #[hax_lib::ensures(|result| result.len() == self.len())]
+    #[hax_lib::ensures(|result| fstar!(r#"Seq.length result == Seq.length self._0"#))]
     pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }

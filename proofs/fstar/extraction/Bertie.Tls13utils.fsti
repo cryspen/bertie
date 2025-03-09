@@ -13,10 +13,10 @@ let _ =
 type t_Error = | Error_UnknownCiphersuite : Alloc.String.t_String -> t_Error
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Fmt.t_Debug t_Error
+val impl_10:Core.Fmt.t_Debug t_Error
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Clone.t_Clone t_Error
+val impl_11:Core.Clone.t_Clone t_Error
 
 let v_UNSUPPORTED_ALGORITHM: u8 = mk_u8 1
 
@@ -91,19 +91,19 @@ val impl_1:t_Declassify u32 u32
 type t_Bytes = | Bytes : Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global -> t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Clone.t_Clone t_Bytes
+val impl_12:Core.Clone.t_Clone t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_14:Core.Marker.t_StructuralPartialEq t_Bytes
+val impl_13:Core.Marker.t_StructuralPartialEq t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_15:Core.Cmp.t_PartialEq t_Bytes t_Bytes
+val impl_14:Core.Cmp.t_PartialEq t_Bytes t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_16:Core.Fmt.t_Debug t_Bytes
+val impl_15:Core.Fmt.t_Debug t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_17:Core.Default.t_Default t_Bytes
+val impl_16:Core.Default.t_Default t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_2:Core.Convert.t_From t_Bytes (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -118,7 +118,12 @@ val impl_Bytes__into_raw (self: t_Bytes)
 
 /// Get a reference to the raw bytes.
 val impl_Bytes__as_raw (self: t_Bytes)
-    : Prims.Pure (t_Slice u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (t_Slice u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Slice u8 = result in
+          Seq.length result == Seq.length self._0)
 
 val impl_Bytes__declassify_array (v_C: usize) (self: t_Bytes)
     : Prims.Pure (Core.Result.t_Result (t_Array u8 v_C) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -575,15 +580,15 @@ val impl_AppData__into_raw (self: t_AppData)
 val impl_AppData__as_raw (self: t_AppData) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Convert.t_From t_AppData (t_Slice u8)
+val impl_6:Core.Convert.t_From t_AppData (t_Slice u8)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N)
+val impl_7 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+val impl_8:Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Convert.t_From t_AppData t_Bytes
+val impl_9:Core.Convert.t_From t_AppData t_Bytes
 
 val random_bytes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)

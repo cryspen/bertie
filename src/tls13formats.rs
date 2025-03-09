@@ -668,11 +668,12 @@ pub(super) fn parse_client_hello(
         Err(_) => invalid_compression_list(),
     }?;
     next += 2;
+    check(ch.len() >= next)?;
     check_length_encoding_u16(&ch.slice_range(next..ch.len()))?;
     next += 2;
+    check(ch.len() >= next)?;
     let exts = check_extensions(ciphersuite, &ch.slice_range(next..ch.len()))?;
     //println!("check_extensions");
-    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
     match (ciphersuite.psk_mode(), exts) {
         (
             _,
@@ -691,7 +692,11 @@ pub(super) fn parse_client_hello(
                 ticket: Some(tkt),
                 binder: Some(binder),
             },
-        ) => Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len)),
+        ) => {
+            check(ch.len() >= ciphersuite.hash().hash_len() + 3)?;
+            let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+            Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len))
+        }
         (
             true,
             Extensions {
@@ -700,15 +705,19 @@ pub(super) fn parse_client_hello(
                 ticket: Some(tkt),
                 binder: Some(binder),
             },
-        ) => Ok((
-            crand,
-            sid,
-            Bytes::new(),
-            gx,
-            Some(tkt),
-            Some(binder),
-            trunc_len,
-        )),
+        ) => {
+            check(ch.len() >= ciphersuite.hash().hash_len() + 3)?;
+            let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+            Ok((
+                crand,
+                sid,
+                Bytes::new(),
+                gx,
+                Some(tkt),
+                Some(binder),
+                trunc_len,
+            ))
+        }
         (
             false,
             Extensions {

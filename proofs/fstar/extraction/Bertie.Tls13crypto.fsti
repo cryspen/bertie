@@ -21,7 +21,7 @@ type t_RsaVerificationKey = {
 }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Fmt.t_Debug t_RsaVerificationKey
+val impl_6:Core.Fmt.t_Debug t_RsaVerificationKey
 
 /// Bertie public verification keys.
 type t_PublicVerificationKey =
@@ -29,7 +29,7 @@ type t_PublicVerificationKey =
   | PublicVerificationKey_Rsa : t_RsaVerificationKey -> t_PublicVerificationKey
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8:Core.Fmt.t_Debug t_PublicVerificationKey
+val impl_7:Core.Fmt.t_Debug t_PublicVerificationKey
 
 /// Bertie hash algorithms.
 type t_HashAlgorithm =
@@ -41,19 +41,19 @@ val t_HashAlgorithm_cast_to_repr (x: t_HashAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Clone.t_Clone t_HashAlgorithm
+val impl_8:Core.Clone.t_Clone t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Marker.t_Copy t_HashAlgorithm
+val impl_9:Core.Marker.t_Copy t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
+val impl_10:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
+val impl_11:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Fmt.t_Debug t_HashAlgorithm
+val impl_12:Core.Fmt.t_Debug t_HashAlgorithm
 
 /// Get the libcrux hash algorithm
 val impl_HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
@@ -148,19 +148,19 @@ val t_AeadAlgorithm_cast_to_repr (x: t_AeadAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_14:Core.Clone.t_Clone t_AeadAlgorithm
+val impl_13:Core.Clone.t_Clone t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_15:Core.Marker.t_Copy t_AeadAlgorithm
+val impl_14:Core.Marker.t_Copy t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_16:Core.Marker.t_StructuralPartialEq t_AeadAlgorithm
+val impl_15:Core.Marker.t_StructuralPartialEq t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_17:Core.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
+val impl_16:Core.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_18:Core.Fmt.t_Debug t_AeadAlgorithm
+val impl_17:Core.Fmt.t_Debug t_AeadAlgorithm
 
 /// Get the key length of the AEAD algorithm in bytes.
 val impl_AeadAlgorithm__key_len (self: t_AeadAlgorithm)
@@ -192,19 +192,19 @@ val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_19:Core.Clone.t_Clone t_SignatureScheme
+val impl_18:Core.Clone.t_Clone t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_20:Core.Marker.t_Copy t_SignatureScheme
+val impl_19:Core.Marker.t_Copy t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_21:Core.Marker.t_StructuralPartialEq t_SignatureScheme
+val impl_20:Core.Marker.t_StructuralPartialEq t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_22:Core.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
+val impl_21:Core.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_23:Core.Fmt.t_Debug t_SignatureScheme
+val impl_22:Core.Fmt.t_Debug t_SignatureScheme
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 val sign
@@ -262,22 +262,22 @@ val t_KemScheme_cast_to_repr (x: t_KemScheme)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_24:Core.Clone.t_Clone t_KemScheme
+val impl_23:Core.Clone.t_Clone t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_25:Core.Marker.t_Copy t_KemScheme
+val impl_24:Core.Marker.t_Copy t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_26:Core.Marker.t_StructuralPartialEq t_KemScheme
+val impl_25:Core.Marker.t_StructuralPartialEq t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_27:Core.Cmp.t_PartialEq t_KemScheme t_KemScheme
+val impl_26:Core.Cmp.t_PartialEq t_KemScheme t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_28:Core.Cmp.t_Eq t_KemScheme
+val impl_27:Core.Cmp.t_Eq t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_29:Core.Fmt.t_Debug t_KemScheme
+val impl_28:Core.Fmt.t_Debug t_KemScheme
 
 /// Get the libcrux algorithm for this [`KemScheme`].
 val impl_KemScheme__libcrux_kem_algorithm (self: t_KemScheme)
@@ -344,19 +344,19 @@ type t_Algorithms = {
 }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_30:Core.Clone.t_Clone t_Algorithms
+val impl_29:Core.Clone.t_Clone t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_31:Core.Marker.t_Copy t_Algorithms
+val impl_30:Core.Marker.t_Copy t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_32:Core.Marker.t_StructuralPartialEq t_Algorithms
+val impl_31:Core.Marker.t_StructuralPartialEq t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_33:Core.Cmp.t_PartialEq t_Algorithms t_Algorithms
+val impl_32:Core.Cmp.t_PartialEq t_Algorithms t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_34:Core.Fmt.t_Debug t_Algorithms
+val impl_33:Core.Fmt.t_Debug t_Algorithms
 
 /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
 val impl_Algorithms__new
@@ -414,13 +414,21 @@ val impl_Algorithms__signature_algorithm (self: t_Algorithms)
 
 /// Check the ciphersuite in `bytes` against this ciphersuite.
 val impl_Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok len ->
+            (Core.Slice.impl__len #u8 bytes <: usize) >=. len && len <. mk_usize 65538
+          | _ -> true)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_35:Core.Convert.t_TryFrom t_Algorithms string
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Fmt.t_Display t_Algorithms
+val impl_5:Core.Fmt.t_Display t_Algorithms
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with
