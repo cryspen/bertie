@@ -1,7 +1,7 @@
 use core::ops::Range;
 
 #[cfg(feature = "hax-fstar")]
-use hax_lib_macros::{attributes, requires};
+use hax_lib::{attributes, requires};
 
 use crate::std::{format, string::String, vec, vec::Vec};
 
@@ -76,6 +76,7 @@ impl U8 {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) trait Declassify<T> {
     fn declassify(self) -> T;
 }
@@ -454,7 +455,7 @@ macro_rules! bytes_concat {
 pub(crate) use bytes_concat;
 
 #[cfg(feature = "hax-pv")]
-use hax_lib_macros::{pv_constructor, pv_handwritten};
+use hax_lib::{pv_constructor, pv_handwritten};
 
 impl Bytes {
     /// Get a hex representation of self as [`String`].

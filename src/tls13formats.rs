@@ -26,7 +26,7 @@ use handshake_data::{HandshakeData, HandshakeType};
 pub use handshake_data::{HandshakeData, HandshakeType};
 
 #[cfg(feature = "hax-pv")]
-use hax_lib_macros::{pv_constructor, pv_handwritten};
+use hax_lib::{pv_constructor, pv_handwritten};
 
 // Well Known Constants
 

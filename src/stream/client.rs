@@ -2,7 +2,7 @@
 //!
 //! TLS streaming client API.
 
-use rand::{CryptoRng, RngCore};
+use rand::CryptoRng;
 use std::{
     eprintln,
     io::{Read, Write},
@@ -99,7 +99,7 @@ impl BertieStream<ClientState<TcpStream>> {
         host: &str,
         port: u16,
         ciphersuite: Algorithms,
-        rng: &mut (impl RngCore + CryptoRng),
+        rng: &mut impl CryptoRng,
     ) -> Result<Self, BertieError> {
         let mut stream = Self::open(host, port, ciphersuite)?;
         stream.ciphersuite = ciphersuite;
@@ -121,7 +121,7 @@ impl BertieStream<ClientState<TcpStream>> {
     /// Open the connection.
     ///
     /// This will fail if the connection wasn't set up correctly.
-    pub fn start(&mut self, rng: &mut (impl RngCore + CryptoRng)) -> Result<(), BertieError> {
+    pub fn start(&mut self, rng: &mut impl CryptoRng) -> Result<(), BertieError> {
         // Initialize TLS 1.3 client.
         if self.state.cstate.is_some() {
             return Err(BertieError::InvalidState);
@@ -235,7 +235,7 @@ impl BertieStream<ClientState<TcpStream>> {
 
 #[cfg(test)]
 mod tests {
-    use rand::thread_rng;
+    use rand::{self, rng};
 
     use crate::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519;
 
@@ -250,7 +250,7 @@ mod tests {
             host,
             port,
             SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
-            &mut thread_rng(),
+            &mut rng(),
         )
         .expect("Error connecting to server");
 

@@ -218,7 +218,7 @@ fn main() {
                 stream,
             )
             .unwrap();
-            let _r = client.start(&mut rand::thread_rng());
+            let _r = client.start(&mut rand::rng());
         }
         Role::Server => {
             let bertie_home = std::env::var("BERTIE_HOME")
@@ -244,7 +244,7 @@ fn main() {
             )
             .unwrap();
 
-            if let Err(e) = server.connect(&mut rand::thread_rng()) {
+            if let Err(e) = server.connect(&mut rand::rng()) {
                 match e {
                     BertieError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
                     // AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),

@@ -10,7 +10,6 @@ use bertie::{
 };
 
 use clap::Parser;
-use rand::thread_rng;
 
 #[derive(Parser)]
 struct Cli {
@@ -77,7 +76,7 @@ pub fn main() -> anyhow::Result<()> {
         println!("New connection established!");
         match BertieStream::server(&host, port, stream, ciphersuite, &cli.cert, &cli.key) {
             Ok(mut server) => {
-                server.connect(&mut thread_rng()).unwrap();
+                server.connect(&mut rand::rng()).unwrap();
                 server
                     .write(b"Hello, this is the Bertie TLS 1.3 server.\n")
                     .unwrap();

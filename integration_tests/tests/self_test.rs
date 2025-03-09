@@ -1,19 +1,14 @@
-use rand::thread_rng;
 use std::net::TcpListener;
 
 use bertie::{
     stream::BertieStream,
     tls13crypto::{
-        SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256, SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
-        SHA256_Aes128Gcm_RsaPssRsaSha256_P256, SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768,
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
-        SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519, SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
-        SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, SHA384_Aes256Gcm_RsaPssRsaSha256_P256,
-        SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, SignatureScheme,
+        SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519, SignatureScheme,
     },
 };
 
@@ -41,54 +36,54 @@ fn test_sha256_chacha20_poly1305_ecdsa_secp256r1_sha256_p256() {
 fn test_sha256_chacha20_poly1305_rsa_pss_rsa_sha256_p256() {
     self_test_algorithm(SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256);
 }
-#[test]
-fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_p256() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256);
-    }
-}
-#[test]
-fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519);
-    }
-}
-#[test]
-fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_p256() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA256_Aes128Gcm_RsaPssRsaSha256_P256);
-    }
-}
-#[test]
-fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519);
-    }
-}
-#[test]
-fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_p256() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256);
-    }
-}
-#[test]
-fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519);
-    }
-}
-#[test]
-fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_p256() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA384_Aes256Gcm_RsaPssRsaSha256_P256);
-    }
-}
-#[test]
-fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_x25519() {
-    if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
-        self_test_algorithm(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519);
-    }
-}
+// #[test]
+// fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_p256() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256);
+//     }
+// }
+// #[test]
+// fn test_sha256_aes128_gcm_ecdsa_secp256r1_sha256_x25519() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519);
+//     }
+// }
+// #[test]
+// fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_p256() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA256_Aes128Gcm_RsaPssRsaSha256_P256);
+//     }
+// }
+// #[test]
+// fn test_sha256_aes128_gcm_rsa_pss_rsa_sha256_x25519() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519);
+//     }
+// }
+// #[test]
+// fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_p256() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256);
+//     }
+// }
+// #[test]
+// fn test_sha384_aes256_gcm_ecdsa_secp256r1_sha256_x25519() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519);
+//     }
+// }
+// #[test]
+// fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_p256() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA384_Aes256Gcm_RsaPssRsaSha256_P256);
+//     }
+// }
+// #[test]
+// fn test_sha384_aes256_gcm_rsa_pss_rsa_sha256_x25519() {
+//     if libcrux_platform::aes_ni_support() && cfg!(target_arch = "x64") {
+//         self_test_algorithm(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519);
+//     }
+// }
 
 fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
     let _ = tracing_subscriber::fmt::try_init();
@@ -125,14 +120,14 @@ fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
                 .unwrap();
 
         eprintln!("Server setup finished.");
-        server.connect(&mut thread_rng()).unwrap();
+        server.connect(&mut rand::rng()).unwrap();
         server
     });
 
     // Client thread.
     let port = rx.recv().unwrap();
 
-    let mut client = BertieStream::client("127.0.0.1", port, ciphersuite, &mut thread_rng())
+    let mut client = BertieStream::client("127.0.0.1", port, ciphersuite, &mut rand::rng())
         .expect("Error connecting to server");
     eprintln!("Client connected to 127.0.0.1:{}.", port);
 

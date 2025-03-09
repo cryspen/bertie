@@ -1,5 +1,5 @@
 #[cfg(feature = "hax-pv")]
-use hax_lib_macros::{pv_constructor, pv_handwritten};
+use hax_lib::{pv_constructor, pv_handwritten};
 
 use crate::tls13utils::{
     bytes1, check_eq, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes,

@@ -16,7 +16,7 @@
 //!     BitString // 0x03
 //! }
 #[cfg(feature = "hax-pv")]
-use hax_lib_macros::{pv_constructor, pv_handwritten};
+use hax_lib::{pv_constructor, pv_handwritten};
 
 #[cfg(not(feature = "secret_integers"))]
 use crate::tls13utils::Declassify;

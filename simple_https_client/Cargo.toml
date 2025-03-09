@@ -13,7 +13,7 @@ path = "src/tls13client.rs"
 anyhow = "1"
 bertie = { path = "../", features = ["test_utils"] }
 hex = "0.4.3"
-rand = "0.8.0"
+rand = "0.9"
 record = { path = "../record" }
 tracing = "0.1"
 tracing-subscriber = "0.3"
