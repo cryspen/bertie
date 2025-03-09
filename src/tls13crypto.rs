@@ -15,7 +15,7 @@ use libcrux_rsa::{
 };
 use libcrux_sha2::Algorithm as Sha2Algorithm;
 
-use rand::{CryptoRng, RngCore};
+use rand::CryptoRng;
 
 use crate::std::{fmt::Display, format, vec::Vec};
 
@@ -328,7 +328,7 @@ pub(crate) fn sign_rsa(
     pk_exponent: &Bytes,
     cert_scheme: SignatureScheme,
     input: &Bytes,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<Bytes, TLSError> {
     // salt must be same length as digest output length
     let mut salt = [0u8; 32];
@@ -357,7 +357,7 @@ pub(crate) fn sign_rsa(
     sign_varlen(
         RsaDigestAlgorithm::Sha2_256,
         &sk,
-        &msg,
+        msg,
         &salt,
         &mut signature,
     )
@@ -512,7 +512,7 @@ impl KemScheme {
 #[cfg_attr(feature = "hax-pv", pv_handwritten)]
 pub(crate) fn kem_keygen(
     alg: KemScheme,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<(KemSk, KemPk), TLSError> {
     let res = libcrux_kem::key_gen(alg.libcrux_kem_algorithm()?, rng);
     match res {
@@ -557,7 +557,7 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 pub(crate) fn kem_encap(
     alg: KemScheme,
     pk: &Bytes,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<(Bytes, Bytes), TLSError> {
     // event!(Level::DEBUG, "KEM Encaps with {alg:?}");
     // event!(Level::TRACE, "  pk:  {}", pk.as_hex());

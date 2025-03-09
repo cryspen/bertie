@@ -7,7 +7,7 @@
 //!           We will add a more usable API on top in future. But the verifiable
 //!           core of the protocol starts here.
 
-use rand::{CryptoRng, RngCore};
+use rand::CryptoRng;
 
 use crate::{
     server::ServerDB,
@@ -67,7 +67,7 @@ impl Client {
         server_name: &Bytes,
         session_ticket: Option<Bytes>,
         psk: Option<Key>,
-        rng: &mut (impl CryptoRng + RngCore),
+        rng: &mut impl CryptoRng,
     ) -> Result<(Bytes, Self), TLSError> {
         let (client_hello, cipherstate0, client_state) =
             client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
@@ -198,7 +198,7 @@ impl Server {
         ciphersuite: Algorithms,
         db: ServerDB,
         client_hello: &Bytes,
-        rng: &mut (impl CryptoRng + RngCore),
+        rng: &mut impl CryptoRng,
     ) -> Result<(Bytes, Bytes, Self), TLSError> {
         let mut ch_rec = client_hello.clone();
         ch_rec[2] = U8(0x03);

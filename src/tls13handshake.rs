@@ -1,4 +1,4 @@
-use rand::{CryptoRng, RngCore};
+use rand::CryptoRng;
 
 use crate::{
     server::{lookup_db, ServerDB, ServerInfo},
@@ -261,7 +261,7 @@ fn build_client_hello(
     sn: &Bytes,
     tkt: Option<Bytes>,
     psk: Option<Psk>,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
@@ -506,7 +506,7 @@ pub fn client_init(
     sn: &Bytes,
     tkt: Option<Bytes>,
     psk: Option<Psk>,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
@@ -619,7 +619,7 @@ fn process_psk_binder_zero_rtt(
 
 fn get_server_hello(
     state: ServerPostClientHello,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
     let mut server_random = [0u8; 32];
     rng.fill_bytes(&mut server_random);
@@ -659,7 +659,7 @@ fn get_rsa_signature(
     cert: &Bytes,
     sk: &Bytes,
     sigval: &Bytes,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<Bytes, TLSError> {
     // To avoid cyclic dependencies between the modules we pull out
     // the values from the RSA certificate here.
@@ -671,7 +671,7 @@ fn get_rsa_signature(
 
 fn get_server_signature_no_psk(
     state: ServerPostServerHello,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
@@ -719,7 +719,7 @@ fn get_server_signature_no_psk(
 
 fn get_server_signature(
     state: ServerPostServerHello,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
@@ -826,7 +826,7 @@ pub fn server_init_no_psk(
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
@@ -852,7 +852,7 @@ pub fn server_init_psk(
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
@@ -878,7 +878,7 @@ pub fn server_init(
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    rng: &mut (impl CryptoRng + RngCore),
+    rng: &mut impl CryptoRng,
 ) -> Result<
     (
         HandshakeData,
