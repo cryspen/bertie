@@ -124,7 +124,7 @@ val padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize)
         fun out ->
           let out:usize = out in
           out <=. n)
-      (decreases n)
+      (decreases (Rust_primitives.Hax.Int.from_machine n <: Hax_lib.Int.t_Int))
 
 /// AEAD decrypt the record `ciphertext`
 val decrypt_record_payload

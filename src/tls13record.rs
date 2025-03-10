@@ -4,6 +4,9 @@ use crate::tls13crypto::*;
 use crate::tls13formats::*;
 use crate::tls13utils::*;
 
+#[cfg(hax)]
+use hax_lib::ToInt;
+
 /* CipherStates Exported by the TLS 1.3 Handshake */
 pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, Key);
 
@@ -119,7 +122,7 @@ pub(crate) fn encrypt_record_payload(
 
 #[hax_lib::requires(b.len() >= n)]
 #[hax_lib::ensures(|out| out <= n)]
-#[hax_lib::decreases(n)]
+#[hax_lib::decreases(n.to_int())]
 fn padlen(b: &Bytes, n: usize) -> usize {
     if n > 0 && b[n - 1].declassify() == 0 {
         1 + padlen(b, n - 1)

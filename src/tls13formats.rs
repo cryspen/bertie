@@ -28,6 +28,8 @@ pub use handshake_data::{HandshakeData, HandshakeType};
 
 #[cfg(feature = "hax-pv")]
 use hax_lib::{pv_constructor, pv_handwritten};
+#[cfg(hax)]
+use hax_lib::ToInt;
 
 // Well Known Constants
 
@@ -147,8 +149,8 @@ fn key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(encode_length_u16(encode_length_u16(ks)?)?.prefix(PREFIX))
 }
 
-/// Needs: (decreases (Seq.length ch))
 #[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::decreases(ch.len().to_int())]
 fn find_key_share(g: &Bytes, ch: &[U8]) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         tlserr(parse_failed())
@@ -312,7 +314,6 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
     }
 }
 
-/// For termination, needs: (decreases Seq.length b)
 #[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|result| match result {
                                     Result::Ok((len,out)) => len >= 4,
@@ -338,8 +339,8 @@ fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<
     }
 }
 
-/// For termination, needs: (decreases Seq.length b)
 #[inline(always)]
+#[hax_lib::decreases(b.len().to_int())]
 fn check_extensions_slice(algs: &Algorithms, b: &[U8]) -> Result<Extensions, TLSError> {
     let (len, out) = check_extension(algs, b)?;
     if len == b.len() {
@@ -360,7 +361,7 @@ fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError
     }
 }
 
-/// For termination, needs: (decreases Seq.length b)
+#[hax_lib::decreases(b.len().to_int())]
 fn check_server_extensions(algs: &Algorithms, b: &[U8]) -> Result<Option<Bytes>, TLSError> {
     let (len, out) = check_server_extension(algs, b)?;
     if len == b.len() {
