@@ -102,6 +102,7 @@ val impl_HandshakeData__len (self: t_HandshakeData)
 /// payload. Returns a [TLSError] if the payload is too short to contain a
 /// handshake message or if the payload is shorter than the expected length
 /// encoded in its first three bytes.
+/// We needed to uglify the ensures here because of: https://github.com/cryspen/hax/issues/1276
 val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
@@ -110,9 +111,10 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
           let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
           match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
           | Core.Result.Result_Ok (m, r) ->
+            let (self_: t_HandshakeData):t_HandshakeData = self in
             (impl_HandshakeData__len m <: usize) >=. mk_usize 4 &&
-            (impl_HandshakeData__len self <: usize) >=. (impl_HandshakeData__len m <: usize) &&
-            ((impl_HandshakeData__len self <: usize) -! (impl_HandshakeData__len m <: usize)
+            (impl_HandshakeData__len self_ <: usize) >=. (impl_HandshakeData__len m <: usize) &&
+            ((impl_HandshakeData__len self_ <: usize) -! (impl_HandshakeData__len m <: usize)
               <:
               usize) =.
             (impl_HandshakeData__len r <: usize)
@@ -133,9 +135,10 @@ val impl_HandshakeData__as_handshake_message
           let result:Core.Result.t_Result t_HandshakeData u8 = result in
           match result <: Core.Result.t_Result t_HandshakeData u8 with
           | Core.Result.Result_Ok d ->
-            (impl_HandshakeData__len self <: usize) >=. mk_usize 4 &&
-            (impl_HandshakeData__len d <: usize) =.
-            ((impl_HandshakeData__len self <: usize) -! mk_usize 4 <: usize)
+            let (self_: t_HandshakeData):t_HandshakeData = self in
+            (impl_HandshakeData__len self_ <: usize) >=. mk_usize 4 &&
+            ((impl_HandshakeData__len self_ <: usize) -! mk_usize 4 <: usize) =.
+            (impl_HandshakeData__len d <: usize)
           | _ -> true)
 
 /// Attempt to parse exactly two handshake messages from `payload`.
@@ -172,12 +175,20 @@ val impl_HandshakeData__concat (self other: t_HandshakeData)
 
 /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
 /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
-/// For termination proof in F*: we need to hand-edit and add:
-/// (decreases (Seq.length self._0._0 - v start))
-/// https://github.com/cryspen/hax/issues/1233
 val impl_HandshakeData__find_handshake_message
       (self: t_HandshakeData)
       (handshake_type: t_HandshakeType)
       (start: usize)
-    : Prims.Pure bool (requires Seq.length self._0._0 >= v start) (fun _ -> Prims.l_True)
-      (decreases (Seq.length self._0._0 - v start))
+    : Prims.Pure bool
+      (requires
+        (let self_: t_HandshakeData = self in
+          (impl_HandshakeData__len self_ <: usize) >=. start))
+      (fun _ -> Prims.l_True)
+      (decreases
+        (let (self_: t_HandshakeData):t_HandshakeData = self in
+          (Rust_primitives.Hax.Int.from_machine (impl_HandshakeData__len self_ <: usize)
+            <:
+            Hax_lib.Int.t_Int) -
+          (Rust_primitives.Hax.Int.from_machine start <: Hax_lib.Int.t_Int)
+          <:
+          Hax_lib.Int.t_Int))

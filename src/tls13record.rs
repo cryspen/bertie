@@ -102,7 +102,7 @@ pub(crate) fn encrypt_record_payload(
     payload: Bytes,
     pad: usize,
 ) -> Result<Bytes, TLSError> {
-    check (key_iv.iv.len() >= 8)?;
+    check(key_iv.iv.len() >= 8)?;
     let iv_ctr = derive_iv_ctr(&key_iv.iv, n);
     let inner_plaintext = payload.concat(bytes1(ct as u8)).concat(Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
@@ -117,9 +117,9 @@ pub(crate) fn encrypt_record_payload(
     }
 }
 
-/// Needs: (decreases (v n))
 #[hax_lib::requires(b.len() >= n)]
 #[hax_lib::ensures(|out| out <= n)]
+#[hax_lib::decreases(n)]
 fn padlen(b: &Bytes, n: usize) -> usize {
     if n > 0 && b[n - 1].declassify() == 0 {
         1 + padlen(b, n - 1)
@@ -134,7 +134,7 @@ fn decrypt_record_payload(
     n: u64,
     ciphertext: &Bytes,
 ) -> Result<(ContentType, Bytes), TLSError> {
-    check (kiv.iv.len() >= 8)?;
+    check(kiv.iv.len() >= 8)?;
     let iv_ctr = derive_iv_ctr(&kiv.iv, n);
     let clen = ciphertext.len() - 5;
     if clen <= 65536 && clen > 16 {
@@ -172,7 +172,7 @@ fn encrypt_zerortt(
         payload.into_raw(),
         pad,
     )?;
-    check (n < u64::MAX)?;
+    check(n < u64::MAX)?;
     Ok((rec, ClientCipherState0(ae, kiv, n + 1, exp)))
 }
 
