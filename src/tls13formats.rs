@@ -26,7 +26,7 @@ use handshake_data::{HandshakeData, HandshakeType};
 pub use handshake_data::{HandshakeData, HandshakeType};
 
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, pv_handwritten};
+use hax_lib::{pv_constructor, proverif};
 
 // Well Known Constants
 
@@ -560,7 +560,31 @@ pub(crate) fn client_hello(
     Ok((client_hello, trunc_len))
 }
 
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+ letfun bertie__tls13formats__set_client_hello_binder(
+          ciphersuite : bertie__tls13crypto__t_Algorithms,
+          binder : Option,
+          client_hello : bertie__tls13formats__handshake_data__t_HandshakeData,
+          trunc_len : Option
+        ) =
+       let client_hello_c(client_randomness,
+                                  session_id,
+                                  server_name,
+                                  kem_pk,
+                                  tkto,
+                                  old_binder,
+                                  old_trunc_len)
+        = client_hello in
+          client_hello_c(client_randomness,
+                                  session_id,
+                                  server_name,
+                                  kem_pk,
+                                  tkto,
+                                  binder,
+                                  0)."
+
+    ))]
+
 pub(crate) fn set_client_hello_binder(
     ciphersuite: &Algorithms,
     binder: &Option<Hmac>,
@@ -608,7 +632,33 @@ pub fn bench_parse_client_hello(
 
 /// Parse the provided `client_hello` with the given `ciphersuite`.
 #[allow(clippy::type_complexity)]
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
++fun bertie__tls13formats__parse_client_hello(bertie__tls13crypto__t_Algorithms, bertie__tls13formats__handshake_data__t_HandshakeData): bitstring
+reduc forall
+      algs:bertie__tls13crypto__t_Algorithms,
+      client_random: bertie__tls13utils__t_Bytes,
+      server_name: bertie__tls13utils__t_Bytes,
+      kem_pk: bertie__tls13utils__t_Bytes,
+      session_ticket: Option,
+      binder: Option;
+    bertie__tls13formats__parse_client_hello(
+        algs,
+        client_hello_c(client_random,
+                            bertie__tls13utils__t_Bytes_default_value,
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            binder,
+                            0))
+           = (client_random,
+                            bertie__tls13utils__t_Bytes_default_value,
+                            server_name,
+                            kem_pk,
+                            session_ticket,
+                            binder,
+                            0)."
+    ))]
+
 pub(super) fn parse_client_hello(
     ciphersuite: &Algorithms,
     client_hello: &HandshakeData,
@@ -748,7 +798,19 @@ pub fn bench_parse_server_hello(
     parse_server_hello(algs, server_hello)
 }
 
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+reduc forall   algs: bertie__tls13crypto__t_Algorithms, server_random: bertie__tls13utils__t_Bytes, sid: bertie__tls13utils__t_Bytes, gy: bertie__tls13utils__t_Bytes;
+   bertie__tls13formats__parse_server_hello(
+     algs,
+     bertie__tls13formats__server_hello(algs, server_random, sid, gy)
+) = (server_random, gy).
+
+reduc forall algs: bertie__tls13crypto__t_Algorithms;
+      bertie__tls13formats__parse_encrypted_extensions(
+        algs,
+        bertie__tls13formats__encrypted_extensions(algs)
+      ) = ()."
+    ))]
 pub(crate) fn parse_server_hello(
     algs: &Algorithms,
     server_hello: &HandshakeData,
@@ -797,7 +859,13 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
     )?)))
 }
 
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+reduc forall algs: bertie__tls13crypto__t_Algorithms;
+      bertie__tls13formats__parse_encrypted_extensions(
+        algs,
+        bertie__tls13formats__encrypted_extensions(algs)
+      ) = ()."
+    ))]
 pub(crate) fn parse_encrypted_extensions(
     _algs: &Algorithms,
     encrypted_extensions: &HandshakeData,
@@ -831,7 +899,12 @@ pub fn bench_parse_server_certificate(certificate: &HandshakeData) -> Result<Byt
     parse_server_certificate(certificate)
 }
 
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+reduc forall algs: bertie__tls13crypto__t_Algorithms, cert: bertie__tls13utils__t_Bytes;
+  bertie__tls13formats__parse_server_certificate(
+     bertie__tls13formats__server_certificate(algs, cert)
+  ) = cert."
+    ))]
 pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(sc) = certificate.as_handshake_message(HandshakeType::Certificate)?;
     let mut next = 0;
@@ -918,7 +991,12 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
     HandshakeData::from_bytes(HandshakeType::CertificateVerify, &sig)
 }
 
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+reduc forall algs: $:{Algorithms}, cert: bertie__tls13utils__t_Bytes;
+      bertie__tls13formats__parse_certificate_verify(
+        algs,bertie__tls13formats__certificate_verify(algs, cert)
+      ) = cert."
+    ))]
 pub(crate) fn parse_certificate_verify(
     algs: &Algorithms,
     certificate_verify: &HandshakeData,
@@ -946,7 +1024,13 @@ pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
     HandshakeData::from_bytes(HandshakeType::Finished, vd)
 }
 
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+reduc forall vd: bertie__tls13utils__t_Bytes;
+   bertie__tls13formats__parse_finished(
+     bertie__tls13formats__finished(vd)
+) = vd.
+    "))]
 pub(crate) fn parse_finished(finished: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(fin) = finished.as_handshake_message(HandshakeType::Finished)?;
     Ok(fin)

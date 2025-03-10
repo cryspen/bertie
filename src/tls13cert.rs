@@ -16,7 +16,7 @@
 //!     BitString // 0x03
 //! }
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, pv_handwritten};
+use hax_lib::{pv_constructor, proverif};
 
 #[cfg(not(feature = "secret_integers"))]
 use crate::tls13utils::Declassify;
@@ -282,7 +282,16 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+    fun certificate($:{Bytes}, $:{Bytes}, $:{PublicVerificationKey}): $:{Bytes} [private].
+
+    reduc forall server_name: $:{Bytes}, alg: $:{SignatureScheme}, cert_key_slice: $:{CertificateKey}, cert_key: $:{PublicVerificationKey};
+        ${verification_key_from_cert}(
+            certificate(server_name, spki(alg, cert_key_slice), cert_key) 
+        ) =
+       (alg, cert_key_slice)."
+    ))]
+
 pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
     // Take the first sequence inside the outer because we're interested in the
@@ -391,7 +400,33 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 ///
 /// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
 /// if successful, or an [`Asn1Error`] otherwise.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+ letfun bertie__tls13cert__cert_public_key(
+         server_name: $:{Bytes},
+          certificate : $:{Bytes}, spki : bitstring
+        ) =
+       let certificate = cert_verify(server_name, certificate) in
+       let (scheme: bertie__tls13crypto__t_SignatureScheme, pk: bertie__tls13cert__t_CertificateKey) = spki in
+       let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c() = scheme in
+       bertie__tls13crypto__t_PublicVerificationKey_err()
+       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+
+       ) = scheme in let pk = bertie__tls13cert__ecdsa_public_key(
+         certificate, pk
+       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
+         pk
+       )
+       else bertie__tls13crypto__t_PublicVerificationKey_err()
+       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
+ 
+       ) = scheme in let pk = bertie__tls13cert__rsa_public_key(
+         certificate, pk
+       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
+         pk
+       )
+       else bertie__tls13crypto__t_PublicVerificationKey_err()."
+    ))]
+
 pub(crate) fn cert_public_key(
     certificate: &Bytes,
     spki: &Spki,

@@ -1,10 +1,9 @@
-#[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, pv_handwritten};
-
 use crate::tls13utils::{
     bytes1, check_eq, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes,
     TLSError, U8,
 };
+#[cfg(feature = "hax-pv")]
+use hax_lib::{pv_constructor, proverif};
 
 /// ```TLS
 /// enum {
@@ -135,15 +134,33 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake messages. Returns a [TLSError]
     /// if parsing of either message fails or if the payload is not fully consumed
     /// by parsing two messages.
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
     pub(crate) fn to_two(&self) -> Result<(HandshakeData, HandshakeData), TLSError> {
-        let (message1, payload_rest) = self.next_handshake_message()?;
-        let (message2, payload_rest) = payload_rest.next_handshake_message()?;
-        if payload_rest.len() != 0 {
-            tlserr(parse_failed())
-        } else {
-            Ok((message1, message2))
+        #[cfg_attr(
+            feature = "hax-pv",
+            proverif::replace(
+                "reduc forall hs1: $:{Bytes},
+              hs2: $:{Bytes};
+             ${to_two_inner}(
+                 ${HandshakeData::from_bytes}(
+                     ${Bytes::concat}(hs1, hs2)
+                 )
+             )
+     = (hs1, hs2).
+    "
+            )
+        )]
+        fn to_two_inner(
+            hs_data: &HandshakeData,
+        ) -> Result<(HandshakeData, HandshakeData), TLSError> {
+            let (message1, payload_rest) = hs_data.next_handshake_message()?;
+            let (message2, payload_rest) = payload_rest.next_handshake_message()?;
+            if payload_rest.len() != 0 {
+                tlserr(parse_failed())
+            } else {
+                Ok((message1, message2))
+            }
         }
+        to_two_inner(&self)
     }
 
     /// Attempt to parse exactly four handshake messages from `payload`.
@@ -151,20 +168,47 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake messages. Returns a [TLSError]
     /// if parsing of any message fails or if the payload is not fully consumed
     /// by parsing four messages.
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
     pub(crate) fn to_four(
         &self,
     ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
-        let (message1, payload_rest) = self.next_handshake_message()?;
-        let (message2, payload_rest) = payload_rest.next_handshake_message()?;
-        let (message3, payload_rest) = payload_rest.next_handshake_message()?;
-        let (message4, payload_rest) = payload_rest.next_handshake_message()?;
+        #[cfg_attr(
+            feature = "hax-pv",
+            proverif::replace(
+                "
+reduc forall hs1: $:{Bytes},
+             hs2: $:{Bytes},
+             hs3: $:{Bytes},
+             hs4: $:{Bytes};
+            ${to_four_inner}(
+                ${HandshakeData::from_bytes}(${concat}(
+                    ${concat}(
+                        ${concat}(
+                                hs1,
+                                hs2),
+                                hs3),
+                                hs4)))
+     = (hs1,
+        hs2,
+        hs3,
+        hs4)."
+            )
+        )]
+        fn to_four_inner(
+            hs_data: &HandshakeData,
+        ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError>
+        {
+            let (message1, payload_rest) = hs_data.next_handshake_message()?;
+            let (message2, payload_rest) = payload_rest.next_handshake_message()?;
+            let (message3, payload_rest) = payload_rest.next_handshake_message()?;
+            let (message4, payload_rest) = payload_rest.next_handshake_message()?;
 
-        if payload_rest.len() != 0 {
-            tlserr(parse_failed())
-        } else {
-            Ok((message1, message2, message3, message4))
+            if payload_rest.len() != 0 {
+                tlserr(parse_failed())
+            } else {
+                Ok((message1, message2, message3, message4))
+            }
         }
+        to_four_inner(&self)
     }
 
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
