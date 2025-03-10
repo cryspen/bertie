@@ -83,7 +83,7 @@ cargo_hax_into_pv = [
     "bertie",
     "--no-default-features",
     "--features",
-    "hax-pv",
+    "hax-pv,std",
     ";",
     "into",
 ]
@@ -98,7 +98,7 @@ if options.sub == "extract-fstar":
             "-**::non_hax::** -bertie::stream::**",
             "fstar",
             "--interfaces",
-            "+** +!bertie::tls13crypto::** +!bertie::tls13utils::**"
+            "+** +!bertie::tls13crypto::** +!bertie::tls13utils::**",
         ],
         cwd=".",
         env=hax_env,
@@ -112,7 +112,7 @@ elif options.sub == "extract-handshake":
             "-** +~bertie::tls13handshake::**",
             "fstar",
             "--interfaces",
-            "+!** +bertie::tls13handshake::**"
+            "+!** +bertie::tls13handshake::**",
         ],
         cwd=".",
         env=hax_env,
@@ -123,13 +123,15 @@ elif options.sub == "extract-proverif":
         cargo_hax_into_pv
         + [
             "-i",
-            " ".join([
-                "-**",
-                "+~**::tls13handshake::**",
-                "+~**::server::lookup_db", # to include transitive dependency on tls13utils
-                "+~**::tls13utils::parse_failed", # transitive dependencies required
-                "+~**::tls13crypto::zero_key", # transitive dependencies required
-                ]),
+            " ".join(
+                [
+                    "-**",
+                    "+~**::tls13handshake::**",
+                    "+~**::server::lookup_db",  # to include transitive dependency on tls13utils
+                    "+~**::tls13utils::parse_failed",  # transitive dependencies required
+                    "+~**::tls13crypto::zero_key",  # transitive dependencies required
+                ]
+            ),
             "pro-verif",
         ],
         cwd=".",
@@ -148,13 +150,37 @@ elif options.sub == "typecheck":
     exit(0)
 elif options.sub == "patch-proverif":
     custom_env = {}
-    shell(["patch", "proofs/proverif/extraction/lib.pvl", "proofs/proverif/patches/lib.patch"], env=custom_env)
-    shell(["patch", "proofs/proverif/extraction/analysis.pv", "proofs/proverif/patches/analysis.patch"], env=custom_env)
+    shell(
+        [
+            "patch",
+            "proofs/proverif/extraction/lib.pvl",
+            "proofs/proverif/patches/lib.patch",
+        ],
+        env=custom_env,
+    )
+    shell(
+        [
+            "patch",
+            "proofs/proverif/extraction/analysis.pv",
+            "proofs/proverif/patches/analysis.patch",
+        ],
+        env=custom_env,
+    )
     exit(0)
 elif options.sub == "typecheck-proverif":
     # Typecheck subcommand.
     custom_env = {}
-    shell(["proverif", "-lib", "proofs/proverif/handwritten_lib", "-lib", "proofs/proverif/extraction/lib", "proofs/proverif/extraction/analysis.pv"], env=custom_env)
+    shell(
+        [
+            "proverif",
+            "-lib",
+            "proofs/proverif/handwritten_lib",
+            "-lib",
+            "proofs/proverif/extraction/lib",
+            "proofs/proverif/extraction/analysis.pv",
+        ],
+        env=custom_env,
+    )
     exit(0)
 else:
     parser.print_help()
