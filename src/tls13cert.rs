@@ -282,16 +282,32 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-#[cfg_attr(feature = "hax-pv", proverif::replace("
-    fun certificate($:{Bytes}, $:{Bytes}, $:{PublicVerificationKey}): $:{Bytes} [private].
+#[cfg_attr(feature = "hax-pv", proverif::before(
+    "fun extern__spki($:{SignatureScheme},
+                      $:{CertificateKey}): $:{Bytes} [data].
 
-    reduc forall server_name: $:{Bytes}, alg: $:{SignatureScheme}, cert_key_slice: $:{CertificateKey}, cert_key: $:{PublicVerificationKey};
+    fun extern__certificate($:{Bytes}, $:{Bytes}, $:{PublicVerificationKey}): $:{Bytes} [private].
+
+    reduc forall
+      server_name: $:{Bytes},
+      spki:$:{Bytes},
+      cert_pk: $:{PublicVerificationKey};
+
+      extern__cert_verify(server_name, extern__certificate(server_name, spki, cert_pk))
+      = extern__certificate(server_name, spki, cert_pk).
+"))]
+#[cfg_attr(feature = "hax-pv", proverif::replace("
+    reduc forall
+      server_name: $:{Bytes},
+      alg: $:{SignatureScheme},
+      cert_key_slice: $:{CertificateKey},
+      cert_key: $:{PublicVerificationKey};
+
         ${verification_key_from_cert}(
-            certificate(server_name, spki(alg, cert_key_slice), cert_key) 
+            extern__certificate(server_name, extern__spki(alg, cert_key_slice), cert_key) 
         ) =
        (alg, cert_key_slice)."
     ))]
-
 pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
     // Take the first sequence inside the outer because we're interested in the
@@ -400,31 +416,37 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 ///
 /// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
 /// if successful, or an [`Asn1Error`] otherwise.
+// XXX: - enum variant constructors: Can't do
+// `${SignatureScheme::ED25519}_c()` since that is translated to `bertie__tls13crypto__SignatureScheme_ED25519(
+//
+// )_c()`
+// - Should find better solution for `_c()` and `_err()` terms
 #[cfg_attr(feature = "hax-pv", proverif::replace("
- letfun bertie__tls13cert__cert_public_key(
-         server_name: $:{Bytes},
-          certificate : $:{Bytes}, spki : bitstring
+ letfun ${cert_public_key}(
+         server_name : $:{Bytes},
+         certificate : $:{Bytes},
+         spki        : bitstring
         ) =
-       let certificate = cert_verify(server_name, certificate) in
-       let (scheme: bertie__tls13crypto__t_SignatureScheme, pk: bertie__tls13cert__t_CertificateKey) = spki in
-       let bertie__tls13crypto__SignatureScheme_SignatureScheme_ED25519_c() = scheme in
-       bertie__tls13crypto__t_PublicVerificationKey_err()
-       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c(
+       let certificate = extern__cert_verify(server_name, certificate) in
+       let (scheme: $:{CertificateKey}) = spki in
+       let $:{SignatureScheme}_ED25519_c() = scheme in
+       $:{PublicVerificationKey}_err()
+       else let $:{SignatureScheme}_EcdsaSecp256r1Sha256_c(
 
-       ) = scheme in let pk = bertie__tls13cert__ecdsa_public_key(
+       ) = scheme in let pk = ${ecdsa_public_key}(
          certificate, pk
-       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
+       ) in $:{PublicVerificationKey}_EcDsa_c(
          pk
        )
-       else bertie__tls13crypto__t_PublicVerificationKey_err()
-       else let bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(
+       else $:{PublicVerificationKey}_err()
+       else let $:{SignatureScheme}_RsaPssRsaSha256_c(
  
-       ) = scheme in let pk = bertie__tls13cert__rsa_public_key(
+       ) = scheme in let pk = ${rsa_public_key}(
          certificate, pk
-       ) in bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
+       ) in $:{PublicVerificationKey}_Rsa_c(
          pk
        )
-       else bertie__tls13crypto__t_PublicVerificationKey_err()."
+       else $:{PublicVerificationKey}_err()."
     ))]
 
 pub(crate) fn cert_public_key(

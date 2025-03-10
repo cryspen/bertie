@@ -187,24 +187,19 @@ impl From<Vec<u8>> for Bytes {
 
 impl Bytes {
     /// Add a prefix to these bytes and return it.
-    pub(crate) fn prefix(self, prefix: &[U8]) -> Self {
-        #[cfg_attr(
-            feature = "hax-pv",
-            proverif::replace(
-                "
-letfun ${prefix_inner}(self:$:{Bytes}, prefix:$:{Bytes})
-= ${Bytes::concat}(prefix, self)."
+    #[cfg_attr(
+        feature = "hax-pv",
+        proverif::replace_body(
+"${Bytes::concat}(prefix, self)"
             )
         )]
-        fn prefix_inner(mut bytes: Bytes, prefix: &[U8]) -> Bytes {
-            let mut out = Vec::with_capacity(prefix.len() + bytes.len());
+    pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
+        let mut out = Vec::with_capacity(prefix.len() + self.len());
 
-            out.extend_from_slice(prefix);
-            out.append(&mut bytes.0);
+        out.extend_from_slice(prefix);
+        out.append(&mut self.0);
 
-            Bytes(out)
-        }
-        prefix_inner(self, prefix)
+        Bytes(out)
     }
 
     /// Declassify these bytes and return a copy of [`u8`].
@@ -267,8 +262,7 @@ impl U32 {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
-    fun ${u16_as_be_bytes}(nat)
+        "fun ${u16_as_be_bytes}(nat)
     : $:{Bytes} [data]."
     )
 )]
@@ -426,10 +420,7 @@ impl Bytes {
     pub fn concat(self, other: Bytes) -> Bytes {
         #[cfg_attr(
             feature = "hax-pv",
-            proverif::replace(
-                "
-    fun ${concat_inner}($:{Bytes}, $:{Bytes}): $:{Bytes} [data]."
-            )
+            proverif::replace("fun ${concat_inner}($:{Bytes}, $:{Bytes}): $:{Bytes} [data].")
         )]
         fn concat_inner(mut bytes: Bytes, other: Bytes) -> Bytes {
             bytes.append(other);
@@ -481,7 +472,7 @@ macro_rules! bytes_concat {
 pub(crate) use bytes_concat;
 
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, proverif};
+use hax_lib::{proverif, pv_constructor};
 
 impl Bytes {
     /// Get a hex representation of self as [`String`].
@@ -598,8 +589,7 @@ pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     #[cfg_attr(
         feature = "hax-pv",
         proverif::replace(
-            "
-fun ${check_eq_inner}( $:{Bytes}, $:{Bytes}): bitstring
+            "fun ${check_eq_inner}( $:{Bytes}, $:{Bytes}): bitstring
 reduc forall b1 : $:{Bytes};
           ${check_eq_inner}(b1,b1) = ()."
         )

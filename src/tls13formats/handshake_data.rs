@@ -174,23 +174,24 @@ impl HandshakeData {
         #[cfg_attr(
             feature = "hax-pv",
             proverif::replace(
-                "
-reduc forall hs1: $:{Bytes},
-             hs2: $:{Bytes},
-             hs3: $:{Bytes},
-             hs4: $:{Bytes};
+                "reduc forall
+                   hs1: $:{Bytes},
+                   hs2: $:{Bytes},
+                   hs3: $:{Bytes},
+                   hs4: $:{Bytes};
+
             ${to_four_inner}(
-                ${HandshakeData::from_bytes}(${concat}(
-                    ${concat}(
-                        ${concat}(
+                ${HandshakeData::from_bytes}(${Bytes::concat}(
+                    ${Bytes::concat}(
+                        ${Bytes::concat}(
                                 hs1,
                                 hs2),
                                 hs3),
                                 hs4)))
-     = (hs1,
-        hs2,
-        hs3,
-        hs4)."
+                             = (hs1,
+                                hs2,
+                                hs3,
+                                hs4)."
             )
         )]
         fn to_four_inner(

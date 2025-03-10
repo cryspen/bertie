@@ -78,6 +78,7 @@ pub(crate) struct RsaVerificationKey {
 
 /// Bertie public verification keys.
 #[derive(Debug)]
+#[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
 pub(crate) enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
@@ -118,7 +119,7 @@ impl HashAlgorithm {
     pub(crate) fn hash_len(&self) -> usize {
         #[cfg_attr(
             feature = "hax-pv",
-            proverif::replace("letfun ${hash_len_inner}(self: $:{HashAlgorithm}) = 0.")
+            proverif::replace_body("0")
         )]
         fn hash_len_inner(h: &HashAlgorithm) -> usize {
             match h {
@@ -170,7 +171,7 @@ reduc
   forall
         alg : $:{HashAlgorithm},
          mk : $:{Bytes},
-         input : $:{Bytes};
+      input : $:{Bytes};
         ${hmac_verify}(
             alg,
             mk,
@@ -347,33 +348,23 @@ pub enum SignatureScheme {
 /// Sign the `input` with the provided RSA key.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "fun sign_inner_rsa(
+    proverif::before(
+        "fun extern__sign_inner_rsa(
       $:{Bytes},
       $:{Bytes},
       $:{Bytes},
       $:{SignatureScheme},
       $:{Bytes}
     )
-    : $:{Bytes}.
-
-letfun ${sign_rsa}(
-      sk: $:{Bytes},
-      pk_modulus: $:{Bytes},
-      pk_exponent: $:{Bytes},
-      cert_scheme: $:{SignatureScheme},
-      input: $:{Bytes},
-      rng: impl_CryptoRng___RngCore
-    )
-    =
-    (rng,
-        sign_inner_rsa(
+    : $:{Bytes}."))]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body("(extern__sign_inner_rsa(
           sk,
           pk_modulus,
           pk_exponent,
           cert_scheme,
-          input)
-    )."
+          input))"
     )
 )]
 pub(crate) fn sign_rsa(
@@ -423,20 +414,11 @@ pub(crate) fn sign_rsa(
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "
-letfun ${sign}(
-      alg:$:{SignatureScheme},
-      sk: $:{Bytes},
-      input: $:{Bytes},
-      rng: impl_CryptoRng___RngCore
-      =
-      (rng,
-        sign_inner(
+    proverif::replace_body(
+        "(sign_inner(
         alg,
         sk,
-        input
-      ))."
+        input))"
     )
 )]
 pub(crate) fn sign(
@@ -479,27 +461,27 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-#[cfg_attr(feature = "hax-pv", proverif::replace("
-        fun ${verify}(
+// XXX: Review this.
+#[cfg_attr(feature = "hax-pv", proverif::replace( 
+       "fun ${verify}(
             $:{SignatureScheme},
-            ${PublicVerificationKey},
+            $:{PublicVerificationKey},
             $:{Bytes},
             $:{Bytes}
         )
     : bitstring
   reduc
     forall server_name: $:{Bytes},
-           sk: $:{Bytes},
-        cert_scheme: $:{SignatureScheme},
-           input: $:{Bytes},
-           rng: impl_CryptoRng___RngCore;
+                    sk: $:{Bytes},
+           cert_scheme: $:{SignatureScheme},
+                 input: $:{Bytes};
         ${verify}(
-        bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c(),
+        $:{SignatureScheme}_RsaPssRsaSha256_c(),
 
-        bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_Rsa_c(
-            bertie__tls13cert__rsa_public_key(
+        $:{PublicVerificationKey}_Rsa_c(
+            ${crate::tls13cert::rsa_public_key}(
                 certificate(server_name,
-                    spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_RsaPssRsaSha256_c,rsa_cert_key_slice),
+                    spki($:{SignatureScheme}_RsaPssRsaSha256_c,rsa_cert_key_slice),
                     rsa_vk_from_sk(sk,rsa_modulus_from_sk(sk),RSA_PUBLIC_EXPONENT)),
                     rsa_cert_key_slice)),
         input,
@@ -508,18 +490,17 @@ pub(crate) fn sign(
   otherwise
     forall server_name: $:{Bytes},
            sk: $:{Bytes},
-           input: $:{Bytes},
-           rng: impl_CryptoRng___RngCore;
+           input: $:{Bytes};
         ${verify}(
-        bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c,
-        bertie__tls13crypto__PublicVerificationKey_PublicVerificationKey_EcDsa_c(
-            bertie__tls13cert__ecdsa_public_key(
+        $:{SignatureScheme}_EcdsaSecp256r1Sha256_c,
+        $:{PublicVerificationKey}_EcDsa_c(
+            ${crate::tls13cert::ecdsa_public_key}(
                 certificate(server_name,
-                    spki(bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c,ecdsa_cert_key_slice),
+                    spki($:{SignatureScheme}_EcdsaSecp256r1Sha256_c,ecdsa_cert_key_slice),
                     vk_from_sk(sk)),
                 ecdsa_cert_key_slice)),
         input,
-        sign_inner(bertie__tls13crypto__SignatureScheme_SignatureScheme_EcdsaSecp256r1Sha256_c, sk, input)
+        sign_inner($:{SignatureScheme}_EcdsaSecp256r1Sha256_c, sk, input)
       ) = ()."
     ))]
 pub(crate) fn verify(
@@ -624,15 +605,14 @@ impl KemScheme {
 /// Generate a new KEM key pair.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "fun kem_pk_from_sk($:{Bytes}): $:{Bytes}.
-
-    letfun ${kem_keygen}(
-            alg : $:{KemScheme}, rng : impl_CryptoRng___RngCore
-        ) =
-       new kem_sk: $:{Bytes};
-       let kem_pk = kem_pk_from_sk(kem_sk) in
-       (rng, (kem_sk, kem_pk))."
+    proverif::before(
+        "fun extern__kem_pk_from_sk($:{Bytes}): $:{Bytes}."))]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "(new kem_sk: $:{Bytes};
+       let kem_pk = extern__kem_pk_from_sk(kem_sk) in
+       (kem_sk, kem_pk))"
     )
 )]
 pub(crate) fn kem_keygen(
@@ -678,21 +658,16 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 }
 
 /// KEM encapsulation
-
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "
-fun kem_encapsulation($:{Bytes}, $:{Bytes}): $:{Bytes}.
-
-letfun ${kem_encap}(
-      alg: ${KemScheme},
-      pk: $:{Bytes},
-      rng: impl_CryptoRng___RngCore
-    ) = 
-     new shared_secret: $:{Bytes};
-     let ct = kem_encapsulation(pk, shared_secret) in
-     (rng,(shared_secret, ct))."
+    proverif::before(
+        "fun extern__kem_encapsulation($:{Bytes}, $:{Bytes}): $:{Bytes}."))]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "(new shared_secret: $:{Bytes};
+          let ct = extern__kem_encapsulation(pk, shared_secret) in
+          (shared_secret, ct))"
     )
 )]
 pub(crate) fn kem_encap(
@@ -733,10 +708,9 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
-    reduc forall alg: $:{KemScheme}, kem_sk: $:{Bytes}, shared_secret: $:{Bytes};
-     bertie__tls13crypto__kem_decap(
-     alg, kem_encapsulation(kem_pk_from_sk(kem_sk), shared_secret), kem_sk
+        "reduc forall alg: $:{KemScheme}, kem_sk: $:{Bytes}, shared_secret: $:{Bytes};
+     ${kem_decap}(
+     alg, extern__kem_encapsulation(extern__kem_pk_from_sk(kem_sk), shared_secret), kem_sk
      ) = shared_secret."
     )
 )]
