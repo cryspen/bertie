@@ -181,7 +181,7 @@ val impl_HandshakeData__find_handshake_message
       (start: usize)
     : Prims.Pure bool
       (requires
-        (let self_: t_HandshakeData = self in
+        (let (self_: t_HandshakeData):t_HandshakeData = self in
           (impl_HandshakeData__len self_ <: usize) >=. start))
       (fun _ -> Prims.l_True)
       (decreases

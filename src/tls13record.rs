@@ -132,6 +132,7 @@ fn padlen(b: &Bytes, n: usize) -> usize {
 }
 
 /// AEAD decrypt the record `ciphertext`
+#[hax_lib::fstar::verification_status(lax)]
 fn decrypt_record_payload(
     kiv: &AeadKeyIV,
     n: u64,

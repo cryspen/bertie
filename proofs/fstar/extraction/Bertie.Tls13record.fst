@@ -301,6 +301,8 @@ let rec padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
   then mk_usize 1 +! (padlen b (n -! mk_usize 1 <: usize) <: usize)
   else mk_usize 0
 
+#push-options "--admit_smt_queries true"
+
 let decrypt_record_payload
       (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
       (n: u64)
@@ -416,6 +418,8 @@ let decrypt_record_payload
     Core.Result.Result_Err err
     <:
     Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+
+#pop-options
 
 let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0) =
   match
