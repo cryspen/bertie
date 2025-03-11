@@ -268,6 +268,77 @@ From KeyScheduleTheorem Require Import XTR_XPD.
         * apply H.
   Qed.
 
+  Lemma Advantage_par_emptyR :
+    ∀ G₀ G₁ A,
+      AdvantageE (par G₀ emptym) (par G₁ emptym) A = AdvantageE G₀ G₁ A.
+  Proof.
+    intros G₀ G₁ A.
+    unfold AdvantageE.
+    unfold par.
+    rewrite !unionm0.
+    reflexivity.
+  Qed.
+
+  Lemma Advantage_parR :
+    ∀ G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁,
+      ValidPackage L₀ Game_import E₀ G₀ →
+      ValidPackage L₁ Game_import E₁ G₁ →
+      ValidPackage L₁' Game_import E₁ G₁' →
+      flat E₁ →
+      trimmed E₀ G₀ →
+      trimmed E₁ G₁ →
+      trimmed E₁ G₁' →
+      AdvantageE (par G₁ G₀) (par G₁' G₀) A =
+        AdvantageE G₁ G₁' (A ∘ par (ID E₁) G₀).
+  Proof.
+    intros G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁.
+    intros Va0 Va1 Va1' Fe0 Te0 Te1 Te1'.
+    replace (par G₁ G₀) with ((par (ID E₁) G₀) ∘ (par G₁ (ID Game_import) )).
+    2:{
+      erewrite <- interchange.
+      all: ssprove_valid.
+      4:{
+        ssprove_valid.
+        rewrite domm_ID_fset.
+        rewrite -fset0E.
+        apply fdisjoints0.
+      }
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: apply trimmed_ID.
+      rewrite link_id.
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: assumption.
+      rewrite id_link.
+      2: assumption.
+      reflexivity.
+    }
+    replace (par G₁' G₀) with ((par (ID E₁) G₀) ∘ (par G₁' (ID Game_import))).
+    2:{
+      erewrite <- interchange.
+      all: ssprove_valid.
+      4:{
+        ssprove_valid.
+        rewrite domm_ID_fset.
+        rewrite -fset0E.
+        apply fdisjoints0.
+      }
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: apply trimmed_ID.
+      rewrite link_id.
+      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+      2: assumption.
+      rewrite id_link.
+      2: assumption.
+      reflexivity.
+    }
+    rewrite -Advantage_link.
+    unfold Game_import. rewrite -fset0E.
+    rewrite Advantage_par_emptyR.
+    reflexivity.
+    Unshelve. all: auto.
+  Qed.
+
+
 (*** Core *)
 
 Section Core.
@@ -1745,6 +1816,2412 @@ Section Core.
     all: try rewrite <- trimmed_hash.
     all: now solve_Parable2.
   Time Defined. (* 36.626 *)
+  Fail Next Obligation.
+
+  Definition Gacr (f : HashFunction) (b : bool) :
+    package fset0
+      [interface]
+      [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout].
+  (* Proof. *)
+  (*   refine [package *)
+  (*             #def #[ HASH ] (t : chHASHinp) : chHASHout { *)
+  (*               ret fail *)
+  (*               (* (* get_or_fn _ _ _ *) *) *)
+  (*               (* d ← untag (match f with | f_hash | f_xtr => xtr t end) ;; *) *)
+  (*               (* if b && d \in Hash *) *)
+  (*               (* then fail *) *)
+  (*               (* else *) *)
+  (*               (*   ret d *) *)
+  (*             } *)
+  (*     ]. *)
+  (*   Qed. *)
+  Admitted.
+
+  Definition R_alg :
+    package fset0
+      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
+      [interface].
+  Proof.
+  Admitted.
+
+  Definition R_cr :
+    package fset0
+      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
+      [interface].
+  Proof.
+  Admitted.
+
+  Definition R_Z (f : HashFunction) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_D (f : HashFunction) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_xtr (n : name) (ℓ : nat) :
+    n \in XTR_names ->
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_xpd (n : name) (ℓ : nat) :
+    n \in XPR ->
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_pi (L : list name) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Axiom Gsodh :
+    forall (d k : nat),
+      (d < k)%nat ->
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gxtr :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (n : name) (ℓ : nat),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gxpd :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (n : name) (ℓ : nat),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gpi :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (L : list name)
+      (f : ZAF),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Ai : raw_package -> bool -> raw_package.
+  Axiom R_sodh : package fset0 [interface] [interface].
+
+  Obligation Tactic := (* try timeout 8 *) idtac.
+
+  Notation " 'chXTRinp' " :=
+    (chHandle × chHandle)
+      (in custom pack_type at level 2).
+  Notation " 'chXTRout' " :=
+    (chHandle)
+      (in custom pack_type at level 2).
+
+  Program Definition KeysAndHash (d k : nat) (H_lt : (d < k)%nat) f_ks f_ls : package (L_K :|: L_L) [interface] ((SET_n all_names d k :|: SET_ℓ [PSK] k d.+1 :|: GET_n all_names d k):|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) :=
+    {package (par (par (Ks d k (ltnW H_lt) all_names f_ks erefl ∘ Ls k all_names f_ls erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK Z)) (Hash true))}.
+  Next Obligation.
+    intros.
+    eapply valid_par_upto.
+    2:{
+      eapply valid_par.
+      2: eapply valid_link.
+      2: eapply pack_valid.
+      2: eapply pack_valid.
+      2:{
+        eapply valid_link.
+        1: eapply pack_valid.
+        1: eapply pack_valid.
+      }
+      unfold Ks.
+      unfold K_package.
+
+      unfold eq_rect_r, eq_rect.
+      destruct Logic.eq_sym, function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r, eq_rect.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    2: eapply pack_valid.
+    2: rewrite  fsetUid fsetU0; apply fsubsetxx.
+    2: rewrite !fsetUid ; apply fsubsetxx.
+    2:{
+      rewrite (fset_cons (SET PSK d.+1 k, _)).
+      rewrite fset1E.
+      unfold SET_ℓ.
+      unfold interface_foreach.
+      solve_in_fset.
+    }
+
+    rewrite <- trimmed_hash.
+    unfold Ks.
+    unfold K_package.
+
+    unfold eq_rect_r, eq_rect.
+    destruct Logic.eq_sym, function2_fset_cat.
+    unfold combined.
+    unfold eq_rect_r, eq_rect.
+    destruct Logic.eq_sym.
+    solve_Parable2.
+  Qed.
+  Fail Next Obligation.
+
+  Lemma subset_all (d k : nat) (H_lt : (d < k)%nat) :
+    interface_hierarchy_foreach
+    (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+  :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+       :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+       :|: (SET_n I_star d k :|: SET_n O_star d k
+            :|: interface_hierarchy
+                  (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+       :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+  :|: (SET_ℓ [:: DH] k 0
+       :|: interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+             [:: PSK])
+  :<=: SET_n all_names d k :|: SET_ℓ [:: PSK] k d.+1 :|: GET_n all_names d k
+  :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ].
+  Proof.
+    replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+      (interface_hierarchy_foreach
+         (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+         :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+                :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+                :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+         )
+         :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+                [:: PSK] :|: interface_hierarchy
+                (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+         :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+      ).
+    2:{
+      rewrite !fsetUA.
+      repeat set (interface_hierarchy_foreach _ _ _).
+      repeat set (interface_hierarchy _ _).
+      repeat set (interface_foreach _ _).
+      repeat set (GET_n _ _ _).
+      repeat set (SET_n _ _ _).
+      solve_fset_eq.
+    }
+
+    apply subset_pair ; [ | apply fsubsetxx ].
+
+    unfold interface_foreach.
+    rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+    unfold interface_hierarchy ; fold interface_hierarchy.
+    rewrite fsetUA.
+    rewrite fsetUA.
+    rewrite <- fsetUA.
+    rewrite <- fsetUA.
+    rewrite <- (fsetUC (GET_n all_names d k)).
+    apply subset_pair.
+    - rewrite !interface_hierarchy_U.
+      apply interface_hierarchy_subset_pairs.
+      intros.
+      unfold GET_ℓ.
+      rewrite <- !interface_foreach_cat.
+      unfold cat ; fold (cat O_star).
+      apply interface_foreach_subset.
+      intros.
+      apply interface_foreach_subsetR.
+      2: easy.
+      exists x.
+      eexists.
+      2: apply fsubsetxx.
+      rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+      all: now rewrite eqxx.
+    - rewrite !fsetUA.
+      apply subset_pair ; [ | apply fsubsetxx ].
+
+      rewrite <- !fsetUA.
+      rewrite fsubUset.
+      rewrite !fsetUA.
+      apply /andP ; split.
+      {
+        unfold SET_n.
+        apply interface_hierarchy_subsetR.
+        exists O, (leq0n _).
+        unfold SET_ℓ.
+        apply interface_foreach_subset.
+        intros.
+        rewrite mem_seq1 in H.
+        move: H => /eqP H ; subst.
+        apply interface_foreach_subsetR.
+        2: easy.
+        exists DH.
+        eexists ; [ easy | ].
+        apply fsubsetxx.
+      }
+      {
+        rewrite !interface_hierarchy_U.
+        apply interface_hierarchy_subset_pairs.
+        intros.
+        unfold SET_ℓ.
+        rewrite <- !interface_foreach_cat.
+        rewrite fsubUset.
+        apply /andP ; split.
+        {
+          apply interface_foreach_subset.
+          intros.
+          apply interface_foreach_subsetR.
+          2: easy.
+          exists x.
+          eexists.
+          2: apply fsubsetxx.
+          rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+          all: now rewrite eqxx.
+        }
+        {
+          apply interface_foreach_subsetR.
+          2: easy.
+          exists PSK.
+          eexists ; [ easy | ].
+          apply fsubsetxx.
+        }
+      }
+  Qed.
+
+  Program Definition G_check_XTR_XPD (d k : nat) (H_lt : (d < k)%nat) f_XTR_XPD :
+    package fset0 (interface_hierarchy_foreach
+    (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+  :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+       :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+       :|: (SET_n I_star d k :|: SET_n O_star d k
+            :|: interface_hierarchy
+                  (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+       :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ])) (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k) :=
+    {package (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k f_XTR_XPD H_lt)))}.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Next Obligation.
+    intros.
+    {
+      rewrite <- fsetUid.
+      eapply valid_link.
+      1:{
+        rewrite <- fsetUid.
+        rewrite <- !(fsetUA (XPD_n d k)).
+        eapply valid_par.
+        2: apply pack_valid.
+        2:{
+          rewrite <- fsetUid.
+          eapply valid_par.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          shelve.
+        }
+        shelve.
+      }
+      {
+        eapply valid_par_upto.
+        2: apply pack_valid.
+        2: apply pack_valid.
+        2: solve_in_fset.
+        2:{
+          (* TODO: SET PSK ℓ.+1 ? *)
+          apply fsubsetxx.
+
+        }
+        2:{
+          rewrite <- fsetUA.
+          rewrite fsetUC.
+          rewrite (fsetUC (XPD_n _ _)).
+          rewrite !fsetUA.
+          apply subset_pair ; [ | apply fsubsetxx ].
+          rewrite (fsetUC (GET_n _ _ _)).
+          rewrite <- fsetUA.
+          rewrite fsetUC.
+          apply subset_pair ; [ | apply fsubsetxx ].
+          rewrite fsubUset.
+          rewrite fsubsetxx.
+          rewrite Bool.andb_true_r.
+          unfold GET_n.
+          apply interface_hierarchy_subset_pairs.
+          intros.
+          unfold GET_ℓ.
+          apply interface_foreach_subsetR.
+          2: easy.
+          exists BINDER.
+          eexists ; [ easy | ].
+          apply fsubsetxx.
+        }
+        shelve.
+      }
+    }
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+  Qed.
+
+  (* Page 70 *)
+  Program Definition G_core_Hash (d k : nat) (H_lt : (d < k)%nat) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    {package
+               (par (G_check_XTR_XPD d k H_lt (fun _ => false))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (KeysAndHash d k H_lt (fun _ _ => false) (fun _ => Z))
+               (* (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun _ => Z) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK Z)) (Hash true)) *)
+    }.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Next Obligation.
+    intros.
+
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2: apply pack_valid.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      eapply valid_package_inject_export.
+      2: apply pack_valid.
+      now apply subset_all.
+    }
+
+    Unshelve.
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_check_XTR_XPD.
+      unfold pack.
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+  Time Qed.
+  Fail Next Obligation.
+
+  Program Definition G_core_D (d k : nat) (H_lt : (d < k)%nat) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    {package
+               (par (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k (fun _ => false) H_lt)))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun _ => D) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+    }.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with easy.
+  Next Obligation.
+    intros.
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_link.
+        1:{
+          rewrite <- fsetUid.
+          rewrite <- !(fsetUA (XPD_n d k)).
+          eapply valid_par.
+          2: apply pack_valid.
+          2:{
+            rewrite <- fsetUid.
+            eapply valid_par.
+            2: apply pack_valid.
+            2: apply pack_valid.
+            shelve.
+          }
+          shelve.
+        }
+        {
+          (* rewrite <- fsetUid. *)
+          (* rewrite fsetUA. *)
+          (* rewrite <- (fsetUC (interface_hierarchy_foreach _ O_star _)). *)
+          eapply valid_par_upto.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          2: solve_in_fset.
+          2:{
+            (* TODO: SET PSK ℓ.+1 ? *)
+            apply fsubsetxx.
+
+          }
+          2:{
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            rewrite (fsetUC (XPD_n _ _)).
+            rewrite !fsetUA.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite (fsetUC (GET_n _ _ _)).
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite fsubUset.
+            rewrite fsubsetxx.
+            rewrite Bool.andb_true_r.
+            unfold GET_n.
+            apply interface_hierarchy_subset_pairs.
+            intros.
+            unfold GET_ℓ.
+            apply interface_foreach_subsetR.
+            2: easy.
+            exists BINDER.
+            eexists ; [ easy | ].
+            apply fsubsetxx.
+          }
+          shelve.
+        }
+      }
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      rewrite <- fsetU0.
+
+      replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+        (interface_hierarchy_foreach
+       (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+     :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+          :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+          :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+     )
+     :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+          [:: PSK] :|: interface_hierarchy
+                     (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+     :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        ).
+      2:{
+        rewrite !fsetUA.
+        repeat set (interface_hierarchy_foreach _ _ _).
+        repeat set (interface_hierarchy _ _).
+        repeat set (interface_foreach _ _).
+        repeat set (GET_n _ _ _).
+        repeat set (SET_n _ _ _).
+        solve_fset_eq.
+      }
+
+      unfold interface_foreach.
+      rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsetUA.
+
+      rewrite <- (fsetUid [interface]).
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        rewrite <- (fsetUid [interface]).
+        eapply valid_par.
+        3:{
+          eapply valid_package_inject_export.
+          2: eapply valid_link ; apply pack_valid.
+          solve_in_fset.
+        }
+        2:{
+          eapply valid_link.
+          1:{
+            eapply valid_package_inject_export.
+            2: apply pack_valid.
+            rewrite fsetUA.
+            rewrite <- fsetUA.
+            rewrite (fsetUC (SET_n all_names _ _)).
+            apply subset_pair.
+            - rewrite !interface_hierarchy_U.
+              apply interface_hierarchy_subset_pairs.
+              intros.
+              unfold GET_ℓ.
+              rewrite <- !interface_foreach_cat.
+              unfold cat ; fold (cat O_star).
+              apply interface_foreach_subset.
+              intros.
+              apply interface_foreach_subsetR.
+              2: easy.
+              exists x.
+              eexists.
+              2: apply fsubsetxx.
+              rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+              all: now rewrite eqxx.
+            - rewrite <- !fsetUA.
+              rewrite fsubUset.
+              rewrite !fsetUA.
+              apply /andP ; split.
+              {
+                unfold SET_n.
+                apply interface_hierarchy_subsetR.
+                exists O, (leq0n _).
+                unfold SET_ℓ.
+                apply interface_foreach_subset.
+                intros.
+                rewrite mem_seq1 in H.
+                move: H => /eqP H ; subst.
+                apply interface_foreach_subsetR.
+                2: easy.
+                exists DH.
+                eexists ; [ easy | ].
+                apply fsubsetxx.
+              }
+              {
+                rewrite !interface_hierarchy_U.
+                apply interface_hierarchy_subset_pairs.
+                intros.
+                unfold SET_ℓ.
+                rewrite <- !interface_foreach_cat.
+                rewrite fsubUset.
+                apply /andP ; split.
+                {
+                  apply interface_foreach_subset.
+                  intros.
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists x.
+                  eexists.
+                  2: apply fsubsetxx.
+                  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+                  all: now rewrite eqxx.
+                }
+                {
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists PSK.
+                  eexists ; [ easy | ].
+                  apply fsubsetxx.
+                }
+              }
+          }
+          1: apply pack_valid.
+        }
+        shelve.
+      }
+      2: apply pack_valid.
+      shelve.
+    }
+
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    {
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+    {
+      rewrite <- trimmed_hash.
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+  Time Qed.
+  Fail Next Obligation.
+
+
+  Program Definition G_core_R_esalt (d k : nat) (H_lt : (d < k)%nat) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    {package
+               (par (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k (fun _ => false) H_lt)))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+    }.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with easy.
+  Next Obligation.
+    intros.
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_link.
+        1:{
+          rewrite <- fsetUid.
+          rewrite <- !(fsetUA (XPD_n d k)).
+          eapply valid_par.
+          2: apply pack_valid.
+          2:{
+            rewrite <- fsetUid.
+            eapply valid_par.
+            2: apply pack_valid.
+            2: apply pack_valid.
+            shelve.
+          }
+          shelve.
+        }
+        {
+          (* rewrite <- fsetUid. *)
+          (* rewrite fsetUA. *)
+          (* rewrite <- (fsetUC (interface_hierarchy_foreach _ O_star _)). *)
+          eapply valid_par_upto.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          2: solve_in_fset.
+          2:{
+            (* TODO: SET PSK ℓ.+1 ? *)
+            apply fsubsetxx.
+
+          }
+          2:{
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            rewrite (fsetUC (XPD_n _ _)).
+            rewrite !fsetUA.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite (fsetUC (GET_n _ _ _)).
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite fsubUset.
+            rewrite fsubsetxx.
+            rewrite Bool.andb_true_r.
+            unfold GET_n.
+            apply interface_hierarchy_subset_pairs.
+            intros.
+            unfold GET_ℓ.
+            apply interface_foreach_subsetR.
+            2: easy.
+            exists BINDER.
+            eexists ; [ easy | ].
+            apply fsubsetxx.
+          }
+          shelve.
+        }
+      }
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      rewrite <- fsetU0.
+
+      replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+        (interface_hierarchy_foreach
+       (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+     :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+          :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+          :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+     )
+     :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+          [:: PSK] :|: interface_hierarchy
+                     (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+     :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        ).
+      2:{
+        rewrite !fsetUA.
+        repeat set (interface_hierarchy_foreach _ _ _).
+        repeat set (interface_hierarchy _ _).
+        repeat set (interface_foreach _ _).
+        repeat set (GET_n _ _ _).
+        repeat set (SET_n _ _ _).
+        solve_fset_eq.
+      }
+
+      unfold interface_foreach.
+      rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsetUA.
+
+      rewrite <- (fsetUid [interface]).
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        rewrite <- (fsetUid [interface]).
+        eapply valid_par.
+        3:{
+          eapply valid_package_inject_export.
+          2: eapply valid_link ; apply pack_valid.
+          solve_in_fset.
+        }
+        2:{
+          eapply valid_link.
+          1:{
+            eapply valid_package_inject_export.
+            2: apply pack_valid.
+            rewrite fsetUA.
+            rewrite <- fsetUA.
+            rewrite (fsetUC (SET_n all_names _ _)).
+            apply subset_pair.
+            - rewrite !interface_hierarchy_U.
+              apply interface_hierarchy_subset_pairs.
+              intros.
+              unfold GET_ℓ.
+              rewrite <- !interface_foreach_cat.
+              unfold cat ; fold (cat O_star).
+              apply interface_foreach_subset.
+              intros.
+              apply interface_foreach_subsetR.
+              2: easy.
+              exists x.
+              eexists.
+              2: apply fsubsetxx.
+              rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+              all: now rewrite eqxx.
+            - rewrite <- !fsetUA.
+              rewrite fsubUset.
+              rewrite !fsetUA.
+              apply /andP ; split.
+              {
+                unfold SET_n.
+                apply interface_hierarchy_subsetR.
+                exists O, (leq0n _).
+                unfold SET_ℓ.
+                apply interface_foreach_subset.
+                intros.
+                rewrite mem_seq1 in H.
+                move: H => /eqP H ; subst.
+                apply interface_foreach_subsetR.
+                2: easy.
+                exists DH.
+                eexists ; [ easy | ].
+                apply fsubsetxx.
+              }
+              {
+                rewrite !interface_hierarchy_U.
+                apply interface_hierarchy_subset_pairs.
+                intros.
+                unfold SET_ℓ.
+                rewrite <- !interface_foreach_cat.
+                rewrite fsubUset.
+                apply /andP ; split.
+                {
+                  apply interface_foreach_subset.
+                  intros.
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists x.
+                  eexists.
+                  2: apply fsubsetxx.
+                  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+                  all: now rewrite eqxx.
+                }
+                {
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists PSK.
+                  eexists ; [ easy | ].
+                  apply fsubsetxx.
+                }
+              }
+          }
+          1: apply pack_valid.
+        }
+        shelve.
+      }
+      2: apply pack_valid.
+      shelve.
+    }
+
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    {
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+    {
+      rewrite <- trimmed_hash.
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+  Time Qed.
+  Fail Next Obligation.
+
+  Time Optimize Heap.
+
+  Program Definition G_core_SODH (d k : nat) (H_lt : (d < k)%nat) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    (* Gcore_sodh d k false. *)
+    {package
+               (par (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt)))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+    }.
+    Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with easy.
+  Next Obligation.
+    intros.
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_link.
+        1:{
+          rewrite <- fsetUid.
+          rewrite <- !(fsetUA (XPD_n d k)).
+          eapply valid_par.
+          2: apply pack_valid.
+          2:{
+            rewrite <- fsetUid.
+            eapply valid_par.
+            2: apply pack_valid.
+            2: apply pack_valid.
+            shelve.
+          }
+          shelve.
+        }
+        {
+          (* rewrite <- fsetUid. *)
+          (* rewrite fsetUA. *)
+          (* rewrite <- (fsetUC (interface_hierarchy_foreach _ O_star _)). *)
+          eapply valid_par_upto.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          2: solve_in_fset.
+          2:{
+            (* TODO: SET PSK ℓ.+1 ? *)
+            apply fsubsetxx.
+
+          }
+          2:{
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            rewrite (fsetUC (XPD_n _ _)).
+            rewrite !fsetUA.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite (fsetUC (GET_n _ _ _)).
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite fsubUset.
+            rewrite fsubsetxx.
+            rewrite Bool.andb_true_r.
+            unfold GET_n.
+            apply interface_hierarchy_subset_pairs.
+            intros.
+            unfold GET_ℓ.
+            apply interface_foreach_subsetR.
+            2: easy.
+            exists BINDER.
+            eexists ; [ easy | ].
+            apply fsubsetxx.
+          }
+          shelve.
+        }
+      }
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      rewrite <- fsetU0.
+
+      replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+        (interface_hierarchy_foreach
+       (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+     :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+          :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+          :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+     )
+     :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+          [:: PSK] :|: interface_hierarchy
+                     (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+     :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        ).
+      2:{
+        rewrite !fsetUA.
+        repeat set (interface_hierarchy_foreach _ _ _).
+        repeat set (interface_hierarchy _ _).
+        repeat set (interface_foreach _ _).
+        repeat set (GET_n _ _ _).
+        repeat set (SET_n _ _ _).
+        solve_fset_eq.
+      }
+
+      unfold interface_foreach.
+      rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsetUA.
+
+      rewrite <- (fsetUid [interface]).
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        rewrite <- (fsetUid [interface]).
+        eapply valid_par.
+        3:{
+          eapply valid_package_inject_export.
+          2: eapply valid_link ; apply pack_valid.
+          solve_in_fset.
+        }
+        2:{
+          eapply valid_link.
+          1:{
+            eapply valid_package_inject_export.
+            2: apply pack_valid.
+            rewrite fsetUA.
+            rewrite <- fsetUA.
+            rewrite (fsetUC (SET_n all_names _ _)).
+            apply subset_pair.
+            - rewrite !interface_hierarchy_U.
+              apply interface_hierarchy_subset_pairs.
+              intros.
+              unfold GET_ℓ.
+              rewrite <- !interface_foreach_cat.
+              unfold cat ; fold (cat O_star).
+              apply interface_foreach_subset.
+              intros.
+              apply interface_foreach_subsetR.
+              2: easy.
+              exists x.
+              eexists.
+              2: apply fsubsetxx.
+              rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+              all: now rewrite eqxx.
+            - rewrite <- !fsetUA.
+              rewrite fsubUset.
+              rewrite !fsetUA.
+              apply /andP ; split.
+              {
+                unfold SET_n.
+                apply interface_hierarchy_subsetR.
+                exists O, (leq0n _).
+                unfold SET_ℓ.
+                apply interface_foreach_subset.
+                intros.
+                rewrite mem_seq1 in H.
+                move: H => /eqP H ; subst.
+                apply interface_foreach_subsetR.
+                2: easy.
+                exists DH.
+                eexists ; [ easy | ].
+                apply fsubsetxx.
+              }
+              {
+                rewrite !interface_hierarchy_U.
+                apply interface_hierarchy_subset_pairs.
+                intros.
+                unfold SET_ℓ.
+                rewrite <- !interface_foreach_cat.
+                rewrite fsubUset.
+                apply /andP ; split.
+                {
+                  apply interface_foreach_subset.
+                  intros.
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists x.
+                  eexists.
+                  2: apply fsubsetxx.
+                  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+                  all: now rewrite eqxx.
+                }
+                {
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists PSK.
+                  eexists ; [ easy | ].
+                  apply fsubsetxx.
+                }
+              }
+          }
+          1: apply pack_valid.
+        }
+        shelve.
+      }
+      2: apply pack_valid.
+      shelve.
+    }
+
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    {
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+    {
+      rewrite <- trimmed_hash.
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+  Time Qed.
+  Fail Next Obligation.
+
+  HB.instance Definition _ : Equality.axioms_ name :=
+    {|
+      Equality.eqtype_hasDecEq_mixin :=
+        {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+    |}.
+
+  Definition N_star := [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ZERO_SALT; ESALT; ZERO_IKM].
+  Lemma N_star_correct :
+    (forall x, (x \in all_names /\ x \notin [PSK; DH]) <-> x \in N_star).
+  Proof.
+    intros.
+    split.
+    - intros [].
+      rewrite !in_cons in H |- *.
+      now repeat (move /orP: H => [/eqP ? | H] ; subst) ; [ subst .. | discriminate ].
+    - intros.
+      rewrite !in_cons in H |- *.
+      now repeat (move /orP: H => [/eqP ? | H] ; subst) ; [ subst .. | discriminate ] ; simpl.
+  Qed.
+
+  Program Definition G_core_hyb_ℓ (d k : nat) (H_lt : (d < k)%nat) (i : nat) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    {package
+               (par (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt)))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (par (par (Ks d k (ltnW H_lt) all_names (fun ℓ name =>
+                                                          if (name \in N_star) || (name == PSK)
+                                                          then
+                                                            if ℓ >=? i then false else true
+                                                          else false) erefl
+                            ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl)
+                       (K_package k PSK d.+1 H_lt (i == d) ∘ L_package k PSK D)) (Hash true))
+    }.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with easy.
+  Next Obligation.
+    intros.
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_link.
+        1:{
+          rewrite <- fsetUid.
+          rewrite <- !(fsetUA (XPD_n d k)).
+          eapply valid_par.
+          2: apply pack_valid.
+          2:{
+            rewrite <- fsetUid.
+            eapply valid_par.
+            2: apply pack_valid.
+            2: apply pack_valid.
+            shelve.
+          }
+          shelve.
+        }
+        {
+          (* rewrite <- fsetUid. *)
+          (* rewrite fsetUA. *)
+          (* rewrite <- (fsetUC (interface_hierarchy_foreach _ O_star _)). *)
+          eapply valid_par_upto.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          2: solve_in_fset.
+          2:{
+            (* TODO: SET PSK ℓ.+1 ? *)
+            apply fsubsetxx.
+
+          }
+          2:{
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            rewrite (fsetUC (XPD_n _ _)).
+            rewrite !fsetUA.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite (fsetUC (GET_n _ _ _)).
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite fsubUset.
+            rewrite fsubsetxx.
+            rewrite Bool.andb_true_r.
+            unfold GET_n.
+            apply interface_hierarchy_subset_pairs.
+            intros.
+            unfold GET_ℓ.
+            apply interface_foreach_subsetR.
+            2: easy.
+            exists BINDER.
+            eexists ; [ easy | ].
+            apply fsubsetxx.
+          }
+          shelve.
+        }
+      }
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      rewrite <- fsetU0.
+
+      replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+        (interface_hierarchy_foreach
+       (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+     :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+          :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+          :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+     )
+     :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+          [:: PSK] :|: interface_hierarchy
+                     (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+     :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        ).
+      2:{
+        rewrite !fsetUA.
+        repeat set (interface_hierarchy_foreach _ _ _).
+        repeat set (interface_hierarchy _ _).
+        repeat set (interface_foreach _ _).
+        repeat set (GET_n _ _ _).
+        repeat set (SET_n _ _ _).
+        solve_fset_eq.
+      }
+
+      unfold interface_foreach.
+      rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsetUA.
+
+      rewrite <- (fsetUid [interface]).
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        rewrite <- (fsetUid [interface]).
+        eapply valid_par.
+        3:{
+          eapply valid_package_inject_export.
+          2: eapply valid_link ; apply pack_valid.
+          solve_in_fset.
+        }
+        2:{
+          eapply valid_link.
+          1:{
+            eapply valid_package_inject_export.
+            2: apply pack_valid.
+            rewrite fsetUA.
+            rewrite <- fsetUA.
+            rewrite (fsetUC (SET_n all_names _ _)).
+            apply subset_pair.
+            - rewrite !interface_hierarchy_U.
+              apply interface_hierarchy_subset_pairs.
+              intros.
+              unfold GET_ℓ.
+              rewrite <- !interface_foreach_cat.
+              unfold cat ; fold (cat O_star).
+              apply interface_foreach_subset.
+              intros.
+              apply interface_foreach_subsetR.
+              2: easy.
+              exists x.
+              eexists.
+              2: apply fsubsetxx.
+              rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+              all: now rewrite eqxx.
+            - rewrite <- !fsetUA.
+              rewrite fsubUset.
+              rewrite !fsetUA.
+              apply /andP ; split.
+              {
+                unfold SET_n.
+                apply interface_hierarchy_subsetR.
+                exists O, (leq0n _).
+                unfold SET_ℓ.
+                apply interface_foreach_subset.
+                intros.
+                rewrite mem_seq1 in H.
+                move: H => /eqP H ; subst.
+                apply interface_foreach_subsetR.
+                2: easy.
+                exists DH.
+                eexists ; [ easy | ].
+                apply fsubsetxx.
+              }
+              {
+                rewrite !interface_hierarchy_U.
+                apply interface_hierarchy_subset_pairs.
+                intros.
+                unfold SET_ℓ.
+                rewrite <- !interface_foreach_cat.
+                rewrite fsubUset.
+                apply /andP ; split.
+                {
+                  apply interface_foreach_subset.
+                  intros.
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists x.
+                  eexists.
+                  2: apply fsubsetxx.
+                  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+                  all: now rewrite eqxx.
+                }
+                {
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists PSK.
+                  eexists ; [ easy | ].
+                  apply fsubsetxx.
+                }
+              }
+          }
+          1: apply pack_valid.
+        }
+        shelve.
+      }
+      2: apply pack_valid.
+      shelve.
+    }
+
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    {
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+    {
+      rewrite <- trimmed_hash.
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+  Time Qed.
+  Fail Next Obligation.
+
+  Time Optimize Heap.
+
+  (* Idealization order (hybridazation argument for a given level) *)
+  Program Definition G_core_hyb_pred_ℓ_c (d k : nat) (H_lt : (d < k)%nat) (i : nat) (C : list name) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    {package
+               (par (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt)))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (par (par (Ks d k (ltnW H_lt) all_names (fun ℓ name =>
+                                                          if (name \in N_star) || (name == PSK)
+                                                          then
+                                                            if (ℓ + (name \in C)) >=? i then false else true
+                                                          else false) erefl ∘ Ls k all_names (fun name => match name with | ESALT => R | _ => D end) erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK D)) (Hash true))
+    }.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with easy.
+  Next Obligation.
+    intros.
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_link.
+        1:{
+          rewrite <- fsetUid.
+          rewrite <- !(fsetUA (XPD_n d k)).
+          eapply valid_par.
+          2: apply pack_valid.
+          2:{
+            rewrite <- fsetUid.
+            eapply valid_par.
+            2: apply pack_valid.
+            2: apply pack_valid.
+            shelve.
+          }
+          shelve.
+        }
+        {
+          (* rewrite <- fsetUid. *)
+          (* rewrite fsetUA. *)
+          (* rewrite <- (fsetUC (interface_hierarchy_foreach _ O_star _)). *)
+          eapply valid_par_upto.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          2: solve_in_fset.
+          2:{
+            (* TODO: SET PSK ℓ.+1 ? *)
+            apply fsubsetxx.
+
+          }
+          2:{
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            rewrite (fsetUC (XPD_n _ _)).
+            rewrite !fsetUA.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite (fsetUC (GET_n _ _ _)).
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite fsubUset.
+            rewrite fsubsetxx.
+            rewrite Bool.andb_true_r.
+            unfold GET_n.
+            apply interface_hierarchy_subset_pairs.
+            intros.
+            unfold GET_ℓ.
+            apply interface_foreach_subsetR.
+            2: easy.
+            exists BINDER.
+            eexists ; [ easy | ].
+            apply fsubsetxx.
+          }
+          shelve.
+        }
+      }
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      rewrite <- fsetU0.
+
+      replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+        (interface_hierarchy_foreach
+       (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+     :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+          :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+          :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+     )
+     :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+          [:: PSK] :|: interface_hierarchy
+                     (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+     :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        ).
+      2:{
+        rewrite !fsetUA.
+        repeat set (interface_hierarchy_foreach _ _ _).
+        repeat set (interface_hierarchy _ _).
+        repeat set (interface_foreach _ _).
+        repeat set (GET_n _ _ _).
+        repeat set (SET_n _ _ _).
+        solve_fset_eq.
+      }
+
+      unfold interface_foreach.
+      rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsetUA.
+
+      rewrite <- (fsetUid [interface]).
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        rewrite <- (fsetUid [interface]).
+        eapply valid_par.
+        3:{
+          eapply valid_package_inject_export.
+          2: eapply valid_link ; apply pack_valid.
+          solve_in_fset.
+        }
+        2:{
+          eapply valid_link.
+          1:{
+            eapply valid_package_inject_export.
+            2: apply pack_valid.
+            rewrite fsetUA.
+            rewrite <- fsetUA.
+            rewrite (fsetUC (SET_n all_names _ _)).
+            apply subset_pair.
+            - rewrite !interface_hierarchy_U.
+              apply interface_hierarchy_subset_pairs.
+              intros.
+              unfold GET_ℓ.
+              rewrite <- !interface_foreach_cat.
+              unfold cat ; fold (cat O_star).
+              apply interface_foreach_subset.
+              intros.
+              apply interface_foreach_subsetR.
+              2: easy.
+              exists x.
+              eexists.
+              2: apply fsubsetxx.
+              rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+              all: now rewrite eqxx.
+            - rewrite <- !fsetUA.
+              rewrite fsubUset.
+              rewrite !fsetUA.
+              apply /andP ; split.
+              {
+                unfold SET_n.
+                apply interface_hierarchy_subsetR.
+                exists O, (leq0n _).
+                unfold SET_ℓ.
+                apply interface_foreach_subset.
+                intros.
+                rewrite mem_seq1 in H.
+                move: H => /eqP H ; subst.
+                apply interface_foreach_subsetR.
+                2: easy.
+                exists DH.
+                eexists ; [ easy | ].
+                apply fsubsetxx.
+              }
+              {
+                rewrite !interface_hierarchy_U.
+                apply interface_hierarchy_subset_pairs.
+                intros.
+                unfold SET_ℓ.
+                rewrite <- !interface_foreach_cat.
+                rewrite fsubUset.
+                apply /andP ; split.
+                {
+                  apply interface_foreach_subset.
+                  intros.
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists x.
+                  eexists.
+                  2: apply fsubsetxx.
+                  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+                  all: now rewrite eqxx.
+                }
+                {
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists PSK.
+                  eexists ; [ easy | ].
+                  apply fsubsetxx.
+                }
+              }
+          }
+          1: apply pack_valid.
+        }
+        shelve.
+      }
+      2: apply pack_valid.
+      shelve.
+    }
+
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    {
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+    {
+      rewrite <- trimmed_hash.
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+  Time Qed.
+  Fail Next Obligation.
+
+  (* Idealization order (hybridazation argument for a given level) *)
+  Program Definition G_core_ki (d k : nat) (H_lt : (d < k)%nat) :
+    package (L_K :|: L_L)
+            [interface]
+            (XPD_n d k
+               :|: DH_interface
+               :|: SET_ℓ [PSK] k 0
+               :|: XTR_n d k
+               :|: GET_n O_star d k) :=
+    {package
+               (par (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)) ∘ (par
+                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                                              _ erefl _ _)
+                                           (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt)))
+                  (par
+                     (G_dh d k (ltnW H_lt))
+                     (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                        _ erefl _)
+
+               ) ) ∘
+               (par (par (Ks d k (ltnW H_lt) all_names (fun _ _ => true) erefl ∘ Ls k all_names (fun name => D) erefl) (K_package k PSK d.+1 H_lt true ∘ L_package k PSK D)) (Hash true))
+    }.
+  Solve Obligations with intros ; solve_idents.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with easy.
+  Next Obligation.
+    intros.
+    rewrite <- fset0U.
+    eapply valid_link.
+    1:{
+      rewrite <- fset0U.
+      replace
+        (XPD_n d k :|: DH_interface :|: SET_ℓ [:: PSK] k 0 :|: XTR_n d k :|: GET_n O_star d k)
+        with
+        (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k :|: (DH_interface :|: SET_ℓ [:: PSK] k 0)).
+      2:{
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite (fsetUC (GET_n _ _ _)).
+        rewrite !fsetUA.
+        f_equal.
+        rewrite (fsetUC (XTR_n _ _)).
+        rewrite <- !fsetUA.
+        f_equal.
+        rewrite fsetUC.
+        reflexivity.
+      }
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_link.
+        1:{
+          rewrite <- fsetUid.
+          rewrite <- !(fsetUA (XPD_n d k)).
+          eapply valid_par.
+          2: apply pack_valid.
+          2:{
+            rewrite <- fsetUid.
+            eapply valid_par.
+            2: apply pack_valid.
+            2: apply pack_valid.
+            shelve.
+          }
+          shelve.
+        }
+        {
+          (* rewrite <- fsetUid. *)
+          (* rewrite fsetUA. *)
+          (* rewrite <- (fsetUC (interface_hierarchy_foreach _ O_star _)). *)
+          eapply valid_par_upto.
+          2: apply pack_valid.
+          2: apply pack_valid.
+          2: solve_in_fset.
+          2:{
+            (* TODO: SET PSK ℓ.+1 ? *)
+            apply fsubsetxx.
+
+          }
+          2:{
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            rewrite (fsetUC (XPD_n _ _)).
+            rewrite !fsetUA.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite (fsetUC (GET_n _ _ _)).
+            rewrite <- fsetUA.
+            rewrite fsetUC.
+            apply subset_pair ; [ | apply fsubsetxx ].
+            rewrite fsubUset.
+            rewrite fsubsetxx.
+            rewrite Bool.andb_true_r.
+            unfold GET_n.
+            apply interface_hierarchy_subset_pairs.
+            intros.
+            unfold GET_ℓ.
+            apply interface_foreach_subsetR.
+            2: easy.
+            exists BINDER.
+            eexists ; [ easy | ].
+            apply fsubsetxx.
+          }
+          shelve.
+        }
+      }
+      2:{
+        rewrite <- fsetUid.
+        eapply valid_par.
+        2:apply pack_valid.
+        2:apply pack_valid.
+        shelve.
+      }
+      shelve.
+    }
+    {
+      rewrite <- fsetU0.
+
+      replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
+        (interface_hierarchy_foreach
+       (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
+     :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
+          :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
+          :|: (SET_ℓ [:: DH] k 0 :|: SET_n I_star d k :|: SET_n O_star d k)
+     )
+     :|: (interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+          [:: PSK] :|: interface_hierarchy
+                     (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
+     :|: ([interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        ).
+      2:{
+        rewrite !fsetUA.
+        repeat set (interface_hierarchy_foreach _ _ _).
+        repeat set (interface_hierarchy _ _).
+        repeat set (interface_foreach _ _).
+        repeat set (GET_n _ _ _).
+        repeat set (SET_n _ _ _).
+        solve_fset_eq.
+      }
+
+      unfold interface_foreach.
+      rewrite <- (reindex_interface_hierarchy_PSK2 d k).
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      rewrite fsetUA.
+
+      rewrite <- (fsetUid [interface]).
+      eapply valid_par.
+      2:{
+        rewrite <- fsetUid.
+        rewrite <- (fsetUid [interface]).
+        eapply valid_par.
+        3:{
+          eapply valid_package_inject_export.
+          2: eapply valid_link ; apply pack_valid.
+          solve_in_fset.
+        }
+        2:{
+          eapply valid_link.
+          1:{
+            eapply valid_package_inject_export.
+            2: apply pack_valid.
+            rewrite fsetUA.
+            rewrite <- fsetUA.
+            rewrite (fsetUC (SET_n all_names _ _)).
+            apply subset_pair.
+            - rewrite !interface_hierarchy_U.
+              apply interface_hierarchy_subset_pairs.
+              intros.
+              unfold GET_ℓ.
+              rewrite <- !interface_foreach_cat.
+              unfold cat ; fold (cat O_star).
+              apply interface_foreach_subset.
+              intros.
+              apply interface_foreach_subsetR.
+              2: easy.
+              exists x.
+              eexists.
+              2: apply fsubsetxx.
+              rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+              all: now rewrite eqxx.
+            - rewrite <- !fsetUA.
+              rewrite fsubUset.
+              rewrite !fsetUA.
+              apply /andP ; split.
+              {
+                unfold SET_n.
+                apply interface_hierarchy_subsetR.
+                exists O, (leq0n _).
+                unfold SET_ℓ.
+                apply interface_foreach_subset.
+                intros.
+                rewrite mem_seq1 in H.
+                move: H => /eqP H ; subst.
+                apply interface_foreach_subsetR.
+                2: easy.
+                exists DH.
+                eexists ; [ easy | ].
+                apply fsubsetxx.
+              }
+              {
+                rewrite !interface_hierarchy_U.
+                apply interface_hierarchy_subset_pairs.
+                intros.
+                unfold SET_ℓ.
+                rewrite <- !interface_foreach_cat.
+                rewrite fsubUset.
+                apply /andP ; split.
+                {
+                  apply interface_foreach_subset.
+                  intros.
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists x.
+                  eexists.
+                  2: apply fsubsetxx.
+                  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ].
+                  all: now rewrite eqxx.
+                }
+                {
+                  apply interface_foreach_subsetR.
+                  2: easy.
+                  exists PSK.
+                  eexists ; [ easy | ].
+                  apply fsubsetxx.
+                }
+              }
+          }
+          1: apply pack_valid.
+        }
+        shelve.
+      }
+      2: apply pack_valid.
+      shelve.
+    }
+
+    Unshelve.
+    1:{
+      unfold combined_ID.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    1:{
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      solve_Parable2.
+    }
+    1:{
+      unfold combined_ID.
+      unfold G_check.
+      unfold eq_rect.
+      destruct eq_ind.
+      unfold G_dh.
+      unfold DH_package.
+      unfold parallel_ID.
+      unfold parallel_package.
+      unfold combined_ID.
+      unfold G_XTR_XPD.
+      unfold XPD_packages.
+      unfold XTR_packages.
+      unfold pack.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      destruct Logic.eq_sym.
+      solve_Parable2.
+    }
+    {
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+    {
+      rewrite <- trimmed_hash.
+      unfold Ks.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      destruct function2_fset_cat.
+      unfold combined.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      destruct Logic.eq_sym.
+      unfold K_package.
+      solve_Parable2.
+    }
+  Time Qed.
   Fail Next Obligation.
 
 End Core.

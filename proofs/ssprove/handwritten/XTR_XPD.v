@@ -570,18 +570,6 @@ Section XTR_XPD.
   (*     simpl. *)
   (*     apply v. *)
 
-  Lemma interface_hierarchy_foreach_cons : (forall {A} f a L (d : nat),
-    interface_hierarchy_foreach f (a :: L) d
-    = interface_hierarchy (f a) d :|: interface_hierarchy_foreach (A := A) f L d).
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    rewrite interface_hierarchy_U.
-    f_equal.
-    setoid_rewrite interface_foreach_cons.
-    reflexivity.
-  Qed.
-
   Lemma reindex_interface_hierarchy_PSK :
     forall d,
       (interface_hierarchy (λ n : nat, [interface #val #[SET PSK n d.+1] : chUNQinp → chXPDout ]) d.+1)

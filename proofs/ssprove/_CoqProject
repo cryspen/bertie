@@ -25,11 +25,11 @@
 
 # PROOF
 
+./handwritten/ssp_helper.v
+
 ./handwritten/Types.v
 ./handwritten/ExtraTypes.v
 ./handwritten/Utility.v
-
-./handwritten/ssp_helper.v
 
 ./handwritten/Dependencies.v
 
@@ -42,9 +42,9 @@
 
 ./handwritten/CoreTheorem.v
 
-./handwritten/MapPackage.v
+# ./handwritten/MapPackage.v
 
-# ./handwritten/ModularTheorem.v
-./handwritten/MainTheorem.v
+# # ./handwritten/ModularTheorem.v
+# ./handwritten/MainTheorem.v
 
-./handwritten/BertieResult.v
+# ./handwritten/BertieResult.v
