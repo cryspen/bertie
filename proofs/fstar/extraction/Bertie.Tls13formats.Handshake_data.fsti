@@ -111,10 +111,9 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
           let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
           match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
           | Core.Result.Result_Ok (m, r) ->
-            let (self_: t_HandshakeData):t_HandshakeData = self in
             (impl_HandshakeData__len m <: usize) >=. mk_usize 4 &&
-            (impl_HandshakeData__len self_ <: usize) >=. (impl_HandshakeData__len m <: usize) &&
-            ((impl_HandshakeData__len self_ <: usize) -! (impl_HandshakeData__len m <: usize)
+            (impl_HandshakeData__len self <: usize) >=. (impl_HandshakeData__len m <: usize) &&
+            ((impl_HandshakeData__len self <: usize) -! (impl_HandshakeData__len m <: usize)
               <:
               usize) =.
             (impl_HandshakeData__len r <: usize)
@@ -135,9 +134,8 @@ val impl_HandshakeData__as_handshake_message
           let result:Core.Result.t_Result t_HandshakeData u8 = result in
           match result <: Core.Result.t_Result t_HandshakeData u8 with
           | Core.Result.Result_Ok d ->
-            let (self_: t_HandshakeData):t_HandshakeData = self in
-            (impl_HandshakeData__len self_ <: usize) >=. mk_usize 4 &&
-            ((impl_HandshakeData__len self_ <: usize) -! mk_usize 4 <: usize) =.
+            (impl_HandshakeData__len self <: usize) >=. mk_usize 4 &&
+            ((impl_HandshakeData__len self <: usize) -! mk_usize 4 <: usize) =.
             (impl_HandshakeData__len d <: usize)
           | _ -> true)
 
@@ -180,13 +178,10 @@ val impl_HandshakeData__find_handshake_message
       (handshake_type: t_HandshakeType)
       (start: usize)
     : Prims.Pure bool
-      (requires
-        (let (self_: t_HandshakeData):t_HandshakeData = self in
-          (impl_HandshakeData__len self_ <: usize) >=. start))
+      (requires (impl_HandshakeData__len self <: usize) >=. start)
       (fun _ -> Prims.l_True)
       (decreases
-        (let (self_: t_HandshakeData):t_HandshakeData = self in
-          (Rust_primitives.Hax.Int.from_machine (impl_HandshakeData__len self_ <: usize)
+        ((Rust_primitives.Hax.Int.from_machine (impl_HandshakeData__len self <: usize)
             <:
             Hax_lib.Int.t_Int) -
           (Rust_primitives.Hax.Int.from_machine start <: Hax_lib.Int.t_Int)

@@ -101,10 +101,7 @@ impl HandshakeData {
     /// parsing is unsuccessful or the type of the parsed message disagrees with the
     /// expected type.
     #[hax_lib::ensures(|result| match result {
-                                    Result::Ok(d) => {
-                                        let self_: Self = {hax_lib::fstar::unsafe_expr!("self")};
-                                        self_.len() >= 4 && 
-                                        self_.len() - 4 == d.len()},
+                                    Result::Ok(d) => self.len() >= 4 && self.len() - 4 == d.len(),
                                     _ => true })]
     pub(crate) fn as_handshake_message(
         &self,
@@ -128,14 +125,8 @@ impl HandshakeData {
     /// payload. Returns a [TLSError] if the payload is too short to contain a
     /// handshake message or if the payload is shorter than the expected length
     /// encoded in its first three bytes.
-    ///
-    /// We needed to uglify the ensures here because of: https://github.com/cryspen/hax/issues/1276
     #[hax_lib::ensures(|result| match result {
-                                    Result::Ok((m,r)) => {
-                                        let self_: Self = {hax_lib::fstar::unsafe_expr!("self")};
-                                        m.len() >= 4 &&
-                                        self_.len() >= m.len() && 
-                                        self_.len() - m.len() == r.len()},
+                                    Result::Ok((m,r)) => m.len() >= 4 && self.len() >= m.len() && self.len() - m.len() == r.len(),
                                     _ => true })]
     pub(crate) fn next_handshake_message(&self) -> Result<(Self, Self), TLSError> {
         if (self.len()) < 4 {
@@ -188,10 +179,8 @@ impl HandshakeData {
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
     ///
     /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
-    #[hax_lib::requires({let self_: Self = {hax_lib::fstar::unsafe_expr!("self")};
-                         self_.len() >= start})]
-    #[hax_lib::decreases({let self_: Self = {hax_lib::fstar::unsafe_expr!("self")};
-                          self_.len().to_int() - start.to_int()})]
+    #[hax_lib::requires(self.len() >= start)]
+    #[hax_lib::decreases(self.len().to_int() - start.to_int())]
     pub(crate) fn find_handshake_message(
         &self,
         handshake_type: HandshakeType,
