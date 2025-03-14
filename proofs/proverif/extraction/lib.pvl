@@ -2395,9 +2395,6 @@ const bertie__tls13utils__v_PARSE_FAILED: bitstring.
 letfun bertie__tls13utils__parse_failed(wildcard1 : bitstring) =
        bertie__tls13utils__v_PARSE_FAILED.
 
-letfun bertie__tls13utils__v_U8(x : nat) =
-       x.
-
 letfun bertie__tls13utils__v_U16(x : nat) =
        x.
 
@@ -2425,43 +2422,6 @@ letfun bertie__tls13utils__impl_Bytes__from_slice(s : bitstring) =
 (* marked as constructor *)
 fun bertie__tls13utils__encode_length_u8(bitstring)
     : bertie__tls13utils__t_Bytes [data].
-
-letfun bertie__tls13utils__encode_length_u24(bytes : bertie__tls13utils__t_Bytes
-       ) =
-       let len = bertie__tls13utils__impl_Bytes__len(bytes) in
-       if core__cmp__f_ge(len, 16777216)
-       then (bertie__tls13utils__t_Bytes_err())
-       else (
-         let len =
-           bertie__tls13utils__u32_as_be_bytes(bertie__tls13utils__v_U32(len))
-          in
-         let lenb =
-           bertie__tls13utils__impl_Bytes__new_alloc(
-             core__ops__arith__f_add(
-               3, bertie__tls13utils__impl_Bytes__len(bytes)
-             )
-           )
-          in
-         let lenb =
-           bertie__tls13utils__impl_Bytes__push(
-             lenb, core__ops__index__f_index(len, 1)
-           )
-          in
-         let lenb =
-           bertie__tls13utils__impl_Bytes__push(
-             lenb, core__ops__index__f_index(len, 2)
-           )
-          in
-         let lenb =
-           bertie__tls13utils__impl_Bytes__push(
-             lenb, core__ops__index__f_index(len, 3)
-           )
-          in
-         let lenb =
-           bertie__tls13utils__impl_Bytes__extend_from_slice(lenb, bytes)
-          in
-         lenb
-       ).
 
 fun bertie__tls13utils__concat_inner(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes [data].
 
