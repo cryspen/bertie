@@ -130,6 +130,12 @@ elif options.sub == "extract-proverif":
                     "+~**::server::lookup_db",  # to include transitive dependency on tls13utils
                     "+~**::tls13utils::parse_failed",  # transitive dependencies required
                     "+~**::tls13crypto::zero_key",  # transitive dependencies required
+                    "+!**::tls13utils::concat_inner",
+                    "+!**::tls13utils::eq_inner",
+                    "+!**::tls13utils::check_eq_inner",
+                    "+~**::tls13formats::handshake_data::from_bytes_inner",
+                    "+!**::tls13formats::handshake_data::to_two_inner",
+                    "+!**::tls13formats::handshake_data::to_four_inner",
                 ]
             ),
             "pro-verif",

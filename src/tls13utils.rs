@@ -185,14 +185,35 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace("fun ${concat_inner}($:{Bytes}, $:{Bytes}): $:{Bytes} [data].")
+)]
+pub(crate) fn concat_inner(mut bytes: Bytes, other: Bytes) -> Bytes {
+    bytes.append(other);
+    bytes
+}
+
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
+    letfun ${eq_inner}(
+        b1 : $:{Bytes}, b2 : $:{Bytes}
+       ) =
+       b1 = b2. (* This is term equality, which may not be what we want? *)"
+    )
+)]
+fn eq_inner(b1: &Bytes, b2: &Bytes) -> bool {
+    eq_slice(&b1.0, &b2.0)
+}
+
 impl Bytes {
     /// Add a prefix to these bytes and return it.
     #[cfg_attr(
         feature = "hax-pv",
-        proverif::replace_body(
-"${Bytes::concat}(prefix, self)"
-            )
-        )]
+        proverif::replace_body("${Bytes::concat}($:{Bytes}_from_bitstring(prefix), self)")
+    )]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -339,6 +360,18 @@ impl core::ops::Index<Range<usize>> for Bytes {
     }
 }
 
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "fun ${check_eq_inner}( $:{Bytes}, $:{Bytes}): bitstring
+reduc forall b1 : $:{Bytes};
+          ${check_eq_inner}(b1,b1) = ()."
+    )
+)]
+fn check_eq_inner(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
+    check_eq_slice(b1.as_raw(), b2.as_raw())
+}
+
 impl Bytes {
     /// Create new [`Bytes`].
     #[cfg_attr(feature = "hax-pv", pv_constructor)]
@@ -418,14 +451,6 @@ impl Bytes {
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
     pub fn concat(self, other: Bytes) -> Bytes {
-        #[cfg_attr(
-            feature = "hax-pv",
-            proverif::replace("fun ${concat_inner}($:{Bytes}, $:{Bytes}): $:{Bytes} [data].")
-        )]
-        fn concat_inner(mut bytes: Bytes, other: Bytes) -> Bytes {
-            bytes.append(other);
-            bytes
-        }
         concat_inner(self, other)
     }
 
@@ -533,19 +558,6 @@ pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
-    #[cfg_attr(
-        feature = "hax-pv",
-        proverif::replace(
-            "
-    letfun ${eq_inner}(
-        b1 : $:{Bytes}, b2 : $:{Bytes}
-       ) =
-       b1 = b2. (* This is term equality, which may not be what we want? *)"
-        )
-    )]
-    fn eq_inner(b1: &Bytes, b2: &Bytes) -> bool {
-        eq_slice(&b1.0, &b2.0)
-    }
     eq_inner(b1, b2)
 }
 
@@ -586,17 +598,6 @@ pub(crate) fn check_eq_with_slice(
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
-    #[cfg_attr(
-        feature = "hax-pv",
-        proverif::replace(
-            "fun ${check_eq_inner}( $:{Bytes}, $:{Bytes}): bitstring
-reduc forall b1 : $:{Bytes};
-          ${check_eq_inner}(b1,b1) = ()."
-        )
-    )]
-    fn check_eq_inner(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
-        check_eq_slice(b1.as_raw(), b2.as_raw())
-    }
     check_eq_inner(b1, b2)
 }
 

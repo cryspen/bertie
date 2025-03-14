@@ -3,7 +3,7 @@ use crate::tls13utils::{
     TLSError, U8,
 };
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, proverif};
+use hax_lib::{proverif, pv_constructor};
 
 /// ```TLS
 /// enum {
@@ -57,15 +57,84 @@ pub fn get_hs_type(t: u8) -> Result<HandshakeType, TLSError> {
 /// Hadshake data of the TLS handshake.
 pub struct HandshakeData(pub(crate) Bytes);
 
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "reduc forall hs1: $:{Bytes},
+              hs2: $:{Bytes};
+             ${to_two_inner}(
+                 ${from_bytes_inner}(
+                     ${crate::tls13utils::concat_inner}(hs1, hs2)
+                 )
+             )
+     = (hs1, hs2).
+    "
+    )
+)]
+fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData), TLSError> {
+    let (message1, payload_rest) = hs_data.next_handshake_message()?;
+    let (message2, payload_rest) = payload_rest.next_handshake_message()?;
+    if payload_rest.len() != 0 {
+        tlserr(parse_failed())
+    } else {
+        Ok((message1, message2))
+    }
+}
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "reduc forall
+                   hs1: $:{Bytes},
+                   hs2: $:{Bytes},
+                   hs3: $:{Bytes},
+                   hs4: $:{Bytes};
+
+            ${to_four_inner}(
+                ${from_bytes_inner}(${crate::tls13utils::concat_inner}(
+                    ${crate::tls13utils::concat_inner}(
+                        ${crate::tls13utils::concat_inner}(
+                                hs1,
+                                hs2),
+                                hs3),
+                                hs4)))
+                             = (hs1,
+                                hs2,
+                                hs3,
+                                hs4)."
+    )
+)]
+fn to_four_inner(
+    hs_data: &HandshakeData,
+) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
+    let (message1, payload_rest) = hs_data.next_handshake_message()?;
+    let (message2, payload_rest) = payload_rest.next_handshake_message()?;
+    let (message3, payload_rest) = payload_rest.next_handshake_message()?;
+    let (message4, payload_rest) = payload_rest.next_handshake_message()?;
+
+    if payload_rest.len() != 0 {
+        tlserr(parse_failed())
+    } else {
+        Ok((message1, message2, message3, message4))
+    }
+}
+
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
+pub(crate) fn from_bytes_inner(
+    handshake_type: HandshakeType,
+    handshake_bytes: &Bytes,
+) -> Result<HandshakeData, TLSError> {
+    Ok(HandshakeData::from(
+        encode_length_u24(handshake_bytes)?.prefix(&[U8(handshake_type as u8)]),
+    ))
+}
+
 impl HandshakeData {
     /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
     pub(crate) fn from_bytes(
         handshake_type: HandshakeType,
         handshake_bytes: &Bytes,
     ) -> Result<HandshakeData, TLSError> {
-        Ok(HandshakeData::from(
-            encode_length_u24(handshake_bytes)?.prefix(&[U8(handshake_type as u8)]),
-        ))
+        from_bytes_inner(handshake_type, handshake_bytes)
     }
 
     /// Returns the length, in bytes.
@@ -135,31 +204,6 @@ impl HandshakeData {
     /// if parsing of either message fails or if the payload is not fully consumed
     /// by parsing two messages.
     pub(crate) fn to_two(&self) -> Result<(HandshakeData, HandshakeData), TLSError> {
-        #[cfg_attr(
-            feature = "hax-pv",
-            proverif::replace(
-                "reduc forall hs1: $:{Bytes},
-              hs2: $:{Bytes};
-             ${to_two_inner}(
-                 ${HandshakeData::from_bytes}(
-                     ${Bytes::concat}(hs1, hs2)
-                 )
-             )
-     = (hs1, hs2).
-    "
-            )
-        )]
-        fn to_two_inner(
-            hs_data: &HandshakeData,
-        ) -> Result<(HandshakeData, HandshakeData), TLSError> {
-            let (message1, payload_rest) = hs_data.next_handshake_message()?;
-            let (message2, payload_rest) = payload_rest.next_handshake_message()?;
-            if payload_rest.len() != 0 {
-                tlserr(parse_failed())
-            } else {
-                Ok((message1, message2))
-            }
-        }
         to_two_inner(&self)
     }
 
@@ -171,44 +215,6 @@ impl HandshakeData {
     pub(crate) fn to_four(
         &self,
     ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
-        #[cfg_attr(
-            feature = "hax-pv",
-            proverif::replace(
-                "reduc forall
-                   hs1: $:{Bytes},
-                   hs2: $:{Bytes},
-                   hs3: $:{Bytes},
-                   hs4: $:{Bytes};
-
-            ${to_four_inner}(
-                ${HandshakeData::from_bytes}(${Bytes::concat}(
-                    ${Bytes::concat}(
-                        ${Bytes::concat}(
-                                hs1,
-                                hs2),
-                                hs3),
-                                hs4)))
-                             = (hs1,
-                                hs2,
-                                hs3,
-                                hs4)."
-            )
-        )]
-        fn to_four_inner(
-            hs_data: &HandshakeData,
-        ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError>
-        {
-            let (message1, payload_rest) = hs_data.next_handshake_message()?;
-            let (message2, payload_rest) = payload_rest.next_handshake_message()?;
-            let (message3, payload_rest) = payload_rest.next_handshake_message()?;
-            let (message4, payload_rest) = payload_rest.next_handshake_message()?;
-
-            if payload_rest.len() != 0 {
-                tlserr(parse_failed())
-            } else {
-                Ok((message1, message2, message3, message4))
-            }
-        }
         to_four_inner(&self)
     }
 
