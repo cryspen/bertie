@@ -90,9 +90,6 @@ Section CoreTheorem.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-  Time Optimize Heap.
-  Time Optimize Heap.
-
   Lemma d2 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -157,35 +154,32 @@ Section CoreTheorem.
               (nfto (fst (PrntN n)) == nfto (fst (PrntN n')))
            && (nfto (snd (PrntN n)) == nfto (snd (PrntN n')))) all_names.
 
-  Fixpoint idealization_loop (fuel : nat) (io : list (list name)) {struct fuel} : list (list name) :=
+  Fixpoint idealization_loop (fuel : nat) (ioc : list name) {struct fuel} : list (list name) :=
     match fuel with
-    | O => io
+    | O => []
     | S fuel =>
-        let ioc := last [] io in
         if ioc != all_names
         then
           match (filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names) with
-          | [] => io
-          | (x :: xs) =>
-              let n_c := x
-              in idealization_loop fuel (io ++ [ioc ++ SblngN n_c])
+          | [] => []
+          | (n_c :: xs) =>
+              [ioc ++ SblngN n_c] ++ idealization_loop fuel (ioc ++ SblngN n_c)
           end
-        else io
+        else []
     end.
 
   Lemma idealization_order_one_iter :
-    forall fuel io,
-      idealization_loop fuel.+1 io =
-        (let ioc := last [] io in
-         if ioc != all_names
+    forall fuel ioc,
+      idealization_loop fuel.+1 ioc =
+        (if ioc != all_names
          then
            match (filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names) with
-           | [] => io
-           | (x :: xs) =>
-               let n_c := x
-               in idealization_loop fuel (io ++ [ioc ++ SblngN n_c])
+           | [] => []
+           | (n_c :: xs) =>
+               let snc := SblngN n_c in
+               [ioc ++ snc] ++ idealization_loop fuel (ioc ++ snc)
            end
-         else io).
+         else []).
   Proof. reflexivity. Qed.
 
   Lemma filter_cons : forall {A} f (a : A) x,
@@ -196,12 +190,13 @@ Section CoreTheorem.
   Proof. reflexivity. Qed.
 
   Definition IdealizationOrder :=
-    let io := [[PSK; ZERO_SALT; DH; ZERO_IKM]] in
+    let ioc0 := [PSK; ZERO_SALT; DH; ZERO_IKM] in
     let fuel := List.length all_names in
-    idealization_loop fuel io.
+    ([::] :: [ioc0] ++ idealization_loop fuel ioc0).
 
   Definition IdealizationOrderPreCompute :=
-    [:: [:: PSK; ZERO_SALT; DH; ZERO_IKM];
+    [:: [::];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM];
        [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES];
        [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT];
        [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER];
@@ -209,11 +204,76 @@ Section CoreTheorem.
        [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT];
        [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT; AS];
        [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM]].
+
+  Definition smpl_PrntN (n : name) : name * name :=
+    let (a,b) :=
+      match n with
+      | ES => (ZERO_SALT, PSK)
+      | EEM | CET | ESALT | BIND => (ES, BOT)
+      | BINDER => (BIND, BOT)
+      | HS => (ESALT, DH)
+      | SHT | CHT | HSALT => (HS, BOT)
+      | AS => (HSALT, ZERO_IKM)
+      | CAT | SAT | RM | EAM => (AS, BOT)
+      | PSK => (RM, BOT)
+      | _ => (BOT, BOT)
+      end
+    in (a,b).
+
+  Lemma PrntN_project_to_smpl_PrntN
+    : (forall n, nfto (PrntN n).1 = (smpl_PrntN n).1 /\ nfto (PrntN n).2 = (smpl_PrntN n).2).
+        {
+          intros.
+          unfold PrntN.
+          destruct n.
+          all: now rewrite !nfto_name_to_chName_cancel.
+        }
+  Qed.
   
+  (* Lemma filter_slow : *)
+  (*   let ioc := [:: PSK; ZERO_SALT; DH; ZERO_IKM] in *)
+  (*   [:: ES] = filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names. *)
+  (*   intros. *)
+  (*   unfold SblngN. *)
+  (*   unfold PrntN. *)
+  (*   unfold all_names. *)
+  (*   unfold filter. *)
+  (* Admitted. *)
+
+  (* Lemma idealization_order_0 : *)
+  (*   forall n, *)
+  (*     idealization_loop n.+1 [:: PSK; ZERO_SALT; DH; ZERO_IKM] = *)
+  (*       [[:: PSK; ZERO_SALT; DH; ZERO_IKM; ES]] ++ *)
+  (*     idealization_loop n [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES]. *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   rewrite idealization_order_one_iter. *)
+  (*   unfold PrntN. *)
+  (*   unfold last ; simpl (_ != _) ; hnf ; unfold all_names. *)
+
+  (*   replace (filter _ _) with [ES]. *)
+  (*   2:{ *)
+  (*     repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf). *)
+      
+  (*     unfold all ; *)
+  (*       simpl (if _ then _ else _) ; *)
+  (*       hnf ; *)
+  (*       unfold SblngN ; *)
+  (*       unfold all_names ; *)
+
+  (*       repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf). *)
+
+  (*     rewrite eqxx. *)
+  (*     simpl. *)
+  (*     reflexivity. *)
+  (*   } *)
+  (*   Show Proof. *)
+  (* Time Qed. *)
+
   Lemma compute_eq : (IdealizationOrder = IdealizationOrderPreCompute).
   Proof.
     unfold IdealizationOrder.
-
+    unfold IdealizationOrderPreCompute.
     repeat (rewrite idealization_order_one_iter ;
       unfold last ; simpl (_ != _) ; hnf ;
       unfold all_names ;
@@ -240,11 +300,18 @@ Section CoreTheorem.
       unfold last ; simpl (_ != _) ; hnf ;
       unfold all_names ;
 
-      repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter).
+          repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter).
 
+    simpl.
     reflexivity.
 
-  (* Time Qed. *) Admitted.
+    Unshelve.
+    (* Grab Existential Variables. *)
+    Fail idtac.
+    all: fail.
+  Admitted. (* Time Qed. *)
+
+  (* Show Match name. *)
 
   Lemma d10_helper : forall j,
     (j.+1 <= List.length IdealizationOrderPreCompute)%nat ->
@@ -254,7 +321,7 @@ Section CoreTheorem.
   Proof.
     intros.
     unfold IdealizationOrderPreCompute in H |- *.
-    do 8 (destruct j ; [ simpl in H0 |- *;  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ] ; easy | ]).
+    do 9 (destruct j ; [ simpl in H0 |- *;  rewrite !in_cons in H0 |- * ; repeat move /orP: H0 => [ /eqP ? | H0 ] ; [ subst .. | discriminate ] ; easy | ]).
     discriminate.
   Qed.
 
@@ -291,6 +358,8 @@ Section CoreTheorem.
         Advantage (Gxtr d k H_lt ES ℓ) (A ∘ R_xtr ES ℓ erefl))%R.
   Proof.
     intros.
+    
+    
   Admitted.
 
   Lemma d12 :
@@ -324,7 +393,7 @@ Section CoreTheorem.
   Lemma d14 :
     forall d k H_lt ℓ c A n (H_in_xpr : n \in XPR),
       (nfto (fst (PrntN n)) \notin nth [] IdealizationOrderPreCompute c.-1) ->
-      nfto (fst (PrntN n)) \in nth [] IdealizationOrderPreCompute c.+1 ->
+      ((c == 0) || (nfto (fst (PrntN n)) \in nth [] IdealizationOrderPreCompute c.+1)) ->
       (AdvantageE
         (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute c))
         (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute c.+1))
@@ -357,7 +426,7 @@ Section CoreTheorem.
     eapply Order.le_trans.
     1:{
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
-      instantiate (2 := (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute 0))).
+      instantiate (2 := (G_core_hyb_pred_ℓ_c d k H_lt ℓ [])).
 
       apply Num.Theory.lerD.
       {
@@ -365,47 +434,27 @@ Section CoreTheorem.
 
         unfold G_core_hyb_ℓ.
         unfold G_core_hyb_pred_ℓ_c.
-        
-        unfold pack.
-        rewrite <- !Advantage_link.
 
-        rewrite <- (par_commut (Hash true)).
-        2: admit.
-
-        rewrite <- (par_commut (Hash true)).
-        2: admit.
-
-        setoid_rewrite (Advantage_par (Hash true)).
-        2,3,4,5,6,7,8: admit.
-
-        rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
-        2: admit.
-
-        rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
-        2: admit.
-
-        destruct (ℓ == d).
+        replace
+          (λ (ℓ0 : nat) (name : ExtraTypes.name),
+            if (name \in N_star) || (name == PSK)
+            then if (ℓ + _ <=? ℓ0)%N then false else true
+            else false)
+          with
+          (λ (ℓ0 : nat) (name : ExtraTypes.name),
+            if (name \in N_star) || (name == PSK)
+            then if (ℓ <=? ℓ0)%nat then false else true
+            else false).
         2:{
-          
-          setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)).
-          2,3,4,5,6,7,8: admit.
-
-          rewrite <- !Advantage_link.
-
-          replace (G_core_hyb_ℓ_obligation_50 d k H_lt ℓ) with (G_core_hyb_pred_ℓ_c_obligation_50 d k H_lt ℓ (nth [::] IdealizationOrderPreCompute 0)) by admit.
-          (* destruct ( _ == _ ). *)
-          (* 2:{ *)
-          (*   erewrite (Advantage_par). *)
-          (*   2-8: admit. *)
-
-          (* replace () *)
-          
-          (* rewrite <- Advantage_link. *)
-          
-          (* apply advantage_reflexivity. *)
+          apply functional_extensionality.
+          intros.
+          apply functional_extensionality.
+          intros.
+          replace (ℓ + (_ \in [::]))%nat with (ℓ + false)%nat by reflexivity.
+          now rewrite addn0.
         }
 
-        admit.
+        now rewrite advantage_reflexivity.
       }
 
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
@@ -414,7 +463,39 @@ Section CoreTheorem.
       apply Num.Theory.lerD.
       2:{
         instantiate (1 := 0%R).
-        admit.
+
+        unfold G_core_hyb_ℓ.
+        unfold G_core_hyb_pred_ℓ_c.
+
+        replace ((λ (ℓ0 : nat) (name : ExtraTypes.name),
+           if (name \in N_star) || (name == PSK)
+           then
+            if
+             (ℓ + _ <=? ℓ0)%nat
+            then false
+            else true
+           else false))
+          with
+          (λ (ℓ0 : nat) (name : ExtraTypes.name),
+            if (name \in N_star) || (name == PSK) then if (ℓ.+1 <=? ℓ0)%nat then false else true else false).
+        2:{
+          apply functional_extensionality.
+          intros.
+          apply functional_extensionality.
+          intros.
+
+          destruct ( _ || _ ) eqn:x0_or ; [ | reflexivity ].
+          {
+            rewrite !in_cons in x0_or.
+            rewrite orbC in x0_or.
+            unfold IdealizationOrderPreCompute.
+            simpl.
+            repeat move: x0_or => /orP [ /eqP ? | x0_or ] ; [ subst .. | discriminate ].
+            all: now simpl ; rewrite addn1.
+          }
+        }
+
+        now rewrite advantage_reflexivity.
       }
 
       easy.
@@ -425,16 +506,20 @@ Section CoreTheorem.
     eapply Order.le_trans.
     1:{
       instantiate (1 :=
-        sumR 0 (List.length IdealizationOrderPreCompute - 1) _
+        sumR 0 (List.length (IdealizationOrderPreCompute) - 1)%nat _
           (fun c => AdvantageE
-                   (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [::] IdealizationOrderPreCompute c))
-                   (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [::] IdealizationOrderPreCompute c.+1))
+                   (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [::] (IdealizationOrderPreCompute) c))
+                   (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [::] (IdealizationOrderPreCompute) c.+1))
                    A)).
 
       induction (Datatypes.length _).
       - unfold sumR.
+        replace ( _ - _)%nat with O%nat by now cbn.
         simpl iota.
         unfold List.fold_left.
+        unfold IdealizationOrderPreCompute.
+        unfold nth.
+
         now rewrite advantage_reflexivity.
       - destruct n ; [ apply IHn | ].
         rewrite sumR_succ.
@@ -459,26 +544,32 @@ Section CoreTheorem.
     eapply Order.le_trans.
     {
       repeat apply Num.Theory.lerD.
-      6:{
-        refine (d13 d k H_lt ℓ 5 A _ erefl).
+      7:{
+        refine (d13 d k H_lt ℓ 6 A _ erefl).
         apply /orP.
         right.
         easy.
       }
-      3:{
-        refine (d12 d k H_lt ℓ 2 A _ erefl).
+      4:{
+        refine (d12 d k H_lt ℓ 3 A _ erefl).
         apply /orP.
         right.
         easy.
       }
-      1:{
-        refine (d11 d k H_lt ℓ O A _ erefl).
+      2:{
+        refine (d11 d k H_lt ℓ 1 A _ erefl).
         apply /orP.
-        left.
-        apply (eqxx O).
+        right.
+        easy.
       }
       {
-        refine (d14 d k H_lt ℓ 1 A EEM erefl _ _).
+        refine (d14 d k H_lt ℓ 0 A PSK _ _ _).
+        { easy. }
+        1: easy.
+        1: easy.
+      }
+      {
+        refine (d14 d k H_lt ℓ 2 A EEM erefl _ _).
         2:{
           simpl.
           rewrite nfto_name_to_chName_cancel.
@@ -487,20 +578,6 @@ Section CoreTheorem.
         {
           apply /orP.
           rewrite nfto_name_to_chName_cancel.
-          easy.
-        }
-      }
-      {
-        refine (d14 d k H_lt ℓ 3 A CHT erefl _ _).
-        2:{
-          simpl.
-          rewrite nfto_name_to_chName_cancel.
-          easy.
-        }
-        {
-          apply /orP.
-          rewrite nfto_name_to_chName_cancel.
-          simpl.
           easy.
         }
       }
@@ -519,7 +596,21 @@ Section CoreTheorem.
         }
       }
       {
-        refine (d14 d k H_lt ℓ 6 A CAT erefl _ _).
+        refine (d14 d k H_lt ℓ 5 A CHT erefl _ _).
+        2:{
+          simpl.
+          rewrite nfto_name_to_chName_cancel.
+          easy.
+        }
+        {
+          apply /orP.
+          rewrite nfto_name_to_chName_cancel.
+          simpl.
+          easy.
+        }
+      }
+      {
+        refine (d14 d k H_lt ℓ 7 A CAT erefl _ _).
         2:{
           simpl.
           rewrite nfto_name_to_chName_cancel.
@@ -534,9 +625,10 @@ Section CoreTheorem.
       }
     }
 
-    (* easy *)
+    (* easy. Lia.lia. *)
+    (* Qed. *)
   Admitted.
-    
+  
   Lemma hyb_telescope :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -609,33 +701,8 @@ Section CoreTheorem.
     unfold G_core_SODH.
     unfold G_core_hyb_ℓ.
 
-    unfold pack.
-    rewrite <- !Advantage_link.
-
-    rewrite <- (par_commut (Hash true)).
-    2: admit.
-
-    rewrite <- (par_commut (Hash true)).
-    2: admit.
-
-    setoid_rewrite (Advantage_par (Hash true)).
-    2,3,4,5,6,7,8: admit.
-
-    rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
-    2: admit.
-
-    rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
-    2: admit.
-
-    replace (0 == d)%nat with false by easy.
-    
-    (* setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)). *)
-    (* 2,3,4,5,6,7,8: admit. *)
-
     replace (λ (ℓ : nat) (name : ExtraTypes.name),
-              if (name \in N_star) || (name == PSK) then if ℓ >=? 0%N then false else true else false)
-      with
-      (λ (ℓ : nat) (name : ExtraTypes.name), false).
+              if (name \in N_star) || (name == PSK) then if (0 <=? ℓ)%N then false else true else false) with (λ (_ : nat) (_ : name), false).
     2:{
       apply functional_extensionality.
       intros.
@@ -646,7 +713,7 @@ Section CoreTheorem.
     }
 
     apply advantage_reflexivity.
-  Admitted.
+  Qed.
 
   Lemma L_package_esalt_D_to_R :
     forall k A,
@@ -753,6 +820,7 @@ Section CoreTheorem.
 
     unfold G_core_D.
     unfold G_core_R_esalt.
+    unfold G_core_package_construction.
 
     unfold pack.
     rewrite <- !Advantage_link.
@@ -761,14 +829,14 @@ Section CoreTheorem.
     2: apply pack_valid.
     2,3,4,5,6,7: admit.
 
-    erewrite <- interchange.
-    2,3,4,5,6,7,8: admit.
+    (* erewrite <- interchange. *)
+    (* 2,3,4,5,6,7,8: admit. *)
 
     erewrite (Advantage_parR ).
     2,3,4,5,6,7,8: admit.
 
     rewrite <- !Advantage_link.
-    apply L_package_esalt_D_to_R.
+    (* apply L_package_esalt_D_to_R. *)
   Admitted.
 
   Lemma equation20_rhs :
@@ -783,26 +851,27 @@ Section CoreTheorem.
 
     unfold G_core_ki.
     unfold G_core_hyb_ℓ.
+    unfold G_core_package_construction.
 
     unfold pack.
     rewrite <- !Advantage_link.
 
-    rewrite <- (par_commut (Hash true)).
-    2: admit.
+    (* rewrite <- (par_commut (Hash true)). *)
+    (* 2: admit. *)
 
-    rewrite <- (par_commut (Hash true)).
-    2: admit.
+    (* rewrite <- (par_commut (Hash true)). *)
+    (* 2: admit. *)
 
-    setoid_rewrite (Advantage_par (Hash true)).
-    2,3,4,5,6,7,8: admit.
+    (* setoid_rewrite (Advantage_par (Hash true)). *)
+    (* 2,3,4,5,6,7,8: admit. *)
 
-    rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
-    2: admit.
+    (* rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)). *)
+    (* 2: admit. *)
 
-    rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)).
-    2: admit.
+    (* rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)). *)
+    (* 2: admit. *)
 
-    rewrite eqxx.
+    (* rewrite eqxx. *)
 
     (* setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)). *)
     (* 2,3,4,5,6,7,8: admit. *)
@@ -815,15 +884,15 @@ Section CoreTheorem.
       admit.
     }
 
-    erewrite (Advantage_par ).
-    2,3,4,5,6,7,8: admit.
+    (* erewrite (Advantage_par ). *)
+    (* 2,3,4,5,6,7,8: admit. *)
 
-    erewrite <- interchange.
-    2,3,4,5,6,7,8: admit.
+    (* erewrite <- interchange. *)
+    (* 2,3,4,5,6,7,8: admit. *)
 
-    rewrite <- !Advantage_link.
+    (* rewrite <- !Advantage_link. *)
 
-    apply L_package_esalt_D_to_R.
+    (* apply L_package_esalt_D_to_R. *)
   Admitted.
 
   Lemma equation20_eq :
