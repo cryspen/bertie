@@ -207,19 +207,22 @@ Section XTR_XPD.
   (* Definition SET_XTR d : Interface := *)
   (*   interface_hierarchy (SET_XTR_ℓ d) d. *)
 
+  Definition XTR_n_ℓ_f d n ℓ := [interface #val #[ XTR n ℓ d ] : chXTRinp → chXTRout].
+
   Definition XTR_n d k :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout]) XTR_names d.
+    interface_hierarchy_foreach (XTR_n_ℓ_f k) XTR_names d.
 
   Definition XTR_n_ℓ d ℓ :=
-    interface_foreach (fun n => [interface #val #[ XTR n ℓ d ] : chXTRinp → chXTRout]) XTR_names.
+    interface_foreach (fun n => XTR_n_ℓ_f d n ℓ) XTR_names.
 
   Lemma trimmed_Xtr : forall ℓ n d b,
       trimmed
-        [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout ]
+        (XTR_n_ℓ_f d n ℓ)
         (Xtr n ℓ d b).
   Proof.
     intros.
     unfold trimmed.
+    unfold XTR_n_ℓ_f.
     trim_is_interface.
   Qed.
 
@@ -464,12 +467,13 @@ Section XTR_XPD.
     reflexivity.
   Qed.
 
+  Definition XPD_n_ℓ_f d n ℓ := [interface #val #[ XPD n ℓ d ] : chXPDinp → chXPDout].
+
   Definition XPD_n (d k : nat) :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ XPD n ℓ k ] : chXPDinp → chXPDout
-      ]) XPR d.
+    interface_hierarchy_foreach (XPD_n_ℓ_f k) XPR d.
 
   Definition XPD_n_ℓ d ℓ :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ XPD n ℓ d ] : chXPDinp → chXPDout]) XPR ℓ.
+    interface_hierarchy_foreach (XPD_n_ℓ_f d) XPR ℓ.
 
   (* Definition GET_XPD_ℓ d ℓ : Interface := *)
   (*   interface_foreach (fun n => [interface #val #[ GET (nfto (fst (PrntN n))) ℓ d ] : chGETinp → chGETout]) (XPR). *)
@@ -486,11 +490,12 @@ Section XTR_XPD.
 
   Lemma trimmed_Xpd : forall n ℓ d,
       trimmed
-        [interface #val #[XPD n ℓ d] : chXPDinp → chXPDout ]
+        (XPD_n_ℓ_f d n ℓ)
         (Xpd n ℓ d).
   Proof.
     intros.
     unfold trimmed.
+    unfold XPD_n_ℓ_f.
     trim_is_interface.
   Qed.
 
@@ -856,7 +861,7 @@ Section XTR_XPD.
       rewrite fdisjointC.
       apply idents_interface_hierachy3.
       intros.
-      unfold idents.
+      unfold idents ; unfold XPD_n_ℓ_f.
       solve_imfset_disjoint.
     }
     {

@@ -169,6 +169,7 @@ Section KeyPackages.
          #val #[ GET n ℓ d ] : chGETinp → chGETout
       ].
   Proof.
+    intros.
     refine [package
       #def #[ SET n ℓ d ] ('(h,hon,k_star) : chSETinp) : chSETout {
         #import {sig #[ UNQ n d ] : chUNQinp → chUNQout }
@@ -280,7 +281,7 @@ Section KeyPackages.
   Proof.
     intros.
     rewrite interface_hierarchy_foreachU.
-
+    
     rewrite <- function2_fset_cat.
     refine (combined _ d L_K
               (λ n : name, [interface #val #[UNQ n k] : chUNQinp → chUNQout ])

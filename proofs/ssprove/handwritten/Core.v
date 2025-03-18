@@ -650,10 +650,9 @@ Section Core.
     intros.
     unfold DH_interface. rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
     unfold idents.
-    unfold DHEXP, DHGEN, XTR, serialize_name.
+    unfold DHEXP, DHGEN, XTR, serialize_name, XTR_n_ℓ_f.
     simpl.
     solve_imfset_disjoint.
-    all: Lia.lia.
   Qed.
 
   Lemma xpd_dh : forall (d k : nat) H_lt,
@@ -672,10 +671,9 @@ Section Core.
     intros.
     unfold DH_interface. rewrite (fset_cons (DHGEN, (chGroup, chGroup))).
     unfold idents.
-    unfold DHEXP, DHGEN, XPD, XPR, serialize_name.
+    unfold DHEXP, DHGEN, XPD, XPR, serialize_name, XPD_n_ℓ_f.
     simpl.
     solve_imfset_disjoint.
-    all: Lia.lia.
   Qed.
 
   Lemma subset_pair : forall {A : ordType} (x : {fset A}) y Lx Ly,
@@ -1127,7 +1125,7 @@ Section Core.
         apply idents_interface_hierachy3.
         intros.
         rewrite fset_cons.
-        unfold idents.
+        unfold idents, XTR_n_ℓ_f.
         solve_imfset_disjoint.
       }
     }
@@ -1146,7 +1144,7 @@ Section Core.
         intros.
         unfold DH_interface.
         rewrite fset_cons.
-        unfold idents.
+        unfold idents, XPD_n_ℓ_f.
         solve_imfset_disjoint.
       }
       {
@@ -1160,7 +1158,7 @@ Section Core.
         rewrite fdisjointC.
         apply idents_disjoint_foreach_in.
         intros.
-        unfold idents.
+        unfold idents, XPD_n_ℓ_f, XTR_n_ℓ_f.
         solve_imfset_disjoint.
 
         rewrite !in_cons in H1.
@@ -1273,11 +1271,10 @@ Section Core.
   Axiom sort : (chProd chGroup chGroup) -> (chProd chGroup chGroup).
   Axiom dh_angle : (chProd chGroup chGroup) -> chHandle.
 
-  Check chKey.
   Definition check d (n : name) (ℓ : nat) :
     package fset0
-            ([interface #val #[ XPD n ℓ d ] : chXPDinp → chXPDout] :|: [interface #val #[ GET BINDER ℓ d ] : chGETinp → chGETout])
-            ([interface #val #[ XPD n ℓ d ] : chXPDinp → chXPDout]).
+            (XPD_n_ℓ_f d n ℓ :|: [interface #val #[ GET BINDER ℓ d ] : chGETinp → chGETout])
+            (XPD_n_ℓ_f d n ℓ).
   Proof.
     refine (
           [package
@@ -1318,18 +1315,21 @@ Section Core.
       ]).
     ssprove_valid ; ssprove_valid'_2.
     - unfold mkopsig.
+      unfold XPD_n_ℓ_f.
       rewrite <- fset1E.
       rewrite <- fset_cons.
       rewrite in_fset.
       rewrite !in_cons.
       now rewrite eqxx.
     - unfold mkopsig.
+      unfold XPD_n_ℓ_f.
       rewrite <- fset1E.
       rewrite <- fset_cons.
       rewrite in_fset.
       rewrite !in_cons.
       now rewrite eqxx.
     - unfold mkopsig.
+      unfold XPD_n_ℓ_f.
       rewrite <- fset1E.
       rewrite <- fset_cons.
       rewrite in_fset.
@@ -1361,11 +1361,27 @@ Section Core.
       now rewrite <- interface_foreach_trivial.
     }
 
+    replace (interface_hierarchy_foreach
+           (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXPDout → chGETout ]) [:: BINDER]
+           d) with (interface_hierarchy_foreach
+           (λ (n : name) (ℓ : nat), [interface #val #[GET BINDER ℓ k] : chXPDout → chGETout ]) XPR
+           d).
+    2:{
+      unfold interface_hierarchy_foreach.
+      f_equal.
+      apply functional_extensionality ; intros.
+      unfold XPR, interface_foreach, XPR_sub_PSK.
+      simpl.
+      now rewrite !fsetUid.
+    }
+
+    rewrite interface_hierarchy_foreachU.
+
     refine (ℓ_packages
            d
            (fun n H_le =>
               parallel_package d XPR
-                (f := fun a => [interface #val #[XPD a n k] : chXPDinp → chXPDout ] :|: [interface #val #[GET BINDER n k] : chXPDout → chGETout ])
+                (f := fun a => XPD_n_ℓ_f k a n :|: [interface #val #[GET BINDER n k] : chXPDout → chGETout ])
                 (fun a => check k a n) _ _ _
            )
            (fun n H_le =>
@@ -1377,6 +1393,7 @@ Section Core.
            ).
     - intros.
       unfold idents.
+      unfold XPD_n_ℓ_f.
       solve_imfset_disjoint.
     - intros.
       apply trimmed_package_cons.
@@ -1384,6 +1401,7 @@ Section Core.
     - reflexivity.
     - intros.
       unfold idents.
+      unfold XPD_n_ℓ_f.
       solve_imfset_disjoint.
     - reflexivity.
     - intros.
@@ -1391,6 +1409,7 @@ Section Core.
       apply trimmed_empty_package.
     - intros.
       unfold idents.
+      unfold XPD_n_ℓ_f.
       solve_imfset_disjoint.
   Defined.
 
@@ -1431,6 +1450,7 @@ Section Core.
       apply idents_interface_hierachy3.
       intros.
       unfold idents.
+      unfold XTR_n_ℓ_f, XPD_n_ℓ_f.
       solve_imfset_disjoint.
     - apply pack_valid.
     - apply pack_valid.
@@ -1664,11 +1684,14 @@ Section Core.
 
         2: rewrite !fsetU0 ; apply fsubsetxx.
         2:{
+          fold (XTR_n_ℓ_f k).
           fold (XTR_n d k).
+
           fold (GET_n O_star d k).
           rewrite fsetUC.
           rewrite fsetUA.
           rewrite fsubUset.
+
           apply /andP ; split.
           1: solve_in_fset.
 
@@ -1701,6 +1724,7 @@ Section Core.
         apply fsubsetxx.
       }
       {
+        fold (XTR_n_ℓ_f k).
         fold (XTR_n d k).
         fold (SET_ℓ [:: PSK] k 0).
         unfold interface_hierarchy_foreach.
@@ -1808,114 +1832,30 @@ Section Core.
     Unshelve.
     (** Parable *)
     all: unfold G_dh, DH_package, combined_ID, parallel_ID, parallel_package.
-    all: unfold G_XTR_XPD, XPD_packages, XTR_packages, G_check, Ks, combined, eq_rect_r, eq_rect, pack, K_package.
+    all: unfold G_XTR_XPD, XPD_packages, XTR_packages, G_check, Ks.
+    all: unfold XTR_n_ℓ_f, XPD_n_ℓ_f.
+    all: unfold XTR_n.
+    all: unfold XPD_n.
+    all: unfold combined, eq_rect_r, eq_rect, pack, K_package.
+    all: unfold XTR_n_ℓ_f, XPD_n_ℓ_f.
+    (* all: repeat destruct eq_trans. *)
     all: repeat destruct Logic.eq_sym.
     all: repeat destruct function2_fset_cat.
     all: repeat destruct eq_ind.
     all: repeat destruct Logic.eq_sym.
+    (* all: unfold eq_trans. *)
     all: try rewrite <- trimmed_hash.
-    all: now solve_Parable2.
+    all: try now solve_Parable2.
+    (* all: unfold f_equal. *)
+
+    all: unfold eq_trans.
+    all: unfold f_equal.
+    all: repeat destruct functional_extensionality.
+    all: repeat destruct Logic.eq_sym.
+
+    all: try now solve_Parable2.
   Time Defined. (* 36.626 *)
   Fail Next Obligation.
-
-  Definition Gacr (f : HashFunction) (b : bool) :
-    package fset0
-      [interface]
-      [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout].
-  (* Proof. *)
-  (*   refine [package *)
-  (*             #def #[ HASH ] (t : chHASHinp) : chHASHout { *)
-  (*               ret fail *)
-  (*               (* (* get_or_fn _ _ _ *) *) *)
-  (*               (* d ← untag (match f with | f_hash | f_xtr => xtr t end) ;; *) *)
-  (*               (* if b && d \in Hash *) *)
-  (*               (* then fail *) *)
-  (*               (* else *) *)
-  (*               (*   ret d *) *)
-  (*             } *)
-  (*     ]. *)
-  (*   Qed. *)
-  Admitted.
-
-  Definition R_alg :
-    package fset0
-      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
-      [interface].
-  Proof.
-  Admitted.
-
-  Definition R_cr :
-    package fset0
-      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
-      [interface].
-  Proof.
-  Admitted.
-
-  Definition R_Z (f : HashFunction) :
-    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
-  Proof.
-  Admitted.
-
-  Definition R_D (f : HashFunction) :
-    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
-  Proof.
-  Admitted.
-
-  Definition R_xtr (n : name) (ℓ : nat) :
-    n \in XTR_names ->
-    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
-  Proof.
-  Admitted.
-
-  Definition R_xpd (n : name) (ℓ : nat) :
-    n \in XPR ->
-    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
-  Proof.
-  Admitted.
-
-  Definition R_pi (L : list name) :
-    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
-  Proof.
-  Admitted.
-
-  Axiom Gsodh :
-    forall (d k : nat),
-      (d < k)%nat ->
-    loc_GamePair
-      [interface
-         (* #val #[ SODH ] : 'unit → 'unit *)
-      ].
-
-  Axiom Gxtr :
-    forall (d k : nat),
-      (d < k)%nat ->
-      forall (n : name) (ℓ : nat),
-    loc_GamePair
-      [interface
-         (* #val #[ SODH ] : 'unit → 'unit *)
-      ].
-
-  Axiom Gxpd :
-    forall (d k : nat),
-      (d < k)%nat ->
-      forall (n : name) (ℓ : nat),
-    loc_GamePair
-      [interface
-         (* #val #[ SODH ] : 'unit → 'unit *)
-      ].
-
-  Axiom Gpi :
-    forall (d k : nat),
-      (d < k)%nat ->
-      forall (L : list name)
-      (f : ZAF),
-    loc_GamePair
-      [interface
-         (* #val #[ SODH ] : 'unit → 'unit *)
-      ].
-
-  Axiom Ai : raw_package -> bool -> raw_package.
-  Axiom R_sodh : package fset0 [interface] [interface].
 
   Obligation Tactic := (* try timeout 8 *) idtac.
 
@@ -1926,8 +1866,12 @@ Section Core.
     (chHandle)
       (in custom pack_type at level 2).
 
-  Program Definition KeysAndHash (d k : nat) (H_lt : (d < k)%nat) f_ks f_ls : package (L_K :|: L_L) [interface] ((SET_n all_names d k :|: SET_ℓ [PSK] k d.+1 :|: GET_n all_names d k):|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) :=
-    {package (par (par (Ks d k (ltnW H_lt) all_names f_ks erefl ∘ Ls k all_names f_ls erefl) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK Z)) (Hash true))}.
+  Program Definition KeysAndHash (d k : nat) (H_lt : (d < k)%nat) f_ks f_ls Names (Names_uniq : uniq Names)
+    : package
+        (L_K :|: L_L)
+        [interface]
+        ((SET_n Names d k :|: SET_ℓ [PSK] k d.+1 :|: GET_n Names d k) :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) :=
+    {package (par (par (Ks d k (ltnW H_lt) Names f_ks Names_uniq ∘ Ls k Names f_ls Names_uniq) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK Z)) (Hash true))}.
   Next Obligation.
     intros.
     eapply valid_par_upto.
@@ -2098,12 +2042,16 @@ Section Core.
             :|: interface_hierarchy
                   (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
        :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ])) (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k) :=
-    {package (par (G_check d k (ltnW H_lt)) (par (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
-                                              _ erefl _ _) (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
-                                              _ erefl _ _)) ∘ (par
-                                           (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
-                                              _ erefl _ _)
-                                           (G_XTR_XPD d k f_XTR_XPD H_lt)))}.
+    {package
+       (par
+          (G_check d k (ltnW H_lt))
+          (par
+             (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout]) _ erefl _ _)
+             (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _))
+          ∘ (par
+               (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _)
+               (G_XTR_XPD d k f_XTR_XPD H_lt)))
+    }.
   Solve Obligations with intros ; solve_idents.
   Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
   Next Obligation.
@@ -2170,7 +2118,11 @@ Section Core.
       unfold combined_ID.
       unfold G_check.
       unfold eq_rect.
-      destruct eq_ind.
+      unfold eq_trans, f_equal.
+      destruct functional_extensionality.
+      unfold eq_rect_r, eq_rect.
+      destruct Logic.eq_sym.
+      unfold XPD_n_ℓ_f.
       solve_Parable2.
     }
     1:{
@@ -2203,7 +2155,7 @@ Section Core.
              (G_dh d k (ltnW H_lt))
              (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _)
           )
-       ) ∘ (KeysAndHash d k H_lt KeysAndHash_Kf KeysAndHash_Lf)
+       ) ∘ (KeysAndHash d k H_lt KeysAndHash_Kf KeysAndHash_Lf  all_names erefl)
     }.
   Solve Obligations with intros ; solve_idents.
   Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
@@ -2261,7 +2213,11 @@ Section Core.
       unfold combined_ID.
       unfold G_check.
       unfold eq_rect.
-      destruct eq_ind.
+      unfold eq_trans, f_equal.
+      destruct functional_extensionality.
+      unfold eq_rect_r, eq_rect.
+      destruct Logic.eq_sym.
+      unfold XPD_n_ℓ_f.
       unfold G_dh.
       unfold DH_package.
       unfold parallel_ID.
@@ -3335,12 +3291,6 @@ Section Core.
   (*   } *)
   (* Time Qed. *)
   (* Fail Next Obligation. *)
-
-  HB.instance Definition _ : Equality.axioms_ name :=
-    {|
-      Equality.eqtype_hasDecEq_mixin :=
-        {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
-    |}.
 
   Definition N_star := [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ZERO_SALT; ESALT; ZERO_IKM].
   Lemma N_star_correct :

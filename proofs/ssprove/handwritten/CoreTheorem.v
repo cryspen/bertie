@@ -90,6 +90,195 @@ Section CoreTheorem.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
+
+  Definition Gacr (f : HashFunction) (b : bool) :
+    package fset0
+      [interface]
+      [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout].
+  (* Proof. *)
+  (*   refine [package *)
+  (*             #def #[ HASH ] (t : chHASHinp) : chHASHout { *)
+  (*               ret fail *)
+  (*               (* (* get_or_fn _ _ _ *) *) *)
+  (*               (* d ← untag (match f with | f_hash | f_xtr => xtr t end) ;; *) *)
+  (*               (* if b && d \in Hash *) *)
+  (*               (* then fail *) *)
+  (*               (* else *) *)
+  (*               (*   ret d *) *)
+  (*             } *)
+  (*     ]. *)
+  (*   Qed. *)
+  Admitted.
+
+  Definition R_alg :
+    package fset0
+      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
+      [interface].
+  Proof.
+  Admitted.
+
+  Definition R_cr :
+    package fset0
+      [interface]  (* #val #[ HASH ] : chHASHinp → chHASHout] *)
+      [interface].
+  Proof.
+  Admitted.
+
+  Definition R_Z (f : HashFunction) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_D (f : HashFunction) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition R_xtr (n : name) (ℓ : nat) :
+    n \in XTR_names ->
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Definition SblngN (n : name) : list name :=
+    filter (fun n' =>
+              (nfto (fst (PrntN n)) == nfto (fst (PrntN n')))
+           && (nfto (snd (PrntN n)) == nfto (snd (PrntN n')))) all_names.
+
+  Definition ChldrN (n : name) : list name :=
+    filter (fun n' => (n == nfto (fst (PrntN n'))) || (n == nfto (snd (PrntN n')))) all_names.
+
+  Inductive POp :=
+  | base_op
+  | xtr_op
+  | xpd_op
+  | out_op.
+  Definition PrntOp (n : name) : POp :=
+    match (nfto (fst (PrntN n)), nfto (snd (PrntN n))) with
+    | (BOT, BOT) => base_op
+    | (_, BOT) => xpd_op
+    | _ => xtr_op
+    end.
+
+  Definition ChldrOp (n : name) : POp :=
+    match ChldrN n with
+    | [] => out_op
+    | (x :: _) => PrntOp x
+    end.
+
+  HB.instance Definition _ : Equality.axioms_ name :=
+    {|
+      Equality.eqtype_hasDecEq_mixin :=
+        {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+    |}.
+
+  Definition n1 n := nfto (fst (PrntN n)).
+  Definition CN n := ChldrN (n1 n).
+  Definition E n := n1 n :: CN n.
+  Definition eN_star n := filter (fun x => x \notin E n) (N_star).
+  Definition eI_star n := filter (fun x => x \notin E n) (I_star).
+  Definition eO_star n := filter (fun x => x \notin E n) (O_star).
+  Definition eXPN n := filter (fun x => x \notin CN n) (XTR_names).
+
+  (* R_{n,ℓ}, n \ in XPN \ (PSK,ESALT) (Fig. 34 p. 79) *)
+  Definition R_xpd d k (H_lt : (d < k)%nat) (n : name) (ℓ : nat) :
+    n \in XPR ->
+    (* n \notin [PSK; ESALT] -> *)
+    package (L_K :|: L_L)
+      ([interface #val #[HASH f_hash] : chHASHout → chHASHout ] :|: (interface_foreach (fun n => XPD_n_ℓ_f k n ℓ) (CN n)) :|: GET_ℓ (CN n) k ℓ :|: SET_ℓ [(n1 n)] k ℓ)
+      (((interface_hierarchy_foreach (XPD_n_ℓ_f k) XPR (ℓ.-1)) :|: (interface_hierarchy_foreach (fun n ℓ_off => XPD_n_ℓ_f k n (ℓ.+1 + ℓ_off)) XPR (d - (ℓ.+1))))
+         :|: DH_interface
+         :|: SET_ℓ [PSK] k 0
+         :|: XTR_n d k
+         :|: GET_n O_star d k).
+  Proof.
+    (* intros. *)
+
+    (* epose (G_check_XTR_XPD := *)
+    (*         {package *)
+    (*            (par *)
+    (*               (G_check d k (ltnW H_lt)) *)
+    (*               (par *)
+    (*                  (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout]) _ erefl _ _) *)
+    (*                  (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _)) *)
+    (*               ∘ (par *)
+    (*                    (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _) *)
+    (*                    (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt))) *)
+    (*       }). *)
+
+    (* epose {package *)
+    (*    (par *)
+    (*       (G_check_XTR_XPD) *)
+    (*       (par *)
+    (*          (G_dh d k (ltnW H_lt)) *)
+    (*          (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _) *)
+    (*       ) *)
+    (*    ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name => *)
+    (*             if (name \in XTR_names) *)
+    (*             then *)
+    (*               if (ℓ_i.+1 <=? ℓ)%nat then false else true *)
+    (*             else false) *)
+    (*           (fun name => match name with | ESALT => R | _ => D end) all_names erefl) *)
+    (*   }. *)
+  Admitted.
+
+  (* Definition R_xpd (n : name) (ℓ : nat) : *)
+  (*   n \in XPR -> *)
+  (*   package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface]. *)
+  (* Proof. *)
+  (* Admitted. *)
+
+  Definition R_pi (L : list name) :
+    package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
+  Proof.
+  Admitted.
+
+  Axiom Gsodh :
+    forall (d k : nat),
+      (d < k)%nat ->
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Gxtr :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (n : name) (ℓ : nat),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  (* Fig. 24(a), p. 40 *)
+  Definition Gxpd :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (n : name) (ℓ : nat),
+    loc_GamePair
+      ([interface #val #[HASH f_hash] : chHASHout → chHASHout ]
+         :|: [interface #val #[ UNQ (n1 n) k ] : chUNQinp → chUNQout]
+         :|: SET_ℓ [n1 n] k ℓ
+         :|: interface_foreach (fun n => XPD_n_ℓ_f k n ℓ) (CN n)
+         :|: GET_ℓ (CN n) k ℓ
+         :|: interface_foreach (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout]) (CN n)
+      ).
+  Proof.
+  Admitted.
+
+  Axiom Gpi :
+    forall (d k : nat),
+      (d < k)%nat ->
+      forall (L : list name)
+      (f : ZAF),
+    loc_GamePair
+      [interface
+         (* #val #[ SODH ] : 'unit → 'unit *)
+      ].
+
+  Axiom Ai : raw_package -> bool -> raw_package.
+  Axiom R_sodh : package fset0 [interface] [interface].
+
   Lemma d2 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -148,11 +337,6 @@ Section CoreTheorem.
   Proof.
     intros.
   Admitted.
-
-  Definition SblngN (n : name) : list name :=
-    filter (fun n' =>
-              (nfto (fst (PrntN n)) == nfto (fst (PrntN n')))
-           && (nfto (snd (PrntN n)) == nfto (snd (PrntN n')))) all_names.
 
   Fixpoint idealization_loop (fuel : nat) (ioc : list name) {struct fuel} : list (list name) :=
     match fuel with
@@ -391,17 +575,161 @@ Section CoreTheorem.
   Admitted.
 
   Lemma d14 :
-    forall d k H_lt ℓ c A n (H_in_xpr : n \in XPR),
-      (nfto (fst (PrntN n)) \notin nth [] IdealizationOrderPreCompute c.-1) ->
-      ((c == 0) || (nfto (fst (PrntN n)) \in nth [] IdealizationOrderPreCompute c.+1)) ->
+    forall d k H_lt ℓ c A n (_ : ChldrOp (nfto (fst (PrntN n))) = xpd_op) (H_in_xpr : n \in XPR) (* (H_notin : n \notin [PSK; ESALT]) *),
+      ((nfto (fst (PrntN n))) \notin nth [] IdealizationOrderPreCompute c.-1) ->
+      ((c == O) || ((nfto (fst (PrntN n))) \in nth [] IdealizationOrderPreCompute c.+1)) ->
       (AdvantageE
         (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute c))
         (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute c.+1))
         A
       <=
-        Advantage (Gxtr d k H_lt n ℓ) (A ∘ R_xpd n ℓ H_in_xpr))%R.
+        Advantage (Gxpd d k H_lt n ℓ) (A ∘ R_xpd d k H_lt n ℓ H_in_xpr))%R.
   Proof.
     intros.
+
+    unfold G_core_hyb_pred_ℓ_c.
+    unfold G_core_package_construction.
+    unfold pack.
+
+    unfold IdealizationOrderPreCompute.
+    unfold G_core_hyb_pred_ℓ_c.
+    unfold G_core_package_construction.
+    unfold pack.
+
+    simpl in H0.
+
+    move /orP: H1 => [ /eqP ? | H1 ] ; subst.
+    - unfold nth.
+      rewrite <- !Advantage_link.
+      rewrite Advantage_E.
+
+      eassert (
+          forall (P : seq ExtraTypes.name) (Q : seq ExtraTypes.name) (Z : seq ExtraTypes.name)
+            (H_uniq : uniq (P ++ Q))
+            (H_uniq_P : uniq P)
+            (H_uniq_Q : uniq Q)
+            A,
+            AdvantageE
+              (KeysAndHash d k H_lt (λ (ℓ0 : nat) (name : ExtraTypes.name),
+                   if (name \in N_star) || (name == PSK)
+                   then if (ℓ + (name \in Z) <=? ℓ0)%N then false else true
+                   else false) (λ name : ExtraTypes.name, match name with
+                                                          | ESALT => R
+                                                          | _ => D
+                                                          end) (P ++ Q) H_uniq)
+              (par
+                 (KeysAndHash d k H_lt (λ (ℓ0 : nat) (name : ExtraTypes.name),
+                      if (name \in N_star) || (name == PSK)
+                      then if (ℓ + (name \in Z) <=? ℓ0)%N then false else true
+                      else false) (λ name : ExtraTypes.name, match name with
+                                                             | ESALT => R
+                                                             | _ => D
+                                                             end) P H_uniq_P)
+                 (KeysAndHash d k H_lt (λ (ℓ0 : nat) (name : ExtraTypes.name),
+                      if (name \in N_star) || (name == PSK)
+                      then if (ℓ + (name \in [::]) <=? ℓ0)%N then false else true
+                      else false) (λ name : ExtraTypes.name, match name with
+                                                             | ESALT => R
+                                                             | _ => D
+                                                             end) Q H_uniq_Q)
+                 )
+              A = 0)%R.
+      1: admit.
+
+      eassert (
+          forall (A : seq ExtraTypes.name) (B : seq ExtraTypes.name) P
+            (H_eq : forall x, x \in A <-> x \in B)
+            (H_uniq_A : uniq A)
+            (H_uniq_B : uniq B)
+            Adv,
+            AdvantageE
+              (KeysAndHash d k H_lt (λ (ℓ0 : nat) (name : ExtraTypes.name),
+                   if (name \in N_star) || (name == PSK)
+                   then if (ℓ + (name \in P) <=? ℓ0)%N then false else true
+                   else false) (λ name : ExtraTypes.name, match name with
+                                                          | ESALT => R
+                                                          | _ => D
+                                                          end) A H_uniq_A)
+              (KeysAndHash d k H_lt (λ (ℓ0 : nat) (name : ExtraTypes.name),
+                      if (name \in N_star) || (name == PSK)
+                      then if (ℓ + (name \in P) <=? ℓ0)%N then false else true
+                      else false) (λ name : ExtraTypes.name, match name with
+                                                             | ESALT => R
+                                                             | _ => D
+                                                             end) B H_uniq_B)
+              Adv = 0)%R.
+      1: admit.
+
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      instantiate (1 := (KeysAndHash d k H_lt
+        (λ (ℓ0 : nat) (name : ExtraTypes.name),
+           if (name \in N_star) || (name == PSK)
+           then if (ℓ + (name \in []) <=? ℓ0)%N then false else true
+           else false) (λ name : ExtraTypes.name, match name with
+                                                  | ESALT => R
+                                                  | _ => D
+                                                  end) ([:: PSK; ZERO_SALT; DH; ZERO_IKM] ++ [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ESALT]) erefl)).
+
+      rewrite H2.
+      2:{ admit. }
+      rewrite add0r.
+
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      eapply Order.le_trans.
+      1:{
+        apply Num.Theory.lerD ; [ | easy ].
+        erewrite H1.
+        now apply eq_ler.
+      }
+      rewrite add0r.
+
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      instantiate (1 := (KeysAndHash d k H_lt
+        (λ (ℓ0 : nat) (name : ExtraTypes.name),
+           if (name \in N_star) || (name == PSK)
+           then if (ℓ + (name \in [:: PSK; ZERO_SALT; DH; ZERO_IKM]) <=? ℓ0)%N then false else true
+           else false) (λ name : ExtraTypes.name, match name with
+                                                  | ESALT => R
+                                                  | _ => D
+                                                  end) ([:: PSK; ZERO_SALT; DH; ZERO_IKM] ++ [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ESALT]) erefl)).
+
+      rewrite H2.
+      2:{ admit. }
+      rewrite addr0.
+
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      instantiate (1 := (KeysAndHash d k H_lt
+        (λ (ℓ0 : nat) (name : ExtraTypes.name),
+           if (name \in N_star) || (name == PSK)
+           then if (ℓ + (name \in [:: PSK; ZERO_SALT; DH; ZERO_IKM]) <=? ℓ0)%N then false else true
+           else false) (λ name : ExtraTypes.name, match name with
+                                                  | ESALT => R
+                                                  | _ => D
+                                                  end) ([:: PSK; ZERO_SALT; DH; ZERO_IKM] ++ [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ESALT]) erefl)).
+
+      rewrite H2.
+      2:{ admit. }
+      rewrite addr0.
+
+      eapply Order.le_trans ; [ apply Advantage_triangle | ].
+      eapply Order.le_trans.
+      1:{
+        apply Num.Theory.lerD ; [ easy | ].
+        rewrite (Advantage_sym _ _).
+        erewrite H1.
+        now apply eq_ler.
+      }
+      rewrite addr0.
+      erewrite (Advantage_parR ).
+      2: admit.
+      2: admit.
+      2: admit.
+      2: admit.
+      2: admit.
+      2: admit.
+      2: admit.
+
+      try timeout 5 rewrite advantage_reflexivity.
   Admitted.
 
   (* d6: Hybrid lemma *)
@@ -418,7 +746,7 @@ Section CoreTheorem.
        <= Advantage (Gxtr d k H_lt ES ℓ) (A ∘ R_xtr ES ℓ erefl) +
          Advantage (Gxtr d k H_lt HS ℓ) (A ∘ R_xtr HS ℓ erefl) +
          Advantage (Gxtr d k H_lt AS ℓ) (A ∘ R_xtr AS ℓ erefl) +
-           sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (A ∘ R_xpd n ℓ H_in))%R
+           sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (A ∘ R_xpd d k H_lt n ℓ H_in))%R
       )%R.
   Proof.
     intros.
@@ -563,13 +891,34 @@ Section CoreTheorem.
         easy.
       }
       {
-        refine (d14 d k H_lt ℓ 0 A PSK _ _ _).
-        { easy. }
+        refine (d14 d k H_lt ℓ 0 A ESALT _ erefl _ _).
+        {
+          unfold ChldrOp. unfold ChldrN. unfold all_names.
+
+          repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
+
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+
+          unfold PrntOp.
+          rewrite !nfto_name_to_chName_cancel.
+          reflexivity.
+        }
+        1:{ unfold XPR. unfold XPR_sub_PSK. easy. }
         1: easy.
-        1: easy.
       }
       {
-        refine (d14 d k H_lt ℓ 2 A EEM erefl _ _).
+        refine (d14 d k H_lt ℓ 2 A EEM _ erefl _ _).
+        1:{
+          unfold ChldrOp. unfold ChldrN. unfold all_names.
+
+          repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
+
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+
+          unfold PrntOp.
+          rewrite !nfto_name_to_chName_cancel.
+          reflexivity.
+        }
         2:{
           simpl.
           rewrite nfto_name_to_chName_cancel.
@@ -582,7 +931,18 @@ Section CoreTheorem.
         }
       }
       {
-        refine (d14 d k H_lt ℓ 4 A CHT erefl _ _).
+        refine (d14 d k H_lt ℓ 4 A SHT _ erefl _ _).
+        1:{
+          unfold ChldrOp. unfold ChldrN. unfold all_names.
+
+          repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
+
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+
+          unfold PrntOp.
+          rewrite !nfto_name_to_chName_cancel.
+          reflexivity.
+        }
         2:{
           simpl.
           rewrite nfto_name_to_chName_cancel.
@@ -596,7 +956,18 @@ Section CoreTheorem.
         }
       }
       {
-        refine (d14 d k H_lt ℓ 5 A CHT erefl _ _).
+        refine (d14 d k H_lt ℓ 5 A CHT _ erefl _ _).
+        1:{
+          unfold ChldrOp. unfold ChldrN. unfold all_names.
+
+          repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
+
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+
+          unfold PrntOp.
+          rewrite !nfto_name_to_chName_cancel.
+          reflexivity.
+        }
         2:{
           simpl.
           rewrite nfto_name_to_chName_cancel.
@@ -610,7 +981,18 @@ Section CoreTheorem.
         }
       }
       {
-        refine (d14 d k H_lt ℓ 7 A CAT erefl _ _).
+        refine (d14 d k H_lt ℓ 7 A RM _ erefl _ _).
+        1:{
+          unfold ChldrOp. unfold ChldrN. unfold all_names.
+
+          repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
+
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+
+          unfold PrntOp.
+          rewrite !nfto_name_to_chName_cancel.
+          reflexivity.
+        }
         2:{
           simpl.
           rewrite nfto_name_to_chName_cancel.
@@ -625,10 +1007,49 @@ Section CoreTheorem.
       }
     }
 
-    (* easy. Lia.lia. *)
-    (* Qed. *)
-  Admitted.
-  
+    unfold XPR, XPR_sub_PSK.
+    unfold sumR_l_in_rel ; fold @sumR_l_in_rel.
+    simpl ([:: ESALT] ++ _).
+    unfold sumR_l_in_rel ; fold @sumR_l_in_rel.
+
+    replace (mem_tail _ _ _) with (erefl : ESALT \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : EEM \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : CET \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : BIND \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : BINDER \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : SHT \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : CHT \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : HSALT \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : RM \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : CAT \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : SAT \in XPR) by easy.
+    replace (mem_tail _ _ _) with (erefl : EAM \in XPR) by easy.
+
+    rewrite <- !addrA.
+    rewrite addrC.
+    rewrite <- !addrA.
+
+    apply Num.Theory.lerD ; [ easy | ].
+
+    rewrite addrC.
+    rewrite <- !addrA.
+
+    apply Num.Theory.lerD ; [ easy | ].
+
+    rewrite addrC.
+    rewrite <- !addrA.
+
+    rewrite addrC.
+    rewrite <- !addrA.
+
+    apply Num.Theory.lerD ; [ easy | ].
+
+    rewrite <- addrC.
+    rewrite <- !addrA.
+
+    now repeat ((apply Num.Theory.ler_wpDr ; [ | easy ]) || (apply Num.Theory.lerD ; [ easy | ]) || (apply Num.Theory.ler_wpDl ; [ apply Num.Theory.normr_ge0 | ])).
+  Qed.
+
   Lemma hyb_telescope :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -972,7 +1393,7 @@ Section CoreTheorem.
                                           Advantage (Gxtr d k H_lt ES ℓ) (Ai A i ∘ R_xtr ES ℓ erefl) +
                                           Advantage (Gxtr d k H_lt HS ℓ) (Ai A i ∘ R_xtr HS ℓ erefl) +
                                           Advantage (Gxtr d k H_lt AS ℓ) (Ai A i ∘ R_xtr AS ℓ erefl) +
-                                            sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (Ai A i ∘ R_xpd n ℓ H_in))%R)
+                                            sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (Ai A i ∘ R_xpd d k H_lt n ℓ H_in))%R)
       ))%R.
   Proof.
     intros.
