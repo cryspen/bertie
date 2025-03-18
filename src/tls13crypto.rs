@@ -92,6 +92,15 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
+#[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
+fn hash_len_inner(h: &HashAlgorithm) -> usize {
+    match h {
+        HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
+        HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
+        HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
+    }
+}
+
 impl HashAlgorithm {
     /// Get the libcrux hash algorithm
     fn libcrux_algorithm(&self) -> Result<Sha2Algorithm, TLSError> {
@@ -117,17 +126,6 @@ impl HashAlgorithm {
 
     /// Get the size of the hash digest.
     pub(crate) fn hash_len(&self) -> usize {
-        #[cfg_attr(
-            feature = "hax-pv",
-            proverif::replace_body("0")
-        )]
-        fn hash_len_inner(h: &HashAlgorithm) -> usize {
-            match h {
-                HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
-                HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
-                HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
-            }
-        }
         hash_len_inner(&self)
     }
 
@@ -356,10 +354,13 @@ pub enum SignatureScheme {
       $:{SignatureScheme},
       $:{Bytes}
     )
-    : $:{Bytes}."))]
+    : $:{Bytes}."
+    )
+)]
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace_body("(extern__sign_inner_rsa(
+    proverif::replace_body(
+        "(extern__sign_inner_rsa(
           sk,
           pk_modulus,
           pk_exponent,
@@ -414,11 +415,24 @@ pub(crate) fn sign_rsa(
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 #[cfg_attr(
     feature = "hax-pv",
+    proverif::before(
+"fun extern__sign_inner(
+      bertie__tls13crypto__t_SignatureScheme,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes
+     )
+     : bertie__tls13utils__t_Bytes."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
     proverif::replace_body(
-        "(sign_inner(
-        alg,
-        sk,
-        input))"
+        "(extern__sign_inner(
+              algorithm,
+              sk,
+              input
+          )
+       )"
     )
 )]
 pub(crate) fn sign(
@@ -462,30 +476,32 @@ pub(crate) fn sign(
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
 // XXX: Review this.
-#[cfg_attr(feature = "hax-pv", proverif::replace( 
-       "fun ${verify}(
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "fun ${verify}(
             $:{SignatureScheme},
             $:{PublicVerificationKey},
             $:{Bytes},
             $:{Bytes}
         )
-    : bitstring
-  reduc
+    : bitstring.
+  (*reduc
     forall server_name: $:{Bytes},
                     sk: $:{Bytes},
            cert_scheme: $:{SignatureScheme},
                  input: $:{Bytes};
         ${verify}(
-        $:{SignatureScheme}_RsaPssRsaSha256_c(),
+        ${SignatureScheme::RsaPssRsaSha256},
 
-        $:{PublicVerificationKey}_Rsa_c(
+        ${PublicVerificationKey::Rsa}(
             ${crate::tls13cert::rsa_public_key}(
                 certificate(server_name,
                     spki($:{SignatureScheme}_RsaPssRsaSha256_c,rsa_cert_key_slice),
                     rsa_vk_from_sk(sk,rsa_modulus_from_sk(sk),RSA_PUBLIC_EXPONENT)),
                     rsa_cert_key_slice)),
         input,
-        sign_inner_rsa(sk, rsa_modulus_from_sk(sk), RSA_PUBLIC_EXPONENT, cert_scheme, input)
+        extern__sign_inner_rsa(sk, rsa_modulus_from_sk(sk), RSA_PUBLIC_EXPONENT, cert_scheme, input)
       ) = ()
   otherwise
     forall server_name: $:{Bytes},
@@ -500,9 +516,10 @@ pub(crate) fn sign(
                     vk_from_sk(sk)),
                 ecdsa_cert_key_slice)),
         input,
-        sign_inner($:{SignatureScheme}_EcdsaSecp256r1Sha256_c, sk, input)
-      ) = ()."
-    ))]
+        extern__sign_inner($:{SignatureScheme}_EcdsaSecp256r1Sha256_c, sk, input)
+      ) = ().*)"
+    )
+)]
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
@@ -605,8 +622,8 @@ impl KemScheme {
 /// Generate a new KEM key pair.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before(
-        "fun extern__kem_pk_from_sk($:{Bytes}): $:{Bytes}."))]
+    proverif::before("fun extern__kem_pk_from_sk($:{Bytes}): $:{Bytes}.")
+)]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(
@@ -660,8 +677,8 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 /// KEM encapsulation
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before(
-        "fun extern__kem_encapsulation($:{Bytes}, $:{Bytes}): $:{Bytes}."))]
+    proverif::before("fun extern__kem_encapsulation($:{Bytes}, $:{Bytes}): $:{Bytes}.")
+)]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(

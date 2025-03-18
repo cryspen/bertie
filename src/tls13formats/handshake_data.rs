@@ -23,6 +23,7 @@ use hax_lib::{proverif, pv_constructor};
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[repr(u8)]
+#[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
 pub enum HandshakeType {
     ClientHello = 1,
     ServerHello = 2,
@@ -60,14 +61,16 @@ pub struct HandshakeData(pub(crate) Bytes);
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "reduc forall hs1: $:{Bytes},
-              hs2: $:{Bytes};
-             ${to_two_inner}(
-                 ${from_bytes_inner}(
-                     ${crate::tls13utils::concat_inner}(hs1, hs2)
-                 )
-             )
-     = (hs1, hs2).
+        "reduc forall
+                   hs1: $:{Bytes},
+                   hs2: $:{Bytes};
+
+            ${to_two_inner}(
+                ${HandshakeData}(
+                    ${crate::tls13utils::concat_inner}(hs1, hs2)
+                )
+            )
+            = (hs1, hs2).
     "
     )
 )]
@@ -90,17 +93,23 @@ fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData
                    hs4: $:{Bytes};
 
             ${to_four_inner}(
-                ${from_bytes_inner}(${crate::tls13utils::concat_inner}(
+                ${HandshakeData}(
                     ${crate::tls13utils::concat_inner}(
                         ${crate::tls13utils::concat_inner}(
+                            ${crate::tls13utils::concat_inner}(
                                 hs1,
-                                hs2),
-                                hs3),
-                                hs4)))
-                             = (hs1,
-                                hs2,
-                                hs3,
-                                hs4)."
+                                hs2
+                            ),
+                            hs3
+                        ),
+                        hs4
+                    )
+                )
+            )
+            = (hs1,
+               hs2,
+               hs3,
+               hs4)."
     )
 )]
 fn to_four_inner(

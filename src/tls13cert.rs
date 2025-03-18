@@ -282,8 +282,8 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-#[cfg_attr(feature = "hax-pv", proverif::before(
-    "fun extern__spki($:{SignatureScheme},
+#[cfg_attr(feature = "hax-pv", proverif::replace(
+        "fun extern__spki($:{SignatureScheme},
                       $:{CertificateKey}): $:{Bytes} [data].
 
     fun extern__certificate($:{Bytes}, $:{Bytes}, $:{PublicVerificationKey}): $:{Bytes} [private].
@@ -295,8 +295,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 
       extern__cert_verify(server_name, extern__certificate(server_name, spki, cert_pk))
       = extern__certificate(server_name, spki, cert_pk).
-"))]
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+
     reduc forall
       server_name: $:{Bytes},
       alg: $:{SignatureScheme},
@@ -425,7 +424,7 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
  letfun ${cert_public_key}(
          server_name : $:{Bytes},
          certificate : $:{Bytes},
-         spki        : bitstring
+         spki        : $:{CertificateKey}
         ) =
        let certificate = extern__cert_verify(server_name, certificate) in
        let (scheme: $:{CertificateKey}) = spki in

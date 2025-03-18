@@ -1,18 +1,20 @@
-type impl_CryptoRng___RngCore.
-letfun rand_core__RngCore_f_fill_bytes(rng: impl_CryptoRng___RngCore, dest: bitstring) = new b: bitstring; (rng, b).
+(* We need to know this name explicitely.*)
+type impl_CryptoRng.
 
-fun rust_primitives__hax__repeat(nat, nat): bitstring.
+(* letfun rand_core__RngCore_f_fill_bytes(rng: impl_CryptoRng___RngCore, dest: bitstring) = new b: bitstring; (rng, b). *)
 
-letfun core__ops__bit__Not__v_not(b: bool) = if b then false else true.
-letfun core__cmp__PartialOrd__ge(lhs: nat, rhs:nat ) = lhs >= rhs.
+(* fun rust_primitives__hax__repeat(nat, nat): bitstring. *)
+
+(* letfun core__ops__bit__Not__v_not(b: bool) = if b then false else true. *)
+(* letfun core__cmp__PartialOrd__ge(lhs: nat, rhs:nat ) = lhs >= rhs. *)
 
 
-type libcrux__digest__Algorithm.
-fun libcrux__digest__Algorithm_Algorithm_Sha256_c(): libcrux__digest__Algorithm [data].
-fun libcrux__digest__Algorithm_Algorithm_Sha384_c(): libcrux__digest__Algorithm [data].
-fun libcrux__digest__Algorithm_Algorithm_Sha512_c(): libcrux__digest__Algorithm [data].
+(* type libcrux__digest__Algorithm. *)
+(* fun libcrux__digest__Algorithm_Algorithm_Sha256_c(): libcrux__digest__Algorithm [data]. *)
+(* fun libcrux__digest__Algorithm_Algorithm_Sha384_c(): libcrux__digest__Algorithm [data]. *)
+(* fun libcrux__digest__Algorithm_Algorithm_Sha512_c(): libcrux__digest__Algorithm [data]. *)
 
-letfun libcrux__digest__digest_size(alg: libcrux__digest__Algorithm) =
-       let libcrux__digest__Algorithm_Algorithm_Sha256_c() = alg in 32
-       else let libcrux__digest__Algorithm_Algorithm_Sha384_c() = alg in 48
-       else let libcrux__digest__Algorithm_Algorithm_Sha512_c() = alg in 64.
+(* letfun libcrux__digest__digest_size(alg: libcrux__digest__Algorithm) = *)
+(*        let libcrux__digest__Algorithm_Algorithm_Sha256_c() = alg in 32 *)
+(*        else let libcrux__digest__Algorithm_Algorithm_Sha384_c() = alg in 48 *)
+(*        else let libcrux__digest__Algorithm_Algorithm_Sha512_c() = alg in 64. *)
