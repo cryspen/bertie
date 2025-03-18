@@ -96,7 +96,19 @@ Notation " 'chHASHinp' " :=
 Notation " 'chHASHout' " :=
   (bitvec)
     (in custom pack_type at level 2).
-Definition HASH := 1%nat.
+(* Definition HASH := 1%nat. *)
+
+Inductive HashFunction :=
+| f_hash
+| f_xtr
+| f_xpd.
+
+Definition HASH (f : HashFunction) : nat :=
+  22%nat + match f with
+         | f_hash => 0
+         | f_xtr => 1
+         | f_xpd => 2
+         end.
 
 Notation " 'chUNQinp' " :=
   (chHandle × 'bool × chKey)
@@ -124,3 +136,21 @@ Notation " 'chDHEXPout' " :=
 Definition DHEXP : nat := 12.
 
 (* Definition SET_DH : nat := 13. *)
+
+(* Definition SET_ℓ_f d n ℓ := [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]. *)
+
+Definition SET_ℓ Names d ℓ : Interface :=
+  interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) Names.
+(* SET_ℓ_f d n ℓ *)
+
+Definition SET_n Names d k : Interface :=
+  interface_hierarchy (SET_ℓ Names k) d.
+
+(* Definition GET_ℓ_f d n ℓ := [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]. *)
+
+Definition GET_ℓ Names d ℓ : Interface :=
+  interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) Names.
+(* GET_ℓ_f d n ℓ *)
+
+Definition GET_n Names d k : Interface :=
+  interface_hierarchy (GET_ℓ Names k) d.

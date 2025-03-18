@@ -146,35 +146,159 @@ Fixpoint sum_accum (fuel : nat) (index : nat) (f : nat -> nat) (accum : nat) : n
   | S n' => sum_accum n' (index + 1%nat) f (accum + f index)
   end.
 
-Definition sumR : nat -> nat -> (nat -> R) -> R :=
-  (fun l u f => (List.fold_left (fun y x => y + f x) (iota l u) 0)%R).
+Definition mem_tail : forall {A : eqType} a (l : list A), forall {x}, x \in l -> x \in a :: l :=
+  fun A a l x H =>
+    (eq_ind_r [eta is_true] ([eta introTF (c:=true) orP] (or_intror H)) (in_cons (T:=A) a l x)).
 
-Fixpoint sumR_H_prime (start : nat) (fuel : nat) (f : forall (ℓ : nat), (ℓ <= start + fuel)%nat -> R) {struct fuel} : R.
-  refine (
+Definition sumR : forall (l u : nat), (l <= u)%nat -> (nat -> R) -> R :=
+  (fun l u H f => (List.fold_left (fun y x => y + f x) (iota l (u - l)) 0)%R).
+
+Fixpoint sumR_H_fuel start fuel (f : forall (ℓ : nat), (start <= ℓ)%nat -> (ℓ <= start + fuel)%nat -> R) {struct fuel} : R :=
   match fuel as k return (k <= fuel)%nat -> _ with
   | O => fun _ => 0
-  | S n => fun _ => f start _ + sumR_H_prime (S start) n _
-  end _).
-  - Lia.lia.
-  - intros.
-    eapply (f ℓ).
-    Lia.lia.
-  - Lia.lia.
-Defined.  
+  | S n =>
+      fun H =>
+        let Ht := (eq_ind_r (λ ℓ, (ℓ <= start + fuel)%N) (eq_ind_r [eta is_true] (leq_trans (n:=n.+1) (m:=n) (p:=fuel) (leqnSn n) H) (leq_add2l start n fuel)) (natrDE start n)) in
+        f (start + n) (leq_addr _ _) Ht + sumR_H_fuel start n (fun ℓ Hstart Hend => f ℓ Hstart (leq_trans Hend Ht))
+  end (leqnn fuel).
 
-Definition sumR_H (l u : nat) (H_ul : (u >= l)%nat) (f : forall (ℓ : nat), (ℓ <= u)%nat -> R) : R.
+Definition sumR_H
+  (l u : nat) (H_ul : (u >= l)%nat)
+  (f : forall (ℓ : nat), (ℓ <= u)%nat -> R) : R.
 Proof.
-  refine (sumR_H_prime l (u - l) _).
-  intros.
-  refine (f ℓ _).
-  Lia.lia.
+  apply (sumR_H_fuel l (u - l)).
+  rewrite subnKC.
+  - refine (fun ℓ _ H_le => f ℓ H_le).
+  - apply H_ul.
 Defined.
 
-Axiom sumR_to_H : forall l u H_ul f, sumR l u f = sumR_H l u H_ul (fun n _ => f n).
+Lemma iota_succ : forall l f, (iota l f.+1) = iota l f ++ [(l+f)].
+Proof.
+  intros.
+  generalize dependent l.
+  induction f ; intros.
+  - simpl.
+    rewrite addr0.
+    reflexivity.
+  - simpl.
+    specialize (IHf (l.+1)).
+    setoid_rewrite IHf.
+    rewrite !natrDE.
+    rewrite addSn.
+    rewrite addnS.
+    reflexivity.
+Qed.
 
-Axiom sumR_le : forall l u H_ul f g, (forall v Hf Hg, (f v Hf <= g v Hg))%R -> (sumR_H l u H_ul f  <= sumR_H l u H_ul g)%R.
+(* H_Sul = (leq_trans H_ul (leqnSn u)) *)
+Lemma sumR_succ : forall l u H_ul H_Sul f, sumR l u.+1 H_Sul f = f u + sumR l u H_ul f.
+Proof.
+  intros.
+  unfold sumR.
 
-Axiom sumR_l : forall {T : Type}, list T -> (T -> R) -> R.
+  replace (u.+1 - l)%nat with ((u - l).+1)%nat by easy.
+  rewrite iota_succ.
+  rewrite List.fold_left_app.
+  simpl.
+  rewrite addrC.
+  f_equal.
+  f_equal.
+  now apply subnKC.
+Qed.
+
+Lemma sumR_H_succ : forall l u H_ul H_Sul f, sumR_H l u.+1 H_Sul f = f u (leqnSn u) + sumR_H l u H_ul (fun ℓ H_le => f ℓ (leq_trans H_le (leqnSn u))).
+Proof.
+  intros.
+  unfold sumR_H.
+
+  unfold eq_rect_r.
+  unfold eq_rect.
+
+  unfold Logic.eq_sym.
+  set (subnKC _).
+  set (subnKC _).
+
+  (* eassert (forall l u f, sumR_H_fuel l (u.+1 - l) f = sumR_H_fuel l (u - l).+1 _). *)
+  (* { *)
+  (*   clear l u H_ul H_Sul f e e0. *)
+  (*   intros. *)
+
+Admitted.
+
+Lemma inequality :
+  forall l l0 d, (l <= l0 + (d - l0))%N -> (l <= l0 + (d.+1 - l0))%N.
+Proof. Lia.lia. Qed.
+
+Lemma sumR_to_H : forall l u H_ul f, sumR l u H_ul f = sumR_H l u H_ul (fun n _ => f n).
+Proof.
+  intros.
+  induction u.
+  {
+    destruct l ; [ | easy ].
+    unfold sumR_H, sumR ; simpl.
+    reflexivity.
+  }
+  {
+    destruct (l == u.+1) eqn:leqSu ; move: leqSu => /eqP leqSu ; subst.
+    - unfold sumR, sumR_H.
+      unfold eq_rect_r, eq_rect.
+      destruct subnKC.
+      simpl.
+      rewrite subnn.
+      simpl.
+      rewrite subnn.
+      simpl.
+      reflexivity.
+    - rewrite sumR_succ ; [ easy | ].
+      intros.
+      rewrite IHu.
+
+      unfold sumR_H.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      simpl.
+      destruct subnKC.
+      simpl.
+      destruct subnKC.
+      simpl.
+
+      rewrite subSn ; [ | easy ].
+      simpl.
+      reflexivity.
+  }
+Qed.
+
+Lemma sumR_le : forall l u H_ul f g, (forall v Hf Hg, (f v Hf <= g v Hg))%R -> (sumR_H l u H_ul f  <= sumR_H l u H_ul g)%R.
+Proof.
+  intros.
+  induction u.
+  - unfold sumR_H.
+    simpl.
+    easy.
+  - unfold sumR_H.
+    unfold eq_rect_r.
+    unfold eq_rect.
+
+    set (u.+1).
+
+Admitted.
+(*     destruct subnKC. *)
+(*     simpl. *)
+(*     rewrite <- sumR_to_H. *)
+(* Qed. *)
+
+Fixpoint sumR_l {T : Type} (l : list T) (f : T -> R) : R :=
+  match l with
+  | [] => 0%R
+  | (x :: xs) => f x + sumR_l xs f
+  end.
+(* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)
+
+Fixpoint sumR_l_in_rel {T : eqType} (l : list T) (l' : list T) (H_in : forall x, x \in l' -> x \in l) (f : forall (a : T), (a \in l)  -> R) : R :=
+  match l' return (forall x, x \in l' -> x \in l) -> _ with
+  | [] => fun _ => 0%R
+  | (x :: xs) =>
+      fun H_in => f x (H_in x (mem_head x xs)) + sumR_l_in_rel l xs (fun a H => H_in a (mem_tail x xs H)) f
+  end H_in.
 (* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)
 
 Definition max_val : R -> R -> R :=

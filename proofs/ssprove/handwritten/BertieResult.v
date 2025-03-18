@@ -275,6 +275,10 @@ Section BertieKeySchedule.
   Definition Bertie_K_table : chHandle -> nat. Admitted.
   Definition Bertie_in_K_table : forall x, ('option chK_table; Bertie_K_table x) \in Bertie_L_K. Admitted.
 
+  Definition Bertie_L_L : {fset Location}. Admitted.
+  Definition Bertie_L_table : chHandle -> nat. Admitted.
+  Definition Bertie_in_L_table : forall x, ('option chL_table; Bertie_L_table x) \in Bertie_L_L. Admitted.
+
   Definition Bertie_L_M : {fset Location}. Admitted.
   Definition Bertie_M : chHandle -> nat. Admitted.
   Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted.
@@ -284,7 +288,7 @@ Section BertieKeySchedule.
 
 End BertieKeySchedule.
 
-Instance BertieKeySchedule (d : nat) : Dependencies :=
+(* Program *) Instance BertieKeySchedule (d : nat) : Dependencies :=
 (* Proof. *)
 (*   econstructor. *)
 (*   - refine (Bertie_PrntN). *)
@@ -304,9 +308,9 @@ Instance BertieKeySchedule (d : nat) : Dependencies :=
 (*   - refine (Bertie_DHEXP_function). *)
 
   {
-    PrntN := Bertie_PrntN;
+    (* PrntN := Bertie_PrntN; *)
     Labels := Bertie_Labels ;
-    
+
     xpd := Bertie_xpd ;
     xtr := Bertie_xtr ;
     xtr_angle := Bertie_xtr_angle ;
@@ -314,6 +318,10 @@ Instance BertieKeySchedule (d : nat) : Dependencies :=
     PrntIdx := Bertie_PrntIdx ;
     ord := Bertie_ord ;
     E := Bertie_E ;
+
+    L_L := Bertie_L_L ;
+    L_table := Bertie_L_table  ;
+    in_L_table := Bertie_in_L_table ;
 
     L_K := Bertie_L_K ;
     K_table := Bertie_K_table ;
@@ -329,6 +337,6 @@ Instance BertieKeySchedule (d : nat) : Dependencies :=
     DHEXP_function := Bertie_DHEXP_function ;
   }.
 
-Definition BertieKeyScheduleCoreSimulator (d : nat) : Simulator (DepInstance := BertieKeySchedule d). Admitted.
-Definition BertieKeyScheduleCoreTheorem (d : nat) :=
-  core_theorem (DepInstance := BertieKeySchedule d) (BertieKeyScheduleCoreSimulator d).
+Definition BertieKeyScheduleCoreSimulator (d k : nat) : Simulator d k. Admitted.
+Definition BertieKeyScheduleCoreTheorem (d k : nat) (H_lt : (d < k)%nat) :=
+  core_theorem (DepInstance := BertieKeySchedule d) d k H_lt (BertieKeyScheduleCoreSimulator d k).
