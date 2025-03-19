@@ -1,13 +1,14 @@
 (* We need to know this name explicitely.*)
 type impl_CryptoRng.
 
-(* letfun rand_core__RngCore_f_fill_bytes(rng: impl_CryptoRng___RngCore, dest: bitstring) = new b: bitstring; (rng, b). *)
+letfun rand_core__f_fill_bytes(rng: impl_CryptoRng, dest: bitstring) = new b: bitstring; (rng, b).
 
-(* fun rust_primitives__hax__repeat(nat, nat): bitstring. *)
+fun rust_primitives__hax__repeat(nat, nat): bitstring.
 
-(* letfun core__ops__bit__Not__v_not(b: bool) = if b then false else true. *)
-(* letfun core__cmp__PartialOrd__ge(lhs: nat, rhs:nat ) = lhs >= rhs. *)
+letfun core__ops__bit__f_not(b: bool) = if b then false else true.
+letfun core__cmp__f_ge(lhs: nat, rhs:nat ) = lhs >= rhs.
 
+event Reachable_simple.
 
 (* type libcrux__digest__Algorithm. *)
 (* fun libcrux__digest__Algorithm_Algorithm_Sha256_c(): libcrux__digest__Algorithm [data]. *)

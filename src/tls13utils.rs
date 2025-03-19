@@ -284,7 +284,7 @@ impl U32 {
     feature = "hax-pv",
     proverif::replace(
         "fun ${u16_as_be_bytes}(nat)
-    : $:{Bytes} [data]."
+    : bitstring [data]."
     )
 )]
 pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {

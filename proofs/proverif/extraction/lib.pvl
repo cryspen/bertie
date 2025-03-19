@@ -118,6 +118,14 @@ letfun bertie__tls13crypto__t_PublicVerificationKey_default() =
        bertie__tls13crypto__t_PublicVerificationKey_default_value.
 letfun bertie__tls13crypto__t_PublicVerificationKey_err() =
        let x = construct_fail() in bertie__tls13crypto__t_PublicVerificationKey_default_value.
+fun bertie__tls13crypto__PublicVerificationKey_EcDsa(bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13crypto__t_PublicVerificationKey [data].
+
+fun bertie__tls13crypto__PublicVerificationKey_Rsa(
+      bertie__tls13crypto__t_RsaVerificationKey
+    )
+    : bertie__tls13crypto__t_PublicVerificationKey [data].
 
 
 type bertie__tls13crypto__t_HashAlgorithm.
@@ -2371,7 +2379,7 @@ letfun bertie__tls13utils__impl_Bytes__as_raw(self : bertie__tls13utils__t_Bytes
        accessor_bertie__tls13utils__t_Bytes_bertie__tls13utils__0(self).
 
 fun bertie__tls13utils__u16_as_be_bytes(nat)
-    : bertie__tls13utils__t_Bytes [data].
+    : bitstring [data].
 
 letfun bertie__tls13utils__bytes(x : bitstring) =
        bertie__tls13utils__t_Bytes_from_bitstring(x).
@@ -2573,37 +2581,10 @@ letfun bertie__tls13crypto__impl_AeadAlgorithm__iv_len(
        else let bertie__tls13crypto__AeadAlgorithm_Aes128Gcm() = self in 12
        else let bertie__tls13crypto__AeadAlgorithm_Aes256Gcm() = self in 12.
 
-fun extern__sign_inner_rsa(
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13crypto__t_SignatureScheme,
-      bertie__tls13utils__t_Bytes
-    )
-    : bertie__tls13utils__t_Bytes.
-
-letfun bertie__tls13crypto__sign_rsa(
-         sk : bertie__tls13utils__t_Bytes,
-         pk_modulus : bertie__tls13utils__t_Bytes,
-         pk_exponent : bertie__tls13utils__t_Bytes,
-         cert_scheme : bertie__tls13crypto__t_SignatureScheme,
-         input : bertie__tls13utils__t_Bytes,
-         rng : impl_CryptoRng
-       ) =
-       let hax_temp_output =
-         (extern__sign_inner_rsa(
-          sk,
-          pk_modulus,
-          pk_exponent,
-          cert_scheme,
-          input))
-        in
-       (rng, hax_temp_output).
-
 fun extern__sign_inner(
-      bertie__tls13crypto__t_SignatureScheme,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes
+         bertie__tls13crypto__t_SignatureScheme,
+         bertie__tls13utils__t_Bytes, (* sk *)
+         bertie__tls13utils__t_Bytes  (* input *)
      )
      : bertie__tls13utils__t_Bytes.
 
@@ -2623,47 +2604,59 @@ letfun bertie__tls13crypto__sign(
         in
        (rng, hax_temp_output).
 
+
+fun extern__vk_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13crypto__t_PublicVerificationKey.
+
+fun extern__sign_inner_rsa(
+                 bertie__tls13utils__t_Bytes, (* sk *)
+                 bertie__tls13utils__t_Bytes  (* input *)
+             )
+             : bertie__tls13utils__t_Bytes.
+
 fun bertie__tls13crypto__verify(
-            bertie__tls13crypto__t_SignatureScheme,
+            bertie__tls13crypto__t_SignatureScheme, 
             bertie__tls13crypto__t_PublicVerificationKey,
-            bertie__tls13utils__t_Bytes,
-            bertie__tls13utils__t_Bytes
+            bertie__tls13utils__t_Bytes, (* input *)
+            bertie__tls13utils__t_Bytes  (* sig *)
         )
-    : bitstring.
-  (*reduc
-    forall server_name: bertie__tls13utils__t_Bytes,
-                    sk: bertie__tls13utils__t_Bytes,
-           cert_scheme: bertie__tls13crypto__t_SignatureScheme,
-                 input: bertie__tls13utils__t_Bytes;
+    : bitstring
+
+  reduc forall
+                     sk: bertie__tls13utils__t_Bytes,
+                  input: bertie__tls13utils__t_Bytes;
+
         bertie__tls13crypto__verify(
-        bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256(
+            bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256(
 
 ),
+            extern__vk_from_sk(sk),
+            input,
+            extern__sign_inner_rsa(
+                sk,
+                input
+            )
+        )
+        = ()
 
-        bertie__tls13crypto__PublicVerificationKey_Rsa(
-            bertie__tls13cert__rsa_public_key(
-                certificate(server_name,
-                    spki(bertie__tls13crypto__t_SignatureScheme_RsaPssRsaSha256_c,rsa_cert_key_slice),
-                    rsa_vk_from_sk(sk,rsa_modulus_from_sk(sk),RSA_PUBLIC_EXPONENT)),
-                    rsa_cert_key_slice)),
-        input,
-        extern__sign_inner_rsa(sk, rsa_modulus_from_sk(sk), RSA_PUBLIC_EXPONENT, cert_scheme, input)
-      ) = ()
-  otherwise
-    forall server_name: bertie__tls13utils__t_Bytes,
-           sk: bertie__tls13utils__t_Bytes,
-           input: bertie__tls13utils__t_Bytes;
+  otherwise forall
+                sk                   : bertie__tls13utils__t_Bytes,
+                input                : bertie__tls13utils__t_Bytes;
+
         bertie__tls13crypto__verify(
-        bertie__tls13crypto__t_SignatureScheme_EcdsaSecp256r1Sha256_c,
-        bertie__tls13crypto__t_PublicVerificationKey_EcDsa_c(
-            bertie__tls13cert__ecdsa_public_key(
-                certificate(server_name,
-                    spki(bertie__tls13crypto__t_SignatureScheme_EcdsaSecp256r1Sha256_c,ecdsa_cert_key_slice),
-                    vk_from_sk(sk)),
-                ecdsa_cert_key_slice)),
-        input,
-        extern__sign_inner(bertie__tls13crypto__t_SignatureScheme_EcdsaSecp256r1Sha256_c, sk, input)
-      ) = ().*)
+            bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(
+
+),
+            extern__vk_from_sk(sk),
+            input,
+            extern__sign_inner(
+                bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(
+
+),
+                sk,
+                input
+            )
+        )
+        = ().
 
 fun extern__kem_pk_from_sk(bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes.
 
@@ -2979,62 +2972,76 @@ fun bertie__tls13formats__impl_Transcript__transcript_hash_without_client_hello(
     )
     : bertie__tls13utils__t_Bytes [data].
 
-fun extern__spki(bertie__tls13crypto__t_SignatureScheme,
-                      bertie__tls13cert__t_CertificateKey): bertie__tls13utils__t_Bytes [data].
 
-    fun extern__certificate(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13crypto__t_PublicVerificationKey): bertie__tls13utils__t_Bytes [private].
+(* XXX: This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
+fun extern__certificate(
+            bertie__tls13utils__t_Bytes, (* server name *)
+            bertie__tls13crypto__t_SignatureScheme,
+            bertie__tls13crypto__t_PublicVerificationKey
+        )
+        : bertie__tls13utils__t_Bytes [private].
 
-    reduc forall
-      server_name: bertie__tls13utils__t_Bytes,
-      spki:bertie__tls13utils__t_Bytes,
-      cert_pk: bertie__tls13crypto__t_PublicVerificationKey;
-
-      extern__cert_verify(server_name, extern__certificate(server_name, spki, cert_pk))
-      = extern__certificate(server_name, spki, cert_pk).
 
     reduc forall
-      server_name: bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_SignatureScheme,
-      cert_key_slice: bertie__tls13cert__t_CertificateKey,
-      cert_key: bertie__tls13crypto__t_PublicVerificationKey;
+              server_name: bertie__tls13utils__t_Bytes,
+                      alg: bertie__tls13crypto__t_SignatureScheme,
+                  cert_vk: bertie__tls13crypto__t_PublicVerificationKey;
+
+(* This checks whether the certificate is valid. *)
+        extern__cert_verify(
+            server_name,
+            extern__certificate(
+                server_name,
+                alg,
+                cert_vk
+            )
+        )
+        = extern__certificate(server_name, alg, cert_vk).
+
+    reduc forall
+                 server_name: bertie__tls13utils__t_Bytes,
+                         alg: bertie__tls13crypto__t_SignatureScheme,
+                    cert_key: bertie__tls13crypto__t_PublicVerificationKey;
 
         bertie__tls13cert__verification_key_from_cert(
-            extern__certificate(server_name, extern__spki(alg, cert_key_slice), cert_key) 
-        ) =
-       (alg, cert_key_slice).
-
-(* marked as constructor *)
-fun bertie__tls13cert__rsa_public_key(
-      bertie__tls13utils__t_Bytes, bertie__tls13cert__t_CertificateKey
-    )
-    : bertie__tls13crypto__t_RsaVerificationKey [data].
+            extern__certificate(
+                server_name,
+                alg,
+                cert_key
+            ) 
+        )
+        = (server_name, alg, cert_key).
 
 
  letfun bertie__tls13cert__cert_public_key(
-         server_name : bertie__tls13utils__t_Bytes,
-         certificate : bertie__tls13utils__t_Bytes,
-         spki        : bertie__tls13cert__t_CertificateKey
-        ) =
-       let certificate = extern__cert_verify(server_name, certificate) in
-       let (scheme: bertie__tls13cert__t_CertificateKey) = spki in
-       let bertie__tls13crypto__t_SignatureScheme_ED25519_c() = scheme in
-       bertie__tls13crypto__t_PublicVerificationKey_err()
-       else let bertie__tls13crypto__t_SignatureScheme_EcdsaSecp256r1Sha256_c(
+            certificate : bertie__tls13utils__t_Bytes,
+            spki        : bitstring
+        )
+        =
+        let (
+             server_name : bertie__tls13utils__t_Bytes, 
+             scheme         : bertie__tls13crypto__t_SignatureScheme,
+             cert_vk     : bertie__tls13crypto__t_PublicVerificationKey
+            ) = spki in
+        let certificate = extern__cert_verify(server_name, certificate) in
 
-       ) = scheme in let pk = bertie__tls13cert__ecdsa_public_key(
-         certificate, pk
-       ) in bertie__tls13crypto__t_PublicVerificationKey_EcDsa_c(
-         pk
-       )
-       else bertie__tls13crypto__t_PublicVerificationKey_err()
-       else let bertie__tls13crypto__t_SignatureScheme_RsaPssRsaSha256_c(
- 
-       ) = scheme in let pk = bertie__tls13cert__rsa_public_key(
-         certificate, pk
-       ) in bertie__tls13crypto__t_PublicVerificationKey_Rsa_c(
-         pk
-       )
-       else bertie__tls13crypto__t_PublicVerificationKey_err().
+        let bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(
+
+) = scheme in (
+           let bertie__tls13crypto__PublicVerificationKey_EcDsa(pk) = cert_vk in
+               bertie__tls13crypto__PublicVerificationKey_EcDsa(pk)
+           else bertie__tls13crypto__t_PublicVerificationKey_err()
+        )
+        else (
+            let bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256(
+
+) = scheme in (
+                let bertie__tls13crypto__PublicVerificationKey_Rsa(pk) = cert_vk in
+                    bertie__tls13crypto__PublicVerificationKey_Rsa(pk)
+                else bertie__tls13crypto__t_PublicVerificationKey_err()
+            )
+           else bertie__tls13crypto__t_PublicVerificationKey_err()
+         ).
 
 letfun bertie__server__lookup_db(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
@@ -4080,32 +4087,15 @@ letfun bertie__tls13handshake__get_rsa_signature(
          sigval : bertie__tls13utils__t_Bytes,
          rng : impl_CryptoRng
        ) =
-       let (
-         cert_scheme: bertie__tls13crypto__t_SignatureScheme,
-         cert_slice: bertie__tls13cert__t_CertificateKey
-       ) = bertie__tls13cert__verification_key_from_cert(cert) in let pk = bertie__tls13cert__rsa_public_key(
-         cert, cert_slice
-       ) in (
-         let (tmp0: impl_CryptoRng, v_out: bertie__tls13utils__t_Bytes) =
-           bertie__tls13crypto__sign_rsa(
-             sk,
-             accessor_bertie__tls13crypto__t_RsaVerificationKey_bertie__tls13crypto__f_modulus(
-               pk
-             ),
-             accessor_bertie__tls13crypto__t_RsaVerificationKey_bertie__tls13crypto__f_exponent(
-               pk
-             ),
-             cert_scheme,
-             sigval,
-             rng
-           )
-          in
-         let rng = tmp0 in
-         let hax_temp_output = v_out in
-         (rng, hax_temp_output)
-       )
-       else bitstring_err()
-       else bitstring_err().
+       let hax_temp_output =
+         (
+              extern__sign_inner_rsa(
+                  sk,
+                  sigval
+               )
+         )
+        in
+       (rng, hax_temp_output).
 
 letfun bertie__tls13handshake__get_server_signature_no_psk(
          state : bertie__tls13handshake__t_ServerPostServerHello,

@@ -655,6 +655,17 @@ fn get_server_hello(
     ))
 }
 
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body(
+        "(
+              extern__sign_inner_rsa(
+                  sk,
+                  sigval
+               )
+         )"
+    )
+)]
 fn get_rsa_signature(
     cert: &Bytes,
     sk: &Bytes,

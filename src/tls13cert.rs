@@ -283,29 +283,45 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
 #[cfg_attr(feature = "hax-pv", proverif::replace(
-        "fun extern__spki($:{SignatureScheme},
-                      $:{CertificateKey}): $:{Bytes} [data].
+    "
+(* XXX: This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
+fun extern__certificate(
+            $:{Bytes}, (* server name *)
+            $:{SignatureScheme},
+            $:{PublicVerificationKey}
+        )
+        : $:{Bytes} [private].
 
-    fun extern__certificate($:{Bytes}, $:{Bytes}, $:{PublicVerificationKey}): $:{Bytes} [private].
-
-    reduc forall
-      server_name: $:{Bytes},
-      spki:$:{Bytes},
-      cert_pk: $:{PublicVerificationKey};
-
-      extern__cert_verify(server_name, extern__certificate(server_name, spki, cert_pk))
-      = extern__certificate(server_name, spki, cert_pk).
 
     reduc forall
-      server_name: $:{Bytes},
-      alg: $:{SignatureScheme},
-      cert_key_slice: $:{CertificateKey},
-      cert_key: $:{PublicVerificationKey};
+              server_name: $:{Bytes},
+                      alg: $:{SignatureScheme},
+                  cert_vk: $:{PublicVerificationKey};
+
+(* This checks whether the certificate is valid. *)
+        extern__cert_verify(
+            server_name,
+            extern__certificate(
+                server_name,
+                alg,
+                cert_vk
+            )
+        )
+        = extern__certificate(server_name, alg, cert_vk).
+
+    reduc forall
+                 server_name: $:{Bytes},
+                         alg: $:{SignatureScheme},
+                    cert_key: $:{PublicVerificationKey};
 
         ${verification_key_from_cert}(
-            extern__certificate(server_name, extern__spki(alg, cert_key_slice), cert_key) 
-        ) =
-       (alg, cert_key_slice)."
+            extern__certificate(
+                server_name,
+                alg,
+                cert_key
+            ) 
+        )
+        = (server_name, alg, cert_key)."
     ))]
 pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
@@ -422,32 +438,31 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 // - Should find better solution for `_c()` and `_err()` terms
 #[cfg_attr(feature = "hax-pv", proverif::replace("
  letfun ${cert_public_key}(
-         server_name : $:{Bytes},
-         certificate : $:{Bytes},
-         spki        : $:{CertificateKey}
-        ) =
-       let certificate = extern__cert_verify(server_name, certificate) in
-       let (scheme: $:{CertificateKey}) = spki in
-       let $:{SignatureScheme}_ED25519_c() = scheme in
-       $:{PublicVerificationKey}_err()
-       else let $:{SignatureScheme}_EcdsaSecp256r1Sha256_c(
+            certificate : $:{Bytes},
+            spki        : bitstring
+        )
+        =
+        let (
+             server_name : $:{Bytes}, 
+             scheme         : $:{SignatureScheme},
+             cert_vk     : $:{PublicVerificationKey}
+            ) = spki in
+        let certificate = extern__cert_verify(server_name, certificate) in
 
-       ) = scheme in let pk = ${ecdsa_public_key}(
-         certificate, pk
-       ) in $:{PublicVerificationKey}_EcDsa_c(
-         pk
-       )
-       else $:{PublicVerificationKey}_err()
-       else let $:{SignatureScheme}_RsaPssRsaSha256_c(
- 
-       ) = scheme in let pk = ${rsa_public_key}(
-         certificate, pk
-       ) in $:{PublicVerificationKey}_Rsa_c(
-         pk
-       )
-       else $:{PublicVerificationKey}_err()."
+        let ${SignatureScheme::EcdsaSecp256r1Sha256} = scheme in (
+           let ${PublicVerificationKey::EcDsa}(pk) = cert_vk in
+               ${PublicVerificationKey::EcDsa}(pk)
+           else $:{PublicVerificationKey}_err()
+        )
+        else (
+            let ${SignatureScheme::RsaPssRsaSha256} = scheme in (
+                let ${PublicVerificationKey::Rsa}(pk) = cert_vk in
+                    ${PublicVerificationKey::Rsa}(pk)
+                else $:{PublicVerificationKey}_err()
+            )
+           else $:{PublicVerificationKey}_err()
+         )."
     ))]
-
 pub(crate) fn cert_public_key(
     certificate: &Bytes,
     spki: &Spki,

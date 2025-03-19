@@ -78,7 +78,31 @@ pub(crate) struct RsaVerificationKey {
 
 /// Bertie public verification keys.
 #[derive(Debug)]
-#[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
+// XXX: Extracting this still leads to ambigous accessors, so I removed these here.
+#[cfg_attr(feature = "hax-pv", proverif::replace(
+"type $:{PublicVerificationKey}.
+
+fun $:{PublicVerificationKey}_to_bitstring(
+      $:{PublicVerificationKey}
+    )
+    : bitstring [typeConverter].
+fun $:{PublicVerificationKey}_from_bitstring(bitstring)
+    : $:{PublicVerificationKey} [typeConverter].
+const $:{PublicVerificationKey}_default_value: $:{PublicVerificationKey}.
+letfun $:{PublicVerificationKey}_default() =
+       $:{PublicVerificationKey}_default_value.
+letfun $:{PublicVerificationKey}_err() =
+       let x = construct_fail() in $:{PublicVerificationKey}_default_value.
+fun ${PublicVerificationKey::EcDsa}($:{Bytes}
+    )
+    : $:{PublicVerificationKey} [data].
+
+fun ${PublicVerificationKey::Rsa}(
+      $:{RsaVerificationKey}
+    )
+    : $:{PublicVerificationKey} [data].
+"
+))]
 pub(crate) enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
@@ -344,30 +368,6 @@ pub enum SignatureScheme {
 }
 
 /// Sign the `input` with the provided RSA key.
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::before(
-        "fun extern__sign_inner_rsa(
-      $:{Bytes},
-      $:{Bytes},
-      $:{Bytes},
-      $:{SignatureScheme},
-      $:{Bytes}
-    )
-    : $:{Bytes}."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace_body(
-        "(extern__sign_inner_rsa(
-          sk,
-          pk_modulus,
-          pk_exponent,
-          cert_scheme,
-          input))"
-    )
-)]
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -417,11 +417,11 @@ pub(crate) fn sign_rsa(
     feature = "hax-pv",
     proverif::before(
 "fun extern__sign_inner(
-      bertie__tls13crypto__t_SignatureScheme,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes
+         $:{SignatureScheme},
+         $:{Bytes}, (* sk *)
+         $:{Bytes}  (* input *)
      )
-     : bertie__tls13utils__t_Bytes."
+     : $:{Bytes}."
     )
 )]
 #[cfg_attr(
@@ -479,45 +479,53 @@ pub(crate) fn sign(
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "fun ${verify}(
-            $:{SignatureScheme},
-            $:{PublicVerificationKey},
-            $:{Bytes},
-            $:{Bytes}
-        )
-    : bitstring.
-  (*reduc
-    forall server_name: $:{Bytes},
-                    sk: $:{Bytes},
-           cert_scheme: $:{SignatureScheme},
-                 input: $:{Bytes};
-        ${verify}(
-        ${SignatureScheme::RsaPssRsaSha256},
+        "
+fun extern__vk_from_sk($:{Bytes}): $:{PublicVerificationKey}.
 
-        ${PublicVerificationKey::Rsa}(
-            ${crate::tls13cert::rsa_public_key}(
-                certificate(server_name,
-                    spki($:{SignatureScheme}_RsaPssRsaSha256_c,rsa_cert_key_slice),
-                    rsa_vk_from_sk(sk,rsa_modulus_from_sk(sk),RSA_PUBLIC_EXPONENT)),
-                    rsa_cert_key_slice)),
-        input,
-        extern__sign_inner_rsa(sk, rsa_modulus_from_sk(sk), RSA_PUBLIC_EXPONENT, cert_scheme, input)
-      ) = ()
-  otherwise
-    forall server_name: $:{Bytes},
-           sk: $:{Bytes},
-           input: $:{Bytes};
+fun extern__sign_inner_rsa(
+                 $:{Bytes}, (* sk *)
+                 $:{Bytes}  (* input *)
+             )
+             : $:{Bytes}.
+
+fun ${verify}(
+            $:{SignatureScheme}, 
+            $:{PublicVerificationKey},
+            $:{Bytes}, (* input *)
+            $:{Bytes}  (* sig *)
+        )
+    : bitstring
+
+  reduc forall
+                     sk: $:{Bytes},
+                  input: $:{Bytes};
+
         ${verify}(
-        $:{SignatureScheme}_EcdsaSecp256r1Sha256_c,
-        $:{PublicVerificationKey}_EcDsa_c(
-            ${crate::tls13cert::ecdsa_public_key}(
-                certificate(server_name,
-                    spki($:{SignatureScheme}_EcdsaSecp256r1Sha256_c,ecdsa_cert_key_slice),
-                    vk_from_sk(sk)),
-                ecdsa_cert_key_slice)),
-        input,
-        extern__sign_inner($:{SignatureScheme}_EcdsaSecp256r1Sha256_c, sk, input)
-      ) = ().*)"
+            ${SignatureScheme::RsaPssRsaSha256},
+            extern__vk_from_sk(sk),
+            input,
+            extern__sign_inner_rsa(
+                sk,
+                input
+            )
+        )
+        = ()
+
+  otherwise forall
+                sk                   : $:{Bytes},
+                input                : $:{Bytes};
+
+        ${verify}(
+            ${SignatureScheme::EcdsaSecp256r1Sha256},
+            extern__vk_from_sk(sk),
+            input,
+            extern__sign_inner(
+                ${SignatureScheme::EcdsaSecp256r1Sha256},
+                sk,
+                input
+            )
+        )
+        = ()."
     )
 )]
 pub(crate) fn verify(
