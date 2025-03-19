@@ -514,7 +514,27 @@ fn get_psk_extensions(
 }
 
 /// Build a ClientHello message.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[cfg_attr(feature = "hax-pv", proverif::before(
+"fun extern__client_hello_c(
+      $:{Bytes}, (* client_randomness *)
+      $:{Bytes}, (* session_id *)
+      $:{Bytes}, (*server name /sni*)
+      $:{Bytes}, (*kem_pk / gx*)
+      Option, (*tkto*)
+      Option, (*bindero*)
+      nat) (*trunc_len*)
+      : $:{HandshakeData} [data]."))]
+#[cfg_attr(feature = "hax-pv", proverif::replace_body(
+    "(extern__client_hello_c(
+         client_random,
+         $:{Bytes}_default(),
+         server_name,
+         kem_pk,
+         session_ticket,
+         None(),
+         0),
+     0)"
+))]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
@@ -560,16 +580,7 @@ pub(crate) fn client_hello(
     Ok((client_hello, trunc_len))
 }
 
-#[cfg_attr(feature = "hax-pv", proverif::before(
-"fun extern__client_hello_c(
-      $:{Bytes}, (* client_randomness *)
-      $:{Bytes}, (* session_id *)
-      $:{Bytes}, (*server name /sni*)
-      $:{Bytes}, (*kem_pk / gx*)
-      Option, (*tkto*)
-      Option, (*bindero*)
-      nat) (*trunc_len*)
-      : $:{HandshakeData} [data]."))]
+
 #[cfg_attr(feature = "hax-pv", proverif::replace_body("
        let extern__client_hello_c(client_randomness,
                                   session_id,

@@ -2782,16 +2782,6 @@ const bertie__tls13formats__v_LABEL_S_AP_TRAFFIC: bitstring.
 
 const bertie__tls13formats__v_PREFIX_SERVER_SIGNATURE: bitstring.
 
-(* marked as constructor *)
-fun bertie__tls13formats__client_hello(
-      bertie__tls13crypto__t_Algorithms,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      Option
-    )
-    : bitstring [data].
-
 fun extern__client_hello_c(
       bertie__tls13utils__t_Bytes, (* client_randomness *)
       bertie__tls13utils__t_Bytes, (* session_id *)
@@ -2801,6 +2791,23 @@ fun extern__client_hello_c(
       Option, (*bindero*)
       nat) (*trunc_len*)
       : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+letfun bertie__tls13formats__client_hello(
+         algorithms : bertie__tls13crypto__t_Algorithms,
+         client_random : bertie__tls13utils__t_Bytes,
+         kem_pk : bertie__tls13utils__t_Bytes,
+         server_name : bertie__tls13utils__t_Bytes,
+         session_ticket : Option
+       ) =
+       (extern__client_hello_c(
+         client_random,
+         bertie__tls13utils__t_Bytes_default(),
+         server_name,
+         kem_pk,
+         session_ticket,
+         None(),
+         0),
+     0).
 
 letfun bertie__tls13formats__set_client_hello_binder(
          ciphersuite : bertie__tls13crypto__t_Algorithms,
@@ -3128,15 +3135,15 @@ letfun bertie__tls13handshake__hkdf_expand_label(
              label
            )
           in
-         let hoist21 = bertie__tls13utils__encode_length_u8(
+         let hoist19 = bertie__tls13utils__encode_length_u8(
            bertie__tls13utils__impl_Bytes__as_raw(tls13_label)
-         ) in let hoist20 = bertie__tls13utils__encode_length_u8(
+         ) in let hoist18 = bertie__tls13utils__encode_length_u8(
            bertie__tls13utils__impl_Bytes__as_raw(context)
          ) in (
-           let hoist22 =
-             bertie__tls13utils__impl_Bytes__concat(hoist21, hoist20)
+           let hoist20 =
+             bertie__tls13utils__impl_Bytes__concat(hoist19, hoist18)
             in
-           let info = bertie__tls13utils__impl_Bytes__prefix(hoist22, lenb) in
+           let info = bertie__tls13utils__impl_Bytes__prefix(hoist20, lenb) in
            bertie__tls13crypto__hkdf_expand(hash_algorithm, key, info, len)
          )
          else bertie__tls13utils__t_Bytes_err()
@@ -3163,11 +3170,11 @@ letfun bertie__tls13handshake__derive_binder_key(
        ) =
        let early_secret = bertie__tls13crypto__hkdf_extract(
          ha, k, bertie__tls13crypto__zero_key(ha)
-       ) in let hoist23 = bertie__tls13handshake__hash_empty(ha) in bertie__tls13handshake__derive_secret(
+       ) in let hoist21 = bertie__tls13handshake__hash_empty(ha) in bertie__tls13handshake__derive_secret(
          ha,
          early_secret,
          bertie__tls13utils__bytes(bertie__tls13formats__v_LABEL_RES_BINDER),
-         hoist23
+         hoist21
        )
        else bertie__tls13utils__t_Bytes_err()
        else bertie__tls13utils__t_Bytes_err().
@@ -3446,11 +3453,11 @@ letfun bertie__tls13handshake__build_client_hello(
          )
         in
        let rng = tmp0 in
-       let hoist24 = v_out in
+       let hoist22 = v_out in
        let (
          kem_sk: bertie__tls13utils__t_Bytes,
          kem_pk: bertie__tls13utils__t_Bytes
-       ) = hoist24 in let (
+       ) = hoist22 in let (
          client_hello: bertie__tls13formats__handshake_data__t_HandshakeData,
          trunc_len: nat
        ) = bertie__tls13formats__client_hello(
@@ -3996,11 +4003,11 @@ letfun bertie__tls13handshake__get_server_hello(
          )
         in
        let rng = tmp0 in
-       let hoist25 = v_out in
+       let hoist23 = v_out in
        let (
          shared_secret: bertie__tls13utils__t_Bytes,
          gy: bertie__tls13utils__t_Bytes
-       ) = hoist25 in let sh = bertie__tls13formats__server_hello(
+       ) = hoist23 in let sh = bertie__tls13formats__server_hello(
          accessor_bertie__tls13handshake__t_ServerPostClientHello_bertie__tls13handshake__f_ciphersuite(
            state
          ),
@@ -4138,7 +4145,7 @@ letfun bertie__tls13handshake__get_server_signature_no_psk(
                  transcript_hash
                )
               in
-             let (rng: impl_CryptoRng, hoist26: bertie__tls13utils__t_Bytes) =
+             let (rng: impl_CryptoRng, hoist24: bertie__tls13utils__t_Bytes) =
                let bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256() = bertie__tls13crypto__impl_Algorithms__signature(
                  accessor_bertie__tls13handshake__t_ServerPostServerHello_bertie__tls13handshake__f_ciphersuite(
                    state
@@ -4193,7 +4200,7 @@ letfun bertie__tls13handshake__get_server_signature_no_psk(
                  )
                ) in (rng, bertie__tls13utils__t_Bytes_err())
               in
-             let sig = hoist26 in let scv = bertie__tls13formats__certificate_verify(
+             let sig = hoist24 in let scv = bertie__tls13formats__certificate_verify(
                accessor_bertie__tls13handshake__t_ServerPostServerHello_bertie__tls13handshake__f_ciphersuite(
                  state
                ),
@@ -4373,23 +4380,23 @@ letfun bertie__tls13handshake__server_init_no_psk(
            bertie__tls13handshake__get_server_hello(st, rng)
           in
          let rng = tmp0 in
-         let hoist27 = v_out in
+         let hoist25 = v_out in
          let (
            sh: bertie__tls13formats__handshake_data__t_HandshakeData,
            cipher_hs: bertie__tls13record__t_DuplexCipherStateH,
            st: bertie__tls13handshake__t_ServerPostServerHello
-         ) = hoist27 in (
+         ) = hoist25 in (
            let (tmp0: impl_CryptoRng, v_out: bitstring) =
              bertie__tls13handshake__get_server_signature(st, rng)
             in
            let rng = tmp0 in
-           let hoist28 = v_out in
+           let hoist26 = v_out in
            let (
              ee: bertie__tls13formats__handshake_data__t_HandshakeData,
              sc: bertie__tls13formats__handshake_data__t_HandshakeData,
              scv: bertie__tls13formats__handshake_data__t_HandshakeData,
              st: bertie__tls13handshake__t_ServerPostCertificateVerify
-           ) = hoist28 in let (
+           ) = hoist26 in let (
              sfin: bertie__tls13formats__handshake_data__t_HandshakeData,
              cipher1: bertie__tls13record__t_DuplexCipherState1,
              st: bertie__tls13handshake__t_ServerPostServerFinished
@@ -4427,12 +4434,12 @@ letfun bertie__tls13handshake__server_init_psk(
            bertie__tls13handshake__get_server_hello(st, rng)
           in
          let rng = tmp0 in
-         let hoist29 = v_out in
+         let hoist27 = v_out in
          let (
            sh: bertie__tls13formats__handshake_data__t_HandshakeData,
            cipher_hs: bertie__tls13record__t_DuplexCipherStateH,
            st: bertie__tls13handshake__t_ServerPostServerHello
-         ) = hoist29 in let (
+         ) = hoist27 in let (
            ee: bertie__tls13formats__handshake_data__t_HandshakeData,
            st: bertie__tls13handshake__t_ServerPostCertificateVerify
          ) = bertie__tls13handshake__get_skip_server_signature(st) in let (

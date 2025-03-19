@@ -209,22 +209,23 @@ letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
           (None(), None()).
 
 let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
+    (* REACHED *)
     in(c, server_name: bertie__tls13utils__t_Bytes);
     new rng_client: impl_CryptoRng
 ;
 
     let (client_ticket_o: Option, psk_o: Option)
         = get_psk(server_name, psk_mode)
-    in 
-
-    let (rng_client: impl_CryptoRng
-, client_init_out: bitstring)
+    in
+    (* REACHED *)
+    let (rng_client: impl_CryptoRng, client_init_out: bitstring)
         = bertie__tls13handshake__client_init(algs,
                                               server_name,
                                               client_ticket_o,
                                               psk_o,
                                               rng_client)
     in
+    (* NOT REACHED *)
     let (nch: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher0: Option,
          client_state: bertie__tls13handshake__t_ClientPostClientHello)
@@ -252,6 +253,7 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
 
 
 let Server() =
+    (* REACHED *)
     in(c, server_name: bertie__tls13utils__t_Bytes);
     get server_dbs(=server_name, db, algs) in    
 
@@ -284,7 +286,8 @@ let Server() =
         = bertie__tls13handshake__server_finish(client_finished,
                                                 server_state)
     in
-    event Reachable_simple.
+    (* event Reachable_simple *)
+    0.
 
 let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     in(c, server_name: bertie__tls13utils__t_Bytes);
