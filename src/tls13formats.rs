@@ -65,6 +65,9 @@ pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
 ];
 
 /// Build the server name out of the `name` bytes for the client hello.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(b) => name.len() < 65536 && b.len() == name.len() + 9,
+                                _ => true })]
 fn build_server_name(name: &Bytes) -> Result<Bytes, TLSError> {
     const PREFIX1: &[U8; 2] = &[U8(0), U8(0)];
     const PREFIX2: &[U8; 1] = &[U8(0)];
@@ -90,6 +93,9 @@ fn check_server_name(extension: &[U8]) -> Result<Bytes, TLSError> {
 }
 
 /// Build the supported versions bytes for the client hello.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(b) => b.len() <= 260,
+                                _ => true })]
 fn supported_versions() -> Result<Bytes, TLSError> {
     Ok(Bytes::from([0, 0x2b]).concat(encode_length_u16(encode_length_u8(&[U8(3), U8(4)])?)?))
 }
@@ -149,7 +155,6 @@ fn key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(encode_length_u16(encode_length_u16(ks)?)?.prefix(PREFIX))
 }
 
-#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::decreases(ch.len().to_int())]
 fn find_key_share(g: &Bytes, ch: &[U8]) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
@@ -314,7 +319,6 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
     }
 }
 
-#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|result| match result {
                                     Result::Ok((len,out)) => len >= 4,
                                     _ => true})]
@@ -537,7 +541,6 @@ fn get_psk_extensions(
 
 /// Build a ClientHello message.
 #[hax_lib::pv_constructor]
-#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|result| match result {
                                 Result::Ok((ch,tl)) => tl <= ch.len(),
                                 _ => true})]
@@ -749,7 +752,6 @@ pub(super) fn parse_client_hello(
 
 /// Build the server hello message.
 #[hax_lib::pv_constructor]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     sr: Random,
@@ -842,7 +844,6 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
 }
 
 #[hax_lib::pv_handwritten]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_encrypted_extensions(
     _algs: &Algorithms,
     encrypted_extensions: &HandshakeData,
@@ -964,7 +965,6 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
 }
 
 #[hax_lib::pv_handwritten]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_certificate_verify(
     algs: &Algorithms,
     certificate_verify: &HandshakeData,

@@ -198,6 +198,7 @@ impl From<Vec<u8>> for Bytes {
 impl Bytes {
     /// Add a prefix to these bytes and return it.
     #[hax_lib::pv_handwritten]
+    #[hax_lib::ensures(|result| result.len() >= self.len() && result.len() - self.len() == prefix.len())]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -455,7 +456,7 @@ impl Bytes {
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
     #[hax_lib::pv_handwritten]
-    #[ensures(|result| fstar!("Seq.length result._0 == Seq.length self._0 + Seq.length other._0"))]
+    #[ensures(|result| result.len() == self.len() + other.len())]
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
         self
