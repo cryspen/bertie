@@ -1183,7 +1183,27 @@ impl Transcript {
     }
 
     /// Add the [`HandshakeData`] `msg` to this transcript.
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    // XXX: ${Struct} does not work to get the name of the struct
+    // constructor. Either the backend should output different
+    // constructor names for record types (i.e. accessble via
+    // $:{Struct}), or the interpolation should be changed.
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body(
+        "let bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+            hash_algorithm: $:{HashAlgorithm},
+            old_handshake_data: $:{HandshakeData}
+        ) = self in
+    bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+        hash_algorithm,
+        ${HandshakeData}(
+            ${handshake_data::to_bytes_inner}(
+                ${HandshakeData::concat}(
+                    ${self.transcript},
+                    msg
+                )
+            )
+        )
+    )"
+    ))]
     pub(crate) fn add(mut self, msg: &HandshakeData) -> Self {
         self.transcript = self.transcript.concat(msg);
         self

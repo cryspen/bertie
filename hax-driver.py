@@ -135,6 +135,7 @@ elif options.sub == "extract-proverif":
                     "+!**::tls13utils::check_eq_inner",
                     "+!**::tls13formats::handshake_data::HandshakeType",
                     "+!**::tls13formats::handshake_data::from_bytes_inner",
+                    "+!**::tls13formats::handshake_data::to_bytes_inner",
                     "+!**::tls13formats::handshake_data::to_two_inner",
                     "+!**::tls13formats::handshake_data::to_four_inner",
                     "+!**::tls13crypto::hash_len_inner",

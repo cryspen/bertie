@@ -2439,6 +2439,12 @@ fun bertie__tls13formats__handshake_data__from_bytes_inner(
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
 (* marked as constructor *)
+fun bertie__tls13formats__handshake_data__to_bytes_inner(
+      bertie__tls13formats__handshake_data__t_HandshakeData
+    )
+    : bertie__tls13utils__t_Bytes [data].
+
+(* marked as constructor *)
 fun bertie__tls13formats__handshake_data__impl_HandshakeData__concat(
       bertie__tls13formats__handshake_data__t_HandshakeData,
       bertie__tls13formats__handshake_data__t_HandshakeData
@@ -2949,12 +2955,27 @@ letfun bertie__tls13formats__impl_Transcript__new(
 
        ).
 
-(* marked as constructor *)
-fun bertie__tls13formats__impl_Transcript__add(
-      bertie__tls13formats__t_Transcript,
-      bertie__tls13formats__handshake_data__t_HandshakeData
-    )
-    : bertie__tls13formats__t_Transcript [data].
+letfun bertie__tls13formats__impl_Transcript__add(
+         self : bertie__tls13formats__t_Transcript,
+         msg : bertie__tls13formats__handshake_data__t_HandshakeData
+       ) =
+       let bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+            hash_algorithm: bertie__tls13crypto__t_HashAlgorithm,
+            old_handshake_data: bertie__tls13formats__handshake_data__t_HandshakeData
+        ) = self in
+    bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+        hash_algorithm,
+        bertie__tls13formats__handshake_data__HandshakeData(
+            bertie__tls13formats__handshake_data__to_bytes_inner(
+                bertie__tls13formats__handshake_data__impl_HandshakeData__concat(
+                    accessor_bertie__tls13formats__t_Transcript_bertie__tls13formats__f_transcript(
+         self
+       ),
+                    msg
+                )
+            )
+        )
+    ).
 
 letfun bertie__tls13formats__impl_Transcript__transcript_hash(
          self : bertie__tls13formats__t_Transcript

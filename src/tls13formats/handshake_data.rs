@@ -137,6 +137,11 @@ pub(crate) fn from_bytes_inner(
     ))
 }
 
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
+pub(crate) fn to_bytes_inner(hs: &HandshakeData) -> Bytes {
+    hs.0.clone()
+}
+
 impl HandshakeData {
     /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
     pub(crate) fn from_bytes(
@@ -153,7 +158,7 @@ impl HandshakeData {
 
     /// Returns the handshake data bytes.
     pub(crate) fn to_bytes(&self) -> Bytes {
-        self.0.clone()
+        to_bytes_inner(&self)
     }
 
     /// Returns a new [`HandshakeData`] that contains the bytes of
