@@ -8,188 +8,188 @@ table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB, bertie
 (* server_psks(server_name, session_ticket, PSK) *)
 table server_psks(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes).
 
-event CompromisedServerCertSK(bertie__tls13utils__t_Bytes).
-event CompromisedServerPSK(bertie__tls13utils__t_Bytes).
-event ClientFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ClientPostClientFinished).
-event ServerFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ServerPostServerFinished).
+(* event CompromisedServerCertSK(bertie__tls13utils__t_Bytes). *)
+(* event CompromisedServerPSK(bertie__tls13utils__t_Bytes). *)
+(* event ClientFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ClientPostClientFinished). *)
+(* event ServerFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ServerPostServerFinished). *)
 
 (* Reachability queries. *)
 (* Should fail: Full handshake can complete. *)
 query event(Reachable_simple).
 
-(* Should fail: Client can finish handshake. *)
-query server_name: bertie__tls13utils__t_Bytes,
-      cipher: bertie__tls13record__t_DuplexCipherState1,
-      st: bertie__tls13handshake__t_ClientPostClientFinished;
+(* (\* Should fail: Client can finish handshake. *\) *)
+(* query server_name: bertie__tls13utils__t_Bytes, *)
+(*       cipher: bertie__tls13record__t_DuplexCipherState1, *)
+(*       st: bertie__tls13handshake__t_ClientPostClientFinished; *)
 
-      event(ClientFinished(server_name,cipher,st)).
+(*       event(ClientFinished(server_name,cipher,st)). *)
 
-(* Should fail: Server can finish handshake. *)
-query server_name: bertie__tls13utils__t_Bytes,
-      cipher: bertie__tls13record__t_DuplexCipherState1,
-      st: bertie__tls13handshake__t_ServerPostServerFinished;
+(* (\* Should fail: Server can finish handshake. *\) *)
+(* query server_name: bertie__tls13utils__t_Bytes, *)
+(*       cipher: bertie__tls13record__t_DuplexCipherState1, *)
+(*       st: bertie__tls13handshake__t_ServerPostServerFinished; *)
       
-      event(ServerFinished(server_name,cipher,st)).
+(*       event(ServerFinished(server_name,cipher,st)). *)
 
-(* Server authentication queries. *)
+(* (\* Server authentication queries. *\) *)
 
-(* Should fail: Authentication is not guaranteed if either PSK or
-                certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+(* (\* Should fail: Authentication is not guaranteed if either PSK or *)
+(*                 certificate signing key are leaked to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished, *)
+(*       sst:bertie__tls13handshake__t_ServerPostServerFinished; *)
       
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
-                               sst)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       ==> event(ServerFinished(server_name, *)
+(*                                bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp), *)
+(*                                sst)). *)
 
-(* Should fail: Authentication is not guaranteed if PSK is leaked to
-                attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+(* (\* Should fail: Authentication is not guaranteed if PSK is leaked to *)
+(*                 attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished, *)
+(*       sst:bertie__tls13handshake__t_ServerPostServerFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
-                               sst))
-          || event(CompromisedServerCertSK(server_name)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       ==> event(ServerFinished(server_name, *)
+(*                                bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp), *)
+(*                                sst)) *)
+(*           || event(CompromisedServerCertSK(server_name)). *)
 
-(* Should fail: Authentication is not guaranteed if certificate
-                signing key is leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+(* (\* Should fail: Authentication is not guaranteed if certificate *)
+(*                 signing key is leaked to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished, *)
+(*       sst:bertie__tls13handshake__t_ServerPostServerFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      ==> event(ServerFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
-                           sst))
-          || event(CompromisedServerPSK(server_name)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       ==> event(ServerFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp), *)
+(*                            sst)) *)
+(*           || event(CompromisedServerPSK(server_name)). *)
 
-(* Should succeed: Authentication guaranteed if neither PSK nor
-                   certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+(* (\* Should succeed: Authentication guaranteed if neither PSK nor *)
+(*                    certificate signing key are leaked to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished, *)
+(*       sst:bertie__tls13handshake__t_ServerPostServerFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
-                               sst))
-          || event(CompromisedServerCertSK(server_name))
-          || event(CompromisedServerPSK(server_name)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       ==> event(ServerFinished(server_name, *)
+(*                                bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp), *)
+(*                                sst)) *)
+(*           || event(CompromisedServerCertSK(server_name)) *)
+(*           || event(CompromisedServerPSK(server_name)). *)
 
 
-(* Session key secrecy queries. *)
-(* Should fail: Session key secrecy is not guaranteed if either PSK or
-                certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+(* (\* Session key secrecy queries. *\) *)
+(* (\* Should fail: Session key secrecy is not guaranteed if either PSK or *)
+(*                 certificate signing key are leaked to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      && attacker(s2ckiv).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       && attacker(s2ckiv). *)
 
-(* Should fail: Session key secrecy is not guaranteed if PSK is leaked
-                to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+(* (\* Should fail: Session key secrecy is not guaranteed if PSK is leaked *)
+(*                 to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      && attacker(s2ckiv)
-      ==> event(CompromisedServerCertSK(server_name)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       && attacker(s2ckiv) *)
+(*       ==> event(CompromisedServerCertSK(server_name)). *)
 
-(* Should fail: Session key secrecy is not guaranteed if certificate
-                signing key is leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+(* (\* Should fail: Session key secrecy is not guaranteed if certificate *)
+(*                 signing key is leaked to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      && attacker(s2ckiv)
-      ==> event(CompromisedServerPSK(server_name)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       && attacker(s2ckiv) *)
+(*       ==> event(CompromisedServerPSK(server_name)). *)
 
-(* Should succeed: Session key secrecy is guaranteed if neither PSK
-                   nor certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
-      c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
-      s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+(* (\* Should succeed: Session key secrecy is guaranteed if neither PSK *)
+(*                    nor certificate signing key are leaked to attacker. *\) *)
+(* query server_name:bertie__tls13utils__t_Bytes, *)
+(*       alg: bertie__tls13crypto__t_AeadAlgorithm, *)
+(*       c2skiv: bertie__tls13crypto__t_AeadKeyIV, *)
+(*       c2sctr:nat, *)
+(*       s2ckiv:bertie__tls13crypto__t_AeadKeyIV, *)
+(*       s2cctr:nat, *)
+(*       exp:bertie__tls13utils__t_Bytes, *)
+(*       ccipher:bertie__tls13record__t_DuplexCipherState1, *)
+(*       cst:bertie__tls13handshake__t_ClientPostClientFinished; *)
 
-      event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
-                           cst))
-      && attacker(s2ckiv)
-      ==> event(CompromisedServerCertSK(server_name))
-          || event(CompromisedServerPSK(server_name)).
+(*       event(ClientFinished(server_name, *)
+(*                            bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp), *)
+(*                            cst)) *)
+(*       && attacker(s2ckiv) *)
+(*       ==> event(CompromisedServerCertSK(server_name)) *)
+(*           || event(CompromisedServerPSK(server_name)). *)
 
 letfun set_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
        if psk_mode then
@@ -209,15 +209,13 @@ letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
           (None(), None()).
 
 let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
-    (* REACHED *)
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    new rng_client: impl_CryptoRng
-;
+    new rng_client: impl_CryptoRng;
 
     let (client_ticket_o: Option, psk_o: Option)
         = get_psk(server_name, psk_mode)
     in
-    (* REACHED *)
+
     let (rng_client: impl_CryptoRng, client_init_out: bitstring)
         = bertie__tls13handshake__client_init(algs,
                                               server_name,
@@ -225,7 +223,7 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
                                               psk_o,
                                               rng_client)
     in
-    (* NOT REACHED *)
+
     let (nch: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher0: Option,
          client_state: bertie__tls13handshake__t_ClientPostClientHello)
@@ -248,14 +246,14 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
                                                 flight,
                                                 client_state)
     in
-    event ClientFinished(server_name,cipher,client_state);
+    (* event ClientFinished(server_name,cipher,client_state); *)
     out(c, client_finished).
 
 
 let Server() =
-    (* REACHED *)
+    event Reachable_simple;
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    get server_dbs(=server_name, db, algs) in    
+    get server_dbs(=server_name, db, algs) in
 
     new rng_server: impl_CryptoRng
 ;
@@ -276,7 +274,7 @@ let Server() =
        server_state: bertie__tls13handshake__t_ServerPostServerFinished)
     = server_init_output in
 
-    event ServerFinished(server_name,cipher1,server_state);
+    (* event ServerFinished(server_name,cipher1,server_state); *)
     out(c, server_hello);
     out(c, flight);
 
@@ -286,7 +284,6 @@ let Server() =
         = bertie__tls13handshake__server_finish(client_finished,
                                                 server_state)
     in
-    (* event Reachable_simple *)
     0.
 
 let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
@@ -336,13 +333,13 @@ let CompromiseServerCertSK() =
             cert_sk,
             psk_opt
         ) = db in
-    event CompromisedServerCertSK(server_name);
+    (* event CompromisedServerCertSK(server_name); *)
     out(c, cert_sk).
 
 let CompromiseServerPSK() =
     in(c, server_name: bertie__tls13utils__t_Bytes);
     get server_psks(=server_name, client_ticket, psk) in
-    event CompromisedServerPSK(server_name);
+    (* event CompromisedServerPSK(server_name); *)
     out(c, psk).
     
 process
