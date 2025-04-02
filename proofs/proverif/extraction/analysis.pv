@@ -5,6 +5,8 @@
 (* server_dbs(server_name, db) *)
 table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB, bertie__tls13crypto__t_Algorithms).
 
+const server_name: bertie__tls13utils__t_Bytes.
+
 (* server_psks(server_name, session_ticket, PSK) *)
 table server_psks(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes).
 
@@ -209,7 +211,7 @@ letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
           (None(), None()).
 
 let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    (* in(c, server_name: bertie__tls13utils__t_Bytes); *)
     new rng_client: impl_CryptoRng;
 
     let (client_ticket_o: Option, psk_o: Option)
@@ -252,42 +254,43 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
 
 let Server() =
     event Reachable_simple;
-    in(c, server_name: bertie__tls13utils__t_Bytes);
-    get server_dbs(=server_name, db, algs) in
-
-    new rng_server: impl_CryptoRng
-;
-    in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData);
-    let (rng_server: impl_CryptoRng
-, server_init_output: bitstring)
-        = bertie__tls13handshake__server_init(algs,
-                                              nch,
-                                              db,
-                                              rng_server)
-    in
-    let
-      (server_hello: bertie__tls13formats__handshake_data__t_HandshakeData,
-       flight: bertie__tls13formats__handshake_data__t_HandshakeData,
-       cipher0: Option,
-       cipher_hs: bertie__tls13record__t_DuplexCipherStateH,
-       cipher1: bertie__tls13record__t_DuplexCipherState1,
-       server_state: bertie__tls13handshake__t_ServerPostServerFinished)
-    = server_init_output in
-
-    (* event ServerFinished(server_name,cipher1,server_state); *)
-    out(c, server_hello);
-    out(c, flight);
-
-    in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData);
-
-    let server_state
-        = bertie__tls13handshake__server_finish(client_finished,
-                                                server_state)
-    in
     0.
+(*     in(c, server_name: bertie__tls13utils__t_Bytes); *)
+(*     get server_dbs(=server_name, db, algs) in *)
+
+(*     new rng_server: impl_CryptoRng *)
+(* ; *)
+(*     in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData); *)
+(*     let (rng_server: impl_CryptoRng *)
+(* , server_init_output: bitstring) *)
+(*         = bertie__tls13handshake__server_init(algs, *)
+(*                                               nch, *)
+(*                                               db, *)
+(*                                               rng_server) *)
+(*     in *)
+(*     let *)
+(*       (server_hello: bertie__tls13formats__handshake_data__t_HandshakeData, *)
+(*        flight: bertie__tls13formats__handshake_data__t_HandshakeData, *)
+(*        cipher0: Option, *)
+(*        cipher_hs: bertie__tls13record__t_DuplexCipherStateH, *)
+(*        cipher1: bertie__tls13record__t_DuplexCipherState1, *)
+(*        server_state: bertie__tls13handshake__t_ServerPostServerFinished) *)
+(*     = server_init_output in *)
+
+(*     (\* event ServerFinished(server_name,cipher1,server_state); *\) *)
+(*     out(c, server_hello); *)
+(*     out(c, flight); *)
+
+(*     in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData); *)
+
+(*     let server_state *)
+(*         = bertie__tls13handshake__server_finish(client_finished, *)
+(*                                                 server_state) *)
+(*     in *)
+(*     0. *)
 
 let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    (* in(c, server_name: bertie__tls13utils__t_Bytes); *)
     new cert_sk: bertie__tls13utils__t_Bytes;
 
     let psk_opt = set_psk(server_name, psk_mode) in
@@ -307,6 +310,7 @@ let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
             cert_sk,
             psk_opt)
         in
+                     out(c, db);
         insert server_dbs(server_name, db, algs))
     else let bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256()
              = bertie__tls13crypto__impl_Algorithms__signature(algs)
@@ -322,10 +326,11 @@ let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
                   cert_sk,
                   psk_opt)
              in
+             out(c, db);
              insert server_dbs(server_name, db, algs)).
 
 let CompromiseServerCertSK() =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    (* in(c, server_name: bertie__tls13utils__t_Bytes); *)
     get server_dbs(=server_name, db, algs) in
     let bertie__server__ServerDB(
             server_name,
@@ -337,14 +342,16 @@ let CompromiseServerCertSK() =
     out(c, cert_sk).
 
 let CompromiseServerPSK() =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    (* in(c, server_name: bertie__tls13utils__t_Bytes); *)
     get server_psks(=server_name, client_ticket, psk) in
     (* event CompromisedServerPSK(server_name); *)
     out(c, psk).
     
 process
-    in(c, psk_mode: bool);    
-    in(c, zero_rtt: bool);
+    let psk_mode = false in
+    let zero_rtt = false in 
+    (* in(c, psk_mode: bool);     *)
+    (* in(c, zero_rtt: bool); *)
     
     (* SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519 *)
     let SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519 = 
@@ -395,14 +402,14 @@ process
                                        psk_mode,
                                        zero_rtt)
     in
-      !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode)
-    | !CreateServer(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
-    | !CreateServer(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode)
-    | !CreateServer(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
-    | !CreateServer(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
-    | !Client(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode)
-    | !Client(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
-    | !Client(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode)
-    | !Client(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+      (* !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
+    (* | !CreateServer(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
+    (* | !CreateServer(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode) *)
+    (* | !CreateServer(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
+     !CreateServer(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
+    (* | !Client(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
+    (* | !Client(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
+    (* | !Client(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode) *)
+    (* | !Client(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
     | !Client(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
     | !Server() | !CompromiseServerCertSK() | !CompromiseServerPSK()
