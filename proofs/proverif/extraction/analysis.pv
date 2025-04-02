@@ -346,6 +346,8 @@ let CompromiseServerPSK() =
     get server_psks(=server_name, client_ticket, psk) in
     (* event CompromisedServerPSK(server_name); *)
     out(c, psk).
+
+set attacker = passive.
     
 process
     let psk_mode = false in
@@ -402,14 +404,14 @@ process
                                        psk_mode,
                                        zero_rtt)
     in
-      (* !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
-    (* | !CreateServer(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
-    (* | !CreateServer(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode) *)
-    (* | !CreateServer(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
-     !CreateServer(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
-    (* | !Client(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
-    (* | !Client(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
-    (* | !Client(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode) *)
-    (* | !Client(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) *)
+       !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode) 
+    | !CreateServer(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode) 
+    | !CreateServer(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode) 
+    | !CreateServer(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !CreateServer(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
+    | !Client(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !Client(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
+    | !Client(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519, psk_mode) 
+    | !Client(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519, psk_mode)
     | !Client(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519, psk_mode)
     | !Server() | !CompromiseServerCertSK() | !CompromiseServerPSK()
