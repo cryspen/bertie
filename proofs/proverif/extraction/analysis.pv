@@ -238,18 +238,18 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
         = bertie__tls13handshake__client_set_params(server_hello,
                                                     client_state)
     in
+    0.
+    (* in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData); *)
 
-    in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
-
-    let (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
-         cipher: bertie__tls13record__t_DuplexCipherState1,
-         client_state: bertie__tls13handshake__t_ClientPostClientFinished)
-        = bertie__tls13handshake__client_finish( (*server_name,*) (* XXX: This was here, before. *)
-                                                flight,
-                                                client_state)
-    in
-    (* event ClientFinished(server_name,cipher,client_state); *)
-    out(c, client_finished).
+    (* let (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData, *)
+    (*      cipher: bertie__tls13record__t_DuplexCipherState1, *)
+    (*      client_state: bertie__tls13handshake__t_ClientPostClientFinished) *)
+    (*     = bertie__tls13handshake__client_finish( (\*server_name,*\) (\* XXX: This was here, before. *\) *)
+    (*                                             flight, *)
+    (*                                             client_state) *)
+    (* in *)
+    (* (\* event ClientFinished(server_name,cipher,client_state); *\) *)
+    (* out(c, client_finished). *)
 
 
 let Server() =
