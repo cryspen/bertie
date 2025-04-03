@@ -20,6 +20,14 @@ fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
     algorithm.hash(&Bytes::new())
 }
 
+// XXX: ProVerif takes a long time to process this large integer
+// comparison. For now, we make the assumption in the ProVerif model
+// that the payload will not be too long.
+#[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("${false}"))]
+fn payload_too_long(len: usize) -> bool {
+    len >= 65536
+}
+
 /// HKDF expand with a `label`.
 fn hkdf_expand_label(
     hash_algorithm: &HashAlgorithm,
@@ -28,7 +36,7 @@ fn hkdf_expand_label(
     context: &Bytes,
     len: usize,
 ) -> Result<Key, TLSError> {
-    if len >= 65536 {
+    if payload_too_long(len) {
         Err(PAYLOAD_TOO_LONG)
     } else {
         let lenb = u16_as_be_bytes(U16(len as u16));
