@@ -28,6 +28,29 @@ fn payload_too_long(len: usize) -> bool {
     len >= 65536
 }
 
+// XXX: We had previously not extracted `hkdf_expand_label`, and done
+// it like below.
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::before(
+        "fun extern__expand_label($:{HashAlgorithm},
+         $:{Bytes},
+         $:{Bytes},
+         $:{Bytes}): $:{Bytes} [data]."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body(
+        "(extern__expand_label(
+              hash_algorithm,
+              key,
+              label,
+              context
+          )
+       )"
+    )
+)]
 /// HKDF expand with a `label`.
 fn hkdf_expand_label(
     hash_algorithm: &HashAlgorithm,

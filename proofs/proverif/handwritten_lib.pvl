@@ -8,7 +8,7 @@ fun rust_primitives__hax__repeat(nat, nat): bitstring.
 letfun core__ops__bit__f_not(b: bool) = if b then false else true.
 letfun core__cmp__f_ge(lhs: nat, rhs:nat ) = lhs >= rhs.
 
-event Reachable_simple.
+event R.
 
 (* type libcrux__digest__Algorithm. *)
 (* fun libcrux__digest__Algorithm_Algorithm_Sha256_c(): libcrux__digest__Algorithm [data]. *)

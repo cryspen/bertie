@@ -15,7 +15,7 @@ event ServerFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCi
 
 (* Reachability queries. *)
 (* Should fail: Full handshake can complete. *)
-query event(Reachable_simple).
+query event(R).
 
 (* Should fail: Client can finish handshake. *)
 query server_name: bertie__tls13utils__t_Bytes,
@@ -217,6 +217,8 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     let (client_ticket_o: Option, psk_o: Option)
         = get_psk(server_name, psk_mode)
     in
+
+
     (* REACHED *)
     let (rng_client: impl_CryptoRng, client_init_out: bitstring)
         = bertie__tls13handshake__client_init(algs,
@@ -225,26 +227,29 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
                                               psk_o,
                                               rng_client)
     in
-    (* NOT REACHED *)
+
+    (* REACHED *)
     let (nch: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher0: Option,
          client_state: bertie__tls13handshake__t_ClientPostClientHello)
         = client_init_out in
     out(c, nch);
     in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
-
+       
+    (* REACHED (attacker)*)
     let (duplex_cipher_state_h: bitstring,
          client_state: bertie__tls13handshake__t_ClientPostServerHello)
         = bertie__tls13handshake__client_set_params(server_hello,
                                                     client_state)
     in
-
+    (* NOT REACHED *)
+    (* event R; *)
     in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
 
     let (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher: bertie__tls13record__t_DuplexCipherState1,
          client_state: bertie__tls13handshake__t_ClientPostClientFinished)
-        = bertie__tls13handshake__client_finish( (*server_name,*) (* XXX: This was here, before. *)
+        = bertie__tls13handshake__client_finish((*server_name, (* XXX: This was here, before. *) *)
                                                 flight,
                                                 client_state)
     in
@@ -267,6 +272,7 @@ let Server() =
                                               db,
                                               rng_server)
     in
+    (* NOT REACHED *)
     let
       (server_hello: bertie__tls13formats__handshake_data__t_HandshakeData,
        flight: bertie__tls13formats__handshake_data__t_HandshakeData,
@@ -286,7 +292,7 @@ let Server() =
         = bertie__tls13handshake__server_finish(client_finished,
                                                 server_state)
     in
-    (* event Reachable_simple *)
+
     0.
 
 let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
