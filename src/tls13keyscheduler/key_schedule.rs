@@ -211,6 +211,7 @@ fn convert_label(label: Bytes) -> Option<Label> {
     }
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 fn label_to_bytes(label: Label) -> Bytes {
     match label {
         EXT_BINDER__ => vec![101, 120, 116, 032, 098, 105, 110, 100, 101, 114].into(),
@@ -323,6 +324,7 @@ pub(crate) fn xpd_angle(
     })
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn tagkey_from_handle<KS: KeySchedule<TLSnames>>(
     ks: &mut KS,
     handle: &Handle,
