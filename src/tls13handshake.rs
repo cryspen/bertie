@@ -4,230 +4,17 @@ use crate::{
     server::{lookup_db, ServerDB, ServerInfo},
     tls13cert::{cert_public_key, rsa_public_key, verification_key_from_cert},
     tls13crypto::{
-        hkdf_expand, hkdf_extract, hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign,
-        sign_rsa, verify, zero_key, AeadAlgorithm, AeadKey, AeadKeyIV, Algorithms, Digest,
-        HashAlgorithm, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
+        hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign, sign_rsa, verify,
+        Algorithms, Digest, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
+    tls13keyscheduler::{
+        key_schedule::{TLSnames::*, *},
+        *,
+    },
     tls13record::*,
     tls13utils::*,
 };
-
-/* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
-
-/// Get the hash of an empty byte slice.
-fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
-    algorithm.hash(&Bytes::new())
-}
-
-// XXX: ProVerif takes a long time to process this large integer
-// comparison. For now, we make the assumption in the ProVerif model
-// that the payload will not be too long.
-#[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("${false}"))]
-fn payload_too_long(len: usize) -> bool {
-    len >= 65536
-}
-
-// XXX: We had previously not extracted `hkdf_expand_label`, and done
-// it like below.
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::before(
-        "fun extern__expand_label($:{HashAlgorithm},
-         $:{Bytes},
-         $:{Bytes},
-         $:{Bytes}): $:{Bytes} [data]."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::replace_body(
-        "(extern__expand_label(
-              hash_algorithm,
-              key,
-              label,
-              context
-          )
-       )"
-    )
-)]
-/// HKDF expand with a `label`.
-fn hkdf_expand_label(
-    hash_algorithm: &HashAlgorithm,
-    key: &Key,
-    label: Bytes,
-    context: &Bytes,
-    len: usize,
-) -> Result<Key, TLSError> {
-    if payload_too_long(len) {
-        Err(PAYLOAD_TOO_LONG)
-    } else {
-        let lenb = u16_as_be_bytes(U16(len as u16));
-        let tls13_label = Bytes::from_slice(&LABEL_TLS13).concat(label);
-        let info = encode_length_u8(tls13_label.as_raw())?
-            .concat(encode_length_u8(context.as_raw())?)
-            .prefix(&lenb);
-        hkdf_expand(hash_algorithm, key, &info, len)
-    }
-}
-
-pub fn derive_secret(
-    hash_algorithm: &HashAlgorithm,
-    key: &Key,
-    label: Bytes,
-    transcript_hash: &Digest,
-) -> Result<Key, TLSError> {
-    hkdf_expand_label(
-        hash_algorithm,
-        key,
-        label,
-        transcript_hash,
-        hash_algorithm.hash_len(),
-    )
-}
-
-pub fn derive_binder_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    let early_secret = hkdf_extract(ha, k, &zero_key(ha))?;
-    derive_secret(
-        ha,
-        &early_secret,
-        bytes(&LABEL_RES_BINDER),
-        &hash_empty(ha)?,
-    )
-}
-
-/// Derive an AEAD key and iv.
-pub(crate) fn derive_aead_key_iv(
-    hash_algorithm: &HashAlgorithm,
-    aead_algorithm: &AeadAlgorithm,
-    key: &Key,
-) -> Result<AeadKeyIV, TLSError> {
-    let sender_write_key = hkdf_expand_label(
-        hash_algorithm,
-        key,
-        bytes(&LABEL_KEY),
-        &Bytes::new(),
-        aead_algorithm.key_len(),
-    )?;
-    let sender_write_iv = hkdf_expand_label(
-        hash_algorithm,
-        key,
-        bytes(&LABEL_IV),
-        &Bytes::new(),
-        aead_algorithm.iv_len(),
-    )?;
-    Ok(AeadKeyIV::new(
-        AeadKey::new(sender_write_key, *aead_algorithm),
-        sender_write_iv,
-    ))
-}
-
-/// Derive 0-RTT AEAD keys.
-pub(crate) fn derive_0rtt_keys(
-    hash_algorithm: &HashAlgorithm,
-    aead_algoorithm: &AeadAlgorithm,
-    key: &Key,
-    tx: &Digest,
-) -> Result<(AeadKeyIV, Key), TLSError> {
-    let early_secret = hkdf_extract(hash_algorithm, key, &zero_key(hash_algorithm))?;
-    let client_early_traffic_secret =
-        derive_secret(hash_algorithm, &early_secret, bytes(&LABEL_C_E_TRAFFIC), tx)?;
-    let early_exporter_master_secret = derive_secret(
-        hash_algorithm,
-        &early_secret,
-        bytes(&LABEL_E_EXP_MASTER),
-        tx,
-    )?;
-    let sender_write_key_iv = derive_aead_key_iv(
-        hash_algorithm,
-        aead_algoorithm,
-        &client_early_traffic_secret,
-    )?;
-    Ok((sender_write_key_iv, early_exporter_master_secret))
-}
-
-pub fn derive_finished_key(ha: &HashAlgorithm, k: &Key) -> Result<MacKey, TLSError> {
-    hkdf_expand_label(
-        ha,
-        k,
-        bytes(&LABEL_FINISHED),
-        &Bytes::new(),
-        ha.hmac_tag_len(),
-    )
-}
-
-/// Derive the handshake keys and master secret.
-pub(crate) fn derive_hk_ms(
-    ha: &HashAlgorithm,
-    ae: &AeadAlgorithm,
-    shared_secret: &Key,
-    psko: &Option<Psk>,
-    transcript_hash: &Digest,
-) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey, Key), TLSError> {
-    let psk = if let Some(k) = psko {
-        k.clone()
-    } else {
-        zero_key(ha)
-    };
-    let early_secret = hkdf_extract(ha, &psk, &zero_key(ha))?;
-    let digest_emp = hash_empty(ha)?;
-    let derived_secret = derive_secret(ha, &early_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
-    let handshake_secret = hkdf_extract(ha, shared_secret, &derived_secret)?;
-    let client_handshake_traffic_secret = derive_secret(
-        ha,
-        &handshake_secret,
-        bytes(&LABEL_C_HS_TRAFFIC),
-        transcript_hash,
-    )?;
-    let server_handshake_traffic_secret = derive_secret(
-        ha,
-        &handshake_secret,
-        bytes(&LABEL_S_HS_TRAFFIC),
-        transcript_hash,
-    )?;
-    let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret)?;
-    let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret)?;
-    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret)?;
-    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret)?;
-    let master_secret_ = derive_secret(ha, &handshake_secret, bytes(&LABEL_DERIVED), &digest_emp)?;
-    let master_secret = hkdf_extract(ha, &zero_key(ha), &master_secret_)?;
-    Ok((
-        client_write_key_iv,
-        server_write_key_iv,
-        client_finished_key,
-        server_finished_key,
-        master_secret,
-    ))
-}
-
-/// Derive the application keys and master secret.
-pub(crate) fn derive_app_keys(
-    ha: &HashAlgorithm,
-    ae: &AeadAlgorithm,
-    master_secret: &Key,
-    tx: &Digest,
-) -> Result<(AeadKeyIV, AeadKeyIV, Key), TLSError> {
-    let client_application_traffic_secret_0 =
-        derive_secret(ha, master_secret, bytes(&LABEL_C_AP_TRAFFIC), tx)?;
-    let server_application_traffic_secret_0 =
-        derive_secret(ha, master_secret, bytes(&LABEL_S_AP_TRAFFIC), tx)?;
-    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0)?;
-    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0)?;
-    let exporter_master_secret = derive_secret(ha, master_secret, bytes(&LABEL_EXP_MASTER), tx)?;
-    Ok((
-        client_write_key_iv,
-        server_write_key_iv,
-        exporter_master_secret,
-    ))
-}
-
-pub(crate) fn derive_rms(
-    ha: &HashAlgorithm,
-    master_secret: &Key,
-    tx: &Digest,
-) -> Result<Key, TLSError> {
-    derive_secret(ha, master_secret, bytes(&LABEL_RES_MASTER), tx)
-}
 
 /* Handshake State Machine */
 /* We implement a simple linear state machine:
@@ -237,12 +24,28 @@ There are no optional steps, all states must be traversed, even if the traversal
 See "put_psk_skip_server_signature" below */
 
 pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<Psk>, Transcript);
-pub struct ClientPostServerHello(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
-pub struct ClientPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
-pub struct ClientPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
+pub struct ClientPostServerHello(
+    Random,
+    Random,
+    Algorithms,
+    Handle,
+    MacKey,
+    MacKey,
+    Transcript,
+);
+pub struct ClientPostCertificateVerify(
+    Random,
+    Random,
+    Algorithms,
+    Handle,
+    MacKey,
+    MacKey,
+    Transcript,
+);
+pub struct ClientPostServerFinished(Random, Random, Algorithms, Handle, MacKey, Transcript);
 // We do not use most of this state, but we keep the unused parts for verification purposes.
 #[allow(dead_code)]
-pub struct ClientPostClientFinished(Random, Random, Algorithms, Key, Transcript);
+pub struct ClientPostClientFinished(Random, Random, Algorithms, Handle, Transcript);
 
 pub fn algs_post_client_hello(st: &ClientPostClientHello) -> Algorithms {
     st.1
@@ -270,17 +73,25 @@ pub struct ServerPostServerHello {
     server_random: Random,
     ciphersuite: Algorithms,
     server: ServerInfo,
-    master_secret: Key,
+    master_secret: Handle,
     cfk: MacKey,
     sfk: MacKey,
     transcript: Transcript,
 }
 
-pub struct ServerPostCertificateVerify(Random, Random, Algorithms, Key, MacKey, MacKey, Transcript);
-pub struct ServerPostServerFinished(Random, Random, Algorithms, Key, MacKey, Transcript);
+pub struct ServerPostCertificateVerify(
+    Random,
+    Random,
+    Algorithms,
+    Handle,
+    MacKey,
+    MacKey,
+    Transcript,
+);
+pub struct ServerPostServerFinished(Random, Random, Algorithms, Handle, MacKey, Transcript);
 // We do not use most of this state, but we keep the unsused parts for verification purposes.
 #[allow(dead_code)]
-pub struct ServerPostClientFinished(Random, Random, Algorithms, Key, Transcript);
+pub struct ServerPostClientFinished(Random, Random, Algorithms, Handle, Transcript);
 
 /* Handshake Core Functions: See RFC 8446 Section 4 */
 /* We delegate all details of message formatting and transcript Digestes to the caller */
@@ -293,6 +104,7 @@ fn build_client_hello(
     tkt: Option<Bytes>,
     psk: Option<Psk>,
     rng: &mut impl CryptoRng,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -308,7 +120,7 @@ fn build_client_hello(
     let (client_hello, trunc_len) =
         client_hello(&ciphersuite, client_random.into(), &kem_pk, sn, &tkt)?;
     let (nch, cipher0, tx_ch) =
-        compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx)?;
+        compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx, ks)?;
     Ok((
         nch,
         cipher0,
@@ -322,6 +134,7 @@ fn compute_psk_binder_zero_rtt(
     trunc_len: usize,
     psk: &Option<Psk>,
     tx: Transcript,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, Option<ClientCipherState0>, Transcript), TLSError> {
     let Algorithms {
         hash: ha,
@@ -333,14 +146,27 @@ fn compute_psk_binder_zero_rtt(
     } = algs0;
     match (psk_mode, psk, trunc_len as u8) {
         (true, Some(k), _) => {
+            let psk_handle = Handle {
+                name: PSK,
+                alg: ha,
+                level: 0,
+            };
+            set_by_handle(ks, &psk_handle, k.clone());
+
             let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
-            let mk = derive_binder_key(&ha, k)?;
-            let binder = hmac_tag(&ha, &mk, &th_trunc)?;
+            let mk_handle = derive_binder_key(&ha, &psk_handle, ks)?;
+
+            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
+            let binder = tagkey_from_handle(ks, &binder_handle)
+                .ok_or(INCORRECT_STATE)?
+                .val;
+
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
             if zero_rtt {
                 let th = tx_ch.transcript_hash()?;
-                let (aek, key) = derive_0rtt_keys(&ha, &ae, k, &th)?;
+                let (aek, handle) = derive_0rtt_keys(&ha, &ae, &psk_handle, &th, ks)?;
+                let key = tagkey_from_handle(ks, &handle).ok_or(INCORRECT_STATE)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
             } else {
@@ -358,6 +184,7 @@ fn compute_psk_binder_zero_rtt(
 fn put_server_hello(
     handshake: &HandshakeData,
     state: ClientPostClientHello,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
     let ClientPostClientHello(client_random, ciphersuite, sk, psk, tx) = state;
 
@@ -365,17 +192,48 @@ fn put_server_hello(
     let tx = tx.add(handshake);
     let shared_secret = kem_decap(ciphersuite.kem, &ct, &sk)?;
     let th = tx.transcript_hash()?;
-    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
+
+    // KEM
+    let shared_secret_handle = Handle {
+        name: KEM,
+        alg: ciphersuite.hash,
+        level: 0,
+    };
+    set_by_handle(ks, &shared_secret_handle, shared_secret);
+
+    // hax-issue: can't use mutating map here
+    let psk_handle = match psk {
+        Some(bytes) => {
+            let handle = Handle {
+                alg: ciphersuite.hash,
+                name: PSK,
+                level: 0,
+            };
+            set_by_handle(ks, &handle, bytes);
+            Some(handle)
+        }
+        None => None,
+    };
+
+    let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
+        &ciphersuite.hash,
+        &shared_secret_handle,
+        &psk_handle,
+        &th,
+        ks,
+    )?;
+
+    let (chk, shk, cfk, sfk) = derive_hk_ms(
         &ciphersuite.hash,
         &ciphersuite.aead,
-        &shared_secret,
-        &psk,
-        &th,
+        &ch_handle,
+        &sh_handle,
+        ks,
     )?;
 
     Ok((
         DuplexCipherStateH::new(chk, 0, shk, 0),
-        ClientPostServerHello(client_random, sr, ciphersuite, ms, cfk, sfk, tx),
+        ClientPostServerHello(client_random, sr, ciphersuite, ms_handle, cfk, sfk, tx),
     ))
 }
 
@@ -389,7 +247,7 @@ fn put_server_signature(
         client_random,
         server_random,
         algorithms,
-        master_secret,
+        master_secret_handle,
         client_finished_key,
         server_finished_key,
         transcript,
@@ -411,7 +269,7 @@ fn put_server_signature(
             client_random,
             server_random,
             algorithms,
-            master_secret,
+            master_secret_handle,
             client_finished_key,
             server_finished_key,
             transcript,
@@ -429,7 +287,7 @@ fn put_psk_skip_server_signature(
         client_random,
         server_random,
         algorithms,
-        master_secret,
+        master_secret_handle,
         client_finished_key,
         server_finished_key,
         transcript,
@@ -441,7 +299,7 @@ fn put_psk_skip_server_signature(
             client_random,
             server_random,
             algorithms,
-            master_secret,
+            master_secret_handle,
             client_finished_key,
             server_finished_key,
             transcript,
@@ -454,12 +312,13 @@ fn put_psk_skip_server_signature(
 fn put_server_finished(
     server_finished: &HandshakeData,
     handshake_state: ClientPostCertificateVerify,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(DuplexCipherState1, ClientPostServerFinished), TLSError> {
     let ClientPostCertificateVerify(
         client_random,
         server_random,
         algorithms,
-        master_secret,
+        master_secret_handle,
         client_finished_key,
         server_finished_key,
         transcript,
@@ -477,12 +336,14 @@ fn put_server_finished(
     hmac_verify(&hash, &server_finished_key, &transcript_hash, &verify_data)?;
     let transcript = transcript.add(server_finished);
     let transcript_hash_server_finished = transcript.transcript_hash()?;
-    let (cak, sak, exp) = derive_app_keys(
+    let (ca_handle, sa_handle, exp_handle) = derive_app_handles(
         &hash,
-        &aead,
-        &master_secret,
+        &master_secret_handle,
         &transcript_hash_server_finished,
+        ks,
     )?;
+    let (cak, sak) = derive_app_keys(&hash, &aead, &ca_handle, &sa_handle, ks)?;
+    let exp = tagkey_from_handle(ks, &exp_handle).ok_or(INCORRECT_STATE)?;
     let cipher1 = duplex_cipher_state1(aead, cak, 0, sak, 0, exp);
     Ok((
         cipher1,
@@ -490,7 +351,7 @@ fn put_server_finished(
             client_random,
             server_random,
             algorithms,
-            master_secret,
+            master_secret_handle,
             client_finished_key,
             transcript,
         ),
@@ -499,12 +360,13 @@ fn put_server_finished(
 
 fn get_client_finished(
     handshake_state: ClientPostServerFinished,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, ClientPostClientFinished), TLSError> {
     let ClientPostServerFinished(
         client_random,
         server_random,
         algorithms,
-        master_secret,
+        master_secret_handle,
         client_finished_key,
         transcript,
     ) = handshake_state;
@@ -513,8 +375,12 @@ fn get_client_finished(
     let client_finished = finished(&verify_data)?;
     let transcript = transcript.add(&client_finished);
     let transcript_hash = transcript.transcript_hash()?;
-    let resumption_master_secret =
-        derive_rms(&algorithms.hash(), &master_secret, &transcript_hash)?;
+    let resumption_master_secret = derive_rms(
+        &algorithms.hash(),
+        &master_secret_handle,
+        &transcript_hash,
+        ks,
+    )?;
     Ok((
         client_finished,
         ClientPostClientFinished(
@@ -538,6 +404,7 @@ pub fn client_init(
     tkt: Option<Bytes>,
     psk: Option<Psk>,
     rng: &mut impl CryptoRng,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -546,20 +413,22 @@ pub fn client_init(
     ),
     TLSError,
 > {
-    build_client_hello(algs, sn, tkt, psk, rng)
+    build_client_hello(algs, sn, tkt, psk, rng, ks)
 }
 
 /// Update the client state after generating the client hello message.
 pub(crate) fn client_set_params(
     payload: &HandshakeData,
     st: ClientPostClientHello,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
-    put_server_hello(payload, st)
+    put_server_hello(payload, st, ks)
 }
 
 pub fn client_finish(
     payload: &HandshakeData,
     handshake_state: ClientPostServerHello,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, DuplexCipherState1, ClientPostClientFinished), TLSError> {
     match algs_post_server_hello(&handshake_state).psk_mode() {
         false => {
@@ -576,9 +445,9 @@ pub fn client_finish(
                 handshake_state,
             )?;
             let (cipher, client_state_server_finished) =
-                put_server_finished(&server_finished, client_state_certificate_verify)?;
+                put_server_finished(&server_finished, client_state_certificate_verify, ks)?;
             let (client_finished, client_state) =
-                get_client_finished(client_state_server_finished)?;
+                get_client_finished(client_state_server_finished, ks)?;
             Ok((client_finished, cipher, client_state))
         }
         true => {
@@ -586,9 +455,9 @@ pub fn client_finish(
             let client_state_certificate_verify =
                 put_psk_skip_server_signature(&encrypted_extensions, handshake_state)?;
             let (cipher, client_state_server_finished) =
-                put_server_finished(&server_finished, client_state_certificate_verify)?;
+                put_server_finished(&server_finished, client_state_certificate_verify, ks)?;
             let (client_finished, client_state) =
-                get_client_finished(client_state_server_finished)?;
+                get_client_finished(client_state_server_finished, ks)?;
             Ok((client_finished, cipher, client_state))
         }
     }
@@ -600,6 +469,7 @@ fn put_client_hello(
     ciphersuite: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(Option<ServerCipherState0>, ServerPostClientHello), TLSError> {
     let (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) =
         parse_client_hello(&ciphersuite, ch)?;
@@ -608,7 +478,8 @@ fn put_client_hello(
     let transcript = tx.add(ch);
     let th = transcript.transcript_hash()?;
     let server = lookup_db(ciphersuite, &db, &sni, &tkto)?;
-    let cipher0 = process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero)?;
+    let cipher0 =
+        process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero, ks)?;
     Ok((
         cipher0,
         ServerPostClientHello {
@@ -629,14 +500,33 @@ fn process_psk_binder_zero_rtt(
     th: Digest,
     psko: &Option<Psk>,
     bindero: Option<Bytes>,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     match (ciphersuite.psk_mode, psko, bindero) {
         (true, Some(k), Some(binder)) => {
-            let mk = derive_binder_key(&ciphersuite.hash, k)?;
+            let psk_handle = Handle {
+                name: PSK,
+                alg: ciphersuite.hash,
+                level: 0,
+            };
+            set_by_handle(ks, &psk_handle, k.clone());
+
+            let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
+            let mk = tagkey_from_handle(ks, &mk_handle)
+                .ok_or(INCORRECT_STATE)?
+                .val;
+
+            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
+            let binder = tagkey_from_handle(ks, &binder_handle)
+                .ok_or(INCORRECT_STATE)?
+                .val;
+
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
-                let (key_iv, early_exporter_ms) =
-                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, k, &th)?;
+                let (key_iv, early_exporter_ms_handle) =
+                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_handle, &th, ks)?;
+                let early_exporter_ms =
+                    tagkey_from_handle(ks, &early_exporter_ms_handle).ok_or(INCORRECT_STATE)?;
                 let cipher0 = Some(server_cipher_state0(key_iv, 0, early_exporter_ms));
                 Ok(cipher0)
             } else {
@@ -651,10 +541,20 @@ fn process_psk_binder_zero_rtt(
 fn get_server_hello(
     state: ServerPostClientHello,
     rng: &mut impl CryptoRng,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
     let mut server_random = [0u8; 32];
     rng.fill_bytes(&mut server_random);
     let (shared_secret, gy) = kem_encap(state.ciphersuite.kem, &state.gx, rng)?;
+
+    // KEM
+    let shared_secret_handle = Handle {
+        name: KEM,
+        alg: state.ciphersuite.hash,
+        level: 0,
+    };
+    set_by_handle(ks, &shared_secret_handle, shared_secret);
+
     let sh = server_hello(
         &state.ciphersuite,
         server_random.into(),
@@ -663,12 +563,36 @@ fn get_server_hello(
     )?;
     let transcript = state.transcript.add(&sh);
     let transcript_hash = transcript.transcript_hash()?;
-    let (chk, shk, cfk, sfk, ms) = derive_hk_ms(
+
+    // hax-issue: can't use mutating map here
+    let psk_handle = state.server.psk_opt.clone();
+    let psk_handle = match psk_handle {
+        Some(bytes) => {
+            let handle = Handle {
+                alg: state.ciphersuite.hash,
+                name: PSK,
+                level: 0,
+            };
+            set_by_handle(ks, &handle, bytes);
+            Some(handle)
+        }
+        None => None,
+    };
+
+    let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
+        &state.ciphersuite.hash,
+        &shared_secret_handle,
+        &psk_handle,
+        &transcript_hash,
+        ks,
+    )?;
+
+    let (chk, shk, cfk, sfk) = derive_hk_ms(
         &state.ciphersuite.hash,
         &state.ciphersuite.aead,
-        &shared_secret,
-        &state.server.psk_opt,
-        &transcript_hash,
+        &ch_handle,
+        &sh_handle,
+        ks,
     )?;
     Ok((
         sh,
@@ -678,7 +602,7 @@ fn get_server_hello(
             server_random: server_random.into(),
             ciphersuite: state.ciphersuite,
             server: state.server,
-            master_secret: ms,
+            master_secret: ms_handle,
             cfk,
             sfk,
             transcript,
@@ -821,8 +745,9 @@ fn get_skip_server_signature(
 
 fn get_server_finished(
     st: ServerPostCertificateVerify,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, DuplexCipherState1, ServerPostServerFinished), TLSError> {
-    let ServerPostCertificateVerify(cr, sr, algs, ms, cfk, sfk, tx) = st;
+    let ServerPostCertificateVerify(cr, sr, algs, ms_handle, cfk, sfk, tx) = st;
     let Algorithms {
         hash: ha,
         aead: ae,
@@ -836,18 +761,21 @@ fn get_server_finished(
     let sfin = finished(&vd)?;
     let tx = tx.add(&sfin);
     let th_sfin = tx.transcript_hash()?;
-    let (cak, sak, exp) = derive_app_keys(&ha, &ae, &ms, &th_sfin)?;
+    let (ca_handle, sa_handle, exp_handle) = derive_app_handles(&ha, &ms_handle, &th_sfin, ks)?;
+    let (cak, sak) = derive_app_keys(&ha, &ae, &ca_handle, &sa_handle, ks)?;
+    let exp = tagkey_from_handle(ks, &exp_handle).ok_or(INCORRECT_STATE)?;
     let cipher1 = duplex_cipher_state1(ae, sak, 0, cak, 0, exp);
     Ok((
         sfin,
         cipher1,
-        ServerPostServerFinished(cr, sr, algs, ms, cfk, tx),
+        ServerPostServerFinished(cr, sr, algs, ms_handle, cfk, tx),
     ))
 }
 
 fn put_client_finished(
     cfin: &HandshakeData,
     st: ServerPostServerFinished,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<ServerPostClientFinished, TLSError> {
     let ServerPostServerFinished(cr, sr, algs, ms, cfk, tx) = st;
     let th = tx.transcript_hash()?;
@@ -855,7 +783,7 @@ fn put_client_finished(
     hmac_verify(&algs.hash(), &cfk, &th, &vd)?;
     let tx = tx.add(cfin);
     let th = tx.transcript_hash()?;
-    let rms = derive_rms(&algs.hash(), &ms, &th)?;
+    let rms = derive_rms(&algs.hash(), &ms, &th, ks)?;
     Ok(ServerPostClientFinished(cr, sr, algs, rms, tx))
 }
 
@@ -869,6 +797,7 @@ pub fn server_init_no_psk(
     ch: &HandshakeData,
     db: ServerDB,
     rng: &mut impl CryptoRng,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -880,11 +809,11 @@ pub fn server_init_no_psk(
     ),
     TLSError,
 > {
-    let (cipher0, st) = put_client_hello(algs, ch, db)?;
-    let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
+    let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
+    let (sh, cipher_hs, st) = get_server_hello(st, rng, ks)?;
 
     let (ee, sc, scv, st) = get_server_signature(st, rng)?;
-    let (sfin, cipher1, st) = get_server_finished(st)?;
+    let (sfin, cipher1, st) = get_server_finished(st, ks)?;
     let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
     Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
 }
@@ -895,6 +824,7 @@ pub fn server_init_psk(
     ch: &HandshakeData,
     db: ServerDB,
     rng: &mut impl CryptoRng,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -906,12 +836,13 @@ pub fn server_init_psk(
     ),
     TLSError,
 > {
-    let (cipher0, st) = put_client_hello(algs, ch, db)?;
-    let (sh, cipher_hs, st) = get_server_hello(st, rng)?;
+    let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
+    let (sh, cipher_hs, st) = get_server_hello(st, rng, ks)?;
 
     let (ee, st) = get_skip_server_signature(st)?;
-    let (sfin, cipher1, st) = get_server_finished(st)?;
+    let (sfin, cipher1, st) = get_server_finished(st, ks)?;
     let flight = ee.concat(&sfin);
+
     Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
 }
 
@@ -921,6 +852,7 @@ pub fn server_init(
     ch: &HandshakeData,
     db: ServerDB,
     rng: &mut impl CryptoRng,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
         HandshakeData,
@@ -933,14 +865,15 @@ pub fn server_init(
     TLSError,
 > {
     match algs.psk_mode() {
-        false => server_init_no_psk(algs, ch, db, rng),
-        true => server_init_psk(algs, ch, db, rng),
+        false => server_init_no_psk(algs, ch, db, rng, ks),
+        true => server_init_psk(algs, ch, db, rng, ks),
     }
 }
 
 pub fn server_finish(
     cf: &HandshakeData,
     st: ServerPostServerFinished,
+    ks: &mut TLSkeyscheduler,
 ) -> Result<ServerPostClientFinished, TLSError> {
-    put_client_finished(cf, st)
+    put_client_finished(cf, st, ks)
 }

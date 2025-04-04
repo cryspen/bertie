@@ -14,6 +14,7 @@ use crate::{
     tls13crypto::*,
     tls13formats::{handshake_data::HandshakeType, *},
     tls13handshake::*,
+    tls13keyscheduler::key_schedule::*,
     tls13record::*,
     tls13utils::*,
 };
@@ -68,9 +69,10 @@ impl Client {
         session_ticket: Option<Bytes>,
         psk: Option<Key>,
         rng: &mut impl CryptoRng,
+        ks: &mut TLSkeyscheduler,
     ) -> Result<(Bytes, Self), TLSError> {
         let (client_hello, cipherstate0, client_state) =
-            client_init(ciphersuite, server_name, session_ticket, psk, rng)?;
+            client_init(ciphersuite, server_name, session_ticket, psk, rng, ks)?;
         let mut client_hello_record = handshake_record(client_hello)?;
         client_hello_record[2] = U8(0x01);
         Ok((
@@ -95,11 +97,12 @@ impl Client {
     pub fn read_handshake(
         self,
         handshake_bytes: &Bytes,
+        ks: &mut TLSkeyscheduler,
     ) -> Result<(Option<Bytes>, Self), TLSError> {
         match self {
             Client::Client0(state, cipher_state) => {
                 let sf = get_handshake_record(handshake_bytes)?;
-                let (cipher1, cstate) = client_set_params(&sf, state)?;
+                let (cipher1, cstate) = client_set_params(&sf, state, ks)?;
                 let buf = handshake_data::HandshakeData::from(Bytes::new());
                 Ok((None, Client::ClientH(cstate, cipher_state, cipher1, buf)))
             }
@@ -107,7 +110,7 @@ impl Client {
                 let (hd, cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
                 let buf = buf.concat(&hd);
                 if buf.find_handshake_message(HandshakeType::Finished, 0) {
-                    let (cfin, cipher1, cstate) = client_finish(&buf, cstate)?;
+                    let (cfin, cipher1, cstate) = client_finish(&buf, cstate, ks)?;
                     let (cf_rec, _cipher_hs) = encrypt_handshake(cfin, 0, cipher_hs)?;
                     Ok((Some(cf_rec), Client::Client1(cstate, cipher1)))
                 } else {
@@ -199,12 +202,13 @@ impl Server {
         db: ServerDB,
         client_hello: &Bytes,
         rng: &mut impl CryptoRng,
+        ks: &mut TLSkeyscheduler,
     ) -> Result<(Bytes, Bytes, Self), TLSError> {
         let mut ch_rec = client_hello.clone();
         ch_rec[2] = U8(0x03);
         let ch = get_handshake_record(&ch_rec)?;
         let (server_hello, server_finished, cipher0, cipher_hs, cipher1, sstate) =
-            server_init(ciphersuite, &ch, db, rng)?;
+            server_init(ciphersuite, &ch, db, rng, ks)?;
         let sh_rec = handshake_record(server_hello)?;
         let (sf_rec, cipher_hs) = encrypt_handshake(server_finished, 0, cipher_hs)?;
         Ok((
@@ -222,11 +226,15 @@ impl Server {
     /// The function returns a [`Result`].
     /// When successful, the function returns the next [`Server`] state.
     /// If an error occurs, it returns a [`TLSError`].
-    pub fn read_handshake(self, handshake_bytes: &Bytes) -> Result<Self, TLSError> {
+    pub fn read_handshake(
+        self,
+        handshake_bytes: &Bytes,
+        ks: &mut TLSkeyscheduler,
+    ) -> Result<Self, TLSError> {
         match self {
             Server::ServerH(sstate, _cipher0, cipher_hs, cipher1) => {
                 let (cf, _cipher_hs) = decrypt_handshake(handshake_bytes, cipher_hs)?;
-                let sstate = server_finish(&cf, sstate)?;
+                let sstate = server_finish(&cf, sstate, ks)?;
                 Ok(Server::Server1(sstate, cipher1))
             }
             _ => Err(INCORRECT_STATE),

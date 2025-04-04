@@ -11,6 +11,8 @@ use crate::{
     tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
+use std::println;
+
 /// The Server Database
 #[derive(Debug, Clone, Default)]
 pub struct ServerDB {
@@ -55,9 +57,18 @@ pub(crate) fn lookup_db(
     sni: &Bytes,
     tkt: &Option<Bytes>,
 ) -> Result<ServerInfo, TLSError> {
+    println!(
+        "sni {:?} {:?} {}",
+        sni,
+        db.server_name,
+        eq(sni, &db.server_name)
+    );
     if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
         match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
             (true, Some(ctkt), Some((stkt, psk))) => {
+                println!("Check ticket: {:?} ==", ctkt);
+                println!("Check ticket: {:?}", stkt);
+                println!("Check ticket: {:?}", check_eq(ctkt, stkt));
                 check_eq(ctkt, stkt)?;
                 let server = ServerInfo {
                     cert: db.cert.clone(),

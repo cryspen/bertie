@@ -2,17 +2,18 @@
 
 use crate::tls13crypto::*;
 use crate::tls13formats::*;
+use crate::tls13keyscheduler::key_schedule::TagKey;
 use crate::tls13utils::*;
 
 /* CipherStates Exported by the TLS 1.3 Handshake */
-pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, Key);
+pub struct ClientCipherState0(AeadAlgorithm, AeadKeyIV, u64, TagKey);
 
 /// Build the initial client cipher state.
 pub(crate) fn client_cipher_state0(
     ae: AeadAlgorithm,
     kiv: AeadKeyIV,
     c: u64,
-    k: Key,
+    k: TagKey,
 ) -> ClientCipherState0 {
     ClientCipherState0(ae, kiv, c, k)
 }
@@ -21,14 +22,14 @@ pub(crate) fn client_cipher_state0(
 pub struct ServerCipherState0 {
     key_iv: AeadKeyIV,
     counter: u64,
-    early_exporter_ms: Key,
+    early_exporter_ms: TagKey,
 }
 
 /// Create the initial cipher state for the server.
 pub(crate) fn server_cipher_state0(
     key_iv: AeadKeyIV,
     counter: u64,
-    early_exporter_ms: Key,
+    early_exporter_ms: TagKey,
 ) -> ServerCipherState0 {
     ServerCipherState0 {
         key_iv,
@@ -62,7 +63,7 @@ impl DuplexCipherStateH {
     }
 }
 
-pub struct DuplexCipherState1(AeadAlgorithm, AeadKeyIV, u64, AeadKeyIV, u64, Key);
+pub struct DuplexCipherState1(AeadAlgorithm, AeadKeyIV, u64, AeadKeyIV, u64, TagKey);
 
 /// Create the next cipher state.
 pub(crate) fn duplex_cipher_state1(
@@ -71,7 +72,7 @@ pub(crate) fn duplex_cipher_state1(
     c1: u64,
     kiv2: AeadKeyIV,
     c2: u64,
-    k: Key,
+    k: TagKey,
 ) -> DuplexCipherState1 {
     DuplexCipherState1(ae, kiv1, c1, kiv2, c2, k)
 }

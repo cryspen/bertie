@@ -178,10 +178,12 @@ fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, u
     let binders = encode_length_u16(encode_length_u8(zero_key(&algs.hash()).as_raw())?)?;
     let binders_len = binders.len();
     let ext = bytes2(0, 41).concat(encode_length_u16(identities.concat(binders))?);
-    Ok((ext, binders_len))
+    let ext_len = ext.len();
+    Ok((ext, ext_len + binders_len + 199 - 16 - 82)) // binders_len+199-76+41))
 }
 
-fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(), TLSError> {
+// Return ticket (tkt) and binder
+fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(Bytes, Bytes), TLSError> {
     let len_id = length_u16_encoded(ch)?;
     let len_tkt = length_u16_encoded(&ch[2..2 + len_id])?;
     if len_id == len_tkt + 6 {
@@ -190,7 +192,9 @@ fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(), TLSError> {
         if ch.len() - 5 - len_id != algs.hash().hash_len() {
             tlserr(parse_failed())
         } else {
-            Ok(())
+            // let len_other_u16 = length_u16_encoded(&ch[2 + len_id..ch.len()])?;
+            // let len_other_u8 = length_u8_encoded(&ch[4 + len_id..4+len_id+len_other_u16])?;
+            Ok((Bytes::from(&ch[4..4 + len_tkt]), Bytes::from([0; 0])))
         }
     } else {
         tlserr(parse_failed())
@@ -251,6 +255,7 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
             ticket: None,
             binder: None,
         };
+
         match (l0 as u8, l1 as u8) {
             (0, 0) => Ok((
                 4 + len,
@@ -289,9 +294,18 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
                 )),
                 Err(_) => tlserr(MISSING_KEY_SHARE),
             },
-            (0, 41) => {
-                check_psk_shared_key(algs, &bytes[4..4 + len])?;
-                Ok((4 + len, out))
+            (0, 0x29) => {
+                // 41
+                let (tkt, binder) = check_psk_shared_key(algs, &bytes[4..4 + len])?;
+                Ok((
+                    4 + len,
+                    Extensions {
+                        sni: None,
+                        key_share: None,
+                        ticket: Some(tkt),
+                        binder: Some(binder),
+                    },
+                ))
             }
             _ => Ok((4 + len, out)),
         }
@@ -713,8 +727,7 @@ pub(super) fn parse_client_hello(
     check_length_encoding_u16(&ch.slice_range(next..ch.len()))?;
     next += 2;
     let exts = check_extensions(ciphersuite, &ch.slice_range(next..ch.len()))?;
-    //println!("check_extensions");
-    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3; // ??
     match (ciphersuite.psk_mode(), exts) {
         (
             _,
