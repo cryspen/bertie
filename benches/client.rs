@@ -160,7 +160,7 @@ fn protocol() {
     println!("Client");
 
     for ciphersuite in CIPHERSUITES {
-        let mut rng = Drbg::new(digest::Algorithm::Sha256).unwrap();
+        let mut rng = rand::rng();
         let mut ks: TLSkeyscheduler = TLSkeyscheduler {
             keys: HashMap::new(),
         };

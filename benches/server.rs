@@ -100,7 +100,7 @@ fn protocol() {
     println!("Server");
 
     for ciphersuite in CIPHERSUITES {
-        let mut rng = Drbg::new(digest::Algorithm::Sha256).unwrap();
+        let mut rng = rand::rng();
         let mut client_ks: TLSkeyscheduler = TLSkeyscheduler {
             keys: HashMap::new(),
         };
