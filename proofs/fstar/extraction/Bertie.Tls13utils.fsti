@@ -108,6 +108,9 @@ val impl_16:Core.Default.t_Default t_Bytes
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_2:Core.Convert.t_From t_Bytes (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
+val impl_2_lemma (x: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global):
+  Lemma (let b = impl_2.f_from x in b._0 == x)
+  
 /// Declassify these bytes and return a copy of [`u8`].
 val impl_Bytes__declassify (self: t_Bytes)
     : Prims.Pure (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) Prims.l_True (fun _ -> Prims.l_True)

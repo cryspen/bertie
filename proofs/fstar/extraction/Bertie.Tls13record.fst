@@ -51,8 +51,6 @@ let duplex_cipher_state1
       (k: Bertie.Tls13utils.t_Bytes)
      = DuplexCipherState1 ae kiv1 c1 kiv2 c2 k <: t_DuplexCipherState1
 
-#push-options "--admit_smt_queries true"
-
 let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   let (counter: Bertie.Tls13utils.t_Bytes):Bertie.Tls13utils.t_Bytes =
     Core.Convert.f_into #(t_Array u8 (mk_usize 8))
@@ -60,6 +58,10 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
       #FStar.Tactics.Typeclasses.solve
       (Core.Num.impl_u64__to_be_bytes n <: t_Array u8 (mk_usize 8))
   in
+  let uby = (Core.Num.impl_u64__to_be_bytes n <: t_Array u8 (mk_usize 8)) in
+  Bertie.Tls13utils.impl_2_lemma uby;
+  assert (counter == Bertie.Tls13utils.impl_2.f_from uby);
+  admit()
   let iv_ctr:Bertie.Tls13utils.t_Bytes =
     Bertie.Tls13utils.impl_Bytes__zeroes (Bertie.Tls13utils.impl_Bytes__len iv <: usize)
   in
@@ -114,9 +116,6 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   in
   iv_ctr
 
-#pop-options
-
-#push-options "--admit_smt_queries true"
 
 let encrypt_record_payload
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
@@ -179,7 +178,6 @@ let encrypt_record_payload
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
-#pop-options
 
 let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0) =
   let ClientCipherState0 ae kiv n exp:t_ClientCipherState0 = st in
