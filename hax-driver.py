@@ -167,17 +167,24 @@ elif options.sub == "extract-proverif":
                 [
                     "-**",
                     "+~**::tls13handshake::**",
-                    # "+~**::server::lookup_db",  # to include transitive dependency on tls13utils
-                    # "+~**::tls13utils::parse_failed",  # transitive dependencies required
+                    "+~**::server::lookup_db",  # to include transitive dependency on tls13utils
+                    "+~**::tls13utils::parse_failed",  # transitive dependencies required
                     # "+~**::tls13crypto::zero_key",  # transitive dependencies required
                     "+!**::tls13utils::concat_inner",
-                    # "+!**::tls13utils::eq_inner",
-                    # "+!**::tls13utils::check_eq_inner",
+                    "+!**::tls13utils::eq_inner",
+                    "+!**::tls13utils::check_eq_inner",
                     # "+!**::tls13formats::handshake_data::HandshakeType",
                     # "+!**::tls13formats::handshake_data::from_bytes_inner",
-                    # "+!**::tls13formats::handshake_data::to_bytes_inner",
-                    # "+!**::tls13formats::handshake_data::to_two_inner",
-                    # "+!**::tls13formats::handshake_data::to_four_inner",
+                    "+!**::tls13formats::handshake_data::to_bytes_inner",
+                    "+!**::tls13formats::handshake_data::to_two_inner",
+                    "+!**::tls13formats::handshake_data::to_four_inner",
+                    "+!**::tls13keyscheduler::derive_binder_key",
+                    "+!**::tls13keyscheduler::derive_0rtt_keys",
+                    "+!**::tls13crypto::hash",
+                    # "+:**::tls13keyscheduler::key_schedule::zero_salt",
+                    # "+:**::tls13keyscheduler::key_schedule::XTR",
+                    # "+:**::tls13keyscheduler::key_schedule::XPD",
+                    # "+:**::tls13keyscheduler::hash_empty",
                     # "+!**::tls13crypto::hash_len_inner",
                 ]
             ),

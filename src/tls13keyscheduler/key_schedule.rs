@@ -29,6 +29,7 @@ pub(crate) fn hkdf_expand_label(
 }
 
 /// Get an empty key of the correct size.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
     let handle = Handle {
         alg: alg.clone(),
@@ -76,6 +77,7 @@ pub trait KeySchedule<N> {
 
     fn hash(d: &Bytes) -> Bytes;
 }
+
 
 pub struct TLSkeyscheduler {
     pub keys: HashMap<(TLSnames, HashAlgorithm, u8), Key>,
@@ -326,16 +328,17 @@ pub(crate) fn xpd_angle(
 
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn tagkey_from_handle(
-    ks: &mut TLSkeyscheduler,
+    ks: &TLSkeyscheduler,
     handle: &Handle,
-) -> Option<TagKey> {
-    Some(TagKey {
+) -> Result<TagKey, TLSError> {
+    Ok(TagKey {
         alg: handle.alg,
         tag: handle.name,
-        val: get_by_handle(ks, handle)?,
+        val: get_by_handle(ks, handle).ok_or(INCORRECT_STATE)?,
     })
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn set_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle, key: Key) {
     ks.set(
         handle.name,
@@ -345,7 +348,8 @@ pub fn set_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle, key: Key) {
     );
 }
 
-pub fn get_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle) -> Option<Key> {
+// XXX: Make this a destructor for above
+pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Option<Key> {
     ks.get(
         handle.name,
         handle.level,
@@ -354,6 +358,7 @@ pub fn get_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle) -> Option<Key> {
 }
 
 #[allow(non_snake_case)]
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn XPD(
     ks: &mut TLSkeyscheduler,
     n: TLSnames,
@@ -417,6 +422,7 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
     })
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn XTR(
     ks: &mut TLSkeyscheduler,
     level: u8,

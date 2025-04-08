@@ -5,7 +5,7 @@
 use crate::tls13utils::Declassify;
 use crate::{
     tls13crypto::{
-        zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
+        hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme
     },
     tls13utils::{
         bytes1, bytes2, bytes_concat, check, check_eq, check_eq_slice, check_eq_with_slice,
@@ -1224,7 +1224,7 @@ impl Transcript {
 
     /// Get the hash of this transcript
     pub(crate) fn transcript_hash(&self) -> Result<Digest, TLSError> {
-        let th = self.hash_algorithm.hash(&self.transcript.0)?;
+        let th = hash(&self.hash_algorithm, &self.transcript.0)?;
         Ok(th)
     }
 
@@ -1237,7 +1237,7 @@ impl Transcript {
     ) -> Result<Digest, TLSError> {
         // let Transcript(ha, HandshakeData(tx)) = tx;
         let HandshakeData(ch) = client_hello;
-        self.hash_algorithm.hash(
+        hash(&self.hash_algorithm,
             &self
                 .transcript
                 .0

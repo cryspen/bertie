@@ -1,17 +1,19 @@
 pub(crate) mod key_schedule;
 
 use crate::{
-    tls13crypto::{AeadAlgorithm, AeadKey, AeadKeyIV, Digest, HashAlgorithm, Key, MacKey},
+    tls13crypto::{hash, AeadAlgorithm, AeadKey, AeadKeyIV, Digest, HashAlgorithm, Key, MacKey},
     tls13formats::*,
     tls13utils::*,
 };
 use key_schedule::{TLSnames::*, *};
 
 /// Get the hash of an empty byte slice.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
-    algorithm.hash(&Bytes::new())
+    hash(&algorithm, &Bytes::new())
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn derive_binder_key(
     ha: &HashAlgorithm,
     handle: &Handle,
@@ -23,13 +25,15 @@ pub fn derive_binder_key(
 }
 
 /// Derive an AEAD key and iv.
+// XXX: PV can't handle the use of `ok_or` here.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_aead_key_iv(
     hash_algorithm: &HashAlgorithm,
     aead_algorithm: &AeadAlgorithm,
     handle: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<AeadKeyIV, TLSError> {
-    let key = tagkey_from_handle(ks, &handle).ok_or(INCORRECT_STATE)?.val;
+    let key = tagkey_from_handle(ks, &handle)?.val;
     let sender_write_key = hkdf_expand_label(
         hash_algorithm,
         &key,
@@ -71,6 +75,7 @@ pub(crate) fn next_keys_c_2(
 }
 
 /// Derive 0-RTT AEAD keys.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_0rtt_keys(
     hash_algorithm: &HashAlgorithm,
     aead_algorithm: &AeadAlgorithm,
@@ -89,12 +94,13 @@ pub(crate) fn derive_0rtt_keys(
     Ok((sender_write_key_iv, early_exporter_master_secret))
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn derive_finished_key(
     ha: &HashAlgorithm,
     handle: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<MacKey, TLSError> {
-    let k = tagkey_from_handle(ks, &handle).ok_or(INCORRECT_STATE)?;
+    let k = tagkey_from_handle(ks, &handle)?;
     hkdf_expand_label(
         ha,
         &k.val,
@@ -105,6 +111,7 @@ pub fn derive_finished_key(
 }
 
 /// Derive the handshake keys and master secret.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_hk_handles(
     ha: &HashAlgorithm,
     shared_secret: &Handle,
@@ -139,6 +146,7 @@ pub(crate) fn derive_hk_handles(
     ))
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_hk_ms(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
@@ -160,6 +168,7 @@ pub(crate) fn derive_hk_ms(
 }
 
 /// Derive the application keys and master secret.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_app_handles(
     ha: &HashAlgorithm,
     master_secret: &Handle,
@@ -176,7 +185,7 @@ pub(crate) fn derive_app_handles(
         exporter_master_secret,
     ))
 }
-
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_app_keys(
     ha: &HashAlgorithm,
     ae: &AeadAlgorithm,
@@ -190,6 +199,7 @@ pub(crate) fn derive_app_keys(
     Ok((client_write_key_iv, server_write_key_iv))
 }
 
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_rms(
     ha: &HashAlgorithm,
     master_secret: &Handle,

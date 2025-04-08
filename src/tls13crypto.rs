@@ -125,6 +125,19 @@ fn hash_len_inner(h: &HashAlgorithm) -> usize {
     }
 }
 
+/// Hash `data` with the given `algorithm`.
+///
+/// Returns the digest or an [`TLSError`].
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
+pub(crate) fn hash(ha: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
+        let hasher = ha.libcrux_algorithm()?;
+
+        let mut digest = vec![0u8; hasher.hash_len()];
+        hasher.hash(&data.declassify(), &mut digest);
+
+        Ok(digest.into())
+}
+
 impl HashAlgorithm {
     /// Get the libcrux hash algorithm
     fn libcrux_algorithm(&self) -> Result<Sha2Algorithm, TLSError> {
@@ -135,18 +148,7 @@ impl HashAlgorithm {
         }
     }
 
-    /// Hash `data` with the given `algorithm`.
-    ///
-    /// Returns the digest or an [`TLSError`].
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
-    pub(crate) fn hash(&self, data: &Bytes) -> Result<Bytes, TLSError> {
-        let hasher = self.libcrux_algorithm()?;
 
-        let mut digest = vec![0u8; hasher.hash_len()];
-        hasher.hash(&data.declassify(), &mut digest);
-
-        Ok(digest.into())
-    }
 
     /// Get the size of the hash digest.
     pub(crate) fn hash_len(&self) -> usize {

@@ -157,16 +157,14 @@ fn compute_psk_binder_zero_rtt(
             let mk_handle = derive_binder_key(&ha, &psk_handle, ks)?;
 
             let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
-            let binder = tagkey_from_handle(ks, &binder_handle)
-                .ok_or(INCORRECT_STATE)?
-                .val;
+            let binder = tagkey_from_handle(ks, &binder_handle)?.val;
 
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
             if zero_rtt {
                 let th = tx_ch.transcript_hash()?;
                 let (aek, handle) = derive_0rtt_keys(&ha, &ae, &psk_handle, &th, ks)?;
-                let key = tagkey_from_handle(ks, &handle).ok_or(INCORRECT_STATE)?;
+                let key = tagkey_from_handle(ks, &handle)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
             } else {
@@ -205,8 +203,8 @@ fn put_server_hello(
     let psk_handle = match psk {
         Some(bytes) => {
             let handle = Handle {
-                alg: ciphersuite.hash,
                 name: PSK,
+                alg: ciphersuite.hash,
                 level: 0,
             };
             set_by_handle(ks, &handle, bytes);
@@ -343,7 +341,8 @@ fn put_server_finished(
         ks,
     )?;
     let (cak, sak) = derive_app_keys(&hash, &aead, &ca_handle, &sa_handle, ks)?;
-    let exp = tagkey_from_handle(ks, &exp_handle).ok_or(INCORRECT_STATE)?;
+    let exp = tagkey_from_handle(ks, &exp_handle)?;
+
     let cipher1 = duplex_cipher_state1(aead, cak, 0, sak, 0, exp);
     Ok((
         cipher1,
@@ -512,23 +511,17 @@ fn process_psk_binder_zero_rtt(
             set_by_handle(ks, &psk_handle, k.clone());
 
             let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
-            let mk = tagkey_from_handle(ks, &mk_handle)
-                .ok_or(INCORRECT_STATE)?
-                .val;
+            let mk = tagkey_from_handle(ks, &mk_handle)?.val;
 
             let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
-            let binder = tagkey_from_handle(ks, &binder_handle)
-                .ok_or(INCORRECT_STATE)?
-                .val;
+            let binder = tagkey_from_handle(ks, &binder_handle)?.val;
 
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms_handle) =
                     derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_handle, &th, ks)?;
-                let early_exporter_ms =
-                    tagkey_from_handle(ks, &early_exporter_ms_handle).ok_or(INCORRECT_STATE)?;
-                let cipher0 = Some(server_cipher_state0(key_iv, 0, early_exporter_ms));
-                Ok(cipher0)
+                let early_exporter_ms = tagkey_from_handle(ks, &early_exporter_ms_handle)?;
+                Ok(Some(server_cipher_state0(key_iv, 0, early_exporter_ms))) // XXX: This is a PV issue. Bad interaction of &mut hoisting and our treatment of Option
             } else {
                 Ok(None)
             }
@@ -763,7 +756,7 @@ fn get_server_finished(
     let th_sfin = tx.transcript_hash()?;
     let (ca_handle, sa_handle, exp_handle) = derive_app_handles(&ha, &ms_handle, &th_sfin, ks)?;
     let (cak, sak) = derive_app_keys(&ha, &ae, &ca_handle, &sa_handle, ks)?;
-    let exp = tagkey_from_handle(ks, &exp_handle).ok_or(INCORRECT_STATE)?;
+    let exp = tagkey_from_handle(ks, &exp_handle)?;
     let cipher1 = duplex_cipher_state1(ae, sak, 0, cak, 0, exp);
     Ok((
         sfin,
