@@ -325,8 +325,8 @@ pub(crate) fn xpd_angle(
 }
 
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
-pub fn tagkey_from_handle<KS: KeySchedule<TLSnames>>(
-    ks: &mut KS,
+pub fn tagkey_from_handle(
+    ks: &mut TLSkeyscheduler,
     handle: &Handle,
 ) -> Option<TagKey> {
     Some(TagKey {
@@ -336,7 +336,7 @@ pub fn tagkey_from_handle<KS: KeySchedule<TLSnames>>(
     })
 }
 
-pub fn set_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle, key: Key) {
+pub fn set_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle, key: Key) {
     ks.set(
         handle.name,
         handle.level,
@@ -345,7 +345,7 @@ pub fn set_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle, ke
     );
 }
 
-pub fn get_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) -> Option<Key> {
+pub fn get_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle) -> Option<Key> {
     ks.get(
         handle.name,
         handle.level,
@@ -354,16 +354,16 @@ pub fn get_by_handle<KS: KeySchedule<TLSnames>>(ks: &mut KS, handle: &Handle) ->
 }
 
 #[allow(non_snake_case)]
-pub fn XPD<KS: KeySchedule<TLSnames>>(
-    ks: &mut KS,
+pub fn XPD(
+    ks: &mut TLSkeyscheduler,
     n: TLSnames,
     mut l: u8,
     h1: &Handle,
     r: bool,
     args: &Bytes,
 ) -> Result<Handle, TLSError> {
-    let (n1, _) = KS::prnt_n(n);
-    let label = KS::labels(n, r)?;
+    let (n1, _) = TLSkeyscheduler::prnt_n(n);
+    let label = TLSkeyscheduler::labels(n, r)?;
 
     let h = xpd_angle(n, label.clone(), h1, args)?;
     let k1 = ks
@@ -382,7 +382,7 @@ pub fn XPD<KS: KeySchedule<TLSnames>>(
             args,
         )?
     } else {
-        let d = KS::hash(args);
+        let d = TLSkeyscheduler::hash(args);
         xpd(
             &TagKey {
                 alg: h1.alg,
@@ -417,14 +417,14 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
     })
 }
 
-pub(crate) fn XTR<KS: KeySchedule<TLSnames>>(
-    ks: &mut KS,
+pub(crate) fn XTR(
+    ks: &mut TLSkeyscheduler,
     level: u8,
     name: TLSnames,
     h1: &Handle,
     h2: &Handle,
 ) -> Result<Handle, TLSError> {
-    let (n1, n2) = KS::prnt_n(name);
+    let (n1, n2) = TLSkeyscheduler::prnt_n(name);
     // if h1.is_some() && h2.is_some() {
     //     assert_eq!(h1.unwrap().alg, h2.unwrap().alg)
     // }
