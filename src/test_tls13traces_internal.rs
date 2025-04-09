@@ -1,8 +1,9 @@
 #![allow(dead_code)]
 
-use std::println;
 use std::collections::HashMap;
+use std::println;
 
+use crate::tls13crypto::hash;
 use crate::tls13handshake::*;
 use crate::tls13keyscheduler::{key_schedule::*, *};
 use crate::tls13utils::*;
@@ -488,7 +489,7 @@ fn test_key_schedule() {
     let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     let sha256_emp = Bytes::from_hex(sha256_emp_str);
 
-    if let Ok(ha) = HashAlgorithm::SHA256.hash(&Bytes::new()) {
+    if let Ok(ha) = hash(&HashAlgorithm::SHA256, &Bytes::new()) {
         println!(
             "computed hash(empty) {}\nexpected hash(empty) {}",
             ha.as_hex(),
@@ -512,7 +513,7 @@ fn test_key_schedule() {
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let transcript = client_hello_bytes.concat(server_hello_bytes);
-    let tx_hash = ha.hash(&transcript);
+    let tx_hash = hash(&ha, &transcript);
 
     let mut ks = TLSkeyscheduler {
         keys: HashMap::new(),
@@ -539,7 +540,7 @@ fn test_key_schedule() {
                     println!("Error: {}", x);
                 }
                 Ok((cht_handle, sht_handle, ms_handle)) => {
-                    let lookup = tagkey_from_handle(&mut ks, &ms_handle).ok_or(INCORRECT_STATE);
+                    let lookup = tagkey_from_handle(&mut ks, &ms_handle);
                     b = lookup.is_ok();
                     match lookup {
                         Err(x) => {
@@ -572,7 +573,7 @@ fn test_key_schedule() {
                                         .concat(server_certificate_bytes)
                                         .concat(server_cert_verify_bytes)
                                         .concat(server_finished_bytes);
-                                    let tx_hash = ha.hash(&transcript);
+                                    let tx_hash = hash(&ha, &transcript);
                                     match tx_hash {
                                         Err(x) => {
                                             println!("Error: {}", x);
@@ -595,8 +596,8 @@ fn test_key_schedule() {
                                                         &mut ks,
                                                     );
                                                     let lookup =
-                                                        tagkey_from_handle(&mut ks, &ms_handle)
-                                                            .ok_or(INCORRECT_STATE);
+                                                        tagkey_from_handle(&mut ks, &ms_handle);
+
                                                     b = lookup.is_ok();
                                                     match lookup {
                                                         Err(x) => {
@@ -706,9 +707,9 @@ fn test_finished() {
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let tx1 = ch.concat(sh).concat(ee).concat(sc).concat(cv);
-    let tx_hash1 = ha.hash(&tx1);
+    let tx_hash1 = hash(&ha, &tx1);
     let tx2 = tx1.concat(sf);
-    let tx_hash2 = ha.hash(&tx2);
+    let tx_hash2 = hash(&ha, &tx2);
     let mut b = true;
     match (tx_hash1, tx_hash2) {
         (Ok(h1), Ok(h2)) => {

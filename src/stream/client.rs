@@ -4,8 +4,8 @@
 
 use rand::CryptoRng;
 use std::{
-    eprintln,
     collections::HashMap,
+    eprintln,
     io::{Read, Write},
     net::TcpStream,
     println,

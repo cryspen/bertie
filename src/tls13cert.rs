@@ -16,7 +16,7 @@
 //!     BitString // 0x03
 //! }
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, proverif};
+use hax_lib::{proverif, pv_constructor};
 
 #[cfg(not(feature = "secret_integers"))]
 use crate::tls13utils::Declassify;
@@ -45,32 +45,51 @@ pub(crate) fn asn1_error<T>(err: Asn1Error) -> Result<T, Asn1Error> {
 // Long form length
 // * Must be used when the length is 128 or greater
 // * XXX: We do not accept lengths greater than 32-bit.
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(_) => b.len() >= offset && b.len() - offset >= len,
+    _ => true })]
 fn long_length(b: &Bytes, offset: usize, len: usize) -> Result<usize, Asn1Error> {
     if len > 4 {
         asn1_error(ASN1_SEQUENCE_TOO_LONG)
-    } else {
+    } else if b.len() >= offset + len {
         let mut u32word = [U8(0); 4];
         u32word[0..len].copy_from_slice(&b[offset..offset + len]);
         Ok(u32_from_be_bytes(u32word).declassify() as usize >> ((4 - len) * 8))
+    } else {
+        asn1_error(ASN1_ERROR)
     }
 }
 
 // Read the length of a long form length
-fn length_length(b: &Bytes, offset: usize) -> usize {
-    if b[offset].declassify() >> 7 == 1u8 {
-        // Only in this case we have a length length.
-        (b[offset].declassify() & 0x7fu8) as usize
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => b.len() > offset && l <= 255,
+    _ => true })]
+fn length_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
+    if b.len() > offset {
+        if b[offset].declassify() >> 7 == 1u8 {
+            // Only in this case we have a length length.
+            Ok((b[offset].declassify() & 0x7fu8) as usize)
+        } else {
+            Ok(0)
+        }
     } else {
-        0
+        asn1_error(ASN1_ERROR)
     }
 }
 
 // Short form length
 // * Must be used when the length is between 0 and 127
 // * The byte must start with a 0 bit, the following 7 bits are the length.
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(_) => b.len() > offset,
+    _ => true })]
 fn short_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
-    if b[offset].declassify() & 0x80u8 == 0u8 {
-        Ok((b[offset].declassify() & 0x7fu8) as usize)
+    if b.len() > offset {
+        if b[offset].declassify() & 0x80u8 == 0u8 {
+            Ok((b[offset].declassify() & 0x7fu8) as usize)
+        } else {
+            asn1_error(ASN1_ERROR)
+        }
     } else {
         asn1_error(ASN1_ERROR)
     }
@@ -81,15 +100,22 @@ fn short_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
 /// sequence.
 ///
 /// Returns: (offset, length)
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(_) => b.len() > offset,
+    _ => true })]
 fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
-    if b[offset].declassify() & 0x80 == 0 {
-        let len = short_length(b, offset)?;
-        Ok((offset + 1, len))
+    if b.len() > offset {
+        if b[offset].declassify() & 0x80 == 0 {
+            let len = short_length(b, offset)?;
+            Ok((offset + 1, len))
+        } else {
+            let len = length_length(b, offset)?;
+            offset += 1;
+            let end = long_length(b, offset, len)?;
+            Ok((offset + len, end))
+        }
     } else {
-        let len = length_length(b, offset);
-        offset += 1;
-        let end = long_length(b, offset, len)?;
-        Ok((offset + len, end))
+        asn1_error(ASN1_ERROR)
     }
 }
 
@@ -100,7 +126,7 @@ fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error
     check_tag(b, offset, 0x30)?;
     offset += 1;
 
-    let length_length = length_length(b, offset);
+    let length_length = length_length(b, offset)?;
     offset = offset + length_length + 1; // 1 byte is always used for length
 
     Ok(offset)
@@ -113,18 +139,25 @@ fn read_octet_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     check_tag(b, offset, 0x04)?;
     offset += 1;
 
-    let length_length = length_length(b, offset);
+    let length_length = length_length(b, offset)?;
     offset = offset + length_length + 1; // 1 byte is always used for length
 
     Ok(offset)
 }
 
 /// Check that the tag has a certain value.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(_) => b.len() > offset,
+                                _ => true })]
 fn check_tag(b: &Bytes, offset: usize, value: u8) -> Result<(), Asn1Error> {
-    if b[offset].declassify() == value {
-        Ok(())
+    if b.len() > offset {
+        if b[offset].declassify() == value {
+            Ok(())
+        } else {
+            // eprintln!("Got tag {:x}, expected {:x}", b[offset].declassify(), value);
+            asn1_error(ASN1_INVALID_TAG)
+        }
     } else {
-        // eprintln!("Got tag {:x}, expected {:x}", b[offset].declassify(), value);
         asn1_error(ASN1_INVALID_TAG)
     }
 }
@@ -343,7 +376,8 @@ pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error
 }
 
 /// Read the EC PK from the cert as uncompressed point.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
+#[hax_lib::requires(fstar!(r#"v indices._1 > 0 && Seq.length cert._0 >= v indices._0 + v indices._1"#))]
 pub(crate) fn ecdsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
@@ -356,7 +390,7 @@ pub(crate) fn ecdsa_public_key(
     Ok(cert.slice(offset + 1, len - 1)) // Drop the 0x04 here.
 }
 
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn rsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
@@ -436,7 +470,10 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 //
 // )_c()`
 // - Should find better solution for `_c()` and `_err()` terms
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
  letfun ${cert_public_key}(
             certificate : $:{Bytes},
             spki        : bitstring
@@ -462,7 +499,8 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
             )
            else $:{PublicVerificationKey}_err()
          )."
-    ))]
+    )
+)]
 pub(crate) fn cert_public_key(
     certificate: &Bytes,
     spki: &Spki,

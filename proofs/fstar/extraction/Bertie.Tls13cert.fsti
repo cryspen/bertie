@@ -32,24 +32,62 @@ val asn1_error (#v_T: Type0) (err: u8)
     : Prims.Pure (Core.Result.t_Result v_T u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val long_length (b: Bertie.Tls13utils.t_Bytes) (offset len: usize)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok _ ->
+            (Bertie.Tls13utils.impl_Bytes__len b <: usize) >=. offset &&
+            ((Bertie.Tls13utils.impl_Bytes__len b <: usize) -! offset <: usize) >=. len
+          | _ -> true)
 
 val length_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok l ->
+            (Bertie.Tls13utils.impl_Bytes__len b <: usize) >. offset && l <=. mk_usize 255
+          | _ -> true)
 
 val short_length (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
-    : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result usize u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result usize u8 = result in
+          match result <: Core.Result.t_Result usize u8 with
+          | Core.Result.Result_Ok _ -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) >. offset
+          | _ -> true)
 
 /// Get the length of an ASN.1 type.
 /// This assumes that the length starts at the beginning of the provided byte
 /// sequence.
 /// Returns: (offset, length)
 val length (b: Bertie.Tls13utils.t_Bytes) (offset: usize)
-    : Prims.Pure (Core.Result.t_Result (usize & usize) u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result (usize & usize) u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result (usize & usize) u8 = result in
+          match result <: Core.Result.t_Result (usize & usize) u8 with
+          | Core.Result.Result_Ok _ -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) >. offset
+          | _ -> true)
 
 /// Check that the tag has a certain value.
 val check_tag (b: Bertie.Tls13utils.t_Bytes) (offset: usize) (value: u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) >. offset
+          | _ -> true)
 
 /// Read a byte sequence header from the provided bytes.
 /// Returns the new offset into the bytes.
@@ -116,7 +154,7 @@ val verification_key_from_cert (cert: Bertie.Tls13utils.t_Bytes)
 /// Read the EC PK from the cert as uncompressed point.
 val ecdsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      Prims.l_True
+      (requires v indices._1 > 0 && Seq.length cert._0 >= v indices._0 + v indices._1)
       (fun _ -> Prims.l_True)
 
 val rsa_public_key (cert: Bertie.Tls13utils.t_Bytes) (indices: t_CertificateKey)

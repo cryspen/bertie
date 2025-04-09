@@ -5,17 +5,18 @@
 use crate::tls13utils::Declassify;
 use crate::{
     tls13crypto::{
-        hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme
+        hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
     tls13utils::{
-        bytes1, bytes2, bytes_concat, check, check_eq, check_eq_slice, check_eq_with_slice,
-        check_length_encoding_u16, check_length_encoding_u16_slice, check_length_encoding_u24,
-        check_length_encoding_u8, check_length_encoding_u8_slice, check_mem, encode_length_u16,
-        encode_length_u24, encode_length_u8, eq_slice, length_u16_encoded,
-        length_u16_encoded_slice, length_u24_encoded, length_u8_encoded, parse_failed, tlserr,
-        u32_as_be_bytes, Bytes, TLSError, APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR,
-        INVALID_COMPRESSION_LIST, INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT,
-        PSK_MODE_MISMATCH, U32, U8, UNSUPPORTED_ALGORITHM,
+        bytes1, bytes2, bytes_concat, check, check_eq, check_eq1, check_eq_slice,
+        check_eq_with_slice, check_length_encoding_u16, check_length_encoding_u16_slice,
+        check_length_encoding_u24, check_length_encoding_u8, check_length_encoding_u8_slice,
+        check_mem, encode_length_u16, encode_length_u24, encode_length_u8, eq_slice,
+        length_u16_encoded, length_u16_encoded_slice, length_u24_encoded, length_u8_encoded,
+        parse_failed, tlserr, u32_as_be_bytes, Bytes, TLSError,
+        APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
+        INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
+        UNSUPPORTED_ALGORITHM,
     },
 };
 
@@ -26,7 +27,7 @@ use handshake_data::{HandshakeData, HandshakeType};
 pub use handshake_data::{HandshakeData, HandshakeType};
 
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, proverif};
+use hax_lib::{proverif, pv_constructor};
 
 // Well Known Constants
 
@@ -77,9 +78,13 @@ fn build_server_name(name: &Bytes) -> Result<Bytes, TLSError> {
 /// otherwise.
 fn check_server_name(extension: &[U8]) -> Result<Bytes, TLSError> {
     check_length_encoding_u16_slice(extension)?;
-    check_eq_with_slice(&[U8(0)], extension, 2, 3)?;
-    check_length_encoding_u16_slice(&extension[3..extension.len()])?;
-    Ok(extension[5..extension.len()].into())
+    if extension.len() > 3 {
+        check_eq1(U8(0), extension[2])?;
+        check_length_encoding_u16_slice(&extension[3..extension.len()])?;
+        Ok(extension[5..extension.len()].into())
+    } else {
+        tlserr(parse_failed())
+    }
 }
 
 /// Build the supported versions bytes for the client hello.
@@ -142,6 +147,8 @@ fn key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(encode_length_u16(encode_length_u16(ks)?)?.prefix(PREFIX))
 }
 
+/// Needs decreases clause
+#[hax_lib::fstar::verification_status(lax)]
 fn find_key_share(g: &Bytes, ch: &[U8]) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         tlserr(parse_failed())
@@ -165,10 +172,14 @@ fn server_key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
 }
 
 fn check_server_key_share(algs: &Algorithms, b: &[U8]) -> Result<Bytes, TLSError> {
-    check_eq_with_slice(algs.supported_group()?.as_raw(), b, 0, 2)?;
-    check_length_encoding_u16_slice(&b[2..b.len()])?;
-    // XXX Performance: These conversions aren't necessary. A slice would suffice.
-    Ok(Bytes::from(&b[4..b.len()]))
+    if b.len() >= 2 {
+        check_eq_with_slice(algs.supported_group()?.as_raw(), b, 0, 2)?;
+        check_length_encoding_u16_slice(&b[2..b.len()])?;
+        // XXX Performance: These conversions aren't necessary. A slice would suffice.
+        Ok(Bytes::from(&b[4..b.len()]))
+    } else {
+        tlserr(parse_failed())
+    }
 }
 
 fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, usize), TLSError> {
@@ -312,6 +323,11 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
     }
 }
 
+/// For termination, needs: (decreases Seq.length b)
+#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok((len,out)) => len >= 4,
+                                    _ => true})]
 fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<Bytes>), TLSError> {
     if b.len() < 4 {
         Err(parse_failed())
@@ -528,8 +544,10 @@ fn get_psk_extensions(
 }
 
 /// Build a ClientHello message.
-#[cfg_attr(feature = "hax-pv", proverif::before(
-"fun extern__client_hello_c(
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::before(
+        "fun extern__client_hello_c(
       $:{Bytes}, (* client_randomness *)
       $:{Bytes}, (* session_id *)
       $:{Bytes}, (*server name /sni*)
@@ -537,9 +555,13 @@ fn get_psk_extensions(
       Option, (*tkto*)
       Option, (*bindero*)
       nat) (*trunc_len*)
-      : $:{HandshakeData} [data]."))]
-#[cfg_attr(feature = "hax-pv", proverif::replace_body(
-    "(extern__client_hello_c(
+      : $:{HandshakeData} [data]."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "(extern__client_hello_c(
          client_random,
          $:{Bytes}_default(),
          server_name,
@@ -548,7 +570,9 @@ fn get_psk_extensions(
          None(),
          0),
      0)"
-))]
+    )
+)]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
@@ -594,8 +618,10 @@ pub(crate) fn client_hello(
     Ok((client_hello, trunc_len))
 }
 
-
-#[cfg_attr(feature = "hax-pv", proverif::replace_body("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "
        let extern__client_hello_c(client_randomness,
                                   session_id,
                                   server_name,
@@ -611,8 +637,11 @@ pub(crate) fn client_hello(
                                   tkto,
                                   binder,
                                   0)"
-
-    ))]
+    )
+)]
+#[hax_lib::requires(match trunc_len {
+                     Option::Some(tl) => tl <= client_hello.len(),
+                     _ => true})]
 pub(crate) fn set_client_hello_binder(
     ciphersuite: &Algorithms,
     binder: &Option<Hmac>,
@@ -624,7 +653,7 @@ pub(crate) fn set_client_hello_binder(
     let hlen = ciphersuite.hash().hash_len();
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
-            if chlen - hlen == trunc_len {
+            if chlen - trunc_len == hlen {
                 Ok(HandshakeData(ch.update_slice(trunc_len, m, 0, hlen)))
             } else {
                 tlserr(parse_failed())
@@ -661,7 +690,10 @@ pub fn bench_parse_client_hello(
 /// Parse the provided `client_hello` with the given `ciphersuite`.
 // XXX: Can `Option` not be hardwired like this?
 #[allow(clippy::type_complexity)]
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
 fun ${parse_client_hello}(
   $:{Algorithms},
   $:{HandshakeData})
@@ -689,7 +721,8 @@ reduc forall
                             session_ticket,
                             binder,
                             0)."
-    ))]
+    )
+)]
 pub(super) fn parse_client_hello(
     ciphersuite: &Algorithms,
     client_hello: &HandshakeData,
@@ -787,7 +820,8 @@ pub(super) fn parse_client_hello(
 }
 
 /// Build the server hello message.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     sr: Random,
@@ -828,8 +862,10 @@ pub fn bench_parse_server_hello(
     parse_server_hello(algs, server_hello)
 }
 
-#[cfg_attr(feature = "hax-pv", proverif::replace(
-    "reduc forall
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "reduc forall
    algs: $:{Algorithms},
    server_random: $:{Bytes},
    sid: $:{Bytes},
@@ -839,7 +875,8 @@ pub fn bench_parse_server_hello(
      algs,
      ${server_hello}(algs, server_random, sid, gy)
 ) = (server_random, gy)."
-    ))]
+    )
+)]
 pub(crate) fn parse_server_hello(
     algs: &Algorithms,
     server_hello: &HandshakeData,
@@ -880,7 +917,7 @@ pub(crate) fn parse_server_hello(
     }
 }
 
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     Ok(HandshakeData(handshake_type.concat(encode_length_u24(
@@ -888,14 +925,19 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
     )?)))
 }
 
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
 reduc forall algs: $:{Algorithms};
 
       ${parse_encrypted_extensions}(
         algs,
         ${encrypted_extensions}(algs)
       ) = ()."
-    ))]
+    )
+)]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_encrypted_extensions(
     _algs: &Algorithms,
     encrypted_extensions: &HandshakeData,
@@ -912,7 +954,7 @@ pub(crate) fn parse_encrypted_extensions(
         encrypted_extension_bytes.raw_slice(1..encrypted_extension_bytes.len()),
     )
 }
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn server_certificate(
     _algs: &Algorithms,
     cert: &Bytes,
@@ -929,7 +971,10 @@ pub fn bench_parse_server_certificate(certificate: &HandshakeData) -> Result<Byt
     parse_server_certificate(certificate)
 }
 
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
 reduc forall
 algs: $:{Algorithms},
 cert: $:{Bytes};
@@ -937,7 +982,8 @@ cert: $:{Bytes};
   ${parse_server_certificate}(
      ${server_certificate}(algs, cert)
   ) = cert."
-    ))]
+    )
+)]
 pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(sc) = certificate.as_handshake_message(HandshakeType::Certificate)?;
     let mut next = 0;
@@ -1006,7 +1052,7 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
         }
     }
 }
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
     let sv = (match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => Ok(cv.clone()),
@@ -1024,7 +1070,10 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
     HandshakeData::from_bytes(HandshakeType::CertificateVerify, &sig)
 }
 
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
 reduc forall
 algs: $:{Algorithms},
 cert: $:{Bytes};
@@ -1032,7 +1081,9 @@ cert: $:{Bytes};
       ${parse_certificate_verify}(
         algs,${certificate_verify}(algs, cert)
       ) = cert."
-    ))]
+    )
+)]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_certificate_verify(
     algs: &Algorithms,
     certificate_verify: &HandshakeData,
@@ -1055,20 +1106,24 @@ pub(crate) fn parse_certificate_verify(
     }
 }
 
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
     HandshakeData::from_bytes(HandshakeType::Finished, vd)
 }
 
-
-#[cfg_attr(feature = "hax-pv", proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
 reduc forall
   vd: $:{Bytes};
 
    ${parse_finished}(
      ${finished}(vd)
 ) = vd.
-    "))]
+    "
+    )
+)]
 pub(crate) fn parse_finished(finished: &HandshakeData) -> Result<Bytes, TLSError> {
     let HandshakeData(fin) = finished.as_handshake_message(HandshakeType::Finished)?;
     Ok(fin)
@@ -1138,6 +1193,9 @@ impl ContentType {
     }
 }
 
+#[hax_lib::ensures(|result| match result {
+                            Result::Ok(d) => (p.0.len() < 65536 && d.len() == 5 + p.0.len()),
+                            _ => true})]
 pub(crate) fn handshake_record(p: HandshakeData) -> Result<Bytes, TLSError> {
     let ty = bytes1(ContentType::Handshake as u8);
     let ver = bytes2(3, 3);
@@ -1187,6 +1245,7 @@ pub(crate) struct Transcript {
     transcript: HandshakeData,
 }
 
+#[hax_lib::attributes]
 impl Transcript {
     pub(crate) fn new(hash_algorithm: HashAlgorithm) -> Self {
         Self {
@@ -1200,8 +1259,10 @@ impl Transcript {
     // constructor. Either the backend should output different
     // constructor names for record types (i.e. accessble via
     // $:{Struct}), or the interpolation should be changed.
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body(
-        "let bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+    #[cfg_attr(
+        feature = "hax-pv",
+        proverif::replace_body(
+            "let bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
             hash_algorithm: $:{HashAlgorithm},
             old_handshake_data: $:{HandshakeData}
         ) = self in
@@ -1216,7 +1277,8 @@ impl Transcript {
             )
         )
     )"
-    ))]
+        )
+    )]
     pub(crate) fn add(mut self, msg: &HandshakeData) -> Self {
         self.transcript = self.transcript.concat(msg);
         self
@@ -1229,7 +1291,8 @@ impl Transcript {
     }
 
     /// Get the hash of this transcript without the client hello
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
+    #[hax_lib::requires(trunc_len <= client_hello.len())]
     pub(crate) fn transcript_hash_without_client_hello(
         &self,
         client_hello: &HandshakeData,
@@ -1237,7 +1300,8 @@ impl Transcript {
     ) -> Result<Digest, TLSError> {
         // let Transcript(ha, HandshakeData(tx)) = tx;
         let HandshakeData(ch) = client_hello;
-        hash(&self.hash_algorithm,
+        hash(
+            &self.hash_algorithm,
             &self
                 .transcript
                 .0

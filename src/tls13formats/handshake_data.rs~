@@ -1,9 +1,13 @@
+<<<<<<< HEAD
+=======
+#[cfg(feature = "hax-pv")]
+use hax_lib::{pv_constructor, pv_handwritten};
+
+>>>>>>> main
 use crate::tls13utils::{
     check_eq1, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes, TLSError,
     U8,
 };
-#[cfg(feature = "hax-pv")]
-use hax_lib::{proverif, pv_constructor};
 
 /// ```TLS
 /// enum {
@@ -23,7 +27,6 @@ use hax_lib::{proverif, pv_constructor};
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[repr(u8)]
-#[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
 pub enum HandshakeType {
     ClientHello = 1,
     ServerHello = 2,
@@ -58,90 +61,6 @@ pub fn get_hs_type(t: u8) -> Result<HandshakeType, TLSError> {
 /// Hadshake data of the TLS handshake.
 pub struct HandshakeData(pub(crate) Bytes);
 
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace(
-        "reduc forall
-                   hs1: $:{Bytes},
-                   hs2: $:{Bytes};
-
-            ${to_two_inner}(
-                ${HandshakeData}(
-                    ${crate::tls13utils::concat_inner}(hs1, hs2)
-                )
-            )
-            = (hs1, hs2).
-    "
-    )
-)]
-fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData), TLSError> {
-    let (message1, payload_rest) = hs_data.next_handshake_message()?;
-    let (message2, payload_rest) = payload_rest.next_handshake_message()?;
-    if payload_rest.len() != 0 {
-        tlserr(parse_failed())
-    } else {
-        Ok((message1, message2))
-    }
-}
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace(
-        "reduc forall
-                   hs1: $:{Bytes},
-                   hs2: $:{Bytes},
-                   hs3: $:{Bytes},
-                   hs4: $:{Bytes};
-
-            ${to_four_inner}(
-                ${HandshakeData}(
-                    ${crate::tls13utils::concat_inner}(
-                        ${crate::tls13utils::concat_inner}(
-                            ${crate::tls13utils::concat_inner}(
-                                hs1,
-                                hs2
-                            ),
-                            hs3
-                        ),
-                        hs4
-                    )
-                )
-            )
-            = (hs1,
-               hs2,
-               hs3,
-               hs4)."
-    )
-)]
-fn to_four_inner(
-    hs_data: &HandshakeData,
-) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
-    let (message1, payload_rest) = hs_data.next_handshake_message()?;
-    let (message2, payload_rest) = payload_rest.next_handshake_message()?;
-    let (message3, payload_rest) = payload_rest.next_handshake_message()?;
-    let (message4, payload_rest) = payload_rest.next_handshake_message()?;
-
-    if payload_rest.len() != 0 {
-        tlserr(parse_failed())
-    } else {
-        Ok((message1, message2, message3, message4))
-    }
-}
-
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
-pub(crate) fn from_bytes_inner(
-    handshake_type: HandshakeType,
-    handshake_bytes: &Bytes,
-) -> Result<HandshakeData, TLSError> {
-    Ok(HandshakeData::from(
-        encode_length_u24(handshake_bytes)?.prefix(&[U8(handshake_type as u8)]),
-    ))
-}
-
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
-pub(crate) fn to_bytes_inner(hs: &HandshakeData) -> Bytes {
-    hs.0.clone()
-}
-
 #[hax_lib::attributes]
 impl HandshakeData {
     /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
@@ -149,7 +68,9 @@ impl HandshakeData {
         handshake_type: HandshakeType,
         handshake_bytes: &Bytes,
     ) -> Result<HandshakeData, TLSError> {
-        from_bytes_inner(handshake_type, handshake_bytes)
+        Ok(HandshakeData::from(
+            encode_length_u24(handshake_bytes)?.prefix(&[U8(handshake_type as u8)]),
+        ))
     }
 
     /// Returns the length, in bytes.
@@ -160,7 +81,7 @@ impl HandshakeData {
 
     /// Returns the handshake data bytes.
     pub(crate) fn to_bytes(&self) -> Bytes {
-        to_bytes_inner(&self)
+        self.0.clone()
     }
 
     /// Returns a new [`HandshakeData`] that contains the bytes of
@@ -221,8 +142,15 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake messages. Returns a [TLSError]
     /// if parsing of either message fails or if the payload is not fully consumed
     /// by parsing two messages.
+    #[hax_lib::pv_handwritten]
     pub(crate) fn to_two(&self) -> Result<(HandshakeData, HandshakeData), TLSError> {
-        to_two_inner(&self)
+        let (message1, payload_rest) = self.next_handshake_message()?;
+        let (message2, payload_rest) = payload_rest.next_handshake_message()?;
+        if payload_rest.len() != 0 {
+            tlserr(parse_failed())
+        } else {
+            Ok((message1, message2))
+        }
     }
 
     /// Attempt to parse exactly four handshake messages from `payload`.
@@ -230,10 +158,20 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake messages. Returns a [TLSError]
     /// if parsing of any message fails or if the payload is not fully consumed
     /// by parsing four messages.
+    #[hax_lib::pv_handwritten]
     pub(crate) fn to_four(
         &self,
     ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
-        to_four_inner(&self)
+        let (message1, payload_rest) = self.next_handshake_message()?;
+        let (message2, payload_rest) = payload_rest.next_handshake_message()?;
+        let (message3, payload_rest) = payload_rest.next_handshake_message()?;
+        let (message4, payload_rest) = payload_rest.next_handshake_message()?;
+
+        if payload_rest.len() != 0 {
+            tlserr(parse_failed())
+        } else {
+            Ok((message1, message2, message3, message4))
+        }
     }
 
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.

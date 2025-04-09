@@ -1,6 +1,6 @@
 use std::{
-    eprintln,
     collections::HashMap,
+    eprintln,
     fs::File,
     io::{BufReader, Read, Write},
     net::TcpStream,

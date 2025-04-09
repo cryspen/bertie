@@ -8,6 +8,7 @@ use libcrux_ecdsa::DigestAlgorithm as EcDsaDigestAlgorithm;
 use libcrux_ed25519;
 use libcrux_hkdf::{expand, extract, Algorithm as HkdfAlgorithm};
 use libcrux_hmac::{hmac, Algorithm as HmacAlgorithm};
+
 use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use libcrux_rsa::{
     sign_varlen, verify_varlen, DigestAlgorithm as RsaDigestAlgorithm, VarLenPrivateKey,
@@ -79,8 +80,10 @@ pub(crate) struct RsaVerificationKey {
 /// Bertie public verification keys.
 #[derive(Debug)]
 // XXX: Extracting this still leads to ambigous accessors, so I removed these here.
-#[cfg_attr(feature = "hax-pv", proverif::replace(
-"type $:{PublicVerificationKey}.
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "type $:{PublicVerificationKey}.
 
 fun $:{PublicVerificationKey}_to_bitstring(
       $:{PublicVerificationKey}
@@ -102,7 +105,8 @@ fun ${PublicVerificationKey::Rsa}(
     )
     : $:{PublicVerificationKey} [data].
 "
-))]
+    )
+)]
 pub(crate) enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
@@ -130,12 +134,12 @@ fn hash_len_inner(h: &HashAlgorithm) -> usize {
 /// Returns the digest or an [`TLSError`].
 #[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn hash(ha: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
-        let hasher = ha.libcrux_algorithm()?;
+    let hasher = ha.libcrux_algorithm()?;
 
-        let mut digest = vec![0u8; hasher.hash_len()];
-        hasher.hash(&data.declassify(), &mut digest);
+    let mut digest = vec![0u8; hasher.hash_len()];
+    hasher.hash(&data.declassify(), &mut digest);
 
-        Ok(digest.into())
+    Ok(digest.into())
 }
 
 impl HashAlgorithm {
@@ -147,8 +151,6 @@ impl HashAlgorithm {
             HashAlgorithm::SHA512 => Ok(Sha2Algorithm::Sha512),
         }
     }
-
-
 
     /// Get the size of the hash digest.
     pub(crate) fn hash_len(&self) -> usize {
@@ -173,7 +175,7 @@ impl HashAlgorithm {
 /// Compute the HMAC tag.
 ///
 /// Returns the tag [`Hmac`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac(
         alg.hmac_algorithm()?,
@@ -234,7 +236,7 @@ fn hkdf_algorithm(alg: &HashAlgorithm) -> Result<HkdfAlgorithm, TLSError> {
 /// HKDF Extract.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hkdf_extract(
     alg: &HashAlgorithm,
     ikm: &Bytes,
@@ -248,7 +250,7 @@ pub(crate) fn hkdf_extract(
 /// HKDF Expand.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hkdf_expand(
     alg: &HashAlgorithm,
     prk: &Bytes,
@@ -418,7 +420,7 @@ pub(crate) fn sign_rsa(
 #[cfg_attr(
     feature = "hax-pv",
     proverif::before(
-"fun extern__sign_inner(
+        "fun extern__sign_inner(
          $:{SignatureScheme},
          $:{Bytes}, (* sk *)
          $:{Bytes}  (* input *)
@@ -871,6 +873,7 @@ impl Algorithms {
     }
 }
 
+#[hax_lib::opaque]
 impl TryFrom<&str> for Algorithms {
     type Error = Error;
 

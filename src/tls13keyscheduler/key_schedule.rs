@@ -78,7 +78,6 @@ pub trait KeySchedule<N> {
     fn hash(d: &Bytes) -> Bytes;
 }
 
-
 pub struct TLSkeyscheduler {
     pub keys: HashMap<(TLSnames, HashAlgorithm, u8), Key>,
 }
@@ -327,10 +326,7 @@ pub(crate) fn xpd_angle(
 }
 
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
-pub fn tagkey_from_handle(
-    ks: &TLSkeyscheduler,
-    handle: &Handle,
-) -> Result<TagKey, TLSError> {
+pub fn tagkey_from_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<TagKey, TLSError> {
     Ok(TagKey {
         alg: handle.alg,
         tag: handle.name,
