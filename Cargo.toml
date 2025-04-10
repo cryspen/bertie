@@ -29,7 +29,8 @@ libcrux-ed25519 = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/
 libcrux-ecdsa = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/libcrux", features = [
     "rand",
 ] }
-hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
+#hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
+hax-lib = { git = "https://github.com/cryspen/hax", branch = "bertie-libs"}
 
 [features]
 default = ["api", "std"]

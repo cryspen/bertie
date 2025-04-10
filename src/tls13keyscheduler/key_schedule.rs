@@ -419,6 +419,7 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
 }
 
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
+#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn XTR(
     ks: &mut TLSkeyscheduler,
     level: u8,
