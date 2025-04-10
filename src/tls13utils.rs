@@ -499,7 +499,7 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[ensures(|result| result.len() == self.len() + other.len())]
+    #[ensures(|result| fstar!("Seq.length ${result}._0 == Seq.length self._0 + Seq.length ${other}._0"))]
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
         self

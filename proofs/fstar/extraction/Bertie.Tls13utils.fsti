@@ -324,8 +324,7 @@ val impl_Bytes__concat (self other: t_Bytes)
       (ensures
         fun result ->
           let result:t_Bytes = result in
-          (impl_Bytes__len result <: usize) =.
-          ((impl_Bytes__len self <: usize) +! (impl_Bytes__len other <: usize) <: usize))
+          Seq.length result._0 == Seq.length self._0 + Seq.length other._0)
 
 /// Convert the bool `b` into a Result.
 val check (b: bool)
