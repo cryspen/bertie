@@ -200,8 +200,8 @@ impl From<Vec<u8>> for Bytes {
 )]
 pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
     let mut result = bytes;
-        result.extend_from_slice(&other);
-        result
+    result.extend_from_slice(&other);
+    result
 }
 
 #[cfg_attr(

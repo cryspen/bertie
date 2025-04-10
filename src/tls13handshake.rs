@@ -878,6 +878,5 @@ mod proverif_extra {
 
     fn f() {
         let b = Bytes::new();
-        
     }
 }
