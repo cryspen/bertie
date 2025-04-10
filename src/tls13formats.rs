@@ -1114,7 +1114,6 @@ cert: $:{Bytes};
       ) = cert."
     )
 )]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_certificate_verify(
     algs: &Algorithms,
     certificate_verify: &HandshakeData,

@@ -2015,8 +2015,6 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
     <:
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
-#push-options "--admit_smt_queries true"
-
 let parse_certificate_verify
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (certificate_verify: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -2114,8 +2112,6 @@ let parse_certificate_verify
         Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-
-#pop-options
 
 let finished (vd: Bertie.Tls13utils.t_Bytes) =
   Bertie.Tls13formats.Handshake_data.impl_HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_Finished
