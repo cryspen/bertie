@@ -1530,8 +1530,6 @@ let encrypted_extensions (e_algs: Bertie.Tls13crypto.t_Algorithms) =
     <:
     Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
 
-#push-options "--admit_smt_queries true"
-
 let parse_encrypted_extensions
       (e_algs: Bertie.Tls13crypto.t_Algorithms)
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -1560,20 +1558,19 @@ let parse_encrypted_extensions
     Core.Result.t_Result Prims.unit u8
   with
   | Core.Result.Result_Ok _ ->
-    Bertie.Tls13utils.check_length_encoding_u24 (Bertie.Tls13utils.impl_Bytes__raw_slice encrypted_extension_bytes
-          ({
-              Core.Ops.Range.f_start = mk_usize 1;
-              Core.Ops.Range.f_end
-              =
-              Bertie.Tls13utils.impl_Bytes__len encrypted_extension_bytes <: usize
-            }
-            <:
-            Core.Ops.Range.t_Range usize)
-        <:
-        t_Slice u8)
+    let extensions:t_Slice u8 =
+      Bertie.Tls13utils.impl_Bytes__raw_slice encrypted_extension_bytes
+        ({
+            Core.Ops.Range.f_start = mk_usize 1;
+            Core.Ops.Range.f_end
+            =
+            Bertie.Tls13utils.impl_Bytes__len encrypted_extension_bytes <: usize
+          }
+          <:
+          Core.Ops.Range.t_Range usize)
+    in
+    Bertie.Tls13utils.check_length_encoding_u24 extensions
   | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8
-
-#pop-options
 
 let server_certificate (e_algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes) =
   match

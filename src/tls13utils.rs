@@ -633,6 +633,9 @@ pub(crate) fn check_eq_slice(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+                                    Ok(_) => b2.len() >= end && b2.len() >= start && start <= end,
+                                    _ => true})]
 pub(crate) fn check_eq_with_slice(
     b1: &[U8],
     b2: &[U8],

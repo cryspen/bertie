@@ -969,7 +969,6 @@ reduc forall algs: $:{Algorithms};
       ) = ()."
     )
 )]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn parse_encrypted_extensions(
     _algs: &Algorithms,
     encrypted_extensions: &HandshakeData,
@@ -982,10 +981,10 @@ pub(crate) fn parse_encrypted_extensions(
         0,
         1,
     )?;
-    check_length_encoding_u24(
-        encrypted_extension_bytes.raw_slice(1..encrypted_extension_bytes.len()),
-    )
+    let extensions = encrypted_extension_bytes.raw_slice(1..encrypted_extension_bytes.len());
+    check_length_encoding_u24(extensions)
 }
+
 #[hax_lib::pv_constructor]
 pub(crate) fn server_certificate(
     _algs: &Algorithms,

@@ -378,7 +378,17 @@ val check_eq_inner (b1 b2: t_Bytes)
 /// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 val check_eq_with_slice (b1 b2: t_Slice u8) (start v_end: usize)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ ->
+            (Core.Slice.impl__len #u8 b2 <: usize) >=. v_end &&
+            (Core.Slice.impl__len #u8 b2 <: usize) >=. start &&
+            start <=. v_end
+          | _ -> true)
 
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
