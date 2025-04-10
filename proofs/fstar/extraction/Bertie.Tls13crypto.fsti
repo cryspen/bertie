@@ -47,13 +47,21 @@ val impl_9:Core.Clone.t_Clone t_HashAlgorithm
 val impl_10:Core.Marker.t_Copy t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
+val impl_12:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
+val impl_13:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Fmt.t_Debug t_HashAlgorithm
+val impl_11:Core.Cmp.t_Eq t_HashAlgorithm
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_14:Core.Fmt.t_Debug t_HashAlgorithm
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_15:Core.Hash.t_Hash t_HashAlgorithm
+
+val hash_len_inner (h: t_HashAlgorithm) : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
 
 /// Get the libcrux hash algorithm
 val impl_HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
@@ -63,7 +71,7 @@ val impl_HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
 
 /// Hash `data` with the given `algorithm`.
 /// Returns the digest or an [`TLSError`].
-val impl_HashAlgorithm__hash (self: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
+val hash (ha: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
@@ -148,19 +156,19 @@ val t_AeadAlgorithm_cast_to_repr (x: t_AeadAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_14:Core.Clone.t_Clone t_AeadAlgorithm
+val impl_16:Core.Clone.t_Clone t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_15:Core.Marker.t_Copy t_AeadAlgorithm
+val impl_17:Core.Marker.t_Copy t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_16:Core.Marker.t_StructuralPartialEq t_AeadAlgorithm
+val impl_18:Core.Marker.t_StructuralPartialEq t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_17:Core.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
+val impl_19:Core.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_18:Core.Fmt.t_Debug t_AeadAlgorithm
+val impl_20:Core.Fmt.t_Debug t_AeadAlgorithm
 
 /// Get the key length of the AEAD algorithm in bytes.
 val impl_AeadAlgorithm__key_len (self: t_AeadAlgorithm)
@@ -192,19 +200,19 @@ val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_19:Core.Clone.t_Clone t_SignatureScheme
+val impl_21:Core.Clone.t_Clone t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_20:Core.Marker.t_Copy t_SignatureScheme
+val impl_22:Core.Marker.t_Copy t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_21:Core.Marker.t_StructuralPartialEq t_SignatureScheme
+val impl_23:Core.Marker.t_StructuralPartialEq t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_22:Core.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
+val impl_24:Core.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_23:Core.Fmt.t_Debug t_SignatureScheme
+val impl_25:Core.Fmt.t_Debug t_SignatureScheme
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 val sign
@@ -262,22 +270,22 @@ val t_KemScheme_cast_to_repr (x: t_KemScheme)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_24:Core.Clone.t_Clone t_KemScheme
+val impl_26:Core.Clone.t_Clone t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_25:Core.Marker.t_Copy t_KemScheme
+val impl_27:Core.Marker.t_Copy t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_26:Core.Marker.t_StructuralPartialEq t_KemScheme
+val impl_28:Core.Marker.t_StructuralPartialEq t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_27:Core.Cmp.t_PartialEq t_KemScheme t_KemScheme
+val impl_29:Core.Cmp.t_PartialEq t_KemScheme t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_28:Core.Cmp.t_Eq t_KemScheme
+val impl_30:Core.Cmp.t_Eq t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_29:Core.Fmt.t_Debug t_KemScheme
+val impl_31:Core.Fmt.t_Debug t_KemScheme
 
 /// Get the libcrux algorithm for this [`KemScheme`].
 val impl_KemScheme__libcrux_kem_algorithm (self: t_KemScheme)
@@ -344,19 +352,19 @@ type t_Algorithms = {
 }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_30:Core.Clone.t_Clone t_Algorithms
+val impl_32:Core.Clone.t_Clone t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_31:Core.Marker.t_Copy t_Algorithms
+val impl_33:Core.Marker.t_Copy t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_32:Core.Marker.t_StructuralPartialEq t_Algorithms
+val impl_34:Core.Marker.t_StructuralPartialEq t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_33:Core.Cmp.t_PartialEq t_Algorithms t_Algorithms
+val impl_35:Core.Cmp.t_PartialEq t_Algorithms t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_34:Core.Fmt.t_Debug t_Algorithms
+val impl_36:Core.Fmt.t_Debug t_Algorithms
 
 /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
 val impl_Algorithms__new
@@ -417,7 +425,7 @@ val impl_Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_35:Core.Convert.t_TryFrom t_Algorithms string
+val impl_37:Core.Convert.t_TryFrom t_Algorithms string
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_6:Core.Fmt.t_Display t_Algorithms

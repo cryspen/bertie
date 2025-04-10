@@ -101,8 +101,10 @@ let get_hs_type (t: u8) =
     Core.Result.t_Result t_HandshakeType u8
   | _ -> Bertie.Tls13utils.tlserr #t_HandshakeType (Bertie.Tls13utils.parse_failed () <: u8)
 
-let impl_HandshakeData__to_bytes (self: t_HandshakeData) =
-  Core.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve self._0
+let to_bytes_inner (hs: t_HandshakeData) =
+  Core.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve hs._0
+
+let impl_HandshakeData__to_bytes (self: t_HandshakeData) = to_bytes_inner self
 
 let impl_HandshakeData__len (self: t_HandshakeData) = Bertie.Tls13utils.impl_Bytes__len self._0
 
@@ -153,55 +155,9 @@ let impl_HandshakeData__next_handshake_message (self: t_HandshakeData) =
     | Core.Result.Result_Err err ->
       Core.Result.Result_Err err <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
 
-let impl_HandshakeData__as_handshake_message
-      (self: t_HandshakeData)
-      (expected_type: t_HandshakeType)
-     =
+let to_two_inner (hs_data: t_HandshakeData) =
   match
-    impl_HandshakeData__next_handshake_message self
-    <:
-    Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
-  with
-  | Core.Result.Result_Ok (message, payload_rest) ->
-    if (impl_HandshakeData__len payload_rest <: usize) <>. mk_usize 0
-    then Bertie.Tls13utils.tlserr #t_HandshakeData (Bertie.Tls13utils.parse_failed () <: u8)
-    else
-      let HandshakeData tagged_message_bytes:t_HandshakeData = message in
-      (match
-          Bertie.Tls13utils.check_eq1 (Bertie.Tls13utils.v_U8 (t_HandshakeType_cast_to_repr expected_type
-
-                  <:
-                  u8)
-              <:
-              u8)
-            (tagged_message_bytes.[ mk_usize 0 ] <: u8)
-          <:
-          Core.Result.t_Result Prims.unit u8
-        with
-        | Core.Result.Result_Ok _ ->
-          Core.Result.Result_Ok
-          (HandshakeData
-            (Bertie.Tls13utils.impl_Bytes__slice_range tagged_message_bytes
-                ({
-                    Core.Ops.Range.f_start = mk_usize 4;
-                    Core.Ops.Range.f_end
-                    =
-                    Bertie.Tls13utils.impl_Bytes__len tagged_message_bytes <: usize
-                  }
-                  <:
-                  Core.Ops.Range.t_Range usize))
-            <:
-            t_HandshakeData)
-          <:
-          Core.Result.t_Result t_HandshakeData u8
-        | Core.Result.Result_Err err ->
-          Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
-
-let impl_HandshakeData__to_two (self: t_HandshakeData) =
-  match
-    impl_HandshakeData__next_handshake_message self
+    impl_HandshakeData__next_handshake_message hs_data
     <:
     Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
   with
@@ -225,9 +181,9 @@ let impl_HandshakeData__to_two (self: t_HandshakeData) =
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
 
-let impl_HandshakeData__to_four (self: t_HandshakeData) =
+let to_four_inner (hs_data: t_HandshakeData) =
   match
-    impl_HandshakeData__next_handshake_message self
+    impl_HandshakeData__next_handshake_message hs_data
     <:
     Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
   with
@@ -283,6 +239,56 @@ let impl_HandshakeData__to_four (self: t_HandshakeData) =
     <:
     Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8
 
+let impl_HandshakeData__as_handshake_message
+      (self: t_HandshakeData)
+      (expected_type: t_HandshakeType)
+     =
+  match
+    impl_HandshakeData__next_handshake_message self
+    <:
+    Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8
+  with
+  | Core.Result.Result_Ok (message, payload_rest) ->
+    if (impl_HandshakeData__len payload_rest <: usize) <>. mk_usize 0
+    then Bertie.Tls13utils.tlserr #t_HandshakeData (Bertie.Tls13utils.parse_failed () <: u8)
+    else
+      let HandshakeData tagged_message_bytes:t_HandshakeData = message in
+      (match
+          Bertie.Tls13utils.check_eq1 (Bertie.Tls13utils.v_U8 (t_HandshakeType_cast_to_repr expected_type
+
+                  <:
+                  u8)
+              <:
+              u8)
+            (tagged_message_bytes.[ mk_usize 0 ] <: u8)
+          <:
+          Core.Result.t_Result Prims.unit u8
+        with
+        | Core.Result.Result_Ok _ ->
+          Core.Result.Result_Ok
+          (HandshakeData
+            (Bertie.Tls13utils.impl_Bytes__slice_range tagged_message_bytes
+                ({
+                    Core.Ops.Range.f_start = mk_usize 4;
+                    Core.Ops.Range.f_end
+                    =
+                    Bertie.Tls13utils.impl_Bytes__len tagged_message_bytes <: usize
+                  }
+                  <:
+                  Core.Ops.Range.t_Range usize))
+            <:
+            t_HandshakeData)
+          <:
+          Core.Result.t_Result t_HandshakeData u8
+        | Core.Result.Result_Err err ->
+          Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
+
+let impl_HandshakeData__to_two (self: t_HandshakeData) = to_two_inner self
+
+let impl_HandshakeData__to_four (self: t_HandshakeData) = to_four_inner self
+
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 let impl: Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes =
   {
@@ -291,10 +297,7 @@ let impl: Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes =
     f_from = fun (value: Bertie.Tls13utils.t_Bytes) -> HandshakeData value <: t_HandshakeData
   }
 
-let impl_HandshakeData__from_bytes
-      (handshake_type: t_HandshakeType)
-      (handshake_bytes: Bertie.Tls13utils.t_Bytes)
-     =
+let from_bytes_inner (handshake_type: t_HandshakeType) (handshake_bytes: Bertie.Tls13utils.t_Bytes) =
   match
     Bertie.Tls13utils.encode_length_u24 handshake_bytes
     <:
@@ -319,6 +322,11 @@ let impl_HandshakeData__from_bytes
     Core.Result.t_Result t_HandshakeData u8
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result t_HandshakeData u8
+
+let impl_HandshakeData__from_bytes
+      (handshake_type: t_HandshakeType)
+      (handshake_bytes: Bertie.Tls13utils.t_Bytes)
+     = from_bytes_inner handshake_type handshake_bytes
 
 let impl_HandshakeData__concat (self other: t_HandshakeData) =
   let message1:Bertie.Tls13utils.t_Bytes = impl_HandshakeData__to_bytes self in

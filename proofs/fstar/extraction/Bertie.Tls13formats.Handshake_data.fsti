@@ -84,6 +84,9 @@ val get_hs_type (t: u8)
 /// Hadshake data of the TLS handshake.
 type t_HandshakeData = | HandshakeData : Bertie.Tls13utils.t_Bytes -> t_HandshakeData
 
+val to_bytes_inner (hs: t_HandshakeData)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
 /// Returns the handshake data bytes.
 val impl_HandshakeData__to_bytes (self: t_HandshakeData)
     : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -111,6 +114,16 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
           match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
           | Core.Result.Result_Ok (m, _) -> (impl_HandshakeData__len m <: usize) >=. mk_usize 4
           | _ -> true)
+
+val to_two_inner (hs_data: t_HandshakeData)
+    : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
+
+val to_four_inner (hs_data: t_HandshakeData)
+    : Prims.Pure
+      (Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData)
+          u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Attempt to parse exactly one handshake message of the `expected_type` from
 /// `payload`.
@@ -142,6 +155,9 @@ val impl_HandshakeData__to_four (self: t_HandshakeData)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
+
+val from_bytes_inner (handshake_type: t_HandshakeType) (handshake_bytes: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
 val impl_HandshakeData__from_bytes

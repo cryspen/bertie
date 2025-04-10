@@ -403,6 +403,7 @@ fn check_eq_inner(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_slice(b1.as_raw(), b2.as_raw())
 }
 
+#[hax_lib::attributes]
 impl Bytes {
     /// Create new [`Bytes`].
     #[hax_lib::pv_constructor]

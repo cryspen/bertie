@@ -529,7 +529,15 @@ let pre_shared_key
                           Bertie.Tls13utils.t_Bytes)
                         hoist56
                     in
-                    Core.Result.Result_Ok (ext, binders_len <: (Bertie.Tls13utils.t_Bytes & usize))
+                    let ext_len:usize = Bertie.Tls13utils.impl_Bytes__len ext in
+                    Core.Result.Result_Ok
+                    (ext,
+                      (((ext_len +! binders_len <: usize) +! mk_usize 199 <: usize) -! mk_usize 16
+                        <:
+                        usize) -!
+                      mk_usize 82
+                      <:
+                      (Bertie.Tls13utils.t_Bytes & usize))
                     <:
                     Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8
                   | Core.Result.Result_Err err ->
@@ -603,16 +611,49 @@ let check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8
                         Bertie.Tls13crypto.t_HashAlgorithm)
                     <:
                     usize)
-                then Bertie.Tls13utils.tlserr #Prims.unit (Bertie.Tls13utils.parse_failed () <: u8)
-                else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
+                then
+                  Bertie.Tls13utils.tlserr #(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
+                    (Bertie.Tls13utils.parse_failed () <: u8)
+                else
+                  Core.Result.Result_Ok
+                  (Core.Convert.f_from #Bertie.Tls13utils.t_Bytes
+                      #(t_Slice u8)
+                      #FStar.Tactics.Typeclasses.solve
+                      (ch.[ {
+                            Core.Ops.Range.f_start = mk_usize 4;
+                            Core.Ops.Range.f_end = mk_usize 4 +! len_tkt <: usize
+                          }
+                          <:
+                          Core.Ops.Range.t_Range usize ]
+                        <:
+                        t_Slice u8),
+                    Core.Convert.f_from #Bertie.Tls13utils.t_Bytes
+                      #(t_Array u8 (mk_usize 0))
+                      #FStar.Tactics.Typeclasses.solve
+                      (Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 0) <: t_Array u8 (mk_usize 0))
+                    <:
+                    (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+                  <:
+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
               | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8)
+                Core.Result.Result_Err err
+                <:
+                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
           | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8
-        else Bertie.Tls13utils.tlserr #Prims.unit (Bertie.Tls13utils.parse_failed () <: u8)
+            Core.Result.Result_Err err
+            <:
+            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+        else
+          Bertie.Tls13utils.tlserr #(Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
+            (Bertie.Tls13utils.parse_failed () <: u8)
       | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8)
-  | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result Prims.unit u8
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
 
 let server_pre_shared_key (e_algs: Bertie.Tls13crypto.t_Algorithms) =
   match
@@ -2469,7 +2510,7 @@ let impl_Transcript__add
 
 let impl_Transcript__transcript_hash (self: t_Transcript) =
   match
-    Bertie.Tls13crypto.impl_HashAlgorithm__hash self.f_hash_algorithm
+    Bertie.Tls13crypto.hash self.f_hash_algorithm
       self.f_transcript.Bertie.Tls13formats.Handshake_data._0
     <:
     Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
@@ -2488,7 +2529,7 @@ let impl_Transcript__transcript_hash_without_client_hello
   =
     client_hello
   in
-  Bertie.Tls13crypto.impl_HashAlgorithm__hash self.f_hash_algorithm
+  Bertie.Tls13crypto.hash self.f_hash_algorithm
     (Bertie.Tls13utils.impl_Bytes__concat (Core.Clone.f_clone #Bertie.Tls13utils.t_Bytes
             #FStar.Tactics.Typeclasses.solve
             self.f_transcript.Bertie.Tls13formats.Handshake_data._0
@@ -2821,10 +2862,29 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8) 
                   <:
                   t_Slice u8)
               <:
-              Core.Result.t_Result Prims.unit u8
+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
             with
-            | Core.Result.Result_Ok _ ->
-              Core.Result.Result_Ok (mk_usize 4 +! len, out <: (usize & t_Extensions))
+            | Core.Result.Result_Ok (tkt, binder) ->
+              Core.Result.Result_Ok
+              (mk_usize 4 +! len,
+                ({
+                    f_sni
+                    =
+                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+                    f_key_share
+                    =
+                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+                    f_ticket
+                    =
+                    Core.Option.Option_Some tkt <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+                    f_binder
+                    =
+                    Core.Option.Option_Some binder <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+                  }
+                  <:
+                  t_Extensions)
+                <:
+                (usize & t_Extensions))
               <:
               Core.Result.t_Result (usize & t_Extensions) u8
             | Core.Result.Result_Err err ->

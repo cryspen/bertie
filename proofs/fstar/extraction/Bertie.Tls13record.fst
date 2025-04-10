@@ -15,13 +15,13 @@ let client_cipher_state0
       (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
       (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
       (c: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
+      (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
      = ClientCipherState0 ae kiv c k <: t_ClientCipherState0
 
 let server_cipher_state0
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
       (counter: u64)
-      (early_exporter_ms: Bertie.Tls13utils.t_Bytes)
+      (early_exporter_ms: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
      =
   { f_key_iv = key_iv; f_counter = counter; f_early_exporter_ms = early_exporter_ms }
   <:
@@ -48,7 +48,7 @@ let duplex_cipher_state1
       (c1: u64)
       (kiv2: Bertie.Tls13crypto.t_AeadKeyIV)
       (c2: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
+      (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
      = DuplexCipherState1 ae kiv1 c1 kiv2 c2 k <: t_DuplexCipherState1
 
 let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =

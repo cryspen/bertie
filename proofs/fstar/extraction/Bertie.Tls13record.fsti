@@ -16,7 +16,7 @@ type t_ClientCipherState0 =
       Bertie.Tls13crypto.t_AeadAlgorithm ->
       Bertie.Tls13crypto.t_AeadKeyIV ->
       u64 ->
-      Bertie.Tls13utils.t_Bytes
+      Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
     -> t_ClientCipherState0
 
 /// Build the initial client cipher state.
@@ -24,21 +24,21 @@ val client_cipher_state0
       (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
       (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
       (c: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
+      (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
     : Prims.Pure t_ClientCipherState0 Prims.l_True (fun _ -> Prims.l_True)
 
 /// The AEAD state of the server with the key, iv, and counter.
 type t_ServerCipherState0 = {
   f_key_iv:Bertie.Tls13crypto.t_AeadKeyIV;
   f_counter:u64;
-  f_early_exporter_ms:Bertie.Tls13utils.t_Bytes
+  f_early_exporter_ms:Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
 }
 
 /// Create the initial cipher state for the server.
 val server_cipher_state0
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
       (counter: u64)
-      (early_exporter_ms: Bertie.Tls13utils.t_Bytes)
+      (early_exporter_ms: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
     : Prims.Pure t_ServerCipherState0 Prims.l_True (fun _ -> Prims.l_True)
 
 /// Duplex cipher state with hello keys.
@@ -64,7 +64,7 @@ type t_DuplexCipherState1 =
       u64 ->
       Bertie.Tls13crypto.t_AeadKeyIV ->
       u64 ->
-      Bertie.Tls13utils.t_Bytes
+      Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
     -> t_DuplexCipherState1
 
 /// Create the next cipher state.
@@ -74,7 +74,7 @@ val duplex_cipher_state1
       (c1: u64)
       (kiv2: Bertie.Tls13crypto.t_AeadKeyIV)
       (c2: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
+      (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
     : Prims.Pure t_DuplexCipherState1 Prims.l_True (fun _ -> Prims.l_True)
 
 /// Derive the AEAD IV with counter `n`

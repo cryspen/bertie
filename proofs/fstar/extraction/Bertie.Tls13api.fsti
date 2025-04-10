@@ -52,7 +52,10 @@ val impl_Client__connect
       (server_name: Bertie.Tls13utils.t_Bytes)
       (session_ticket psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
-    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
+      (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
+    : Prims.Pure
+      (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
+        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -65,9 +68,13 @@ val impl_Client__connect
 /// the second element.
 /// If there's no handshake message, the first element is [`None`].
 /// If an error occurs, it returns a [`TLSError`].
-val impl_Client__read_handshake (self: t_Client) (handshake_bytes: Bertie.Tls13utils.t_Bytes)
+val impl_Client__read_handshake
+      (self: t_Client)
+      (handshake_bytes: Bertie.Tls13utils.t_Bytes)
+      (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
-      (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes & t_Client) u8)
+      (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
+        Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -116,8 +123,14 @@ type t_Server =
 /// The function returns a [`Result`].
 /// When successful, the function returns the next [`Server`] state.
 /// If an error occurs, it returns a [`TLSError`].
-val impl_Server__read_handshake (self: t_Server) (handshake_bytes: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_Server u8) Prims.l_True (fun _ -> Prims.l_True)
+val impl_Server__read_handshake
+      (self: t_Server)
+      (handshake_bytes: Bertie.Tls13utils.t_Bytes)
+      (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
+    : Prims.Pure
+      (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler & Core.Result.t_Result t_Server u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 /// Send application data to the client.
 /// The function returns a [`Result`].
@@ -165,8 +178,9 @@ val impl_Server__accept
       (db: Bertie.Server.t_ServerDB)
       (client_hello: Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
+      (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
-      (iimpl_447424039_ &
+      (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
         Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8)
       (requires (Bertie.Tls13utils.impl_Bytes__len client_hello <: usize) >=. mk_usize 5)
       (fun _ -> Prims.l_True)

@@ -254,7 +254,9 @@ val pre_shared_key
       (fun _ -> Prims.l_True)
 
 val check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val server_pre_shared_key (e_algs: Bertie.Tls13crypto.t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)

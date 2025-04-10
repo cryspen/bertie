@@ -195,6 +195,8 @@ val impl_Bytes__extend_from_slice (self x: t_Bytes)
 /// Extend `self` with the bytes `x`.
 val impl_Bytes__append (self x: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
+val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
 /// Generate a new [`Bytes`] struct from slice `s`.
 val impl_Bytes__from_slice (s: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
@@ -322,6 +324,8 @@ val check_eq1 (b1 b2: u8)
 /// length and agree on all positions.
 val eq_slice (b1 b2: t_Slice u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 
+val eq_inner (b1 b2: t_Bytes) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
 val eq (b1 b2: t_Bytes) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
@@ -329,6 +333,9 @@ val eq (b1 b2: t_Bytes) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 /// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 val check_eq_slice (b1 b2: t_Slice u8)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+
+val check_eq_inner (b1 b2: t_Bytes)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Parse function to check if two slices `b1` and `b2` are of the same
