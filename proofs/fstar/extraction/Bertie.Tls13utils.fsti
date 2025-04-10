@@ -185,10 +185,10 @@ val impl_Bytes__push (self: t_Bytes) (x: u8)
 val impl_Bytes__extend_from_slice (self x: t_Bytes)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
+val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
 /// Extend `self` with the bytes `x`.
 val impl_Bytes__append (self x: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 /// Read a hex string into [`Bytes`].
 val impl_Bytes__from_hex (s: string) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
