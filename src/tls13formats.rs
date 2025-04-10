@@ -543,6 +543,10 @@ pub fn bench_client_hello(
     )
 }
 
+#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|result| match result {
+                            Ok((len, extensions)) => len <= extensions.len(),
+                            _ => true})]
 fn get_psk_extensions(
     algorithms: &Algorithms,
     session_ticket: &Bytes,
@@ -583,7 +587,6 @@ fn get_psk_extensions(
      0)"
     )
 )]
-#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::requires(client_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
                                 Result::Ok((ch,tl)) => tl <= ch.len(),

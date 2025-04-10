@@ -968,6 +968,8 @@ val impl_14': Core.Cmp.t_PartialEq t_AlertDescription t_AlertDescription
 
 let impl_14 = impl_14'
 
+#push-options "--admit_smt_queries true"
+
 let get_psk_extensions
       (algorithms: Bertie.Tls13crypto.t_Algorithms)
       (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
@@ -994,7 +996,7 @@ let get_psk_extensions
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8
 
-#push-options "--admit_smt_queries true"
+#pop-options
 
 let client_hello
       (algorithms: Bertie.Tls13crypto.t_Algorithms)
@@ -1248,8 +1250,6 @@ let client_hello
     Core.Result.Result_Err err
     <:
     Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
-
-#pop-options
 
 let set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)

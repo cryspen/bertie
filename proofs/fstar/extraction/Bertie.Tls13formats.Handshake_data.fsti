@@ -64,19 +64,19 @@ val t_HandshakeType_cast_to_repr (x: t_HandshakeType)
     : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_1:Core.Clone.t_Clone t_HandshakeType
+val impl:Core.Clone.t_Clone t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_2:Core.Marker.t_Copy t_HandshakeType
+val impl_1:Core.Marker.t_Copy t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_3:Core.Fmt.t_Debug t_HandshakeType
+val impl_2:Core.Fmt.t_Debug t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_4:Core.Marker.t_StructuralPartialEq t_HandshakeType
+val impl_3:Core.Marker.t_StructuralPartialEq t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
+val impl_4:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
 
 val get_hs_type (t: u8)
     : Prims.Pure (Core.Result.t_Result t_HandshakeType u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -170,16 +170,36 @@ val impl_HandshakeData__to_four (self: t_HandshakeData)
           u8) Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
+val impl_6:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
 
 val from_bytes_inner (handshake_type: t_HandshakeType) (handshake_bytes: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core.Result.t_Result t_HandshakeData u8 with
+          | Core.Result.Result_Ok hd ->
+            (impl_HandshakeData__len hd <: usize) >=. mk_usize 4 &&
+            ((impl_HandshakeData__len hd <: usize) -! mk_usize 4 <: usize) =.
+            (Bertie.Tls13utils.impl_Bytes__len handshake_bytes <: usize)
+          | _ -> true)
 
 /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
 val impl_HandshakeData__from_bytes
       (handshake_type: t_HandshakeType)
       (handshake_bytes: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core.Result.t_Result t_HandshakeData u8 with
+          | Core.Result.Result_Ok hd ->
+            (impl_HandshakeData__len hd <: usize) >=. mk_usize 4 &&
+            ((impl_HandshakeData__len hd <: usize) -! mk_usize 4 <: usize) =.
+            (Bertie.Tls13utils.impl_Bytes__len handshake_bytes <: usize)
+          | _ -> true)
 
 /// Returns a new [`HandshakeData`] that contains the bytes of
 /// `other` appended to the bytes of `self`.

@@ -129,6 +129,9 @@ fn to_four_inner(
 }
 
 #[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::ensures(|result| match result {
+    Ok(hd) => hd.len() >= 4 && hd.len() - 4 == handshake_bytes.len(),
+    _ => true })]
 pub(crate) fn from_bytes_inner(
     handshake_type: HandshakeType,
     handshake_bytes: &Bytes,
@@ -146,6 +149,9 @@ pub(crate) fn to_bytes_inner(hs: &HandshakeData) -> Bytes {
 #[hax_lib::attributes]
 impl HandshakeData {
     /// Generate a new [`HandshakeData`] from [`Bytes`] and the [`HandshakeType`].
+    #[hax_lib::ensures(|result| match result {
+        Ok(hd) => hd.len() >= 4 && hd.len() - 4 == handshake_bytes.len(),
+        _ => true })]
     pub(crate) fn from_bytes(
         handshake_type: HandshakeType,
         handshake_bytes: &Bytes,
@@ -268,7 +274,9 @@ impl HandshakeData {
     }
 }
 
+#[hax_lib::attributes]
 impl From<Bytes> for HandshakeData {
+    #[ensures(|result| fstar!("result._0 = value"))]
     fn from(value: Bytes) -> Self {
         HandshakeData(value)
     }

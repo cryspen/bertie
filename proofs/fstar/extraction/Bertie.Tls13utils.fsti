@@ -174,9 +174,6 @@ let impl_22: Core.Ops.Index.t_Index t_Bytes (Core.Ops.Range.t_Range usize) =
 /// Create new [`Bytes`].
 val impl_Bytes__new: Prims.unit -> Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-/// Create new [`Bytes`].
-val impl_Bytes__new_alloc (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
 /// Push `x` into these [`Bytes`].
 val impl_Bytes__push (self: t_Bytes) (x: u8)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -186,9 +183,6 @@ val impl_Bytes__extend_from_slice (self x: t_Bytes)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Extend `self` with the bytes `x`.
-val impl_Bytes__append (self x: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 /// Read a hex string into [`Bytes`].
 val impl_Bytes__from_hex (s: string) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -201,6 +195,15 @@ val impl_Bytes__concat_array (v_N: usize) (self: t_Bytes) (other: t_Array u8 v_N
 /// a copy as [`Bytes`].
 val impl_Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Create new [`Bytes`].
+val impl_Bytes__new_alloc (len: usize)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          Seq.length result._0 == 0)
 
 /// Generate `len` bytes of `0`.
 val impl_Bytes__zeroes (len: usize)
@@ -277,6 +280,15 @@ val e_update_at_usize_bytes_test (b: t_Bytes)
 
 /// Generate a new [`Bytes`] struct from slice `s`.
 val impl_Bytes__from_slice (s: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Extend `self` with the bytes `x`.
+val impl_Bytes__append (self x: t_Bytes)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun self_e_future ->
+          let self_e_future:t_Bytes = self_e_future in
+          Seq.length self_e_future._0 == Seq.length self._0 + Seq.length x._0)
 
 /// Get a slice of the given `range`.
 val impl_Bytes__raw_slice (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)

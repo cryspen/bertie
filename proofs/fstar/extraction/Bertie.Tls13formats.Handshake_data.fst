@@ -25,33 +25,33 @@ let t_HandshakeType_cast_to_repr (x: t_HandshakeType) =
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_1': Core.Clone.t_Clone t_HandshakeType
+val impl': Core.Clone.t_Clone t_HandshakeType
+
+let impl = impl'
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+assume
+val impl_1': Core.Marker.t_Copy t_HandshakeType
 
 let impl_1 = impl_1'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_2': Core.Marker.t_Copy t_HandshakeType
+val impl_2': Core.Fmt.t_Debug t_HandshakeType
 
 let impl_2 = impl_2'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_3': Core.Fmt.t_Debug t_HandshakeType
+val impl_3': Core.Marker.t_StructuralPartialEq t_HandshakeType
 
 let impl_3 = impl_3'
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 assume
-val impl_4': Core.Marker.t_StructuralPartialEq t_HandshakeType
+val impl_4': Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
 
 let impl_4 = impl_4'
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-assume
-val impl_5': Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
-
-let impl_5 = impl_5'
 
 let get_hs_type (t: u8) =
   match t <: u8 with
@@ -290,10 +290,12 @@ let impl_HandshakeData__to_two (self: t_HandshakeData) = to_two_inner self
 let impl_HandshakeData__to_four (self: t_HandshakeData) = to_four_inner self
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-let impl: Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes =
+let impl_6: Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes =
   {
     f_from_pre = (fun (value: Bertie.Tls13utils.t_Bytes) -> true);
-    f_from_post = (fun (value: Bertie.Tls13utils.t_Bytes) (out: t_HandshakeData) -> true);
+    f_from_post
+    =
+    (fun (value: Bertie.Tls13utils.t_Bytes) (result: t_HandshakeData) -> result._0 = value);
     f_from = fun (value: Bertie.Tls13utils.t_Bytes) -> HandshakeData value <: t_HandshakeData
   }
 

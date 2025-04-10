@@ -422,6 +422,7 @@ impl Bytes {
     }
 
     /// Create new [`Bytes`].
+    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == 0"))]
     pub(crate) fn new_alloc(len: usize) -> Bytes {
         Bytes(Vec::with_capacity(len))
     }
@@ -450,6 +451,7 @@ impl Bytes {
     }
 
     /// Extend `self` with the bytes `x`.
+    #[hax_lib::ensures(|_| fstar!("Seq.length self_e_future._0 == Seq.length self._0 + Seq.length x._0"))]
     pub(crate) fn append(&mut self, mut x: Bytes) {
         self.0.append(&mut x.0)
     }

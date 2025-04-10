@@ -628,7 +628,13 @@ val get_psk_extensions
       (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8 = result in
+          match result <: Core.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8 with
+          | Core.Result.Result_Ok (len, extensions) ->
+            len <=. (Bertie.Tls13utils.impl_Bytes__len extensions <: usize)
+          | _ -> true)
 
 /// Build a ClientHello message.
 val client_hello
