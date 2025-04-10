@@ -1,8 +1,9 @@
 //! A module that for the formatting code needed by TLS 1.3
 #![allow(clippy::manual_range_contains)]
 
-#[cfg(not(feature = "secret_integers"))]
 use crate::tls13utils::Declassify;
+
+#[cfg(not(feature = "secret_integers"))]
 use crate::{
     tls13crypto::{
         hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
@@ -97,7 +98,7 @@ fn check_server_name(extension: &[U8]) -> Result<Bytes, TLSError> {
                                 Result::Ok(b) => b.len() <= 260,
                                 _ => true })]
 fn supported_versions() -> Result<Bytes, TLSError> {
-    Ok(Bytes::from([0, 0x2b]).concat(encode_length_u16(encode_length_u8(&[U8(3), U8(4)])?)?))
+    Ok(bytes2(0, 0x2b).concat(encode_length_u16(encode_length_u8(&[U8(3), U8(4)])?)?))
 }
 
 /// Check the TLS version in the provided `client_hello`.

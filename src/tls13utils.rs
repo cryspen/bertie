@@ -225,11 +225,11 @@ impl Bytes {
         proverif::replace_body("${Bytes::concat}($:{Bytes}_from_bitstring(prefix), self)")
     )]
     #[hax_lib::ensures(|result| result.len() >= self.len() && result.len() - self.len() == prefix.len())]
-    pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
+    pub(crate) fn prefix(self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
         out.extend_from_slice(prefix);
-        out.append(&mut self.0);
+        out.extend_from_slice(&self.0);
 
         Bytes(out)
     }
@@ -499,10 +499,11 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[ensures(|result| fstar!("Seq.length ${result}._0 == Seq.length self._0 + Seq.length ${other}._0"))]
-    pub fn concat(mut self, mut other: Bytes) -> Bytes {
-        self.0.append(&mut other.0);
-        self
+    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == Seq.length self._0 + Seq.length other._0"))]
+    pub fn concat(self, other: Bytes) -> Bytes {
+        let mut result = self;
+        result.extend_from_slice(&other);
+        result
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].

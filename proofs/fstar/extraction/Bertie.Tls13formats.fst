@@ -119,12 +119,7 @@ let supported_versions (_: Prims.unit) =
       with
       | Core.Result.Result_Ok hoist13 ->
         Core.Result.Result_Ok
-        (Bertie.Tls13utils.impl_Bytes__concat (Core.Convert.f_from #Bertie.Tls13utils.t_Bytes
-                #(t_Array u8 (mk_usize 2))
-                #FStar.Tactics.Typeclasses.solve
-                (let list = [mk_u8 0; mk_u8 43] in
-                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 2);
-                  Rust_primitives.Hax.array_of_list 2 list)
+        (Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.bytes2 (mk_u8 0) (mk_u8 43)
               <:
               Bertie.Tls13utils.t_Bytes)
             hoist13)
