@@ -2566,6 +2566,9 @@ const bertie__tls13utils__v_PARSE_FAILED: bitstring.
 letfun bertie__tls13utils__parse_failed(wildcard1 : bitstring) =
        bertie__tls13utils__v_PARSE_FAILED.
 
+letfun bertie__tls13utils__bytes(x : bitstring) =
+       bertie__tls13utils__t_Bytes_from_bitstring(x).
+
 (* marked as constructor *)
 fun bertie__tls13utils__impl_Bytes__new(bitstring)
     : bertie__tls13utils__t_Bytes [data].
@@ -3487,11 +3490,7 @@ letfun bertie__tls13handshake__build_client_hello(
          client_hello: bertie__tls13formats__handshake_data__t_HandshakeData,
          trunc_len: nat
        ) = bertie__tls13formats__client_hello(
-         ciphersuite,
-         bertie__tls13utils__t_Bytes_from_bitstring(client_random),
-         kem_pk,
-         sn,
-         tkt
+         ciphersuite, bertie__tls13utils__bytes(client_random), kem_pk, sn, tkt
        ) in (
          let
            (
@@ -4257,17 +4256,17 @@ letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
                         )
                       )
                     )
-                    else Option_err()
-                    else Option_err())
+                    else bitstring_err()
+                    else bitstring_err())
                  else ((ks, None()))
                )
-               else Option_err()
+               else bitstring_err()
              )
-             else Option_err()
-             else Option_err()
+             else bitstring_err()
+             else bitstring_err()
            )
-           else Option_err()
-           else Option_err()
+           else bitstring_err()
+           else bitstring_err()
          )
          else let (=false, None(), None()) = (
            accessor_bertie__tls13crypto__t_Algorithms_bertie__tls13crypto__f_psk_mode(
@@ -4406,7 +4405,7 @@ letfun bertie__tls13handshake__get_server_hello(
            accessor_bertie__tls13handshake__t_ServerPostClientHello_bertie__tls13handshake__f_ciphersuite(
              state
            ),
-           bertie__tls13utils__t_Bytes_from_bitstring(server_random),
+           bertie__tls13utils__bytes(server_random),
            accessor_bertie__tls13handshake__t_ServerPostClientHello_bertie__tls13handshake__f_session_id(
              state
            ),
@@ -4439,14 +4438,14 @@ letfun bertie__tls13handshake__get_server_hello(
                let Some(bertie__tls13utils__t_Bytes_to_bitstring(bytes)) = psk_handle in (
                  let handle =
                    bertie__tls13keyscheduler__key_schedule__Handle(
-
+                     bertie__tls13keyscheduler__key_schedule__TLSnames_PSK()
+                     ,
                        accessor_bertie__tls13crypto__t_Algorithms_bertie__tls13crypto__f_hash(
                          accessor_bertie__tls13handshake__t_ServerPostClientHello_bertie__tls13handshake__f_ciphersuite(
                            state
                          )
                        )
 
-                     ,bertie__tls13keyscheduler__key_schedule__TLSnames_PSK()
                      ,0
                    )
                   in
