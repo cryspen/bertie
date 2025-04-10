@@ -2573,20 +2573,38 @@ fun bertie__tls13utils__impl_Bytes__new(bitstring)
 letfun bertie__tls13utils__impl_Bytes__from_slice(s : bitstring) =
        bertie__tls13utils__t_Bytes_from_bitstring(s).
 
+fun bertie__tls13utils__concat_inner(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bertie__tls13utils__t_Bytes [data].
+
 letfun bertie__tls13utils__impl_Bytes__concat(
          self : bertie__tls13utils__t_Bytes, other : bertie__tls13utils__t_Bytes
        ) =
        bertie__tls13utils__concat_inner(self, other).
+
+
+    letfun bertie__tls13utils__eq_inner(
+        b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
+       ) =
+       b1 = b2. (* This is term equality, which may not be what we want? *)
 
 letfun bertie__tls13utils__eq(
          b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
        ) =
        bertie__tls13utils__eq_inner(b1, b2).
 
+fun bertie__tls13utils__check_eq_inner( bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes): bitstring
+reduc forall b1 : bertie__tls13utils__t_Bytes;
+          bertie__tls13utils__check_eq_inner(b1,b1) = ().
+
 letfun bertie__tls13utils__check_eq(
          b1 : bertie__tls13utils__t_Bytes, b2 : bertie__tls13utils__t_Bytes
        ) =
        bertie__tls13utils__check_eq_inner(b1, b2).
+
+(* marked as constructor *)
+fun bertie__tls13crypto__hash(
+      bertie__tls13crypto__t_HashAlgorithm, bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13utils__t_Bytes [data].
 
 (* marked as constructor *)
 fun bertie__tls13crypto__hmac_tag(
@@ -2772,16 +2790,64 @@ fun bertie__tls13keyscheduler__key_schedule__v_XPD(
     : bitstring [data].
 
 (* marked as constructor *)
+fun bertie__tls13formats__handshake_data__to_bytes_inner(
+      bertie__tls13formats__handshake_data__t_HandshakeData
+    )
+    : bertie__tls13utils__t_Bytes [data].
+
+letfun bertie__tls13formats__handshake_data__impl_HandshakeData__len(
+         self : bertie__tls13formats__handshake_data__t_HandshakeData
+       ) =
+       (0).
+
+(* marked as constructor *)
 fun bertie__tls13formats__handshake_data__impl_HandshakeData__concat(
       bertie__tls13formats__handshake_data__t_HandshakeData,
       bertie__tls13formats__handshake_data__t_HandshakeData
     )
     : bertie__tls13formats__handshake_data__t_HandshakeData [data].
 
+reduc forall
+                   hs1: bertie__tls13utils__t_Bytes,
+                   hs2: bertie__tls13utils__t_Bytes;
+
+            bertie__tls13formats__handshake_data__to_two_inner(
+                bertie__tls13formats__handshake_data__HandshakeData(
+                    bertie__tls13utils__concat_inner(hs1, hs2)
+                )
+            )
+            = (hs1, hs2).
+    
+
 letfun bertie__tls13formats__handshake_data__impl_HandshakeData__to_two(
          self : bertie__tls13formats__handshake_data__t_HandshakeData
        ) =
        bertie__tls13formats__handshake_data__to_two_inner(self).
+
+reduc forall
+                   hs1: bertie__tls13utils__t_Bytes,
+                   hs2: bertie__tls13utils__t_Bytes,
+                   hs3: bertie__tls13utils__t_Bytes,
+                   hs4: bertie__tls13utils__t_Bytes;
+
+            bertie__tls13formats__handshake_data__to_four_inner(
+                bertie__tls13formats__handshake_data__HandshakeData(
+                    bertie__tls13utils__concat_inner(
+                        bertie__tls13utils__concat_inner(
+                            bertie__tls13utils__concat_inner(
+                                hs1,
+                                hs2
+                            ),
+                            hs3
+                        ),
+                        hs4
+                    )
+                )
+            )
+            = (hs1,
+               hs2,
+               hs3,
+               hs4).
 
 letfun bertie__tls13formats__handshake_data__impl_HandshakeData__to_four(
          self : bertie__tls13formats__handshake_data__t_HandshakeData
@@ -5040,4 +5106,8 @@ letfun bertie__tls13handshake__server_finish(
        let ks = tmp0 in
        let hax_temp_output = v_out in
        (ks, hax_temp_output).
+
+letfun bertie__tls13handshake__proverif_extra__f(wildcard14 : bitstring) =
+       let b = bertie__tls13utils__impl_Bytes__new(()) in
+       ().
 

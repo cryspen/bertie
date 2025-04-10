@@ -198,9 +198,10 @@ impl From<Vec<u8>> for Bytes {
     feature = "hax-pv",
     proverif::replace("fun ${concat_inner}($:{Bytes}, $:{Bytes}): $:{Bytes} [data].")
 )]
-pub(crate) fn concat_inner(mut bytes: Bytes, other: Bytes) -> Bytes {
-    bytes.append(other);
-    bytes
+pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
+    let mut result = bytes;
+        result.extend_from_slice(&other);
+        result
 }
 
 #[cfg_attr(
@@ -501,9 +502,7 @@ impl Bytes {
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
     #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == Seq.length self._0 + Seq.length other._0"))]
     pub fn concat(self, other: Bytes) -> Bytes {
-        let mut result = self;
-        result.extend_from_slice(&other);
-        result
+        concat_inner(self, other)
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
