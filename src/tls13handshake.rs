@@ -563,8 +563,8 @@ fn get_server_hello(
     let psk_handle = match psk_handle {
         Some(bytes) => {
             let handle = Handle {
-                alg: state.ciphersuite.hash,
                 name: PSK,
+                alg: state.ciphersuite.hash,
                 level: 0,
             };
             set_by_handle(ks, &handle, bytes);
