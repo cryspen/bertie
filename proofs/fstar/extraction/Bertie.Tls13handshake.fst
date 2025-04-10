@@ -1937,14 +1937,14 @@ let get_server_hello
               | Core.Option.Option_Some bytes ->
                 let handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
                   {
-                    Bertie.Tls13keyscheduler.Key_schedule.f_alg
-                    =
-                    state.f_ciphersuite.Bertie.Tls13crypto.f_hash;
                     Bertie.Tls13keyscheduler.Key_schedule.f_name
                     =
                     Bertie.Tls13keyscheduler.Key_schedule.TLSnames_PSK
                     <:
                     Bertie.Tls13keyscheduler.Key_schedule.t_TLSnames;
+                    Bertie.Tls13keyscheduler.Key_schedule.f_alg
+                    =
+                    state.f_ciphersuite.Bertie.Tls13crypto.f_hash;
                     Bertie.Tls13keyscheduler.Key_schedule.f_level = mk_u8 0
                   }
                   <:
