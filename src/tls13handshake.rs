@@ -5,7 +5,7 @@ use crate::{
     tls13cert::{cert_public_key, rsa_public_key, verification_key_from_cert},
     tls13crypto::{
         hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign, sign_rsa, verify,
-        Algorithms, Digest, KemSk, Key, MacKey, Psk, Random, SignatureScheme,
+        Algorithms, Digest, KemSk, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
     tls13keyscheduler::{
@@ -118,7 +118,7 @@ fn build_client_hello(
     rng.fill_bytes(&mut client_random);
     let (kem_sk, kem_pk) = kem_keygen(ciphersuite.kem(), rng)?;
     let (client_hello, trunc_len) =
-        client_hello(&ciphersuite, client_random.into(), &kem_pk, sn, &tkt)?;
+        client_hello(&ciphersuite, bytes(&client_random), &kem_pk, sn, &tkt)?;
     let (nch, cipher0, tx_ch) =
         compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx, ks)?;
     Ok((
@@ -551,7 +551,7 @@ fn get_server_hello(
 
     let sh = server_hello(
         &state.ciphersuite,
-        server_random.into(),
+        bytes(&server_random),
         &state.session_id,
         &gy,
     )?;

@@ -377,12 +377,7 @@ let build_client_hello
   | Core.Result.Result_Ok (kem_sk, kem_pk) ->
     (match
         Bertie.Tls13formats.client_hello ciphersuite
-          (Core.Convert.f_into #(t_Array u8 (mk_usize 32))
-              #Bertie.Tls13utils.t_Bytes
-              #FStar.Tactics.Typeclasses.solve
-              client_random
-            <:
-            Bertie.Tls13utils.t_Bytes)
+          (Bertie.Tls13utils.bytes (client_random <: t_Slice u8) <: Bertie.Tls13utils.t_Bytes)
           kem_pk
           sn
           tkt
@@ -1915,12 +1910,7 @@ let get_server_hello
     in
     (match
         Bertie.Tls13formats.server_hello state.f_ciphersuite
-          (Core.Convert.f_into #(t_Array u8 (mk_usize 32))
-              #Bertie.Tls13utils.t_Bytes
-              #FStar.Tactics.Typeclasses.solve
-              server_random
-            <:
-            Bertie.Tls13utils.t_Bytes)
+          (Bertie.Tls13utils.bytes (server_random <: t_Slice u8) <: Bertie.Tls13utils.t_Bytes)
           state.f_session_id
           gy
         <:

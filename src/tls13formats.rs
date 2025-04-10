@@ -584,6 +584,7 @@ fn get_psk_extensions(
     )
 )]
 #[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::requires(client_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
                                 Result::Ok((ch,tl)) => tl <= ch.len(),
                                 _ => true})]
@@ -847,9 +848,10 @@ pub(super) fn parse_client_hello(
 
 /// Build the server hello message.
 #[hax_lib::pv_constructor]
+#[hax_lib::requires(server_random.len() == 32)]
 pub(crate) fn server_hello(
     algs: &Algorithms,
-    sr: Random,
+    server_random: Random,
     sid: &Bytes,
     gy: &KemPk,
 ) -> Result<HandshakeData, TLSError> {
@@ -866,7 +868,7 @@ pub(crate) fn server_hello(
     let encoded_extensions = encode_length_u16(exts)?;
     let sh = HandshakeData::from_bytes(
         HandshakeType::ServerHello,
-        &bytes_concat!(ver, sr, sid, cip, comp, encoded_extensions),
+        &bytes_concat!(ver, server_random, sid, cip, comp, encoded_extensions),
     )?;
     Ok(sh)
 }

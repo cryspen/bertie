@@ -409,21 +409,36 @@ val impl_Algorithms__zero_rtt (self: t_Algorithms)
 val impl_Algorithms__ciphersuite (self: t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
+          match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+          | Core.Result.Result_Ok b -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
+          | Core.Result.Result_Err _ -> true)
 
 /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
 /// otherwise.
 val impl_Algorithms__supported_group (self: t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
+          match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+          | Core.Result.Result_Ok b -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
+          | Core.Result.Result_Err _ -> true)
 
 /// Returns the signature id for the given algorithm when it is supported, or a
 ///  [`TLSError`] otherwise.
 val impl_Algorithms__signature_algorithm (self: t_Algorithms)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
+          match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+          | Core.Result.Result_Ok b -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
+          | Core.Result.Result_Err _ -> true)
 
 /// Check the ciphersuite in `bytes` against this ciphersuite.
 val impl_Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)

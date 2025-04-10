@@ -1302,7 +1302,10 @@ let invalid_compression_list (_: Prims.unit) =
   <:
   Core.Result.t_Result Prims.unit u8
 
-let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes) =
+let server_hello
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (server_random sid gy: Bertie.Tls13utils.t_Bytes)
+     =
   let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 (mk_u8 3) (mk_u8 3) in
   match
     Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.impl_Bytes__as_raw sid <: t_Slice u8)
@@ -1348,7 +1351,7 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
                       | Core.Result.Result_Ok encoded_extensions ->
                         let len:usize =
                           (Bertie.Tls13utils.impl_Bytes__len ver <: usize) +!
-                          (Bertie.Tls13utils.impl_Bytes__len sr <: usize)
+                          (Bertie.Tls13utils.impl_Bytes__len server_random <: usize)
                         in
                         let len:usize = len +! (Bertie.Tls13utils.impl_Bytes__len sid <: usize) in
                         let len:usize = len +! (Bertie.Tls13utils.impl_Bytes__len cip <: usize) in
@@ -1363,7 +1366,7 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
                           Bertie.Tls13utils.impl_Bytes__append out ver
                         in
                         let out:Bertie.Tls13utils.t_Bytes =
-                          Bertie.Tls13utils.impl_Bytes__append out sr
+                          Bertie.Tls13utils.impl_Bytes__append out server_random
                         in
                         let out:Bertie.Tls13utils.t_Bytes =
                           Bertie.Tls13utils.impl_Bytes__append out sid
@@ -1413,7 +1416,7 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
                     | Core.Result.Result_Ok encoded_extensions ->
                       let len:usize =
                         (Bertie.Tls13utils.impl_Bytes__len ver <: usize) +!
-                        (Bertie.Tls13utils.impl_Bytes__len sr <: usize)
+                        (Bertie.Tls13utils.impl_Bytes__len server_random <: usize)
                       in
                       let len:usize = len +! (Bertie.Tls13utils.impl_Bytes__len sid <: usize) in
                       let len:usize = len +! (Bertie.Tls13utils.impl_Bytes__len cip <: usize) in
@@ -1428,7 +1431,7 @@ let server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls1
                         Bertie.Tls13utils.impl_Bytes__append out ver
                       in
                       let out:Bertie.Tls13utils.t_Bytes =
-                        Bertie.Tls13utils.impl_Bytes__append out sr
+                        Bertie.Tls13utils.impl_Bytes__append out server_random
                       in
                       let out:Bertie.Tls13utils.t_Bytes =
                         Bertie.Tls13utils.impl_Bytes__append out sid

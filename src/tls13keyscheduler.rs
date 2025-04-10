@@ -1,7 +1,7 @@
 pub(crate) mod key_schedule;
 
 use crate::{
-    tls13crypto::{hash, AeadAlgorithm, AeadKey, AeadKeyIV, Digest, HashAlgorithm, Key, MacKey},
+    tls13crypto::{hash, AeadAlgorithm, AeadKey, AeadKeyIV, Digest, HashAlgorithm, MacKey},
     tls13formats::*,
     tls13utils::*,
 };

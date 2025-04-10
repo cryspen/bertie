@@ -637,7 +637,7 @@ val client_hello
       (session_ticket: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
       (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-      Prims.l_True
+      (requires (Bertie.Tls13utils.impl_Bytes__len client_random <: usize) =. mk_usize 32)
       (ensures
         fun result ->
           let result:Core.Result.t_Result
@@ -671,9 +671,11 @@ val invalid_compression_list: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Build the server hello message.
-val server_hello (algs: Bertie.Tls13crypto.t_Algorithms) (sr sid gy: Bertie.Tls13utils.t_Bytes)
+val server_hello
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (server_random sid gy: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      Prims.l_True
+      (requires (Bertie.Tls13utils.impl_Bytes__len server_random <: usize) =. mk_usize 32)
       (fun _ -> Prims.l_True)
 
 val unsupported_cipher_alert: Prims.unit

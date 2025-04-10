@@ -832,6 +832,9 @@ impl Algorithms {
 
     /// Returns the TLS ciphersuite for the given algorithm when it is supported, or
     /// a [`TLSError`] otherwise.
+    #[hax_lib::ensures(|result| match result {
+                                    Ok(b) => b.len() == 2,
+                                    Err(_) => true})]
     pub(crate) fn ciphersuite(&self) -> Result<Bytes, TLSError> {
         match (self.hash, self.aead) {
             (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok([0x13, 0x01].into()),
@@ -844,6 +847,9 @@ impl Algorithms {
     /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
     /// otherwise.
     #[inline(always)]
+    #[hax_lib::ensures(|result| match result {
+        Ok(b) => b.len() == 2,
+        Err(_) => true})]
     pub(crate) fn supported_group(&self) -> Result<Bytes, TLSError> {
         match self.kem() {
             KemScheme::X25519 => Ok([0x00, 0x1D].into()),
@@ -858,6 +864,9 @@ impl Algorithms {
 
     /// Returns the signature id for the given algorithm when it is supported, or a
     ///  [`TLSError`] otherwise.
+    #[hax_lib::ensures(|result| match result {
+        Ok(b) => b.len() == 2,
+        Err(_) => true})]
     pub(crate) fn signature_algorithm(&self) -> Result<Bytes, TLSError> {
         match self.signature() {
             SignatureScheme::RsaPssRsaSha256 => Ok([0x08, 0x04].into()),
