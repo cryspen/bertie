@@ -2,9 +2,9 @@ use crate::tls13utils::{
     check_eq1, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes, TLSError,
     U8,
 };
+use hax_lib::ToInt;
 #[cfg(feature = "hax-pv")]
 use hax_lib::{proverif, pv_constructor};
-use hax_lib::ToInt;
 
 /// ```TLS
 /// enum {
