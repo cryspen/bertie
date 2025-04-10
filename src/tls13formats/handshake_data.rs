@@ -4,6 +4,7 @@ use crate::tls13utils::{
 };
 #[cfg(feature = "hax-pv")]
 use hax_lib::{proverif, pv_constructor};
+use hax_lib::ToInt;
 
 /// ```TLS
 /// enum {
@@ -180,6 +181,9 @@ impl HandshakeData {
     /// If successful, returns the parsed handshake message. Returns a [TLSError] if
     /// parsing is unsuccessful or the type of the parsed message disagrees with the
     /// expected type.
+    #[hax_lib::ensures(|result| match result {
+                                    Result::Ok(d) => self.len() >= 4 && self.len() - 4 == d.len(),
+                                    _ => true })]
     pub(crate) fn as_handshake_message(
         &self,
         expected_type: HandshakeType,
@@ -203,8 +207,8 @@ impl HandshakeData {
     /// handshake message or if the payload is shorter than the expected length
     /// encoded in its first three bytes.
     #[hax_lib::ensures(|result| match result {
-                                        Result::Ok((m,_)) => m.len() >= 4,
-                                        _ => true })]
+                                    Result::Ok((m,r)) => m.len() >= 4 && self.len() >= m.len() && self.len() - m.len() == r.len(),
+                                    _ => true })]
     pub(crate) fn next_handshake_message(&self) -> Result<(Self, Self), TLSError> {
         if (self.len()) < 4 {
             tlserr(parse_failed())
@@ -239,11 +243,8 @@ impl HandshakeData {
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
     ///
     /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
-    ///
-    /// For termination proof in F*: we need to hand-edit and add:
-    /// (decreases (Seq.length self._0._0 - v start))
-    /// https://github.com/cryspen/hax/issues/1233
-    #[hax_lib::requires(fstar!(r#"Seq.length self._0._0 >= v start"#))]
+    #[hax_lib::requires(self.len() >= start)]
+    #[hax_lib::decreases(self.len().to_int() - start.to_int())]
     pub(crate) fn find_handshake_message(
         &self,
         handshake_type: HandshakeType,

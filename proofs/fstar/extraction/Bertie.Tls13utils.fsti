@@ -13,10 +13,10 @@ let _ =
 type t_Error = | Error_UnknownCiphersuite : Alloc.String.t_String -> t_Error
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_14:Core.Fmt.t_Debug t_Error
+val impl_10:Core.Fmt.t_Debug t_Error
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_15:Core.Clone.t_Clone t_Error
+val impl_11:Core.Clone.t_Clone t_Error
 
 let v_UNSUPPORTED_ALGORITHM: u8 = mk_u8 1
 
@@ -91,19 +91,19 @@ val impl_1:t_Declassify u32 u32
 type t_Bytes = | Bytes : Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global -> t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_16:Core.Clone.t_Clone t_Bytes
+val impl_12:Core.Clone.t_Clone t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_17:Core.Marker.t_StructuralPartialEq t_Bytes
+val impl_13:Core.Marker.t_StructuralPartialEq t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_18:Core.Cmp.t_PartialEq t_Bytes t_Bytes
+val impl_14:Core.Cmp.t_PartialEq t_Bytes t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_19:Core.Fmt.t_Debug t_Bytes
+val impl_15:Core.Fmt.t_Debug t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_20:Core.Default.t_Default t_Bytes
+val impl_16:Core.Default.t_Default t_Bytes
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_2:Core.Convert.t_From t_Bytes (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
@@ -118,19 +118,15 @@ val impl_Bytes__into_raw (self: t_Bytes)
 
 /// Get a reference to the raw bytes.
 val impl_Bytes__as_raw (self: t_Bytes)
-    : Prims.Pure (t_Slice u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (t_Slice u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Slice u8 = result in
+          Seq.length result == Seq.length self._0)
 
 val impl_Bytes__declassify_array (v_C: usize) (self: t_Bytes)
     : Prims.Pure (Core.Result.t_Result (t_Array u8 v_C) u8) Prims.l_True (fun _ -> Prims.l_True)
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Convert.t_From t_Bytes (t_Slice u8)
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C)
-
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C)
 
 val u16_as_be_bytes (v_val: u16)
     : Prims.Pure (t_Array u8 (mk_usize 2)) Prims.l_True (fun _ -> Prims.l_True)
@@ -181,9 +177,6 @@ val impl_Bytes__new: Prims.unit -> Prims.Pure t_Bytes Prims.l_True (fun _ -> Pri
 /// Create new [`Bytes`].
 val impl_Bytes__new_alloc (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-/// Generate `len` bytes of `0`.
-val impl_Bytes__zeroes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
 /// Push `x` into these [`Bytes`].
 val impl_Bytes__push (self: t_Bytes) (x: u8)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -197,9 +190,6 @@ val impl_Bytes__append (self x: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun 
 
 val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
-/// Generate a new [`Bytes`] struct from slice `s`.
-val impl_Bytes__from_slice (s: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
 /// Read a hex string into [`Bytes`].
 val impl_Bytes__from_hex (s: string) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
@@ -212,6 +202,15 @@ val impl_Bytes__concat_array (v_N: usize) (self: t_Bytes) (other: t_Array u8 v_N
 val impl_Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
+/// Generate `len` bytes of `0`.
+val impl_Bytes__zeroes (len: usize)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          Seq.length result._0 == v len)
+
 /// Get the length of these [`Bytes`].
 val impl_Bytes__len (self: t_Bytes)
     : Prims.Pure usize
@@ -223,7 +222,23 @@ val impl_Bytes__len (self: t_Bytes)
 
 /// Add a prefix to these bytes and return it.
 val impl_Bytes__prefix (self: t_Bytes) (prefix: t_Slice u8)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          (impl_Bytes__len result <: usize) >=. (impl_Bytes__len self <: usize) &&
+          ((impl_Bytes__len result <: usize) -! (impl_Bytes__len self <: usize) <: usize) =.
+          (Core.Slice.impl__len #u8 prefix <: usize))
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_18:Core.Convert.t_From t_Bytes (t_Slice u8)
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_19 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C)
+
+[@@ FStar.Tactics.Typeclasses.tcinstance]
+val impl_20 (v_C: usize) : Core.Convert.t_From t_Bytes (t_Array u8 v_C)
 
 val bytes (x: t_Slice u8)
     : Prims.Pure t_Bytes
@@ -259,6 +274,9 @@ let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
 /// This is needed only for hax, so should likely be guarded by a feature flag.
 val e_update_at_usize_bytes_test (b: t_Bytes)
     : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
+/// Generate a new [`Bytes`] struct from slice `s`.
+val impl_Bytes__from_slice (s: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 /// Get a slice of the given `range`.
 val impl_Bytes__raw_slice (self: t_Bytes) (range: Core.Ops.Range.t_Range usize)
@@ -306,11 +324,19 @@ val impl_Bytes__concat (self other: t_Bytes)
       (ensures
         fun result ->
           let result:t_Bytes = result in
-          Seq.length result._0 == Seq.length self._0 + Seq.length other._0)
+          (impl_Bytes__len result <: usize) =.
+          ((impl_Bytes__len self <: usize) +! (impl_Bytes__len other <: usize) <: usize))
 
 /// Convert the bool `b` into a Result.
 val check (b: bool)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok () -> b =. true
+          | _ -> true)
 
 /// Test if [Bytes] `b1` and `b2` have the same value.
 val eq1 (b1 b2: u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
@@ -569,15 +595,15 @@ val impl_AppData__into_raw (self: t_AppData)
 val impl_AppData__as_raw (self: t_AppData) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Convert.t_From t_AppData (t_Slice u8)
+val impl_6:Core.Convert.t_From t_AppData (t_Slice u8)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N)
+val impl_7 (v_N: usize) : Core.Convert.t_From t_AppData (t_Array u8 v_N)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+val impl_8:Core.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Convert.t_From t_AppData t_Bytes
+val impl_9:Core.Convert.t_From t_AppData t_Bytes
 
 val random_bytes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)

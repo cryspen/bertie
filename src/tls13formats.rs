@@ -26,6 +26,8 @@ use handshake_data::{HandshakeData, HandshakeType};
 #[cfg(bench)]
 pub use handshake_data::{HandshakeData, HandshakeType};
 
+#[cfg(hax)]
+use hax_lib::ToInt;
 #[cfg(feature = "hax-pv")]
 use hax_lib::{proverif, pv_constructor};
 
@@ -63,6 +65,9 @@ pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
 ];
 
 /// Build the server name out of the `name` bytes for the client hello.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(b) => name.len() < 65536 && b.len() == name.len() + 9,
+                                _ => true })]
 fn build_server_name(name: &Bytes) -> Result<Bytes, TLSError> {
     const PREFIX1: &[U8; 2] = &[U8(0), U8(0)];
     const PREFIX2: &[U8; 1] = &[U8(0)];
@@ -88,6 +93,9 @@ fn check_server_name(extension: &[U8]) -> Result<Bytes, TLSError> {
 }
 
 /// Build the supported versions bytes for the client hello.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(b) => b.len() <= 260,
+                                _ => true })]
 fn supported_versions() -> Result<Bytes, TLSError> {
     Ok(Bytes::from([0, 0x2b]).concat(encode_length_u16(encode_length_u8(&[U8(3), U8(4)])?)?))
 }
@@ -147,8 +155,7 @@ fn key_shares(algs: &Algorithms, gx: KemPk) -> Result<Bytes, TLSError> {
     Ok(encode_length_u16(encode_length_u16(ks)?)?.prefix(PREFIX))
 }
 
-/// Needs decreases clause
-#[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::decreases(ch.len().to_int())]
 fn find_key_share(g: &Bytes, ch: &[U8]) -> Result<Bytes, TLSError> {
     if ch.len() < 4 {
         tlserr(parse_failed())
@@ -253,6 +260,9 @@ fn merge_opts<T>(o1: Option<T>, o2: Option<T>) -> Result<Option<T>, TLSError> {
 }
 
 /// Check an extension for validity.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok((len,exts)) => bytes.len() >= len,
+                                _ => true})]
 fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions), TLSError> {
     if bytes.len() < 4 {
         Err(parse_failed())
@@ -323,8 +333,6 @@ fn check_extension(algs: &Algorithms, bytes: &[U8]) -> Result<(usize, Extensions
     }
 }
 
-/// For termination, needs: (decreases Seq.length b)
-#[hax_lib::fstar::verification_status(lax)]
 #[hax_lib::ensures(|result| match result {
                                     Result::Ok((len,out)) => len >= 4,
                                     _ => true})]
@@ -350,6 +358,7 @@ fn check_server_extension(algs: &Algorithms, b: &[U8]) -> Result<(usize, Option<
 }
 
 #[inline(always)]
+#[hax_lib::decreases(b.len().to_int())]
 fn check_extensions_slice(algs: &Algorithms, b: &[U8]) -> Result<Extensions, TLSError> {
     let (len, out) = check_extension(algs, b)?;
     if len == b.len() {
@@ -370,6 +379,7 @@ fn check_extensions(algs: &Algorithms, b: &Bytes) -> Result<Extensions, TLSError
     }
 }
 
+#[hax_lib::decreases(b.len().to_int())]
 fn check_server_extensions(algs: &Algorithms, b: &[U8]) -> Result<Option<Bytes>, TLSError> {
     let (len, out) = check_server_extension(algs, b)?;
     if len == b.len() {
@@ -573,6 +583,9 @@ fn get_psk_extensions(
     )
 )]
 #[hax_lib::fstar::verification_status(lax)]
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok((ch,tl)) => tl <= ch.len(),
+                                _ => true})]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
@@ -723,6 +736,9 @@ reduc forall
                             0)."
     )
 )]
+#[hax_lib::ensures(|result| match result {
+                Result::Ok((_, _, _, _, _, _, trunc_len)) => trunc_len <= client_hello.len(),
+                _ => true})]
 pub(super) fn parse_client_hello(
     ciphersuite: &Algorithms,
     client_hello: &HandshakeData,
@@ -757,10 +773,11 @@ pub(super) fn parse_client_hello(
         Err(_) => invalid_compression_list(),
     }?;
     next += 2;
+    check(ch.len() >= next)?;
     check_length_encoding_u16(&ch.slice_range(next..ch.len()))?;
     next += 2;
+    check(ch.len() >= next)?;
     let exts = check_extensions(ciphersuite, &ch.slice_range(next..ch.len()))?;
-    let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3; // ??
     match (ciphersuite.psk_mode(), exts) {
         (
             _,
@@ -779,7 +796,11 @@ pub(super) fn parse_client_hello(
                 ticket: Some(tkt),
                 binder: Some(binder),
             },
-        ) => Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len)),
+        ) => {
+            check(ch.len() >= ciphersuite.hash().hash_len() + 3)?;
+            let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+            Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len))
+        }
         (
             true,
             Extensions {
@@ -788,15 +809,19 @@ pub(super) fn parse_client_hello(
                 ticket: Some(tkt),
                 binder: Some(binder),
             },
-        ) => Ok((
-            crand,
-            sid,
-            Bytes::new(),
-            gx,
-            Some(tkt),
-            Some(binder),
-            trunc_len,
-        )),
+        ) => {
+            check(ch.len() >= ciphersuite.hash().hash_len() + 3)?;
+            let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+            Ok((
+                crand,
+                sid,
+                Bytes::new(),
+                gx,
+                Some(tkt),
+                Some(binder),
+                trunc_len,
+            ))
+        }
         (
             false,
             Extensions {
@@ -821,7 +846,6 @@ pub(super) fn parse_client_hello(
 
 /// Build the server hello message.
 #[hax_lib::pv_constructor]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     sr: Random,
@@ -907,8 +931,10 @@ pub(crate) fn parse_server_hello(
         Err(_) => invalid_compression_method_alert(),
     })?;
     next += 1;
+    check(server_hello.len() >= next)?;
     check_length_encoding_u16(&server_hello.slice_range(next..server_hello.len()))?;
     next += 2;
+    check(server_hello.len() >= next)?;
     let gy = check_server_extensions(algs, &server_hello[next..server_hello.len()])?;
     if let Some(gy) = gy {
         Ok((srand, gy))

@@ -112,7 +112,13 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
         fun result ->
           let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
           match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
-          | Core.Result.Result_Ok (m, _) -> (impl_HandshakeData__len m <: usize) >=. mk_usize 4
+          | Core.Result.Result_Ok (m, r) ->
+            (impl_HandshakeData__len m <: usize) >=. mk_usize 4 &&
+            (impl_HandshakeData__len self <: usize) >=. (impl_HandshakeData__len m <: usize) &&
+            ((impl_HandshakeData__len self <: usize) -! (impl_HandshakeData__len m <: usize)
+              <:
+              usize) =.
+            (impl_HandshakeData__len r <: usize)
           | _ -> true)
 
 val to_two_inner (hs_data: t_HandshakeData)
@@ -133,7 +139,17 @@ val to_four_inner (hs_data: t_HandshakeData)
 val impl_HandshakeData__as_handshake_message
       (self: t_HandshakeData)
       (expected_type: t_HandshakeType)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core.Result.t_Result t_HandshakeData u8 with
+          | Core.Result.Result_Ok d ->
+            (impl_HandshakeData__len self <: usize) >=. mk_usize 4 &&
+            ((impl_HandshakeData__len self <: usize) -! mk_usize 4 <: usize) =.
+            (impl_HandshakeData__len d <: usize)
+          | _ -> true)
 
 /// Attempt to parse exactly two handshake messages from `payload`.
 /// If successful, returns the parsed handshake messages. Returns a [TLSError]
@@ -172,11 +188,17 @@ val impl_HandshakeData__concat (self other: t_HandshakeData)
 
 /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.
 /// Returns `true`` if `payload` contains a message of the given type, `false` otherwise.
-/// For termination proof in F*: we need to hand-edit and add:
-/// (decreases (Seq.length self._0._0 - v start))
-/// https://github.com/cryspen/hax/issues/1233
 val impl_HandshakeData__find_handshake_message
       (self: t_HandshakeData)
       (handshake_type: t_HandshakeType)
       (start: usize)
-    : Prims.Pure bool (requires Seq.length self._0._0 >= v start) (fun _ -> Prims.l_True)
+    : Prims.Pure bool
+      (requires (impl_HandshakeData__len self <: usize) >=. start)
+      (fun _ -> Prims.l_True)
+      (decreases
+        ((Rust_primitives.Hax.Int.from_machine (impl_HandshakeData__len self <: usize)
+            <:
+            Hax_lib.Int.t_Int) -
+          (Rust_primitives.Hax.Int.from_machine start <: Hax_lib.Int.t_Int)
+          <:
+          Hax_lib.Int.t_Int))

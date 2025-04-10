@@ -133,7 +133,10 @@ val compute_psk_binder_zero_rtt
         Core.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
-            Bertie.Tls13formats.t_Transcript) u8) Prims.l_True (fun _ -> Prims.l_True)
+            Bertie.Tls13formats.t_Transcript) u8)
+      (requires
+        trunc_len <=. (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len ch <: usize))
+      (fun _ -> Prims.l_True)
 
 val build_client_hello
       (#iimpl_447424039_: Type0)

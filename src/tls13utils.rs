@@ -217,12 +217,14 @@ fn eq_inner(b1: &Bytes, b2: &Bytes) -> bool {
     eq_slice(&b1.0, &b2.0)
 }
 
+#[hax_lib::attributes]
 impl Bytes {
     /// Add a prefix to these bytes and return it.
     #[cfg_attr(
         feature = "hax-pv",
         proverif::replace_body("${Bytes::concat}($:{Bytes}_from_bitstring(prefix), self)")
     )]
+    #[hax_lib::ensures(|result| result.len() >= self.len() && result.len() - self.len() == prefix.len())]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -245,6 +247,7 @@ impl Bytes {
 
     /// Get a reference to the raw bytes.
     #[allow(dead_code)]
+    #[hax_lib::ensures(|result| fstar!(r#"Seq.length result == Seq.length self._0"#))]
     pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }
@@ -258,7 +261,9 @@ impl Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl From<&[u8]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == x.len())]
     fn from(x: &[u8]) -> Bytes {
         x.to_vec().into()
     }
@@ -271,13 +276,17 @@ impl From<&[U8]> for Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl<const C: usize> From<[u8; C]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == C)]
     fn from(x: [u8; C]) -> Bytes {
         x.to_vec().into()
     }
 }
 
+#[hax_lib::attributes]
 impl<const C: usize> From<&[u8; C]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == C)]
     fn from(x: &[u8; C]) -> Bytes {
         x.to_vec().into()
     }
@@ -418,6 +427,7 @@ impl Bytes {
 
     /// Generate `len` bytes of `0`.
     #[hax_lib::pv_constructor]
+    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == v len"))]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
@@ -489,9 +499,10 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == Seq.length self._0 + Seq.length other._0"))]
-    pub fn concat(self, other: Bytes) -> Bytes {
-        concat_inner(self, other)
+    #[ensures(|result| result.len() == self.len() + other.len())]
+    pub fn concat(mut self, mut other: Bytes) -> Bytes {
+        self.0.append(&mut other.0);
+        self
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
@@ -553,6 +564,10 @@ impl Bytes {
 }
 
 /// Convert the bool `b` into a Result.
+#[hax_lib::ensures(|result| match result {
+                             Result::Ok(()) => b == true,
+                              _ => true
+                    })]
 pub(crate) fn check(b: bool) -> Result<(), TLSError> {
     if b {
         Ok(())

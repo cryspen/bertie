@@ -142,6 +142,7 @@ pub(crate) fn hash(ha: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> 
     Ok(digest.into())
 }
 
+#[hax_lib::attributes]
 impl HashAlgorithm {
     /// Get the libcrux hash algorithm
     fn libcrux_algorithm(&self) -> Result<Sha2Algorithm, TLSError> {
@@ -153,6 +154,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hash digest.
+    #[hax_lib::ensures(|result| result <= 64)]
     pub(crate) fn hash_len(&self) -> usize {
         hash_len_inner(&self)
     }
@@ -777,6 +779,7 @@ pub struct Algorithms {
     pub(crate) zero_rtt: bool,
 }
 
+#[hax_lib::attributes]
 impl Algorithms {
     /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
     pub const fn new(
@@ -864,6 +867,10 @@ impl Algorithms {
     }
 
     /// Check the ciphersuite in `bytes` against this ciphersuite.
+    #[hax_lib::ensures(|result| match result {
+                                    Result::Ok(len) => bytes.len() >= len && len < 65538,
+                                    _ => true
+                                })]
     pub(crate) fn check(&self, bytes: &[U8]) -> Result<usize, TLSError> {
         let len = length_u16_encoded(bytes)?;
         let cs = self.ciphersuite()?;
