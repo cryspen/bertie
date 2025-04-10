@@ -871,3 +871,13 @@ pub fn server_finish(
 ) -> Result<ServerPostClientFinished, TLSError> {
     put_client_finished(cf, st, ks)
 }
+
+#[cfg(feature = "hax-pv")]
+mod proverif_extra {
+    use crate::tls13utils::Bytes;
+
+    fn f() {
+        let b = Bytes::new();
+        
+    }
+}
