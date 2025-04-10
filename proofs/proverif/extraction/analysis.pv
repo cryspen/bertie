@@ -41,16 +41,16 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
       cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+      sst:bertie__tls13handshake__t_ServerPostServerFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
       
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
+                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                                sst)).
 
 (* Should fail: Authentication is not guaranteed if PSK is leaked to
@@ -61,16 +61,16 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
       cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+      sst:bertie__tls13handshake__t_ServerPostServerFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
+                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                                sst))
           || event(CompromisedServerCertSK(server_name)).
 
@@ -82,16 +82,16 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
       cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+      sst:bertie__tls13handshake__t_ServerPostServerFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                            sst))
           || event(CompromisedServerPSK(server_name)).
 
@@ -103,16 +103,16 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
       cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished;
+      sst:bertie__tls13handshake__t_ServerPostServerFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,exp),
+                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                                sst))
           || event(CompromisedServerCertSK(server_name))
           || event(CompromisedServerPSK(server_name)).
@@ -127,12 +127,12 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+      cst:bertie__tls13handshake__t_ClientPostClientFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv).
 
@@ -144,12 +144,12 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+      cst:bertie__tls13handshake__t_ClientPostClientFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv)
       ==> event(CompromisedServerCertSK(server_name)).
@@ -162,12 +162,12 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+      cst:bertie__tls13handshake__t_ClientPostClientFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv)
       ==> event(CompromisedServerPSK(server_name)).
@@ -180,12 +180,12 @@ query server_name:bertie__tls13utils__t_Bytes,
       c2sctr:nat,
       s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      exp:bertie__tls13utils__t_Bytes,
       ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished;
+      cst:bertie__tls13handshake__t_ClientPostClientFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,exp),
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv)
       ==> event(CompromisedServerCertSK(server_name))
@@ -211,8 +211,9 @@ letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
 let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     (* REACHED *)
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    new rng_client: impl_CryptoRng
-;
+    new rng_client: impl_CryptoRng;
+    new ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
+
 
     let (client_ticket_o: Option, psk_o: Option)
         = get_psk(server_name, psk_mode)
@@ -220,12 +221,13 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
 
 
     (* REACHED *)
-    let (rng_client: impl_CryptoRng, client_init_out: bitstring)
+    let (rng_client: impl_CryptoRng, ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, client_init_out: bitstring)
         = bertie__tls13handshake__client_init(algs,
                                               server_name,
                                               client_ticket_o,
                                               psk_o,
-                                              rng_client)
+                                              rng_client,
+                                              ks_client)
     in
 
     (* REACHED *)
@@ -237,21 +239,24 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
        
     (* REACHED (attacker)*)
-    let (duplex_cipher_state_h: bitstring,
-         client_state: bertie__tls13handshake__t_ClientPostServerHello)
+    let (ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler,
+         (duplex_cipher_state_h: bitstring,
+         client_state: bertie__tls13handshake__t_ClientPostServerHello))
         = bertie__tls13handshake__client_set_params(server_hello,
-                                                    client_state)
+                                                    client_state,
+                                                    ks_client)
     in
     (* NOT REACHED *)
     (* event R; *)
     in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
 
-    let (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
+    let (ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher: bertie__tls13record__t_DuplexCipherState1,
-         client_state: bertie__tls13handshake__t_ClientPostClientFinished)
+         client_state: bertie__tls13handshake__t_ClientPostClientFinished))
         = bertie__tls13handshake__client_finish((*server_name, (* XXX: This was here, before. *) *)
                                                 flight,
-                                                client_state)
+                                                client_state,
+                                                ks_client)
     in
     event ClientFinished(server_name,cipher,client_state);
     out(c, client_finished).
@@ -262,15 +267,16 @@ let Server() =
     in(c, server_name: bertie__tls13utils__t_Bytes);
     get server_dbs(=server_name, db, algs) in    
 
-    new rng_server: impl_CryptoRng
-;
+    new rng_server: impl_CryptoRng;
+    new ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
+    
     in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData);
-    let (rng_server: impl_CryptoRng
-, server_init_output: bitstring)
+    let (rng_server: impl_CryptoRng, ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_init_output: bitstring)
         = bertie__tls13handshake__server_init(algs,
                                               nch,
                                               db,
-                                              rng_server)
+                                              rng_server,
+                                              ks_server)
     in
     (* NOT REACHED *)
     let
@@ -288,9 +294,10 @@ let Server() =
 
     in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData);
 
-    let server_state
+    let (ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_state: bitstring)
         = bertie__tls13handshake__server_finish(client_finished,
-                                                server_state)
+                                                server_state,
+                                                ks_server)
     in
 
     0.
