@@ -51,14 +51,9 @@ let duplex_cipher_state1
       (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
      = DuplexCipherState1 ae kiv1 c1 kiv2 c2 k <: t_DuplexCipherState1
 
-#push-options "--admit_smt_queries true"
-
 let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   let (counter: Bertie.Tls13utils.t_Bytes):Bertie.Tls13utils.t_Bytes =
-    Core.Convert.f_into #(t_Array u8 (mk_usize 8))
-      #Bertie.Tls13utils.t_Bytes
-      #FStar.Tactics.Typeclasses.solve
-      (Core.Num.impl_u64__to_be_bytes n <: t_Array u8 (mk_usize 8))
+    Bertie.Tls13utils.bytes (Core.Num.impl_u64__to_be_bytes n <: t_Slice u8)
   in
   let iv_ctr:Bertie.Tls13utils.t_Bytes =
     Bertie.Tls13utils.impl_Bytes__zeroes (Bertie.Tls13utils.impl_Bytes__len iv <: usize)
@@ -114,10 +109,6 @@ let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   in
   iv_ctr
 
-#pop-options
-
-#push-options "--admit_smt_queries true"
-
 let encrypt_record_payload
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
       (n: u64)
@@ -136,50 +127,80 @@ let encrypt_record_payload
     Core.Result.t_Result Prims.unit u8
   with
   | Core.Result.Result_Ok _ ->
-    let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr key_iv.Bertie.Tls13crypto.f_iv n in
-    let inner_plaintext:Bertie.Tls13utils.t_Bytes =
-      Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat payload
-            (Bertie.Tls13utils.bytes1 (Bertie.Tls13formats.t_ContentType_cast_to_repr ct <: u8)
-              <:
-              Bertie.Tls13utils.t_Bytes)
-          <:
-          Bertie.Tls13utils.t_Bytes)
-        (Bertie.Tls13utils.impl_Bytes__zeroes pad <: Bertie.Tls13utils.t_Bytes)
-    in
-    let clen:usize = (Bertie.Tls13utils.impl_Bytes__len inner_plaintext <: usize) +! mk_usize 16 in
-    if clen <=. mk_usize 65536
-    then
-      let clenb:t_Array u8 (mk_usize 2) =
-        Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
-      in
-      let ad:Bertie.Tls13utils.t_Bytes =
-        Core.Convert.f_into #(t_Array u8 (mk_usize 5))
-          #Bertie.Tls13utils.t_Bytes
-          #FStar.Tactics.Typeclasses.solve
-          (let list =
-              [mk_u8 23; mk_u8 3; mk_u8 3; clenb.[ mk_usize 0 ] <: u8; clenb.[ mk_usize 1 ] <: u8]
-            in
-            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 5);
-            Rust_primitives.Hax.array_of_list 5 list)
-      in
-      match
-        Bertie.Tls13crypto.aead_encrypt key_iv.Bertie.Tls13crypto.f_key iv_ctr inner_plaintext ad
+    (match
+        Bertie.Tls13utils.check ((Bertie.Tls13utils.impl_Bytes__len payload <: usize) <=.
+            mk_usize 16384
+            <:
+            bool)
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok cip ->
-        let v_rec:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl_Bytes__concat ad cip in
-        Core.Result.Result_Ok v_rec <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+      | Core.Result.Result_Ok _ ->
+        (match
+            Bertie.Tls13utils.check (pad <=. mk_usize 16384 <: bool)
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr key_iv.Bertie.Tls13crypto.f_iv n in
+            let inner_plaintext:Bertie.Tls13utils.t_Bytes =
+              Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat payload
+                    (Bertie.Tls13utils.bytes1 (Bertie.Tls13formats.t_ContentType_cast_to_repr ct
+                          <:
+                          u8)
+                      <:
+                      Bertie.Tls13utils.t_Bytes)
+                  <:
+                  Bertie.Tls13utils.t_Bytes)
+                (Bertie.Tls13utils.impl_Bytes__zeroes pad <: Bertie.Tls13utils.t_Bytes)
+            in
+            let clen:usize =
+              (Bertie.Tls13utils.impl_Bytes__len inner_plaintext <: usize) +! mk_usize 16
+            in
+            if clen <=. mk_usize 65536
+            then
+              let clenb:t_Array u8 (mk_usize 2) =
+                Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
+              in
+              let ad:Bertie.Tls13utils.t_Bytes =
+                Core.Convert.f_into #(t_Array u8 (mk_usize 5))
+                  #Bertie.Tls13utils.t_Bytes
+                  #FStar.Tactics.Typeclasses.solve
+                  (let list =
+                      [
+                        mk_u8 23;
+                        mk_u8 3;
+                        mk_u8 3;
+                        clenb.[ mk_usize 0 ] <: u8;
+                        clenb.[ mk_usize 1 ] <: u8
+                      ]
+                    in
+                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 5);
+                    Rust_primitives.Hax.array_of_list 5 list)
+              in
+              match
+                Bertie.Tls13crypto.aead_encrypt key_iv.Bertie.Tls13crypto.f_key
+                  iv_ctr
+                  inner_plaintext
+                  ad
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok cip ->
+                let v_rec:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl_Bytes__concat ad cip in
+                Core.Result.Result_Ok v_rec <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            else
+              Core.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
+              <:
+              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-    else
-      Core.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
-      <:
-      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
   | Core.Result.Result_Err err ->
     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-
-#pop-options
 
 let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0) =
   let ClientCipherState0 ae kiv n exp:t_ClientCipherState0 = st in
@@ -301,8 +322,6 @@ let rec padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
   then mk_usize 1 +! (padlen b (n -! mk_usize 1 <: usize) <: usize)
   else mk_usize 0
 
-#push-options "--admit_smt_queries true"
-
 let decrypt_record_payload
       (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
       (n: u64)
@@ -319,9 +338,11 @@ let decrypt_record_payload
   with
   | Core.Result.Result_Ok _ ->
     let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr kiv.Bertie.Tls13crypto.f_iv n in
-    let clen:usize = (Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize) -! mk_usize 5 in
-    if clen <=. mk_usize 65536 && clen >. mk_usize 16
+    if
+      (Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize) <=. mk_usize 65541 &&
+      (Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize) >. mk_usize 21
     then
+      let clen:usize = (Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize) -! mk_usize 5 in
       let clen_bytes:t_Array u8 (mk_usize 2) =
         Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
       in
@@ -368,35 +389,48 @@ let decrypt_record_payload
             Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
           | Core.Result.Result_Ok plain ->
-            let payload_len:usize =
-              ((Bertie.Tls13utils.impl_Bytes__len plain <: usize) -!
-                (padlen plain (Bertie.Tls13utils.impl_Bytes__len plain <: usize) <: usize)
-                <:
-                usize) -!
-              mk_usize 1
-            in
+            let padding:usize = padlen plain (Bertie.Tls13utils.impl_Bytes__len plain <: usize) in
             (match
-                Bertie.Tls13formats.impl_ContentType__try_from_u8 (Bertie.Tls13utils.f_declassify #u8
-                      #u8
-                      #FStar.Tactics.Typeclasses.solve
-                      (plain.[ payload_len ] <: u8)
+                Bertie.Tls13utils.check (padding <.
+                    (Bertie.Tls13utils.impl_Bytes__len plain <: usize)
                     <:
-                    u8)
+                    bool)
                 <:
-                Core.Result.t_Result Bertie.Tls13formats.t_ContentType u8
+                Core.Result.t_Result Prims.unit u8
               with
-              | Core.Result.Result_Ok ct ->
-                let payload:Bertie.Tls13utils.t_Bytes =
-                  Bertie.Tls13utils.impl_Bytes__slice_range plain
-                    ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = payload_len }
-                      <:
-                      Core.Ops.Range.t_Range usize)
+              | Core.Result.Result_Ok _ ->
+                let payload_len:usize =
+                  ((Bertie.Tls13utils.impl_Bytes__len plain <: usize) -! padding <: usize) -!
+                  mk_usize 1
                 in
-                Core.Result.Result_Ok
-                (ct, payload <: (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes))
-                <:
-                Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8
+                (match
+                    Bertie.Tls13formats.impl_ContentType__try_from_u8 (Bertie.Tls13utils.f_declassify
+                          #u8
+                          #u8
+                          #FStar.Tactics.Typeclasses.solve
+                          (plain.[ payload_len ] <: u8)
+                        <:
+                        u8)
+                    <:
+                    Core.Result.t_Result Bertie.Tls13formats.t_ContentType u8
+                  with
+                  | Core.Result.Result_Ok ct ->
+                    let payload:Bertie.Tls13utils.t_Bytes =
+                      Bertie.Tls13utils.impl_Bytes__slice_range plain
+                        ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = payload_len }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                    in
+                    Core.Result.Result_Ok
+                    (ct, payload <: (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes))
+                    <:
+                    Core.Result.t_Result
+                      (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+                  | Core.Result.Result_Err err ->
+                    Core.Result.Result_Err err
+                    <:
+                    Core.Result.t_Result
+                      (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
               | Core.Result.Result_Err err ->
                 Core.Result.Result_Err err
                 <:
@@ -418,8 +452,6 @@ let decrypt_record_payload
     Core.Result.Result_Err err
     <:
     Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
-
-#pop-options
 
 let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0) =
   match

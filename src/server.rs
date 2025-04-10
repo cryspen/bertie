@@ -11,8 +11,6 @@ use crate::{
     tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
-use std::println;
-
 /// The Server Database
 #[derive(Debug, Clone, Default)]
 pub struct ServerDB {

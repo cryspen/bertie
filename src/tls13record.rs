@@ -81,10 +81,9 @@ pub(crate) fn duplex_cipher_state1(
 }
 
 /// Derive the AEAD IV with counter `n`
-#[hax_lib::fstar::verification_status(lax)] // TODO: fix by making From<[u8;8]> transparent for Bytes
 #[hax_lib::requires(iv.len()  >= 8)]
 fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
-    let counter: Bytes = n.to_be_bytes().into();
+    let counter: Bytes = bytes(&n.to_be_bytes());
     let mut iv_ctr = AeadIV::zeroes(iv.len());
     for i in 0..iv.len() - 8 {
         hax_lib::loop_invariant!(|i: usize| iv_ctr.len() == iv.len());
@@ -98,7 +97,6 @@ fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
 }
 
 /// Encrypt the record `payload` with the given `key_iv`.
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn encrypt_record_payload(
     key_iv: &AeadKeyIV,
     n: u64,
@@ -107,6 +105,8 @@ pub(crate) fn encrypt_record_payload(
     pad: usize,
 ) -> Result<Bytes, TLSError> {
     check(key_iv.iv.len() >= 8)?;
+    check(payload.len() <= 16384)?;
+    check(pad <= 16384)?;
     let iv_ctr = derive_iv_ctr(&key_iv.iv, n);
     let inner_plaintext = payload.concat(bytes1(ct as u8)).concat(Bytes::zeroes(pad));
     let clen = inner_plaintext.len() + 16;
@@ -133,7 +133,6 @@ fn padlen(b: &Bytes, n: usize) -> usize {
 }
 
 /// AEAD decrypt the record `ciphertext`
-#[hax_lib::fstar::verification_status(lax)]
 fn decrypt_record_payload(
     kiv: &AeadKeyIV,
     n: u64,
@@ -141,8 +140,8 @@ fn decrypt_record_payload(
 ) -> Result<(ContentType, Bytes), TLSError> {
     check(kiv.iv.len() >= 8)?;
     let iv_ctr = derive_iv_ctr(&kiv.iv, n);
-    let clen = ciphertext.len() - 5;
-    if clen <= 65536 && clen > 16 {
+    if ciphertext.len() <= 65541 && ciphertext.len() > 21 {
+        let clen = ciphertext.len() - 5;
         let clen_bytes = (clen as u16).to_be_bytes();
         let ad = [23, 3, 3, clen_bytes[0], clen_bytes[1]].into();
         check_eq(&ad, &ciphertext.slice_range(0..5))?;
@@ -150,7 +149,9 @@ fn decrypt_record_payload(
         let cip = ciphertext.slice_range(5..ciphertext.len());
         let plain = aead_decrypt(&kiv.key, &iv_ctr, &cip, &ad)?;
 
-        let payload_len = plain.len() - padlen(&plain, plain.len()) - 1;
+        let padding = padlen(&plain, plain.len());
+        check(padding < plain.len())?;
+        let payload_len = plain.len() - padding - 1;
         let ct = ContentType::try_from_u8(plain[payload_len].declassify())?;
         let payload = plain.slice_range(0..payload_len);
         Ok((ct, payload))
