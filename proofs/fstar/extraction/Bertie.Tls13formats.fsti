@@ -718,7 +718,23 @@ val parse_certificate_verify
 val certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok cert_verify_msg ->
+            (match
+                parse_certificate_verify algs cert_verify_msg
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok sig -> sig =. cv
+              | _ -> false)
+          | _ -> true)
 
 val parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -728,7 +744,21 @@ val parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData
 val finished (vd: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok finished_msg ->
+            (match
+                parse_finished finished_msg <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok parsed_vd -> parsed_vd =. vd
+              | _ -> false)
+          | _ -> true)
 
 /// ```TLS
 /// enum {

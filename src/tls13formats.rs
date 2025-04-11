@@ -1156,6 +1156,14 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
     }
 }
 #[hax_lib::pv_constructor]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(cert_verify_msg) => {
+        match parse_certificate_verify(algs, &cert_verify_msg) {
+            Result::Ok(sig) =>
+                &sig == cv,
+            _ => false
+        }},
+    _ => true})]
 pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
     let sv = (match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => Ok(cv.clone()),
@@ -1218,6 +1226,14 @@ pub(crate) fn parse_certificate_verify(
 }
 
 #[hax_lib::pv_constructor]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(finished_msg) => {
+        match parse_finished(&finished_msg) {
+            Result::Ok(parsed_vd) =>
+                &parsed_vd == vd,
+            _ => false
+        }},
+    _ => true})]
 pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
     let finished_msg = HandshakeData::from_bytes(HandshakeType::Finished, vd)?;
 
