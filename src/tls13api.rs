@@ -10,7 +10,7 @@
 use rand::CryptoRng;
 
 use crate::{
-    server::ServerDB,
+    server::{ServerDB, ServerPubInfo},
     tls13crypto::*,
     tls13formats::{handshake_data::HandshakeType, *},
     tls13handshake::*,
@@ -44,6 +44,23 @@ pub fn in_psk_mode(c: &Client) -> bool {
         Client::Client0(cstate, _) => algs_post_client_hello(cstate).psk_mode(),
         Client::ClientH(cstate, _, _, _) => algs_post_server_hello(cstate).psk_mode(),
         Client::Client1(cstate, _) => algs_post_client_finished(cstate).psk_mode(),
+    }
+}
+
+/// Retrieves the Servers' public information (name, certificate, public key, ticket)
+/// The application MUST call this function to retrieve and validate the (optional)
+/// certificate, and check that it correspods to the server name and the public key,
+/// before reading or writing any sensitive data on the channel.
+///
+/// If the connection has no certificate, then `in_psk_mode` above will return true,
+/// and the session ticket in the server info is the one used for the connection.
+///
+/// Returns a `ServerPubInfo`
+pub fn get_server_info(c: &Client) -> ServerPubInfo {
+    match c {
+        Client::Client0(cstate, _) => server_info_post_client_hello(cstate),
+        Client::ClientH(cstate, _, _, _) => server_info_post_server_hello(cstate),
+        Client::Client1(cstate, _) => server_info_post_client_finished(cstate),
     }
 }
 

@@ -82,6 +82,16 @@ pub fn algs_post_client_finished(st: &ClientPostClientFinished) -> Algorithms {
     st.2
 }
 
+pub fn server_info_post_client_hello(st: &ClientPostClientHello) -> ServerPubInfo {
+    st.2.clone()
+}
+pub fn server_info_post_server_hello(st: &ClientPostServerHello) -> ServerPubInfo {
+    st.3.clone()
+}
+pub fn server_info_post_client_finished(st: &ClientPostClientFinished) -> ServerPubInfo {
+    st.3.clone()
+}
+
 /// Server state after processing the client hello.
 pub struct ServerPostClientHello {
     client_randomness: Random,

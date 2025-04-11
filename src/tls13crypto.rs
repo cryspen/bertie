@@ -70,15 +70,15 @@ impl AeadKey {
 }
 
 /// An RSA public key.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
-pub(crate) struct RsaVerificationKey {
-    pub(crate) modulus: Bytes,
-    pub(crate) exponent: Bytes,
+pub struct RsaVerificationKey {
+    pub modulus: Bytes,
+    pub exponent: Bytes,
 }
 
 /// Bertie public verification keys.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 // XXX: Extracting this still leads to ambigous accessors, so I removed these here.
 #[cfg_attr(
     feature = "hax-pv",
@@ -107,7 +107,7 @@ fun ${PublicVerificationKey::Rsa}(
 "
     )
 )]
-pub(crate) enum PublicVerificationKey {
+pub enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
 }

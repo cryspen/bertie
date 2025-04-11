@@ -46,11 +46,12 @@ pub(crate) struct ServerInfo {
     pub(crate) psk_opt: Option<Psk>,
 }
 
-pub(crate) struct ServerPubInfo {
-    pub(crate) server_name: Bytes,
-    pub(crate) certificate: Option<Bytes>,
-    pub(crate) public_key: Option<PublicVerificationKey>,
-    pub(crate) session_ticket: Option<Bytes>,
+#[derive(Clone)]
+pub struct ServerPubInfo {
+    pub server_name: Bytes,
+    pub certificate: Option<Bytes>,
+    pub public_key: Option<PublicVerificationKey>,
+    pub session_ticket: Option<Bytes>,
 }
 
 /// Look up a server for the given `ciphersuite`.
