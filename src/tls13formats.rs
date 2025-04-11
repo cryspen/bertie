@@ -8,17 +8,7 @@ use crate::{
     tls13crypto::{
         hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
-    tls13utils::{
-        bytes1, bytes2, bytes_concat, check, check_eq, check_eq1, check_eq_slice,
-        check_eq_with_slice, check_length_encoding_u16, check_length_encoding_u16_slice,
-        check_length_encoding_u24, check_length_encoding_u8, check_length_encoding_u8_slice,
-        check_mem, encode_length_u16, encode_length_u24, encode_length_u8, eq_slice,
-        length_u16_encoded, length_u16_encoded_slice, length_u24_encoded, length_u8_encoded,
-        parse_failed, tlserr, u32_as_be_bytes, Bytes, TLSError,
-        APPLICATION_DATA_INSTEAD_OF_HANDSHAKE, DECODE_ERROR, INVALID_COMPRESSION_LIST,
-        INVALID_SIGNATURE, MISSING_KEY_SHARE, PROTOCOL_VERSION_ALERT, PSK_MODE_MISMATCH, U32, U8,
-        UNSUPPORTED_ALGORITHM,
-    },
+    tls13utils::*,
 };
 
 pub(crate) mod handshake_data;
@@ -598,20 +588,24 @@ pub(crate) fn client_hello(
     server_name: &Bytes,
     session_ticket: &Option<Bytes>,
 ) -> Result<(HandshakeData, usize), TLSError> {
+    // Copying values for defensive checking at the end of the function
+    #[cfg(feature="defensive")]
+    let client_random_copy = client_random.clone();
+    
     let version = bytes2(3, 3);
     let compression_methods = bytes2(1, 0);
     // const version: &[U8; 2] = &[U8(3), U8(3)];
     // const compression_methods: &[U8; 2] = &[U8(1), U8(0)];
     let legacy_session_id = encode_length_u8(&[U8(0); 32])?;
     let cipher_suites = encode_length_u16(algorithms.ciphersuite()?)?;
-    let server_name = build_server_name(server_name)?;
+    let server_name_encoded = build_server_name(server_name)?;
     let supported_versions = supported_versions()?;
     let supported_groups = supported_groups(algorithms)?;
     let signature_algorithms = signature_algorithms(algorithms)?;
     let key_shares = key_shares(algorithms, kem_pk.clone())?;
 
     let extensions = bytes_concat!(
-        server_name,
+        server_name_encoded,
         supported_versions,
         supported_groups,
         signature_algorithms,
@@ -624,6 +618,7 @@ pub(crate) fn client_hello(
     })?;
 
     let encoded_extensions = encode_length_u16(extensions)?;
+
     let handshake_bytes = bytes_concat!(
         version,
         client_random,
@@ -633,6 +628,21 @@ pub(crate) fn client_hello(
         encoded_extensions
     );
     let client_hello = HandshakeData::from_bytes(HandshakeType::ClientHello, &handshake_bytes)?;
+
+    // Defensively checking if the serialization is correct
+    #[cfg(feature="defensive")]
+    {
+        let (parsed_client_random, _,
+             parsed_server_name, 
+             parsed_gx,
+             parsed_session_ticket, _, 
+             parsed_trunc_len) = parse_client_hello(&*algorithms,&client_hello)?;
+        check_eq(&parsed_client_random, &client_random_copy)?;
+        check_eq(&parsed_server_name, &server_name)?;
+        check_eq(&parsed_gx, kem_pk)?;
+        check_eq_option(&parsed_session_ticket,session_ticket)?;
+    }
+
     Ok((client_hello, trunc_len))
 }
 
@@ -855,24 +865,37 @@ pub(super) fn parse_client_hello(
 pub(crate) fn server_hello(
     algs: &Algorithms,
     server_random: Random,
-    sid: &Bytes,
-    gy: &KemPk,
+    session_id: &Bytes,
+    kem_ciphertext: &KemPk,
 ) -> Result<HandshakeData, TLSError> {
-    let ver = bytes2(3, 3);
-    let sid = encode_length_u8(sid.as_raw())?;
-    let cip = algs.ciphersuite()?;
-    let comp = bytes1(0);
-    let ks = server_key_shares(algs, gy.clone())?;
-    let sv = server_supported_version(algs)?;
-    let mut exts = ks.concat(sv);
+    // Copying values for defensive checking at end of function
+    #[cfg(feature="defensive")]
+    let server_random_copy = server_random.clone();
+
+    let version = bytes2(3, 3);
+    let legacy_session_id = encode_length_u8(session_id.as_raw())?;
+    let ciphersuite = algs.ciphersuite()?;
+    let compression_method = bytes1(0);
+    let key_shares = server_key_shares(algs, kem_ciphertext.clone())?;
+    let supported_version = server_supported_version(algs)?;
+    let mut extensions = key_shares.concat(supported_version);
     if algs.psk_mode() {
-        exts = exts.concat(server_pre_shared_key(algs)?);
+        extensions = extensions.concat(server_pre_shared_key(algs)?);
     }
-    let encoded_extensions = encode_length_u16(exts)?;
+    let encoded_extensions = encode_length_u16(extensions)?;
     let sh = HandshakeData::from_bytes(
         HandshakeType::ServerHello,
-        &bytes_concat!(ver, server_random, sid, cip, comp, encoded_extensions),
+        &bytes_concat!(version, server_random, legacy_session_id, ciphersuite, compression_method, encoded_extensions),
     )?;
+
+    // Defensively checking if the serialization is correct
+    #[cfg(feature="defensive")]
+    {
+        let (parsed_server_random, parsed_kem_ciphertext) = parse_server_hello(algs, &sh)?;
+        check_eq(&parsed_server_random, &server_random_copy)?;
+        check_eq(&parsed_kem_ciphertext, kem_ciphertext)?;
+    }
+
     Ok(sh)
 }
 
@@ -952,9 +975,10 @@ pub(crate) fn parse_server_hello(
 #[hax_lib::pv_constructor]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
-    Ok(HandshakeData(handshake_type.concat(encode_length_u24(
+    let enc_extensions_msg = HandshakeData(handshake_type.concat(encode_length_u24(
         &encode_length_u16(Bytes::new())?,
-    )?)))
+    )?));
+    Ok(enc_extensions_msg)
 }
 
 #[cfg_attr(
@@ -990,11 +1014,21 @@ pub(crate) fn server_certificate(
     _algs: &Algorithms,
     cert: &Bytes,
 ) -> Result<HandshakeData, TLSError> {
-    let creq = encode_length_u8(&[])?;
-    let crt = encode_length_u24(cert)?;
+    let cert_request = encode_length_u8(&[])?;
+    let encoded_cert = encode_length_u24(cert)?;
     let ext = encode_length_u16(Bytes::new())?;
-    let crts = encode_length_u24(&crt.concat(ext))?;
-    HandshakeData::from_bytes(HandshakeType::Certificate, &creq.concat(crts))
+    let cert_with_extension = encode_length_u24(&&encoded_cert.concat(ext))?;
+    let cert_msg = HandshakeData::from_bytes(HandshakeType::Certificate, 
+            &cert_request.concat(cert_with_extension))?;
+
+    // Defensively checking if the serialization is correct
+    #[cfg(feature="defensive")]
+    {
+        let parsed_cert = parse_server_certificate(&cert_msg)?;
+        check_eq(&parsed_cert, cert)?;
+    }
+
+    Ok(cert_msg)
 }
 
 #[cfg(bench)]

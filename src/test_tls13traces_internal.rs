@@ -313,7 +313,7 @@ fn test_parse_client_hello_record() {
 
 #[test]
 fn test_parse_client_hello_roundtrip() {
-    let cr = Random::new();
+    let cr = Random::zeroes(32);
     let gx = Bytes::from_hex(client_x25519_pub);
     let sn = Bytes::zeroes(23);
     let ch =
@@ -374,7 +374,7 @@ fn test_parse_server_hello_length_zero() {
 
 #[test]
 fn test_parse_server_hello_roundtrip() {
-    let sr: Random = Random::new();
+    let sr: Random = Random::zeroes(32);
     let mut sid = Bytes::zeroes(24);
     sid[0] = U8(255);
     let gy = Bytes::from_hex(server_x25519_pub);
