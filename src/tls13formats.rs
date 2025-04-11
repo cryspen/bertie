@@ -875,6 +875,15 @@ pub(super) fn parse_client_hello(
 /// Build the server hello message.
 #[hax_lib::pv_constructor]
 #[hax_lib::requires(server_random.len() == 32)]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(sh) => {
+        match parse_server_hello(algorithms, &sh) {
+            Result::Ok((sr,ct)) =>
+                sr == server_random &&
+                &ct == kem_ciphertext,
+            _ => false
+        }},
+    _ => true})]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     server_random: Random,
