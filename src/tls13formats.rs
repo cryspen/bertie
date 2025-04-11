@@ -579,7 +579,16 @@ fn get_psk_extensions(
 )]
 #[hax_lib::requires(client_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
-                                Result::Ok((ch,tl)) => tl <= ch.len(),
+                                Result::Ok((ch,trunc_len)) => {
+                                    trunc_len <= ch.len() &&
+                                    match parse_client_hello(algorithms, &ch) {
+                                        Result::Ok((cr,_,sn,pk,st,_,_)) =>
+                                            cr == client_random &&
+                                            &pk == kem_pk &&
+                                            &sn == server_name &&
+                                            &st == session_ticket,
+                                        _ => false
+                                    }},
                                 _ => true})]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
@@ -589,9 +598,9 @@ pub(crate) fn client_hello(
     session_ticket: &Option<Bytes>,
 ) -> Result<(HandshakeData, usize), TLSError> {
     // Copying values for defensive checking at the end of the function
-    #[cfg(feature="defensive")]
+    #[cfg(feature = "defensive")]
     let client_random_copy = client_random.clone();
-    
+
     let version = bytes2(3, 3);
     let compression_methods = bytes2(1, 0);
     // const version: &[U8; 2] = &[U8(3), U8(3)];
@@ -630,17 +639,21 @@ pub(crate) fn client_hello(
     let client_hello = HandshakeData::from_bytes(HandshakeType::ClientHello, &handshake_bytes)?;
 
     // Defensively checking if the serialization is correct
-    #[cfg(feature="defensive")]
+    #[cfg(feature = "defensive")]
     {
-        let (parsed_client_random, _,
-             parsed_server_name, 
-             parsed_gx,
-             parsed_session_ticket, _, 
-             parsed_trunc_len) = parse_client_hello(&*algorithms,&client_hello)?;
+        let (
+            parsed_client_random,
+            _,
+            parsed_server_name,
+            parsed_gx,
+            parsed_session_ticket,
+            _,
+            parsed_trunc_len,
+        ) = parse_client_hello(&*algorithms, &client_hello)?;
         check_eq(&parsed_client_random, &client_random_copy)?;
         check_eq(&parsed_server_name, &server_name)?;
         check_eq(&parsed_gx, kem_pk)?;
-        check_eq_option(&parsed_session_ticket,session_ticket)?;
+        check_eq_option(&parsed_session_ticket, session_ticket)?;
     }
 
     Ok((client_hello, trunc_len))
@@ -869,7 +882,7 @@ pub(crate) fn server_hello(
     kem_ciphertext: &KemPk,
 ) -> Result<HandshakeData, TLSError> {
     // Copying values for defensive checking at end of function
-    #[cfg(feature="defensive")]
+    #[cfg(feature = "defensive")]
     let server_random_copy = server_random.clone();
 
     let version = bytes2(3, 3);
@@ -885,11 +898,18 @@ pub(crate) fn server_hello(
     let encoded_extensions = encode_length_u16(extensions)?;
     let sh = HandshakeData::from_bytes(
         HandshakeType::ServerHello,
-        &bytes_concat!(version, server_random, legacy_session_id, ciphersuite, compression_method, encoded_extensions),
+        &bytes_concat!(
+            version,
+            server_random,
+            legacy_session_id,
+            ciphersuite,
+            compression_method,
+            encoded_extensions
+        ),
     )?;
 
     // Defensively checking if the serialization is correct
-    #[cfg(feature="defensive")]
+    #[cfg(feature = "defensive")]
     {
         let (parsed_server_random, parsed_kem_ciphertext) = parse_server_hello(algs, &sh)?;
         check_eq(&parsed_server_random, &server_random_copy)?;
@@ -975,9 +995,8 @@ pub(crate) fn parse_server_hello(
 #[hax_lib::pv_constructor]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
-    let enc_extensions_msg = HandshakeData(handshake_type.concat(encode_length_u24(
-        &encode_length_u16(Bytes::new())?,
-    )?));
+    let enc_extensions_msg =
+        HandshakeData(handshake_type.concat(encode_length_u24(&encode_length_u16(Bytes::new())?)?));
     Ok(enc_extensions_msg)
 }
 
@@ -1018,11 +1037,13 @@ pub(crate) fn server_certificate(
     let encoded_cert = encode_length_u24(cert)?;
     let ext = encode_length_u16(Bytes::new())?;
     let cert_with_extension = encode_length_u24(&&encoded_cert.concat(ext))?;
-    let cert_msg = HandshakeData::from_bytes(HandshakeType::Certificate, 
-            &cert_request.concat(cert_with_extension))?;
+    let cert_msg = HandshakeData::from_bytes(
+        HandshakeType::Certificate,
+        &cert_request.concat(cert_with_extension),
+    )?;
 
     // Defensively checking if the serialization is correct
-    #[cfg(feature="defensive")]
+    #[cfg(feature = "defensive")]
     {
         let parsed_cert = parse_server_certificate(&cert_msg)?;
         check_eq(&parsed_cert, cert)?;
@@ -1132,7 +1153,16 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
     })?;
 
     let sig = algs.signature_algorithm()?.concat(encode_length_u16(sv)?);
-    HandshakeData::from_bytes(HandshakeType::CertificateVerify, &sig)
+    let cert_verify_msg = HandshakeData::from_bytes(HandshakeType::CertificateVerify, &sig)?;
+
+    // Defensively checking if the serialization is correct
+    #[cfg(feature = "defensive")]
+    {
+        let parsed_cert_verify = parse_certificate_verify(algs, &cert_verify_msg)?;
+        check_eq(&parsed_cert_verify, cv)?;
+    }
+
+    Ok(cert_verify_msg)
 }
 
 #[cfg_attr(
@@ -1172,7 +1202,16 @@ pub(crate) fn parse_certificate_verify(
 
 #[hax_lib::pv_constructor]
 pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
-    HandshakeData::from_bytes(HandshakeType::Finished, vd)
+    let finished_msg = HandshakeData::from_bytes(HandshakeType::Finished, vd)?;
+
+    // Defensively checking if the serialization is correct
+    #[cfg(feature = "defensive")]
+    {
+        let parsed_verify_data = parse_finished(&finished_msg)?;
+        check_eq(&parsed_verify_data, vd)?;
+    }
+
+    Ok(finished_msg)
 }
 
 #[cfg_attr(

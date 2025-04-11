@@ -674,10 +674,10 @@ pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     Ok(_) => b1 == b2,
     _ => true })]
 pub(crate) fn check_eq_option(b1: &Option<Bytes>, b2: &Option<Bytes>) -> Result<(), TLSError> {
-    match (b1,b2) {
+    match (b1, b2) {
         (None, None) => Ok(()),
-        (Some(b1), Some(b2)) => check_eq_inner(b1,b2),
-        _ => Err(parse_failed())
+        (Some(b1), Some(b2)) => check_eq_inner(b1, b2),
+        _ => Err(parse_failed()),
     }
 }
 
