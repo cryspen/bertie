@@ -877,7 +877,7 @@ pub(super) fn parse_client_hello(
 #[hax_lib::requires(server_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
     Result::Ok(sh) => {
-        match parse_server_hello(algorithms, &sh) {
+        match parse_server_hello(algs, &sh) {
             Result::Ok((sr,ct)) =>
                 sr == server_random &&
                 &ct == kem_ciphertext,

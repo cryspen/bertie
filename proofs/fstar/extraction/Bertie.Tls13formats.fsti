@@ -877,7 +877,23 @@ val server_hello
       (server_random session_id kem_ciphertext: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       (requires (Bertie.Tls13utils.impl_Bytes__len server_random <: usize) =. mk_usize 32)
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok sh ->
+            (match
+                parse_server_hello algs sh
+                <:
+                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+              with
+              | Core.Result.Result_Ok (sr, ct) -> sr =. server_random && ct =. kem_ciphertext
+              | _ -> false)
+          | _ -> true)
 
 val check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8)
