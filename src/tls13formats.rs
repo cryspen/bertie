@@ -1038,6 +1038,14 @@ pub(crate) fn parse_encrypted_extensions(
 }
 
 #[hax_lib::pv_constructor]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(cert_msg) => {
+        match parse_server_certificate(&cert_msg) {
+            Result::Ok(ct) =>
+                ct == cert,
+            _ => false
+        }},
+    _ => true})]
 pub(crate) fn server_certificate(
     _algs: &Algorithms,
     cert: &Bytes,
