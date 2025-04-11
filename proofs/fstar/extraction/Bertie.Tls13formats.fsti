@@ -677,7 +677,23 @@ val parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_
 val server_certificate (e_algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok cert_msg ->
+            (match
+                parse_server_certificate cert_msg
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok ct -> ct =. cert
+              | _ -> false)
+          | _ -> true)
 
 val ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)

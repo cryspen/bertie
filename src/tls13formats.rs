@@ -1042,7 +1042,7 @@ pub(crate) fn parse_encrypted_extensions(
     Result::Ok(cert_msg) => {
         match parse_server_certificate(&cert_msg) {
             Result::Ok(ct) =>
-                ct == cert,
+                &ct == cert,
             _ => false
         }},
     _ => true})]
