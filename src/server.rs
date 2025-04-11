@@ -7,7 +7,7 @@
 //! * optional PSKs
 
 use crate::{
-    tls13crypto::{Algorithms, Psk, SignatureKey},
+    tls13crypto::{Algorithms, Psk, PublicVerificationKey, SignatureKey},
     tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
@@ -44,6 +44,13 @@ pub(crate) struct ServerInfo {
     pub(crate) cert: Bytes,
     pub(crate) sk: SignatureKey,
     pub(crate) psk_opt: Option<Psk>,
+}
+
+pub(crate) struct ServerPubInfo {
+    pub(crate) server_name: Bytes,
+    pub(crate) certificate: Option<Bytes>,
+    pub(crate) public_key: Option<PublicVerificationKey>,
+    pub(crate) session_ticket: Option<Bytes>,
 }
 
 /// Look up a server for the given `ciphersuite`.
