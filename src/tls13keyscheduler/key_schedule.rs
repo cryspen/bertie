@@ -367,8 +367,9 @@ pub fn XPD(
     let label = TLSkeyscheduler::labels(n, r)?;
 
     let h = xpd_angle(n, label.clone(), h1, args)?;
+    let n1_unwrap = n1.ok_or(INCORRECT_STATE)?;
     let k1 = ks
-        .get(n1.unwrap(), l, (h1.name, h1.alg, h1.level))
+        .get(n1_unwrap, l, (h1.name, h1.alg, h1.level))
         .ok_or(INCORRECT_STATE)?;
 
     let k: TagKey = if n == PSK {
@@ -432,11 +433,13 @@ pub(crate) fn XTR(
     //     assert_eq!(h1.unwrap().alg, h2.unwrap().alg)
     // }
     let h = xtr_angle(name, h1.clone(), h2.clone())?;
+    let n1_unwrap = n1.ok_or(INCORRECT_STATE)?;
+    let n2_unwrap = n2.ok_or(INCORRECT_STATE)?;
     let k1 = ks
-        .get(n1.unwrap(), level.clone(), (h1.name, h1.alg, h1.level))
+        .get(n1_unwrap, level.clone(), (h1.name, h1.alg, h1.level))
         .ok_or(INCORRECT_STATE)?;
     let k2 = ks
-        .get(n2.unwrap(), level.clone(), (h2.name, h2.alg, h2.level))
+        .get(n2_unwrap, level.clone(), (h2.name, h2.alg, h2.level))
         .ok_or(INCORRECT_STATE)?;
     let k = xtr(
         &TagKey {
