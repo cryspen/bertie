@@ -252,8 +252,7 @@ pub(crate) fn xpd_alg(
     d: &Digest,
 ) -> Result<Bytes, TLSError> {
     let kvt = convert_label(label.clone());
-    if kvt == Some(____________)
-    {
+    if kvt == Some(____________) {
         hmac_tag(alg, k1, d)
     } else {
         hkdf_expand_label(alg, k1, label, d, alg.hash_len())
