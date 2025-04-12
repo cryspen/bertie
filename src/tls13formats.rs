@@ -3,7 +3,6 @@
 
 use crate::tls13utils::Declassify;
 
-#[cfg(not(feature = "secret_integers"))]
 use crate::{
     tls13crypto::{
         hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
