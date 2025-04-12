@@ -156,7 +156,7 @@ impl HashAlgorithm {
     /// Get the size of the hash digest.
     #[hax_lib::ensures(|result| result <= 64)]
     pub(crate) fn hash_len(&self) -> usize {
-        hash_len_inner(&self)
+        hash_len_inner(self)
     }
 
     /// Get the libcrux hmac algorithm.

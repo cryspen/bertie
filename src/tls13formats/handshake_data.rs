@@ -2,6 +2,7 @@ use crate::tls13utils::{
     check_eq1, encode_length_u24, eq1, length_u24_encoded, parse_failed, tlserr, Bytes, TLSError,
     U8,
 };
+#[allow(unused_imports)]
 use hax_lib::ToInt;
 #[cfg(feature = "hax-pv")]
 use hax_lib::{proverif, pv_constructor};
@@ -168,7 +169,7 @@ impl HandshakeData {
 
     /// Returns the handshake data bytes.
     pub(crate) fn to_bytes(&self) -> Bytes {
-        to_bytes_inner(&self)
+        to_bytes_inner(self)
     }
 
     /// Returns a new [`HandshakeData`] that contains the bytes of
@@ -233,7 +234,7 @@ impl HandshakeData {
     /// if parsing of either message fails or if the payload is not fully consumed
     /// by parsing two messages.
     pub(crate) fn to_two(&self) -> Result<(HandshakeData, HandshakeData), TLSError> {
-        to_two_inner(&self)
+        to_two_inner(self)
     }
 
     /// Attempt to parse exactly four handshake messages from `payload`.
@@ -244,7 +245,7 @@ impl HandshakeData {
     pub(crate) fn to_four(
         &self,
     ) -> Result<(HandshakeData, HandshakeData, HandshakeData, HandshakeData), TLSError> {
-        to_four_inner(&self)
+        to_four_inner(self)
     }
 
     /// Beginning at offset `start`, attempt to find a message of type `handshake_type` in `payload`.

@@ -3,6 +3,7 @@
 
 use crate::tls13utils::Declassify;
 
+// #[cfg(not(feature = "secret_integers"))]
 use crate::{
     tls13crypto::{
         hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
@@ -36,23 +37,23 @@ use hax_lib::{proverif, pv_constructor};
 pub const LABEL_IV: [u8; 2] = [105, 118];
 pub const LABEL_KEY: [u8; 3] = [107, 101, 121];
 pub const LABEL_TLS13: [u8; 6] = [116, 108, 115, 049, 051, 032];
-pub const LABEL_DERIVED: [u8; 7] = [100, 101, 114, 105, 118, 101, 100];
+// pub const LABEL_DERIVED: [u8; 7] = [100, 101, 114, 105, 118, 101, 100];
 pub const LABEL_FINISHED: [u8; 8] = [102, 105, 110, 105, 115, 104, 101, 100];
-pub const LABEL_RES_BINDER: [u8; 10] = [114, 101, 115, 032, 098, 105, 110, 100, 101, 114];
+// pub const LABEL_RES_BINDER: [u8; 10] = [114, 101, 115, 032, 098, 105, 110, 100, 101, 114];
 // pub const LABEL_EXT_BINDER: [u8; 10] = [101, 120, 116, 032, 098, 105, 110, 100, 101, 114];
-pub const LABEL_EXP_MASTER: [u8; 10] = [101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
-pub const LABEL_RES_MASTER: [u8; 10] = [114, 101, 115, 032, 109, 097, 115, 116, 101, 114];
-pub const LABEL_C_E_TRAFFIC: [u8; 11] = [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099];
-pub const LABEL_E_EXP_MASTER: [u8; 12] =
-    [101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
-pub const LABEL_C_HS_TRAFFIC: [u8; 12] =
-    [099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099];
-pub const LABEL_S_HS_TRAFFIC: [u8; 12] =
-    [115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099];
-pub const LABEL_C_AP_TRAFFIC: [u8; 12] =
-    [099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099];
-pub const LABEL_S_AP_TRAFFIC: [u8; 12] =
-    [115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099];
+// pub const LABEL_EXP_MASTER: [u8; 10] = [101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
+// pub const LABEL_RES_MASTER: [u8; 10] = [114, 101, 115, 032, 109, 097, 115, 116, 101, 114];
+// pub const LABEL_C_E_TRAFFIC: [u8; 11] = [099, 032, 101, 032, 116, 114, 097, 102, 102, 105, 099];
+// pub const LABEL_E_EXP_MASTER: [u8; 12] =
+//     [101, 032, 101, 120, 112, 032, 109, 097, 115, 116, 101, 114];
+// pub const LABEL_C_HS_TRAFFIC: [u8; 12] =
+//     [099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099];
+// pub const LABEL_S_HS_TRAFFIC: [u8; 12] =
+//     [115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099];
+// pub const LABEL_C_AP_TRAFFIC: [u8; 12] =
+//     [099, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099];
+// pub const LABEL_S_AP_TRAFFIC: [u8; 12] =
+//     [115, 032, 097, 112, 032, 116, 114, 097, 102, 102, 105, 099];
 
 pub const PREFIX_SERVER_SIGNATURE: [u8; 98] = [
     0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
