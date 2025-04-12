@@ -227,7 +227,7 @@ fn label_to_bytes(label: Label) -> Bytes {
         C_HS_TRAFFIC => vec![099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099].into(),
         S_HS_TRAFFIC => vec![115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099].into(),
         RESUMPTION__ => vec![82, 69, 83, 85, 77, 80, 84, 73, 79, 78].into(),
-        ____________ => vec![].into(),
+        ____________ => vec::Vec::<u8>::new().into(),
     }
 }
 
