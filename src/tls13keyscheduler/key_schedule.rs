@@ -274,7 +274,11 @@ pub(crate) fn xpd(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSEr
     let v = k1.clone().val;
     let val = xpd_alg(&alg, &v, label, d)?;
 
-    Ok(TagKey { tag: k1.tag, alg, val })
+    Ok(TagKey {
+        tag: k1.tag,
+        alg,
+        val,
+    })
 }
 
 #[derive(Clone, Debug)]
