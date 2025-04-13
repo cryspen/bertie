@@ -81,8 +81,25 @@ Definition fin_L_table : finType :=
   Casts.prod_finType (Casts.prod_finType fin_handle 'bool) fin_key.
 Definition chL_table := 'fin #|fin_L_table|.
 
+Definition PrntN (n : name) : chProd chName chName :=
+  let (a,b) :=
+    match n with
+    | ES => (ZERO_SALT, PSK)
+    | EEM | CET | ESALT | BIND => (ES, BOT)
+    | BINDER => (BIND, BOT)
+    | HS => (ESALT, DH)
+    | SHT | CHT | HSALT => (HS, BOT)
+    | AS => (HSALT, ZERO_IKM)
+    | CAT | SAT | RM | EAM => (AS, BOT)
+    | PSK => (RM, BOT)
+    | _ => (BOT, BOT)
+    end
+  in (name_to_chName a, name_to_chName b).
+
 Class Dependencies := {
-    (* PrntN: name -> (* code fset0 fset0 *) (chProd chName chName) ; *)
+    TLSPrntN: name -> (* code fset0 fset0 *) (chProd chName chName) ;
+    TLSPrntN_is_PrntN: forall n, PrntN n == TLSPrntN n ;
+
     Labels : name -> bool -> code fset0 fset0 chLabel ;
     (* O_star : list name ; *)
     xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey ;
@@ -110,21 +127,6 @@ Class Dependencies := {
     DHGEN_function : chGroup -> code fset0 fset0 chGroup ;
     DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle ;
   }.
-
-Definition PrntN (n : name) : chProd chName chName :=
-  let (a,b) :=
-    match n with
-    | ES => (ZERO_SALT, PSK)
-    | EEM | CET | ESALT | BIND => (ES, BOT)
-    | BINDER => (BIND, BOT)
-    | HS => (ESALT, DH)
-    | SHT | CHT | HSALT => (HS, BOT)
-    | AS => (HSALT, ZERO_IKM)
-    | CAT | SAT | RM | EAM => (AS, BOT)
-    | PSK => (RM, BOT)
-    | _ => (BOT, BOT)
-    end
-  in (name_to_chName a, name_to_chName b).
 
 Lemma TlsLikeKeySchedule :
   (ZERO_SALT \in all_names)

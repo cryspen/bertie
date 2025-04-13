@@ -22,34 +22,11 @@ From Hacspec Require Import Hacspec_Lib.
 Open Scope hacspec_scope.
 Import choice.Choice.Exports.
 
+From RecordUpdate Require Import RecordUpdate.
+
+Import RecordSetNotations.
+
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
-
-Require Import Algorithms.
-Export Algorithms.
-
-Require Import Psk.
-Export Psk.
-
-Require Import SignatureKey.
-Export SignatureKey.
-
-Require Import check_eq.
-Export check_eq.
-
-Require Import eq.
-Export eq.
-
-Require Import parse_failed.
-Export parse_failed.
-
-Require Import Bytes.
-Export Bytes.
-
-Require Import TLSError.
-Export TLSError.
-
-Require Import PSK_MODE_MISMATCH.
-Export PSK_MODE_MISMATCH.
 
 Definition t_ServerDB : choice_type :=
   (t_Bytes × t_Bytes × t_Bytes × t_Option (t_Bytes × t_Bytes)).
@@ -81,14 +58,13 @@ Equations Build_t_ServerDB {f_server_name : both t_Bytes} {f_cert : both t_Bytes
           bind_both f_server_name (fun f_server_name =>
             ret_both ((f_server_name,f_cert,f_sk,f_psk_opt) : (t_ServerDB)))))) : both (t_ServerDB).
 Fail Next Obligation.
-Notation "'Build_t_ServerDB' '[' x ']' '(' 'f_server_name' ':=' y ')'" := (Build_t_ServerDB (f_server_name := y) (f_cert := f_cert x) (f_sk := f_sk x) (f_psk_opt := f_psk_opt x)).
-Notation "'Build_t_ServerDB' '[' x ']' '(' 'f_cert' ':=' y ')'" := (Build_t_ServerDB (f_server_name := f_server_name x) (f_cert := y) (f_sk := f_sk x) (f_psk_opt := f_psk_opt x)).
-Notation "'Build_t_ServerDB' '[' x ']' '(' 'f_sk' ':=' y ')'" := (Build_t_ServerDB (f_server_name := f_server_name x) (f_cert := f_cert x) (f_sk := y) (f_psk_opt := f_psk_opt x)).
-Notation "'Build_t_ServerDB' '[' x ']' '(' 'f_psk_opt' ':=' y ')'" := (Build_t_ServerDB (f_server_name := f_server_name x) (f_cert := f_cert x) (f_sk := f_sk x) (f_psk_opt := y)).
-
-Equations impl__ServerDB__new (server_name : both t_Bytes) (cert : both t_Bytes) (sk : both t_Bytes) (psk_opt : both (t_Option (t_Bytes × t_Bytes))) : both t_ServerDB :=
-  impl__ServerDB__new server_name cert sk psk_opt  :=
-    Build_t_ServerDB (f_server_name := server_name) (f_cert := cert) (f_sk := sk) (f_psk_opt := psk_opt) : both t_ServerDB.
+#[global] Program Instance t_ServerDB_Settable : Settable (both t_ServerDB) :=
+  let mkT := fun x =>  (bind_both (f_psk_opt x) (fun f_psk_opt =>
+    bind_both (f_sk x) (fun f_sk =>
+      bind_both (f_cert x) (fun f_cert =>
+        bind_both (f_server_name x) (fun f_server_name =>
+          ret_both ((f_server_name,f_cert,f_sk,f_psk_opt) : (t_ServerDB))))))) : _ in
+  {| mkT := (@mkT)|}.
 Fail Next Obligation.
 
 Definition t_ServerInfo : choice_type :=
@@ -115,14 +91,18 @@ Equations Build_t_ServerInfo {f_cert : both t_Bytes} {f_sk : both t_Bytes} {f_ps
         bind_both f_cert (fun f_cert =>
           ret_both ((f_cert,f_sk,f_psk_opt) : (t_ServerInfo))))) : both (t_ServerInfo).
 Fail Next Obligation.
-Notation "'Build_t_ServerInfo' '[' x ']' '(' 'f_cert' ':=' y ')'" := (Build_t_ServerInfo (f_cert := y) (f_sk := f_sk x) (f_psk_opt := f_psk_opt x)).
-Notation "'Build_t_ServerInfo' '[' x ']' '(' 'f_sk' ':=' y ')'" := (Build_t_ServerInfo (f_cert := f_cert x) (f_sk := y) (f_psk_opt := f_psk_opt x)).
-Notation "'Build_t_ServerInfo' '[' x ']' '(' 'f_psk_opt' ':=' y ')'" := (Build_t_ServerInfo (f_cert := f_cert x) (f_sk := f_sk x) (f_psk_opt := y)).
+#[global] Program Instance t_ServerInfo_Settable : Settable (both t_ServerInfo) :=
+  let mkT := fun x =>  (bind_both (f_psk_opt x) (fun f_psk_opt =>
+    bind_both (f_sk x) (fun f_sk =>
+      bind_both (f_cert x) (fun f_cert =>
+        ret_both ((f_cert,f_sk,f_psk_opt) : (t_ServerInfo)))))) : _ in
+  {| mkT := (@mkT)|}.
+Fail Next Obligation.
 
 Equations lookup_db (ciphersuite : both t_Algorithms) (db : both t_ServerDB) (sni : both t_Bytes) (tkt : both (t_Option t_Bytes)) : both (t_Result t_ServerInfo int8) :=
   lookup_db ciphersuite db sni tkt  :=
-    run (ifb orb (eq sni impl__Bytes__new) (eq sni (f_server_name db))
-    then matchb prod_b (impl__Algorithms__psk_mode ciphersuite,tkt,f_psk_opt db) with
+    run (ifb orb (eq sni impl_Bytes__new) (eq sni (f_server_name db))
+    then matchb prod_b (impl_Algorithms__psk_mode ciphersuite,tkt,f_psk_opt db) with
     | '(true,Option_Some ctkt,Option_Some (stkt,psk)) =>
       letm[choice_typeMonad.result_bind_code int8] _ := check_eq ctkt stkt in
       Result_Ok (letb server := Build_t_ServerInfo (f_cert := f_clone (f_cert db)) (f_sk := f_clone (f_sk db)) (f_psk_opt := Option_Some (f_clone psk)) in

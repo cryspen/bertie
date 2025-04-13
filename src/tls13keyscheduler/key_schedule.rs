@@ -270,10 +270,11 @@ pub(crate) fn xtr(k1: &TagKey, k2: &TagKey) -> Result<TagKey, TLSError> {
 }
 
 pub(crate) fn xpd(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSError> {
-    let TagKey { alg, tag, val: k1 } = k1.clone();
-    let val = xpd_alg(&alg, &k1, label, d)?;
+    let alg = k1.clone().alg;
+    let v = k1.clone().val;
+    let val = xpd_alg(&alg, &v, label, d)?;
 
-    Ok(TagKey { tag, alg, val })
+    Ok(TagKey { tag: k1.tag, alg, val })
 }
 
 #[derive(Clone, Debug)]

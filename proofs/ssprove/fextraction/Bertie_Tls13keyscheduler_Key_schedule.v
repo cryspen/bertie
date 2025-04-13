@@ -26,7 +26,6 @@ From RecordUpdate Require Import RecordUpdate.
 
 Import RecordSetNotations.
 
-
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 (*Not implemented yet? todo(item)*)
@@ -82,6 +81,16 @@ Export Fixes.
 (*     letb info := impl_Bytes__prefix hoist166 (unsize lenb) in *)
 (*     hkdf_expand hash_algorithm key info len)) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
+
+Axiom hmac_tag : forall (x : both t_HashAlgorithm) (y z : both t_Bytes), both (t_Result t_Bytes uint8).
+Axiom hkdf_expand_label : forall (x : both t_HashAlgorithm) (y z w : both t_Bytes) (a : both uint_size), both (t_Result t_Bytes uint8).
+Axiom hkdf_extract : forall (x : both t_HashAlgorithm) (y z : both t_Bytes), both (t_Result t_Bytes uint8).
+Notation "'impl_2__cloned'" := id.
+Axiom impl_2__get : forall {A B : choice_type} (x : both (chMap A B)) (z : both A), both B. (* := *)
+  (* bind_both x (fun (y : chMap A B) => *)
+(* bind_both z (fun (w : A) => ret_both (fmap.getm y w))). *)
+Axiom impl_2__insert : forall {A B : choice_type} (x : both (chMap A B)) (z : both A) (w : both B), both (chProd A (chMap A B)). (* := *)
+(* fmap.setm. *)
 
 Class t_KeySchedule (Self : choice_type) (v_Self : choice_type) {v_N : choice_type} (* `{ t_Sized v_N} *) := {
   f_labels : (both v_N -> both 'bool -> both (t_Result t_Bytes int8)) ;
@@ -713,13 +722,6 @@ end : both t_Bytes.
 Admit Obligations.
 Fail Next Obligation.
 
-Notation "'impl_2__cloned'" := id.
-Axiom impl_2__get : forall {A B : choice_type} (x : both (chMap A B)) (z : both A), both B. (* := *)
-  (* bind_both x (fun (y : chMap A B) => *)
-(* bind_both z (fun (w : A) => ret_both (fmap.getm y w))). *)
-Axiom impl_2__insert : forall {A B : choice_type} (x : both (chMap A B)) (z : both A) (w : both B), both (chProd A (chMap A B)). (* := *)
-(* fmap.setm. *)
-
 #[global] Program Instance t_TLSkeyscheduler_t_KeySchedule : t_KeySchedule t_TLSkeyscheduler t_TLSnames :=
   let f_prnt_n := fun  (a : both t_TLSnames) => matchb a with
   | TLSnames_ES_case  =>
@@ -836,14 +838,11 @@ Fail Next Obligation.
 Fail Next Obligation.
 Hint Unfold t_TagKey_t_Clone.
 
-Axiom hkdf_extract : forall (x : both t_HashAlgorithm) (y z : both t_Bytes), both (t_Result t_Bytes uint8).
 Equations xtr_alg (alg : both t_HashAlgorithm) (k1 : both t_Bytes) (k2 : both t_Bytes) : both (t_Result t_Bytes int8) :=
   xtr_alg alg k1 k2  :=
     hkdf_extract alg k1 k2 : both (t_Result t_Bytes int8).
 Fail Next Obligation.
 
-Axiom hmac_tag : forall (x : both t_HashAlgorithm) (y z : both t_Bytes), both (t_Result t_Bytes uint8).
-Axiom hkdf_expand_label : forall (x : both t_HashAlgorithm) (y z w : both t_Bytes) (a : both uint_size), both (t_Result t_Bytes uint8).
 Equations xpd_alg (alg : both t_HashAlgorithm) (k1 : both t_Bytes) (label : both t_Bytes) (d : both t_Bytes) : both (t_Result t_Bytes int8) :=
   xpd_alg alg k1 label d  :=
     letb kvt := convert_label (f_clone label) in
@@ -858,7 +857,13 @@ Equations xtr (k1 : both t_TagKey) (k2 : both t_TagKey) : both (t_Result t_TagKe
     (* Result_Ok *) (Result_Ok (Build_t_TagKey (f_alg := f_alg k1) (f_tag := f_tag k1) (f_val := val)))) : both (t_Result t_TagKey int8).
 Fail Next Obligation.
 
-(*item error backend*)
+Equations xpd (k1 : both t_TagKey) (label : both t_Bytes) (d : both t_Bytes) : both (t_Result t_TagKey int8) :=
+  xpd k1 label d  :=
+    (* run *) (letb alg := f_alg (f_clone k1) in
+    letb v := f_val (f_clone k1) in
+    letm[choice_typeMonad.result_bind_code int8] val := xpd_alg alg v label d in
+    (* Result_Ok *) (Result_Ok (Build_t_TagKey (f_tag := f_tag k1) (f_alg := alg) (f_val := val)))) : both (t_Result t_TagKey int8).
+Fail Next Obligation.
 
 Definition t_Handle : choice_type :=
   (t_TLSnames × t_HashAlgorithm × int8).
@@ -989,7 +994,7 @@ Fail Next Obligation.
 (*       letb val := ret_both ((val) : (t_Bytes)) in *)
 (*       ControlFlow_Continue val *)
 (*     end in *)
-(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] '(l,(k : t_TagKey)) := ifb n =.? TLSnames_PSK *)
+(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] temp := ifb n =.? TLSnames_PSK *)
 (*     then letb l := l .+ (ret_both (1 : int8)) in *)
 (*     matchb f_branch (xpd (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) label args) with *)
 (*     | ControlFlow_Break_case residual => *)
@@ -1009,16 +1014,17 @@ Fail Next Obligation.
 (*     | ControlFlow_Continue_case val => *)
 (*       letb val := ret_both ((val) : (t_TagKey)) in *)
 (*       ControlFlow_Continue (prod_b (l,val)) *)
-(*     end in *)
+(*          end in *)
+(*     let '(l,(k : t_TagKey)) := temp in *)
 (*     ControlFlow_Continue (letb ks := f_set ks n l (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in *)
 (*     letb hax_temp_output := Result_Ok h in *)
 (*     prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8). *)
 (* Fail Next Obligation. *)
 
-(* Equations xtr_angle (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) : both (t_Result t_Handle int8) := *)
-(*   xtr_angle name left right  := *)
-(*     Result_Ok (Build_t_Handle (f_alg := f_alg left) (f_name := name) (f_level := f_level left)) : both (t_Result t_Handle int8). *)
-(* Fail Next Obligation. *)
+Equations xtr_angle (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) : both (t_Result t_Handle int8) :=
+  xtr_angle name left_ right_  :=
+    Result_Ok (Build_t_Handle (f_alg := f_alg2 left_) (f_name := name) (f_level := f_level left_)) : both (t_Result t_Handle int8).
+Fail Next Obligation.
 
 (* Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) := *)
 (*   v_XTR ks level name h1 h2  := *)

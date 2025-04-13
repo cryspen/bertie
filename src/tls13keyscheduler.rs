@@ -185,6 +185,7 @@ pub(crate) fn derive_app_handles(
         exporter_master_secret,
     ))
 }
+
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn derive_app_keys(
     ha: &HashAlgorithm,

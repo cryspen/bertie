@@ -77,6 +77,19 @@ cargo_hax_into = [
     "into",
 ]
 
+cargo_hax_into_ssp = [
+    "cargo",
+    "hax",
+    "-C",
+    "-p",
+    "bertie",
+    "--no-default-features",
+    "--features",
+    "std",
+    ";",
+    "into",
+]
+
 cargo_hax_into_pv = [
     "cargo",
     "hax",
@@ -108,13 +121,11 @@ if options.sub == "extract-fstar":
 elif options.sub == "extract-ssprove":
     # The extract sub command.
     shell(
-        cargo_hax_into_pv
+        cargo_hax_into_ssp
         + [
             "-i",
             " ".join([
                 "-**",
-                "+~**::tls13handshake::**",
-                "+~**::server::lookup_db", # to include transitive dependency on tls13utils
                 "+~**::tls13keyscheduler::**",
                 "+~**::tls13utils::parse_failed", # transitive dependencies required
                 "+~**::tls13crypto::zero_key", # transitive dependencies required
@@ -127,7 +138,7 @@ elif options.sub == "extract-ssprove":
 elif options.sub == "extract-coq":
     # The extract sub command.
     shell(
-        cargo_hax_into_pv
+        cargo_hax_into_ssp
         + [
             "-i",
             " ".join([
