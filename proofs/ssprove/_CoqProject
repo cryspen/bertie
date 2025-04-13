@@ -1,50 +1,60 @@
 -R handwritten KeyScheduleTheorem
--R fixed_extraction BertieExtraction
+-R fixed_extraction BertieFExtraction
+-R extraction BertieExtraction
 
 # Translation
 
-./fixed_extraction/Fixes.v
-./fixed_extraction/Bertie_Tls13utils.v
-./fixed_extraction/Bertie_Tls13formats.v
-./fixed_extraction/Bertie_Tls13crypto.v
-./fixed_extraction/Bertie_Tls13keyscheduler.v
+# ./fixed_extraction/Fixes.v
+./extraction/Fixes.v
+./extraction/Bertie_Tls13utils.v
+./extraction/Bertie_Tls13formats_Handshake_data.v
+./extraction/Bertie_Tls13crypto.v
+./extraction/Bertie_Tls13formats.v
+./extraction/Bertie_Tls13keyscheduler_Key_schedule.v
+./extraction/Bertie_Tls13keyscheduler.v
 
-# ./fixed_extraction/Bertie.v
-# ./fixed_extraction/Bertie_Server.v
-# ./fixed_extraction/Bertie_Stream.v
-# ./fixed_extraction/Bertie_Stream_Bertie_stream.v
-# ./fixed_extraction/Bertie_Stream_Client.v
-# ./fixed_extraction/Bertie_Stream_Server.v
-# ./fixed_extraction/Bertie_Test_utils.v
-# ./fixed_extraction/Bertie_Tls13api.v
-# ./fixed_extraction/Bertie_Tls13cert.v
-# ./fixed_extraction/Bertie_Tls13formats_Handshake_data.v
-# ./fixed_extraction/Bertie_Tls13handshake.v
-# ./fixed_extraction/Bertie_Tls13record.v
-# ./fixed_extraction/Bertie_Tls13utils_Non_hax.v
+# # ./fixed_extraction/Fixes.v
+# # ./fixed_extraction/Bertie_Tls13utils.v
+# # ./fixed_extraction/Bertie_Tls13formats.v
+# # ./fixed_extraction/Bertie_Tls13crypto.v
+# # ./fixed_extraction/Bertie_Tls13keyscheduler.v
 
-# PROOF
+# # ./fixed_extraction/Bertie.v
+# # ./fixed_extraction/Bertie_Server.v
+# # ./fixed_extraction/Bertie_Stream.v
+# # ./fixed_extraction/Bertie_Stream_Bertie_stream.v
+# # ./fixed_extraction/Bertie_Stream_Client.v
+# # ./fixed_extraction/Bertie_Stream_Server.v
+# # ./fixed_extraction/Bertie_Test_utils.v
+# # ./fixed_extraction/Bertie_Tls13api.v
+# # ./fixed_extraction/Bertie_Tls13cert.v
+# # ./fixed_extraction/Bertie_Tls13formats_Handshake_data.v
+# # ./fixed_extraction/Bertie_Tls13handshake.v
+# # ./fixed_extraction/Bertie_Tls13record.v
+# # ./fixed_extraction/Bertie_Tls13utils_Non_hax.v
 
-./handwritten/ssp_helper.v
+# # PROOF
 
-./handwritten/Types.v
-./handwritten/ExtraTypes.v
-./handwritten/Utility.v
+# ./handwritten/ssp_helper.v
 
-./handwritten/Dependencies.v
+# ./handwritten/Types.v
+# ./handwritten/ExtraTypes.v
+# ./handwritten/Utility.v
 
-./handwritten/BasePackages.v
-./handwritten/KeyPackages.v
-./handwritten/XTR_XPD.v
+# ./handwritten/Dependencies.v
 
-./handwritten/Core.v
-./handwritten/KeySchedulePackages.v
+# ./handwritten/BasePackages.v
+# ./handwritten/KeyPackages.v
+# ./handwritten/XTR_XPD.v
 
-./handwritten/CoreTheorem.v
+# ./handwritten/Core.v
+# ./handwritten/KeySchedulePackages.v
 
-# ./handwritten/MapPackage.v
+# ./handwritten/CoreTheorem.v
 
-# # ./handwritten/ModularTheorem.v
-# ./handwritten/MainTheorem.v
+# # ./handwritten/MapPackage.v
 
-# ./handwritten/BertieResult.v
+# # # ./handwritten/ModularTheorem.v
+# # ./handwritten/MainTheorem.v
+
+# # ./handwritten/BertieResult.v
