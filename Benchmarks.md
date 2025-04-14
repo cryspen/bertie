@@ -1,6 +1,6 @@
-# Bertie
+# t13
 
-Raw numbers for Bertie and instructions.
+Raw numbers for t13 and instructions.
 
 Some benchmarks are behind the `bench` cfg flag, using internal functions.
 
@@ -135,7 +135,7 @@ Server
 ### Analysis
 
 The following shows that the performance is dominated by the cryptographic primitives.
-The protocol code in Bertie has no measurable impact on the performance.
+The protocol code in t13 has no measurable impact on the performance.
 
 #### TLS_Chacha20Poly1305_SHA256 w/ EcdsaSecp256r1Sha256 | Secp256r1
 
@@ -211,7 +211,7 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 #### Client
 
-|                                          | Bertie hs/s | Rustls hs/s |
+|                                          | t13 hs/s | Rustls hs/s |
 | ---------------------------------------- | ----------- | ----------- |
 | P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 2828        | 3856        |
 | X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 4029        | 4064        |
@@ -220,7 +220,7 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 #### Server
 
-|                                          | Bertie hs/s | Rustls hs/s |
+|                                          | t13 hs/s | Rustls hs/s |
 | ---------------------------------------- | ----------- | ----------- |
 | P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 3448        | 7941        |
 | X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 5570        | 8663        |
@@ -229,14 +229,14 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 #### Send Bulk Data
 
-|                             | Bertie MB/s | Rustls MB/s |
+|                             | t13 MB/s | Rustls MB/s |
 | --------------------------- | ----------- | ----------- |
 | TLS_Chacha20Poly1305_SHA256 | 686         | 1076        |
 | TLS_AESGCM128_SHA256        |             | 5926        |
 
 #### Receive Bulk Data
 
-|                             | Bertie MB/s | Rustls MB/s |
+|                             | t13 MB/s | Rustls MB/s |
 | --------------------------- | ----------- | ----------- |
 | TLS_Chacha20Poly1305_SHA256 | 663         | 1012        |
 | TLS_AESGCM128_SHA256        |             | 5279        |
@@ -246,7 +246,7 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 #### Client
 
-|                                          | Bertie hs/s | Rustls hs/s |
+|                                          | t13 hs/s | Rustls hs/s |
 | ---------------------------------------- | ----------- | ----------- |
 | P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 3057        | 5051        |
 | X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 4208        | 5178        |
@@ -255,7 +255,7 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 #### Server
 
-|                                          | Bertie hs/s | Rustls hs/s |
+|                                          | t13 hs/s | Rustls hs/s |
 | ---------------------------------------- | ----------- | ----------- |
 | P-256 EcDSA TLS_Chacha20Poly1305_SHA256  | 3916        | 10946       |
 | X25519 EcDSA TLS_Chacha20Poly1305_SHA256 | 5996        | 9474        |
@@ -264,14 +264,14 @@ TLS implementation in Rust and claims to be [almost as fast as OpenSSL](https://
 
 #### Send Bulk Data
 
-|                             | Bertie MB/s | Rustls MB/s |
+|                             | t13 MB/s | Rustls MB/s |
 | --------------------------- | ----------- | ----------- |
 | TLS_Chacha20Poly1305_SHA256 | 1789        | 2253        |
 | TLS_AESGCM128_SHA256        | 3715        | 5776        |
 
 #### Receive Bulk Data
 
-|                             | Bertie MB/s | Rustls MB/s |
+|                             | t13 MB/s | Rustls MB/s |
 | --------------------------- | ----------- | ----------- |
 | TLS_Chacha20Poly1305_SHA256 | 1770        | 2168        |
 | TLS_AESGCM128_SHA256        | 3028        | 5255        |

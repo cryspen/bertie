@@ -11,7 +11,7 @@ path = "src/tls13server.rs"
 
 [dependencies]
 anyhow = "1"
-bertie = { path = "../" }
+t13 = { path = "../" }
 rand = "0.9"
 record = { path = "../record" }
 tracing-subscriber = "0.3"

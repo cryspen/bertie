@@ -1,0 +1,638 @@
+module t13.Tls13record
+#set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
+open Core
+open FStar.Mul
+
+let _ =
+  (* This module has implicit dependencies, here we make them explicit. *)
+  (* The implicit dependencies arise from typeclasses instances. *)
+  let open t13.Tls13formats in
+  let open t13.Tls13formats.Handshake_data in
+  let open t13.Tls13utils in
+  ()
+
+let client_cipher_state0
+      (ae: t13.Tls13crypto.t_AeadAlgorithm)
+      (kiv: t13.Tls13crypto.t_AeadKeyIV)
+      (c: u64)
+      (k: t13.Tls13keyscheduler.Key_schedule.t_TagKey)
+     = ClientCipherState0 ae kiv c k <: t_ClientCipherState0
+
+let server_cipher_state0
+      (key_iv: t13.Tls13crypto.t_AeadKeyIV)
+      (counter: u64)
+      (early_exporter_ms: t13.Tls13keyscheduler.Key_schedule.t_TagKey)
+     =
+  { f_key_iv = key_iv; f_counter = counter; f_early_exporter_ms = early_exporter_ms }
+  <:
+  t_ServerCipherState0
+
+let impl_DuplexCipherStateH__new
+      (sender_key_iv: t13.Tls13crypto.t_AeadKeyIV)
+      (sender_counter: u64)
+      (receiver_key_iv: t13.Tls13crypto.t_AeadKeyIV)
+      (receiver_counter: u64)
+     =
+  {
+    f_sender_key_iv = sender_key_iv;
+    f_sender_counter = sender_counter;
+    f_receiver_key_iv = receiver_key_iv;
+    f_receiver_counter = receiver_counter
+  }
+  <:
+  t_DuplexCipherStateH
+
+let duplex_cipher_state1
+      (ae: t13.Tls13crypto.t_AeadAlgorithm)
+      (kiv1: t13.Tls13crypto.t_AeadKeyIV)
+      (c1: u64)
+      (kiv2: t13.Tls13crypto.t_AeadKeyIV)
+      (c2: u64)
+      (k: t13.Tls13keyscheduler.Key_schedule.t_TagKey)
+     = DuplexCipherState1 ae kiv1 c1 kiv2 c2 k <: t_DuplexCipherState1
+
+let derive_iv_ctr (iv: t13.Tls13utils.t_Bytes) (n: u64) =
+  let (counter: t13.Tls13utils.t_Bytes):t13.Tls13utils.t_Bytes =
+    t13.Tls13utils.bytes (Core.Num.impl_u64__to_be_bytes n <: t_Slice u8)
+  in
+  let iv_ctr:t13.Tls13utils.t_Bytes =
+    t13.Tls13utils.impl_Bytes__zeroes (t13.Tls13utils.impl_Bytes__len iv <: usize)
+  in
+  let iv_ctr:t13.Tls13utils.t_Bytes =
+    Rust_primitives.Hax.Folds.fold_range (mk_usize 0)
+      ((t13.Tls13utils.impl_Bytes__len iv <: usize) -! mk_usize 8 <: usize)
+      (fun iv_ctr i ->
+          let iv_ctr:t13.Tls13utils.t_Bytes = iv_ctr in
+          let i:usize = i in
+          (t13.Tls13utils.impl_Bytes__len iv_ctr <: usize) =.
+          (t13.Tls13utils.impl_Bytes__len iv <: usize)
+          <:
+          bool)
+      iv_ctr
+      (fun iv_ctr i ->
+          let iv_ctr:t13.Tls13utils.t_Bytes = iv_ctr in
+          let i:usize = i in
+          let iv_ctr:t13.Tls13utils.t_Bytes =
+            Rust_primitives.Hax.update_at iv_ctr i (iv.[ i ] <: u8)
+          in
+          iv_ctr)
+  in
+  let iv_ctr:t13.Tls13utils.t_Bytes =
+    Rust_primitives.Hax.Folds.fold_range (mk_usize 0)
+      (mk_usize 8)
+      (fun iv_ctr i ->
+          let iv_ctr:t13.Tls13utils.t_Bytes = iv_ctr in
+          let i:usize = i in
+          (t13.Tls13utils.impl_Bytes__len iv_ctr <: usize) =.
+          (t13.Tls13utils.impl_Bytes__len iv <: usize)
+          <:
+          bool)
+      iv_ctr
+      (fun iv_ctr i ->
+          let iv_ctr:t13.Tls13utils.t_Bytes = iv_ctr in
+          let i:usize = i in
+          let iv_ctr:t13.Tls13utils.t_Bytes =
+            Rust_primitives.Hax.update_at iv_ctr
+              (i +! ((t13.Tls13utils.impl_Bytes__len iv <: usize) -! mk_usize 8 <: usize)
+                <:
+                usize)
+              ((iv.[ i +! ((t13.Tls13utils.impl_Bytes__len iv <: usize) -! mk_usize 8 <: usize)
+                    <:
+                    usize ]
+                  <:
+                  u8) ^.
+                (counter.[ i ] <: u8)
+                <:
+                u8)
+          in
+          iv_ctr)
+  in
+  iv_ctr
+
+let encrypt_record_payload
+      (key_iv: t13.Tls13crypto.t_AeadKeyIV)
+      (n: u64)
+      (ct: t13.Tls13formats.t_ContentType)
+      (payload: t13.Tls13utils.t_Bytes)
+      (pad: usize)
+     =
+  match
+    t13.Tls13utils.check ((t13.Tls13utils.impl_Bytes__len key_iv.t13.Tls13crypto.f_iv
+          <:
+          usize) >=.
+        mk_usize 8
+        <:
+        bool)
+    <:
+    Core.Result.t_Result Prims.unit u8
+  with
+  | Core.Result.Result_Ok _ ->
+    (match
+        t13.Tls13utils.check ((t13.Tls13utils.impl_Bytes__len payload <: usize) <=.
+            mk_usize 16384
+            <:
+            bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        (match
+            t13.Tls13utils.check (pad <=. mk_usize 16384 <: bool)
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            let iv_ctr:t13.Tls13utils.t_Bytes = derive_iv_ctr key_iv.t13.Tls13crypto.f_iv n in
+            let inner_plaintext:t13.Tls13utils.t_Bytes =
+              t13.Tls13utils.impl_Bytes__concat (t13.Tls13utils.impl_Bytes__concat payload
+                    (t13.Tls13utils.bytes1 (t13.Tls13formats.t_ContentType_cast_to_repr ct
+                          <:
+                          u8)
+                      <:
+                      t13.Tls13utils.t_Bytes)
+                  <:
+                  t13.Tls13utils.t_Bytes)
+                (t13.Tls13utils.impl_Bytes__zeroes pad <: t13.Tls13utils.t_Bytes)
+            in
+            let clen:usize =
+              (t13.Tls13utils.impl_Bytes__len inner_plaintext <: usize) +! mk_usize 16
+            in
+            if clen <=. mk_usize 65536
+            then
+              let clenb:t_Array u8 (mk_usize 2) =
+                Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
+              in
+              let ad:t13.Tls13utils.t_Bytes =
+                Core.Convert.f_into #(t_Array u8 (mk_usize 5))
+                  #t13.Tls13utils.t_Bytes
+                  #FStar.Tactics.Typeclasses.solve
+                  (let list =
+                      [
+                        mk_u8 23;
+                        mk_u8 3;
+                        mk_u8 3;
+                        clenb.[ mk_usize 0 ] <: u8;
+                        clenb.[ mk_usize 1 ] <: u8
+                      ]
+                    in
+                    FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 5);
+                    Rust_primitives.Hax.array_of_list 5 list)
+              in
+              match
+                t13.Tls13crypto.aead_encrypt key_iv.t13.Tls13crypto.f_key
+                  iv_ctr
+                  inner_plaintext
+                  ad
+                <:
+                Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok cip ->
+                let v_rec:t13.Tls13utils.t_Bytes = t13.Tls13utils.impl_Bytes__concat ad cip in
+                Core.Result.Result_Ok v_rec <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+            else
+              Core.Result.Result_Err t13.Tls13utils.v_PAYLOAD_TOO_LONG
+              <:
+              Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+
+let encrypt_zerortt (payload: t13.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0) =
+  let ClientCipherState0 ae kiv n exp:t_ClientCipherState0 = st in
+  match
+    encrypt_record_payload kiv
+      n
+      (t13.Tls13formats.ContentType_ApplicationData <: t13.Tls13formats.t_ContentType)
+      (t13.Tls13utils.impl_AppData__into_raw payload <: t13.Tls13utils.t_Bytes)
+      pad
+    <:
+    Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+  with
+  | Core.Result.Result_Ok v_rec ->
+    (match
+        t13.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        Core.Result.Result_Ok
+        (v_rec, (ClientCipherState0 ae kiv (n +! mk_u64 1) exp <: t_ClientCipherState0)
+          <:
+          (t13.Tls13utils.t_Bytes & t_ClientCipherState0))
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_ClientCipherState0) u8
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_ClientCipherState0) u8
+
+let encrypt_handshake
+      (payload: t13.Tls13formats.Handshake_data.t_HandshakeData)
+      (pad: usize)
+      (state: t_DuplexCipherStateH)
+     =
+  let payload:t13.Tls13utils.t_Bytes =
+    t13.Tls13formats.Handshake_data.impl_HandshakeData__to_bytes payload
+  in
+  match
+    encrypt_record_payload state.f_sender_key_iv
+      state.f_sender_counter
+      (t13.Tls13formats.ContentType_Handshake <: t13.Tls13formats.t_ContentType)
+      payload
+      pad
+    <:
+    Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+  with
+  | Core.Result.Result_Ok v_rec ->
+    (match
+        t13.Tls13utils.check (state.f_sender_counter <. Core.Num.impl_u64__MAX <: bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        let state:t_DuplexCipherStateH =
+          { state with f_sender_counter = state.f_sender_counter +! mk_u64 1 }
+          <:
+          t_DuplexCipherStateH
+        in
+        Core.Result.Result_Ok (v_rec, state <: (t13.Tls13utils.t_Bytes & t_DuplexCipherStateH))
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8
+
+let encrypt_data (payload: t13.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1) =
+  let DuplexCipherState1 ae kiv n x y exp:t_DuplexCipherState1 = st in
+  match
+    encrypt_record_payload kiv
+      n
+      (t13.Tls13formats.ContentType_ApplicationData <: t13.Tls13formats.t_ContentType)
+      (t13.Tls13utils.impl_AppData__into_raw payload <: t13.Tls13utils.t_Bytes)
+      pad
+    <:
+    Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+  with
+  | Core.Result.Result_Ok v_rec ->
+    (match
+        t13.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        Core.Result.Result_Ok
+        (v_rec, (DuplexCipherState1 ae kiv (n +! mk_u64 1) x y exp <: t_DuplexCipherState1)
+          <:
+          (t13.Tls13utils.t_Bytes & t_DuplexCipherState1))
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
+
+let rec padlen (b: t13.Tls13utils.t_Bytes) (n: usize) =
+  if
+    n >. mk_usize 0 &&
+    (t13.Tls13utils.f_declassify #u8
+        #u8
+        #FStar.Tactics.Typeclasses.solve
+        (b.[ n -! mk_usize 1 <: usize ] <: u8)
+      <:
+      u8) =.
+    mk_u8 0
+  then mk_usize 1 +! (padlen b (n -! mk_usize 1 <: usize) <: usize)
+  else mk_usize 0
+
+let decrypt_record_payload
+      (kiv: t13.Tls13crypto.t_AeadKeyIV)
+      (n: u64)
+      (ciphertext: t13.Tls13utils.t_Bytes)
+     =
+  match
+    t13.Tls13utils.check ((t13.Tls13utils.impl_Bytes__len kiv.t13.Tls13crypto.f_iv <: usize
+        ) >=.
+        mk_usize 8
+        <:
+        bool)
+    <:
+    Core.Result.t_Result Prims.unit u8
+  with
+  | Core.Result.Result_Ok _ ->
+    let iv_ctr:t13.Tls13utils.t_Bytes = derive_iv_ctr kiv.t13.Tls13crypto.f_iv n in
+    if
+      (t13.Tls13utils.impl_Bytes__len ciphertext <: usize) <=. mk_usize 65541 &&
+      (t13.Tls13utils.impl_Bytes__len ciphertext <: usize) >. mk_usize 21
+    then
+      let clen:usize = (t13.Tls13utils.impl_Bytes__len ciphertext <: usize) -! mk_usize 5 in
+      let clen_bytes:t_Array u8 (mk_usize 2) =
+        Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
+      in
+      let ad:t13.Tls13utils.t_Bytes =
+        Core.Convert.f_into #(t_Array u8 (mk_usize 5))
+          #t13.Tls13utils.t_Bytes
+          #FStar.Tactics.Typeclasses.solve
+          (let list =
+              [
+                mk_u8 23;
+                mk_u8 3;
+                mk_u8 3;
+                clen_bytes.[ mk_usize 0 ] <: u8;
+                clen_bytes.[ mk_usize 1 ] <: u8
+              ]
+            in
+            FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 5);
+            Rust_primitives.Hax.array_of_list 5 list)
+      in
+      match
+        t13.Tls13utils.check_eq ad
+          (t13.Tls13utils.impl_Bytes__slice_range ciphertext
+              ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = mk_usize 5 }
+                <:
+                Core.Ops.Range.t_Range usize)
+            <:
+            t13.Tls13utils.t_Bytes)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        let cip:t13.Tls13utils.t_Bytes =
+          t13.Tls13utils.impl_Bytes__slice_range ciphertext
+            ({
+                Core.Ops.Range.f_start = mk_usize 5;
+                Core.Ops.Range.f_end = t13.Tls13utils.impl_Bytes__len ciphertext <: usize
+              }
+              <:
+              Core.Ops.Range.t_Range usize)
+        in
+        (match
+            t13.Tls13crypto.aead_decrypt kiv.t13.Tls13crypto.f_key iv_ctr cip ad
+            <:
+            Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+          with
+          | Core.Result.Result_Ok plain ->
+            let padding:usize = padlen plain (t13.Tls13utils.impl_Bytes__len plain <: usize) in
+            (match
+                t13.Tls13utils.check (padding <.
+                    (t13.Tls13utils.impl_Bytes__len plain <: usize)
+                    <:
+                    bool)
+                <:
+                Core.Result.t_Result Prims.unit u8
+              with
+              | Core.Result.Result_Ok _ ->
+                let payload_len:usize =
+                  ((t13.Tls13utils.impl_Bytes__len plain <: usize) -! padding <: usize) -!
+                  mk_usize 1
+                in
+                (match
+                    t13.Tls13formats.impl_ContentType__try_from_u8 (t13.Tls13utils.f_declassify
+                          #u8
+                          #u8
+                          #FStar.Tactics.Typeclasses.solve
+                          (plain.[ payload_len ] <: u8)
+                        <:
+                        u8)
+                    <:
+                    Core.Result.t_Result t13.Tls13formats.t_ContentType u8
+                  with
+                  | Core.Result.Result_Ok ct ->
+                    let payload:t13.Tls13utils.t_Bytes =
+                      t13.Tls13utils.impl_Bytes__slice_range plain
+                        ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = payload_len }
+                          <:
+                          Core.Ops.Range.t_Range usize)
+                    in
+                    Core.Result.Result_Ok
+                    (ct, payload <: (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes))
+                    <:
+                    Core.Result.t_Result
+                      (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+                  | Core.Result.Result_Err err ->
+                    Core.Result.Result_Err err
+                    <:
+                    Core.Result.t_Result
+                      (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8)
+              | Core.Result.Result_Err err ->
+                Core.Result.Result_Err err
+                <:
+                Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes)
+                  u8)
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err
+            <:
+            Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+    else
+      Core.Result.Result_Err t13.Tls13utils.v_PAYLOAD_TOO_LONG
+      <:
+      Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+
+let decrypt_zerortt (ciphertext: t13.Tls13utils.t_Bytes) (state: t_ServerCipherState0) =
+  match
+    decrypt_record_payload state.f_key_iv state.f_counter ciphertext
+    <:
+    Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+  with
+  | Core.Result.Result_Ok (ct, payload) ->
+    (match
+        t13.Tls13utils.check (ct =.
+            (t13.Tls13formats.ContentType_ApplicationData <: t13.Tls13formats.t_ContentType)
+            <:
+            bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        (match
+            t13.Tls13utils.check (state.f_counter <. Core.Num.impl_u64__MAX <: bool)
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            Core.Result.Result_Ok
+            (t13.Tls13utils.impl_AppData__new payload,
+              ({
+                  f_key_iv = state.f_key_iv;
+                  f_counter = state.f_counter +! mk_u64 1;
+                  f_early_exporter_ms = state.f_early_exporter_ms
+                }
+                <:
+                t_ServerCipherState0)
+              <:
+              (t13.Tls13utils.t_AppData & t_ServerCipherState0))
+            <:
+            Core.Result.t_Result (t13.Tls13utils.t_AppData & t_ServerCipherState0) u8
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err
+            <:
+            Core.Result.t_Result (t13.Tls13utils.t_AppData & t_ServerCipherState0) u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_AppData & t_ServerCipherState0) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13utils.t_AppData & t_ServerCipherState0) u8
+
+let decrypt_handshake (ciphertext: t13.Tls13utils.t_Bytes) (state: t_DuplexCipherStateH) =
+  match
+    decrypt_record_payload state.f_receiver_key_iv state.f_receiver_counter ciphertext
+    <:
+    Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+  with
+  | Core.Result.Result_Ok (ct, payload) ->
+    if ct =. (t13.Tls13formats.ContentType_Alert <: t13.Tls13formats.t_ContentType)
+    then
+      Core.Result.Result_Err t13.Tls13utils.v_GOT_HANDSHAKE_FAILURE_ALERT
+      <:
+      Core.Result.t_Result
+        (t13.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8
+    else
+      (match
+          t13.Tls13utils.check (ct =.
+              (t13.Tls13formats.ContentType_Handshake <: t13.Tls13formats.t_ContentType)
+              <:
+              bool)
+          <:
+          Core.Result.t_Result Prims.unit u8
+        with
+        | Core.Result.Result_Ok _ ->
+          (match
+              t13.Tls13utils.check (state.f_receiver_counter <. Core.Num.impl_u64__MAX <: bool)
+              <:
+              Core.Result.t_Result Prims.unit u8
+            with
+            | Core.Result.Result_Ok _ ->
+              let state:t_DuplexCipherStateH =
+                { state with f_receiver_counter = state.f_receiver_counter +! mk_u64 1 }
+                <:
+                t_DuplexCipherStateH
+              in
+              Core.Result.Result_Ok
+              (Core.Convert.f_from #t13.Tls13formats.Handshake_data.t_HandshakeData
+                  #t13.Tls13utils.t_Bytes
+                  #FStar.Tactics.Typeclasses.solve
+                  payload,
+                state
+                <:
+                (t13.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH))
+              <:
+              Core.Result.t_Result
+                (t13.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8
+            | Core.Result.Result_Err err ->
+              Core.Result.Result_Err err
+              <:
+              Core.Result.t_Result
+                (t13.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
+        | Core.Result.Result_Err err ->
+          Core.Result.Result_Err err
+          <:
+          Core.Result.t_Result
+            (t13.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH)
+      u8
+
+let decrypt_data_or_hs (ciphertext: t13.Tls13utils.t_Bytes) (st: t_DuplexCipherState1) =
+  let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1 = st in
+  match
+    decrypt_record_payload kiv n ciphertext
+    <:
+    Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+  with
+  | Core.Result.Result_Ok (ct, payload) ->
+    (match
+        t13.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        Core.Result.Result_Ok
+        (ct, payload, (DuplexCipherState1 ae x y kiv (n +! mk_u64 1) exp <: t_DuplexCipherState1)
+          <:
+          (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes & t_DuplexCipherState1))
+        <:
+        Core.Result.t_Result
+          (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result
+          (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result
+      (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
+
+let decrypt_data (ciphertext: t13.Tls13utils.t_Bytes) (st: t_DuplexCipherState1) =
+  let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1 = st in
+  match
+    decrypt_record_payload kiv n ciphertext
+    <:
+    Core.Result.t_Result (t13.Tls13formats.t_ContentType & t13.Tls13utils.t_Bytes) u8
+  with
+  | Core.Result.Result_Ok (ct, payload) ->
+    (match
+        t13.Tls13utils.check (ct =.
+            (t13.Tls13formats.ContentType_ApplicationData <: t13.Tls13formats.t_ContentType)
+            <:
+            bool)
+        <:
+        Core.Result.t_Result Prims.unit u8
+      with
+      | Core.Result.Result_Ok _ ->
+        (match
+            t13.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+            <:
+            Core.Result.t_Result Prims.unit u8
+          with
+          | Core.Result.Result_Ok _ ->
+            Core.Result.Result_Ok
+            (t13.Tls13utils.impl_AppData__new payload,
+              (DuplexCipherState1 ae x y kiv (n +! mk_u64 1) exp <: t_DuplexCipherState1)
+              <:
+              (t13.Tls13utils.t_AppData & t_DuplexCipherState1))
+            <:
+            Core.Result.t_Result (t13.Tls13utils.t_AppData & t_DuplexCipherState1) u8
+          | Core.Result.Result_Err err ->
+            Core.Result.Result_Err err
+            <:
+            Core.Result.t_Result (t13.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
+      | Core.Result.Result_Err err ->
+        Core.Result.Result_Err err
+        <:
+        Core.Result.t_Result (t13.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
+  | Core.Result.Result_Err err ->
+    Core.Result.Result_Err err
+    <:
+    Core.Result.t_Result (t13.Tls13utils.t_AppData & t_DuplexCipherState1) u8

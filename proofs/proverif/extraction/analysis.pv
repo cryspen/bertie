@@ -3,31 +3,31 @@
 (*****************************************)
 
 (* server_dbs(server_name, db) *)
-table server_dbs(bertie__tls13utils__t_Bytes, bertie__server__t_ServerDB, bertie__tls13crypto__t_Algorithms).
+table server_dbs(t13__tls13utils__t_Bytes, t13__server__t_ServerDB, t13__tls13crypto__t_Algorithms).
 
 (* server_psks(server_name, session_ticket, PSK) *)
-table server_psks(bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes, bertie__tls13utils__t_Bytes).
+table server_psks(t13__tls13utils__t_Bytes, t13__tls13utils__t_Bytes, t13__tls13utils__t_Bytes).
 
-event CompromisedServerCertSK(bertie__tls13utils__t_Bytes).
-event CompromisedServerPSK(bertie__tls13utils__t_Bytes).
-event ClientFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ClientPostClientFinished).
-event ServerFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ServerPostServerFinished).
+event CompromisedServerCertSK(t13__tls13utils__t_Bytes).
+event CompromisedServerPSK(t13__tls13utils__t_Bytes).
+event ClientFinished(t13__tls13utils__t_Bytes,t13__tls13record__t_DuplexCipherState1, t13__tls13handshake__t_ClientPostClientFinished).
+event ServerFinished(t13__tls13utils__t_Bytes,t13__tls13record__t_DuplexCipherState1, t13__tls13handshake__t_ServerPostServerFinished).
 
 (* Reachability queries. *)
 (* Should fail: Full handshake can complete. *)
 query event(R).
 
 (* Should fail: Client can finish handshake. *)
-query server_name: bertie__tls13utils__t_Bytes,
-      cipher: bertie__tls13record__t_DuplexCipherState1,
-      st: bertie__tls13handshake__t_ClientPostClientFinished;
+query server_name: t13__tls13utils__t_Bytes,
+      cipher: t13__tls13record__t_DuplexCipherState1,
+      st: t13__tls13handshake__t_ClientPostClientFinished;
 
       event(ClientFinished(server_name,cipher,st)).
 
 (* Should fail: Server can finish handshake. *)
-query server_name: bertie__tls13utils__t_Bytes,
-      cipher: bertie__tls13record__t_DuplexCipherState1,
-      st: bertie__tls13handshake__t_ServerPostServerFinished;
+query server_name: t13__tls13utils__t_Bytes,
+      cipher: t13__tls13record__t_DuplexCipherState1,
+      st: t13__tls13handshake__t_ServerPostServerFinished;
       
       event(ServerFinished(server_name,cipher,st)).
 
@@ -35,84 +35,84 @@ query server_name: bertie__tls13utils__t_Bytes,
 
 (* Should fail: Authentication is not guaranteed if either PSK or
                 certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      sst:t13__tls13handshake__t_ServerPostServerFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
       
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
+                               t13__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                                sst)).
 
 (* Should fail: Authentication is not guaranteed if PSK is leaked to
                 attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      sst:t13__tls13handshake__t_ServerPostServerFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
+                               t13__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                                sst))
           || event(CompromisedServerCertSK(server_name)).
 
 (* Should fail: Authentication is not guaranteed if certificate
                 signing key is leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      sst:t13__tls13handshake__t_ServerPostServerFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                            sst))
           || event(CompromisedServerPSK(server_name)).
 
 (* Should succeed: Authentication guaranteed if neither PSK nor
                    certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      sst:bertie__tls13handshake__t_ServerPostServerFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      sst:t13__tls13handshake__t_ServerPostServerFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       ==> event(ServerFinished(server_name,
-                               bertie__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
+                               t13__tls13record__DuplexCipherState1(alg,s2ckiv,s2cctr,c2skiv,c2sctr,kstk),
                                sst))
           || event(CompromisedServerCertSK(server_name))
           || event(CompromisedServerPSK(server_name)).
@@ -121,98 +121,98 @@ query server_name:bertie__tls13utils__t_Bytes,
 (* Session key secrecy queries. *)
 (* Should fail: Session key secrecy is not guaranteed if either PSK or
                 certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv).
 
 (* Should fail: Session key secrecy is not guaranteed if PSK is leaked
                 to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv)
       ==> event(CompromisedServerCertSK(server_name)).
 
 (* Should fail: Session key secrecy is not guaranteed if certificate
                 signing key is leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv)
       ==> event(CompromisedServerPSK(server_name)).
 
 (* Should succeed: Session key secrecy is guaranteed if neither PSK
                    nor certificate signing key are leaked to attacker. *)
-query server_name:bertie__tls13utils__t_Bytes,
-      alg: bertie__tls13crypto__t_AeadAlgorithm,
-      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+query server_name:t13__tls13utils__t_Bytes,
+      alg: t13__tls13crypto__t_AeadAlgorithm,
+      c2skiv: t13__tls13crypto__t_AeadKeyIV,
       c2sctr:nat,
-      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2ckiv:t13__tls13crypto__t_AeadKeyIV,
       s2cctr:nat,
-      ccipher:bertie__tls13record__t_DuplexCipherState1,
-      cst:bertie__tls13handshake__t_ClientPostClientFinished,
-      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+      ccipher:t13__tls13record__t_DuplexCipherState1,
+      cst:t13__tls13handshake__t_ClientPostClientFinished,
+      kstk:t13__tls13keyscheduler__key_schedule__t_TagKey;
 
       event(ClientFinished(server_name,
-                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           t13__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
                            cst))
       && attacker(s2ckiv)
       ==> event(CompromisedServerCertSK(server_name))
           || event(CompromisedServerPSK(server_name)).
 
-letfun set_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
+letfun set_psk(server_name: t13__tls13utils__t_Bytes, psk_mode: bool) =
        if psk_mode then
-          new psk: bertie__tls13utils__t_Bytes;
-          new ticket: bertie__tls13utils__t_Bytes;
+          new psk: t13__tls13utils__t_Bytes;
+          new ticket: t13__tls13utils__t_Bytes;
           insert server_psks(server_name, ticket, psk);
           Some((ticket, psk))
         else
           None().
 
-letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
+letfun get_psk(server_name: t13__tls13utils__t_Bytes, psk_mode: bool) =
        if psk_mode then
         (get server_psks(=server_name, client_ticket, psk) in
-          (Some(bertie__tls13utils__t_Bytes_to_bitstring(client_ticket)),
-           Some(bertie__tls13utils__t_Bytes_to_bitstring(psk))))
+          (Some(t13__tls13utils__t_Bytes_to_bitstring(client_ticket)),
+           Some(t13__tls13utils__t_Bytes_to_bitstring(psk))))
         else
           (None(), None()).
 
-let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
+let Client(algs: t13__tls13crypto__t_Algorithms, psk_mode: bool) =
     (* REACHED *)
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    in(c, server_name: t13__tls13utils__t_Bytes);
     new rng_client: impl_CryptoRng;
-    new ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
+    new ks_client: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
 
 
     let (client_ticket_o: Option, psk_o: Option)
@@ -221,8 +221,8 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
 
 
     (* REACHED *)
-    let (rng_client: impl_CryptoRng, ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, client_init_out: bitstring)
-        = bertie__tls13handshake__client_init(algs,
+    let (rng_client: impl_CryptoRng, ks_client: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, client_init_out: bitstring)
+        = t13__tls13handshake__client_init(algs,
                                               server_name,
                                               client_ticket_o,
                                               psk_o,
@@ -231,29 +231,29 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
     in
 
     (* REACHED *)
-    let (nch: bertie__tls13formats__handshake_data__t_HandshakeData,
+    let (nch: t13__tls13formats__handshake_data__t_HandshakeData,
          cipher0: Option,
-         client_state: bertie__tls13handshake__t_ClientPostClientHello)
+         client_state: t13__tls13handshake__t_ClientPostClientHello)
         = client_init_out in
     out(c, nch);
-    in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
+    in(c, server_hello: t13__tls13formats__handshake_data__t_HandshakeData);
        
     (* REACHED (attacker)*)
-    let (ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler,
+    let (ks_client: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler,
          (duplex_cipher_state_h: bitstring,
-         client_state: bertie__tls13handshake__t_ClientPostServerHello))
-        = bertie__tls13handshake__client_set_params(server_hello,
+         client_state: t13__tls13handshake__t_ClientPostServerHello))
+        = t13__tls13handshake__client_set_params(server_hello,
                                                     client_state,
                                                     ks_client)
     in
     (* NOT REACHED *)
     (* event R; *)
-    in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
+    in(c, flight: t13__tls13formats__handshake_data__t_HandshakeData);
 
-    let (ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
-         cipher: bertie__tls13record__t_DuplexCipherState1,
-         client_state: bertie__tls13handshake__t_ClientPostClientFinished))
-        = bertie__tls13handshake__client_finish((*server_name, (* XXX: This was here, before. *) *)
+    let (ks_client: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, (client_finished: t13__tls13formats__handshake_data__t_HandshakeData,
+         cipher: t13__tls13record__t_DuplexCipherState1,
+         client_state: t13__tls13handshake__t_ClientPostClientFinished))
+        = t13__tls13handshake__client_finish((*server_name, (* XXX: This was here, before. *) *)
                                                 flight,
                                                 client_state,
                                                 ks_client)
@@ -264,15 +264,15 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
 
 let Server() =
     (* REACHED *)
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    in(c, server_name: t13__tls13utils__t_Bytes);
     get server_dbs(=server_name, db, algs) in    
 
     new rng_server: impl_CryptoRng;
-    new ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
+    new ks_server: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
     
-    in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData);
-    let (rng_server: impl_CryptoRng, ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_init_output: bitstring)
-        = bertie__tls13handshake__server_init(algs,
+    in(c, nch: t13__tls13formats__handshake_data__t_HandshakeData);
+    let (rng_server: impl_CryptoRng, ks_server: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_init_output: bitstring)
+        = t13__tls13handshake__server_init(algs,
                                               nch,
                                               db,
                                               rng_server,
@@ -280,59 +280,59 @@ let Server() =
     in
     (* NOT REACHED *)
     let
-      (server_hello: bertie__tls13formats__handshake_data__t_HandshakeData,
-       flight: bertie__tls13formats__handshake_data__t_HandshakeData,
+      (server_hello: t13__tls13formats__handshake_data__t_HandshakeData,
+       flight: t13__tls13formats__handshake_data__t_HandshakeData,
        cipher0: Option,
-       cipher_hs: bertie__tls13record__t_DuplexCipherStateH,
-       cipher1: bertie__tls13record__t_DuplexCipherState1,
-       server_state: bertie__tls13handshake__t_ServerPostServerFinished)
+       cipher_hs: t13__tls13record__t_DuplexCipherStateH,
+       cipher1: t13__tls13record__t_DuplexCipherState1,
+       server_state: t13__tls13handshake__t_ServerPostServerFinished)
     = server_init_output in
 
     event ServerFinished(server_name,cipher1,server_state);
     out(c, server_hello);
     out(c, flight);
 
-    in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData);
+    in(c, client_finished: t13__tls13formats__handshake_data__t_HandshakeData);
 
-    let (ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_state: bitstring)
-        = bertie__tls13handshake__server_finish(client_finished,
+    let (ks_server: t13__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_state: bitstring)
+        = t13__tls13handshake__server_finish(client_finished,
                                                 server_state,
                                                 ks_server)
     in
 
     0.
 
-let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
-    new cert_sk: bertie__tls13utils__t_Bytes;
+let CreateServer(algs: t13__tls13crypto__t_Algorithms, psk_mode: bool) =
+    in(c, server_name: t13__tls13utils__t_Bytes);
+    new cert_sk: t13__tls13utils__t_Bytes;
 
     let psk_opt = set_psk(server_name, psk_mode) in
 
-    let bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256()
-        = bertie__tls13crypto__impl_Algorithms__signature(algs)
+    let t13__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256()
+        = t13__tls13crypto__impl_Algorithms__signature(algs)
         in
         (let cert = extern__certificate(
                        server_name,
-                       bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
+                       t13__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
                        extern__vk_from_sk(cert_sk)
                     )
         in
-        let db = bertie__server__ServerDB(
+        let db = t13__server__ServerDB(
             server_name,
             cert,
             cert_sk,
             psk_opt)
         in
         insert server_dbs(server_name, db, algs))
-    else let bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256()
-             = bertie__tls13crypto__impl_Algorithms__signature(algs)
+    else let t13__tls13crypto__SignatureScheme_RsaPssRsaSha256()
+             = t13__tls13crypto__impl_Algorithms__signature(algs)
              in
              (let cert = extern__certificate(
                          server_name,
-                         bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256(),
+                         t13__tls13crypto__SignatureScheme_RsaPssRsaSha256(),
                          extern__vk_from_sk(cert_sk))
              in
-             let db = bertie__server__ServerDB(
+             let db = t13__server__ServerDB(
                   server_name,
                   cert,
                   cert_sk,
@@ -341,9 +341,9 @@ let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
              insert server_dbs(server_name, db, algs)).
 
 let CompromiseServerCertSK() =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    in(c, server_name: t13__tls13utils__t_Bytes);
     get server_dbs(=server_name, db, algs) in
-    let bertie__server__ServerDB(
+    let t13__server__ServerDB(
             server_name,
             cert,
             cert_sk,
@@ -353,7 +353,7 @@ let CompromiseServerCertSK() =
     out(c, cert_sk).
 
 let CompromiseServerPSK() =
-    in(c, server_name: bertie__tls13utils__t_Bytes);
+    in(c, server_name: t13__tls13utils__t_Bytes);
     get server_psks(=server_name, client_ticket, psk) in
     event CompromisedServerPSK(server_name);
     out(c, psk).
@@ -364,50 +364,50 @@ process
     
     (* SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519 *)
     let SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519 = 
-        bertie__tls13crypto__Algorithms(bertie__tls13crypto__HashAlgorithm_SHA256(),
-                                          bertie__tls13crypto__AeadAlgorithm_Chacha20Poly1305(),
-                                          bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
-                                          bertie__tls13crypto__KemScheme_X25519(),
+        t13__tls13crypto__Algorithms(t13__tls13crypto__HashAlgorithm_SHA256(),
+                                          t13__tls13crypto__AeadAlgorithm_Chacha20Poly1305(),
+                                          t13__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
+                                          t13__tls13crypto__KemScheme_X25519(),
                                           psk_mode,
                                           zero_rtt)
     in
     
     (* SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519 *)
     let SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519 =
-     bertie__tls13crypto__Algorithms(bertie__tls13crypto__HashAlgorithm_SHA256(),
-                                       bertie__tls13crypto__AeadAlgorithm_Aes128Gcm(),
-                                       bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
-                                       bertie__tls13crypto__KemScheme_X25519(),
+     t13__tls13crypto__Algorithms(t13__tls13crypto__HashAlgorithm_SHA256(),
+                                       t13__tls13crypto__AeadAlgorithm_Aes128Gcm(),
+                                       t13__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
+                                       t13__tls13crypto__KemScheme_X25519(),
                                        psk_mode,
                                        zero_rtt)
     in
 
     (* SHA256_Aes128Gcm_RsaPssRsaSha256_X25519 *)
     let SHA256_Aes128Gcm_RsaPssRsaSha256_X25519 =
-     bertie__tls13crypto__Algorithms(bertie__tls13crypto__HashAlgorithm_SHA256(),
-                                       bertie__tls13crypto__AeadAlgorithm_Aes128Gcm(),
-                                       bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256(),
-                                       bertie__tls13crypto__KemScheme_X25519(),
+     t13__tls13crypto__Algorithms(t13__tls13crypto__HashAlgorithm_SHA256(),
+                                       t13__tls13crypto__AeadAlgorithm_Aes128Gcm(),
+                                       t13__tls13crypto__SignatureScheme_RsaPssRsaSha256(),
+                                       t13__tls13crypto__KemScheme_X25519(),
                                        psk_mode,
                                        zero_rtt)
     in
 
     (* SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519 *)
     let SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519 =
-     bertie__tls13crypto__Algorithms(bertie__tls13crypto__HashAlgorithm_SHA384(),
-                                       bertie__tls13crypto__AeadAlgorithm_Aes256Gcm(),
-                                       bertie__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
-                                       bertie__tls13crypto__KemScheme_X25519(),
+     t13__tls13crypto__Algorithms(t13__tls13crypto__HashAlgorithm_SHA384(),
+                                       t13__tls13crypto__AeadAlgorithm_Aes256Gcm(),
+                                       t13__tls13crypto__SignatureScheme_EcdsaSecp256r1Sha256(),
+                                       t13__tls13crypto__KemScheme_X25519(),
                                        psk_mode,
                                        zero_rtt)
     in
 
     (* SHA384_Aes256Gcm_RsaPssRsaSha256_X25519 *)
     let SHA384_Aes256Gcm_RsaPssRsaSha256_X25519 =
-     bertie__tls13crypto__Algorithms(bertie__tls13crypto__HashAlgorithm_SHA384(),
-                                       bertie__tls13crypto__AeadAlgorithm_Aes256Gcm(),
-                                       bertie__tls13crypto__SignatureScheme_RsaPssRsaSha256(),
-                                       bertie__tls13crypto__KemScheme_X25519(),
+     t13__tls13crypto__Algorithms(t13__tls13crypto__HashAlgorithm_SHA384(),
+                                       t13__tls13crypto__AeadAlgorithm_Aes256Gcm(),
+                                       t13__tls13crypto__SignatureScheme_RsaPssRsaSha256(),
+                                       t13__tls13crypto__KemScheme_X25519(),
                                        psk_mode,
                                        zero_rtt)
     in

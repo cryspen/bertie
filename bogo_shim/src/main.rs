@@ -1,4 +1,4 @@
-// # Bertie BoGo Shim
+// # t13 BoGo Shim
 //
 // # Credit
 //
@@ -11,7 +11,7 @@ use std::{env, io::Write, net::TcpStream, process};
 
 use tracing::Level;
 
-use bertie::stream::{BertieError, BertieStream};
+use t13::stream::{t13Error, t13Stream};
 
 static BOGO_NACK: i32 = 89;
 
@@ -39,7 +39,7 @@ enum Role {
 /// BoGo will be notified about the skip via the return code BOGO_NACK.
 /// (See https://github.com/google/boringssl/blob/master/ssl/test/PORTING.md#unimplemented-features.)
 ///
-/// Note: This list is expected to decrease over time when the Bertie API stabilizes.
+/// Note: This list is expected to decrease over time when the t13 API stabilizes.
 const UNHANDLED_ARGUMENTS: &[&str] = &[
     "-advertise-alpn",
     "-async",
@@ -106,10 +106,10 @@ const UNHANDLED_ARGUMENTS: &[&str] = &[
 ];
 
 /// The BoGo shim receives command-line parameters from the BoGo test runner.
-/// These arguments are used to configure Bertie for the upcoming test.
+/// These arguments are used to configure t13 for the upcoming test.
 ///
 /// The last step in this shim is always to connect/accept a connection from BoGo --
-/// depending if working as a client or server -- and to compare if BoGo and Bertie agree
+/// depending if working as a client or server -- and to compare if BoGo and t13 agree
 /// on the outcome of the connection.
 ///
 /// Note: In order to make this work, we will need to adjust the configuration file in assets/config.json.
@@ -211,34 +211,34 @@ fn main() {
 
     match options.role {
         Role::Client => {
-            println!(" running bertie client ...");
-            let mut client = BertieStream::open_with_stream(
+            println!(" running t13 client ...");
+            let mut client = t13Stream::open_with_stream(
                 &options.hostname,
-                bertie::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                t13::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
                 stream,
             )
             .unwrap();
             let _r = client.start(&mut rand::rng());
         }
         Role::Server => {
-            let bertie_home = std::env::var("BERTIE_HOME")
-                .expect("Unable to read the BERTIE_HOME environment variable.");
-            println!(" bertie home: {:?}", bertie_home);
+            let t13_home = std::env::var("t13_HOME")
+                .expect("Unable to read the t13_HOME environment variable.");
+            println!(" t13 home: {:?}", t13_home);
 
             let (cert_file, key_file) = if !options.cert_file.is_empty() {
                 (
-                    bertie_home.clone() + "../tests/assets/rsa_cert.der",
-                    bertie_home + "../tests/assets/rsa_key.der",
+                    t13_home.clone() + "../tests/assets/rsa_cert.der",
+                    t13_home + "../tests/assets/rsa_key.der",
                 )
             } else {
                 (options.cert_file, options.key_file)
             };
             println!(" current dir: {:?}", std::env::current_dir().unwrap());
-            let mut server = BertieStream::server(
+            let mut server = t13Stream::server(
                 &options.hostname,
                 options.port,
                 stream,
-                bertie::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+                t13::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
                 &cert_file,
                 &key_file,
             )
@@ -246,22 +246,22 @@ fn main() {
 
             if let Err(e) = server.connect(&mut rand::rng()) {
                 match e {
-                    BertieError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
+                    t13Error::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
                     // AppError::TLS(137) => eprintln!("Wrong TLS protocol version {:?}", e),
-                    _ => println!("Bertie server error {:?}", e),
+                    _ => println!("t13 server error {:?}", e),
                 }
             }
         }
     }
 }
 
-// Use this function when an argument will not be supported by Bertie.
+// Use this function when an argument will not be supported by t13.
 fn skip(due_to: &str) {
     println!("Skipping test due to \"{}\" argument.", due_to);
     process::exit(BOGO_NACK);
 }
 
-// Use this function when an argument is *currently* not be supported by Bertie.
+// Use this function when an argument is *currently* not be supported by t13.
 // Note: This function will eventually be removed.
 fn skip_currently(due_to: &str) {
     println!(

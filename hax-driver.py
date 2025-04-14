@@ -32,7 +32,7 @@ parser = argparse.ArgumentParser(description="Perform proofs using Hax.")
 sub_parser = parser.add_subparsers(
     description="Extract or typecheck",
     dest="sub",
-    help="Extract and typecheck F* etc. from the Bertie Rust code.",
+    help="Extract and typecheck F* etc. from the t13 Rust code.",
 )
 extract_parser = sub_parser.add_parser("extract-fstar")
 extract_parser = sub_parser.add_parser("extract-ssprove")
@@ -68,7 +68,7 @@ cargo_hax_into = [
     "hax",
     "-C",
     "-p",
-    "bertie",
+    "t13",
     "-p",
     "rand_core",
     "--no-default-features",
@@ -83,7 +83,7 @@ cargo_hax_into_ssp = [
     "hax",
     "-C",
     "-p",
-    "bertie",
+    "t13",
     "--no-default-features",
     "--features",
     "std",
@@ -96,7 +96,7 @@ cargo_hax_into_pv = [
     "hax",
     "-C",
     "-p",
-    "bertie",
+    "t13",
     "--no-default-features",
     "--features",
     "hax-pv,std",
@@ -111,10 +111,10 @@ if options.sub == "extract-fstar":
         cargo_hax_into
         + [
             "-i",
-            "-**::non_hax::** -bertie::stream::**",
+            "-**::non_hax::** -t13::stream::**",
             "fstar",
             "--interfaces",
-            "+** +!bertie::tls13crypto::** +!bertie::tls13utils::** +!bertie::tls13cert::**"
+            "+** +!t13::tls13crypto::** +!t13::tls13utils::** +!t13::tls13cert::**"
         ],
         cwd=".",
         env=hax_env,
@@ -167,10 +167,10 @@ elif options.sub == "extract-handshake":
         cargo_hax_into
         + [
             "-i",
-            "-** +~bertie::tls13handshake::**",
+            "-** +~t13::tls13handshake::**",
             "fstar",
             "--interfaces",
-            "+!** +bertie::tls13handshake::**",
+            "+!** +t13::tls13handshake::**",
         ],
         cwd=".",
         env=hax_env,

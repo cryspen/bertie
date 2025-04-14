@@ -77,7 +77,7 @@ pub(crate) struct RsaVerificationKey {
     pub(crate) exponent: Bytes,
 }
 
-/// Bertie public verification keys.
+/// t13 public verification keys.
 #[derive(Debug)]
 // XXX: Extracting this still leads to ambigous accessors, so I removed these here.
 #[cfg_attr(
@@ -112,7 +112,7 @@ pub(crate) enum PublicVerificationKey {
     Rsa(RsaVerificationKey), // N, e
 }
 
-/// Bertie hash algorithms.
+/// t13 hash algorithms.
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub enum HashAlgorithm {
     SHA256,
@@ -270,7 +270,7 @@ pub(crate) fn hkdf_expand(
     }
 }
 
-/// AEAD Algorithms for Bertie
+/// AEAD Algorithms for t13
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum AeadAlgorithm {
     Chacha20Poly1305,
@@ -365,7 +365,7 @@ pub(crate) fn aead_decrypt(
     }
 }
 
-/// Signature schemes for Bertie.
+/// Signature schemes for t13.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum SignatureScheme {
     RsaPssRsaSha256,
@@ -606,7 +606,7 @@ fn valid_rsa_exponent(e: Vec<u8>) -> bool {
     e.len() == 3 && e[0] == 0x1 && e[1] == 0x0 && e[2] == 0x1
 }
 
-/// Bertie KEM schemes.
+/// t13 KEM schemes.
 ///
 /// This includes ECDH curves.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -765,7 +765,7 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     }
 }
 
-/// The algorithms for Bertie.
+/// The algorithms for t13.
 ///
 /// Note that this is more than the TLS 1.3 ciphersuite. It contains all
 /// necessary cryptographic algorithms and options.

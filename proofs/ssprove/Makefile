@@ -5,7 +5,6 @@
 ##   \VV/  ###############################################################
 ##    //   #    This file is distributed under the terms of the         ##
 ##         #     GNU Lesser General Public License Version 2.1          ##
-##         #     (see LICENSE file for the text of the license)         ##
 ##########################################################################
 ## GNUMakefile for Coq 8.18.0
 

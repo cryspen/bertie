@@ -1,9 +1,9 @@
-//! # Bertie command line client
+//! # t13 command line client
 //!
-//! A simple TLS 1.3 command line client based on Bertie.
+//! A simple TLS 1.3 command line client based on t13.
 
-use bertie::{
-    stream::BertieStream,
+use t13::{
+    stream::t13Stream,
     tls13crypto::{Algorithms, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519},
     tls13utils::*,
 };
@@ -65,14 +65,14 @@ fn main() -> anyhow::Result<()> {
     event!(Level::DEBUG, "  {ciphersuite:#?}");
 
     // Initiate HTTPS connection to host:port.
-    let mut stream = BertieStream::client(&host, port, ciphersuite, &mut rand::rng())
+    let mut stream = t13Stream::client(&host, port, ciphersuite, &mut rand::rng())
         .expect("Error connecting to server");
 
     // Send HTTP GET
     let request = format!("GET / HTTP/1.1\r\nHost: {}\r\n\r\n", host);
     stream
         .write(request.as_bytes())
-        .expect("Error writing to Bertie stream");
+        .expect("Error writing to t13 stream");
     let response = stream.read().unwrap();
     let response_string = String::from_utf8_lossy(&response);
 

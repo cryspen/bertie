@@ -198,7 +198,7 @@ Fixpoint sumR_H_fuel start fuel (f : forall (ℓ : nat), (start <= ℓ)%nat -> (
 (*     intros i. *)
 (*     refine (BigBody i _ true (f (i.π1) _ ; _)). *)
 (*     2:{ *)
-(*       Bertie *)
+(*       t13 *)
 (*     - intros [] []. *)
 (*       econstructor. *)
 (*       + apply (GRing.add x y). *)

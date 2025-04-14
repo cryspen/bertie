@@ -12,7 +12,7 @@ pub(crate) fn parse_failed() -> TLSError {
     PARSE_FAILED
 }
 
-// Bertie errors
+// t13 errors
 #[derive(Debug, Clone)]
 pub enum Error {
     /// Unknown ciphersuite
@@ -169,7 +169,7 @@ impl Declassify<u32> for U32 {
     }
 }
 
-/// Bytes used in Bertie.
+/// Bytes used in t13.
 #[derive(Clone, PartialEq, Debug, Default)]
 pub struct Bytes(Vec<U8>);
 

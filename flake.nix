@@ -12,9 +12,9 @@
     let
       pkgs = import inputs.nixpkgs { inherit system; };
       # Make an overrideable package.
-      bertie = { python3, craneLib, hax, runCommand, cargoLock }:
+      t13 = { python3, craneLib, hax, runCommand, cargoLock }:
         let
-          src = runCommand "bertie-src" { } ''
+          src = runCommand "t13-src" { } ''
             cp -r ${./.} $out
             chmod u+w $out
             rm -f $out/Cargo.lock
@@ -40,7 +40,7 @@
     in
     {
       # Takes the lockfile as input.
-      packages.default = cargoLock: pkgs.callPackage bertie { inherit hax craneLib cargoLock; };
+      packages.default = cargoLock: pkgs.callPackage t13 { inherit hax craneLib cargoLock; };
       devShells.default = craneLib.devShell { };
     }
   );

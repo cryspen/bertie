@@ -1,10 +1,10 @@
-# Bertie Tests
+# t13 Tests
 
 Most tests can be run with `cargo test`.
 
 ## Interop tests
 
-Bertie implements a number of interop tests.
+t13 implements a number of interop tests.
 
 ### BoGo
 
@@ -13,7 +13,7 @@ Please see the [Bogo Readme] for more details.
 
 ### OpenSSL
 
-The [openssl-interop.sh] script can be used to run Bertie against OpenSSL.
+The [openssl-interop.sh] script can be used to run t13 against OpenSSL.
 
 [bogo readme]: ../bogo_shim/README.md
 [openssl-interop.sh]: ./openssl-interop.sh

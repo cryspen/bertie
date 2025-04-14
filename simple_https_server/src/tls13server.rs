@@ -4,8 +4,8 @@
 
 use std::{net::TcpListener, time::Duration};
 
-use bertie::{
-    stream::BertieStream, tls13crypto::Algorithms,
+use t13::{
+    stream::t13Stream, tls13crypto::Algorithms,
     tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
 };
 
@@ -74,11 +74,11 @@ pub fn main() -> anyhow::Result<()> {
             .set_read_timeout(Some(d))
             .expect("set_read_timeout call failed");
         println!("New connection established!");
-        match BertieStream::server(&host, port, stream, ciphersuite, &cli.cert, &cli.key) {
+        match t13Stream::server(&host, port, stream, ciphersuite, &cli.cert, &cli.key) {
             Ok(mut server) => {
                 server.connect(&mut rand::rng()).unwrap();
                 server
-                    .write(b"Hello, this is the Bertie TLS 1.3 server.\n")
+                    .write(b"Hello, this is the t13 TLS 1.3 server.\n")
                     .unwrap();
                 server.close().unwrap();
                 println!("Connection to {} succeeded; closed connection.", host);

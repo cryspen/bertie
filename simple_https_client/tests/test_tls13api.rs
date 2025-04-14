@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 
-use bertie::{
+use t13::{
     server::ServerDB,
     test_utils::TestRng,
     tls13crypto::{AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureScheme},
@@ -109,12 +109,12 @@ fn test_full_round_trip() {
     let sr = random_bytes(64);
     let y = load_hex(server_x25519_priv);
     let ent_s = sr.concat(y);
-    let mut server_rng = bertie::test_utils::TestRng::new(ent_s.declassify());
+    let mut server_rng = t13::test_utils::TestRng::new(ent_s.declassify());
 
     let db = ServerDB::new(
         server_name.clone(),
         Bytes::from(&ECDSA_P256_SHA256_CERT),
-        bertie::tls13crypto::SignatureKey::from(&ECDSA_P256_SHA256_Key),
+        t13::tls13crypto::SignatureKey::from(&ECDSA_P256_SHA256_Key),
         None,
     );
 

@@ -23,7 +23,7 @@ use crate::{
     Server,
 };
 
-use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
+use super::t13_stream::{read_record, t13Error, t13Stream, TlsStream};
 
 /// The server state.
 ///
@@ -49,10 +49,10 @@ impl<Stream: Read + Write> ServerState<Stream> {
 }
 
 impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
-    fn write_tls(&mut self, bytes: &[u8]) -> Result<(), BertieError> {
+    fn write_tls(&mut self, bytes: &[u8]) -> Result<(), t13Error> {
         let sstate = match self.sstate.take() {
             Some(state) => state,
-            None => return Err(BertieError::InvalidState),
+            None => return Err(t13Error::InvalidState),
         };
 
         let (wire_bytes, new_state) = sstate.write(AppData::new(bytes.into()))?;
@@ -64,10 +64,10 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
             .map_err(|e| e.into())
     }
 
-    fn read_tls(&mut self) -> Result<Vec<u8>, BertieError> {
+    fn read_tls(&mut self) -> Result<Vec<u8>, t13Error> {
         let mut sstate = match self.sstate.take() {
             Some(state) => state,
-            None => return Err(BertieError::InvalidState),
+            None => return Err(t13Error::InvalidState),
         };
 
         let application_data = loop {
@@ -88,7 +88,7 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
     }
 }
 
-impl<Stream: Read + Write> BertieStream<ServerState<Stream>> {
+impl<Stream: Read + Write> t13Stream<ServerState<Stream>> {
     /// Open a connection with the given stream, ciphersuite, and host.
     pub fn server_with_stream(
         host: &str,
@@ -96,7 +96,7 @@ impl<Stream: Read + Write> BertieStream<ServerState<Stream>> {
         stream: Stream,
         cert_file: &str,
         key_file: &str,
-    ) -> Result<Self, BertieError> {
+    ) -> Result<Self, t13Error> {
         let db = init_db(host, key_file, cert_file)?;
 
         Ok(Self {
@@ -107,14 +107,14 @@ impl<Stream: Read + Write> BertieStream<ServerState<Stream>> {
     }
 }
 
-impl BertieStream<ServerState<TcpStream>> {
+impl t13Stream<ServerState<TcpStream>> {
     /// Start a new server TLS connection.
     /// The [`TcpStream`] has to be connected before starting the server.
     ///
     /// A common pattern for the server would look as follows.
     /// ```
     /// use std::{net::{TcpStream, TcpListener}, thread};
-    /// use bertie::{stream::BertieStream, tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519};
+    /// use t13::{stream::t13Stream, tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519};
     /// use rand::thread_rng;
     ///
     /// let host = "localhost";
@@ -123,11 +123,11 @@ impl BertieStream<ServerState<TcpStream>> {
     /// // Run a client
     /// eprintln!("[Client] Starting ...");
     /// let client_handle = thread::spawn(move || {
-    ///     let mut stream = BertieStream::client(host, port, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, &mut thread_rng()).expect("Error connecting to server");
-    ///     stream.write(b"Hello, I'm the Bertie test client.").unwrap();
+    ///     let mut stream = t13Stream::client(host, port, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, &mut thread_rng()).expect("Error connecting to server");
+    ///     stream.write(b"Hello, I'm the t13 test client.").unwrap();
     ///     let server_msg = stream.read().unwrap();
     ///     assert_eq!(
-    ///         &b"Greetings, I'm the Bertie test server.\nBy."[..],
+    ///         &b"Greetings, I'm the t13 test server.\nBy."[..],
     ///         &server_msg[..]
     ///     );
     /// });
@@ -137,7 +137,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// let (server_tcp_stream, _adr) = listener.accept().unwrap();
     ///
     /// // Server is waiting for the incoming TLS handshake.
-    /// let mut server = BertieStream::server(
+    /// let mut server = t13Stream::server(
     ///     host,
     ///     port,
     ///     server_tcp_stream,
@@ -153,9 +153,9 @@ impl BertieStream<ServerState<TcpStream>> {
     /// // Read client application messages.
     /// let client_msg = server.read().unwrap();
     /// eprintln!("Client says: {}", String::from_utf8_lossy(&client_msg));
-    /// assert_eq!(&b"Hello, I'm the Bertie test client."[..], &client_msg[..]);
+    /// assert_eq!(&b"Hello, I'm the t13 test client."[..], &client_msg[..]);
     /// server
-    ///     .write(b"Greetings, I'm the Bertie test server.\nBy.")
+    ///     .write(b"Greetings, I'm the t13 test server.\nBy.")
     ///     .unwrap();
     ///
     /// // Close the client's thread.
@@ -168,7 +168,7 @@ impl BertieStream<ServerState<TcpStream>> {
         ciphersuite: Algorithms,
         cert_file: &str,
         key_file: &str,
-    ) -> Result<Self, BertieError> {
+    ) -> Result<Self, t13Error> {
         let db = init_db(host, key_file, cert_file)?;
 
         Ok(Self {
@@ -185,7 +185,7 @@ impl BertieStream<ServerState<TcpStream>> {
 
     /// Connect the incoming TLS stream.
     /// This function blocks until it was able to read the TLS client hello.
-    pub fn connect(&mut self, rng: &mut impl CryptoRng) -> Result<(), BertieError> {
+    pub fn connect(&mut self, rng: &mut impl CryptoRng) -> Result<(), t13Error> {
         let client_hello = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
 
         let mut ks: TLSkeyscheduler = TLSkeyscheduler {
@@ -235,13 +235,13 @@ impl BertieStream<ServerState<TcpStream>> {
     }
 
     /// Close the connection.
-    pub fn close(mut self) -> Result<(), BertieError> {
+    pub fn close(mut self) -> Result<(), t13Error> {
         // send a close_notify alert
         self.write_all(&[21, 03, 03, 00, 02, 1, 00])?;
         Ok(())
     }
 
-    fn check_ccs_message(&self, buf: &[u8]) -> Result<(), BertieError> {
+    fn check_ccs_message(&self, buf: &[u8]) -> Result<(), t13Error> {
         if buf.len() == 6
             && buf[0] == 0x14
             && buf[1] == 0x03
@@ -259,7 +259,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// Write all `bytes` into the stream.
     ///
     /// Returns an error if not all bytes can be written.
-    fn write_all(&mut self, bytes: &[u8]) -> Result<(), BertieError> {
+    fn write_all(&mut self, bytes: &[u8]) -> Result<(), t13Error> {
         self.state
             .stream_mut()
             .write_all(bytes)
@@ -269,21 +269,21 @@ impl BertieStream<ServerState<TcpStream>> {
     /// Read from the stream.
     ///
     /// This reads from the encrypted TLS channel
-    pub fn read(&mut self) -> Result<Vec<u8>, BertieError> {
+    pub fn read(&mut self) -> Result<Vec<u8>, t13Error> {
         self.state.read_tls()
     }
 
     /// Write to the stream.
     ///
     /// This writes to the encrypted TLS stream.
-    pub fn write(&mut self, bytes: &[u8]) -> Result<usize, BertieError> {
+    pub fn write(&mut self, bytes: &[u8]) -> Result<usize, t13Error> {
         self.state.write_tls(bytes)?;
         Ok(bytes.len())
     }
 }
 
 /// Set up the server database.
-pub fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, BertieError> {
+pub fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, t13Error> {
     let sni = host.as_bytes();
     let signature_key = read_file(key_file)?;
     let cert = read_file(cert_file)?.into();
@@ -296,7 +296,7 @@ pub fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, 
                 if i == 0 && byte != 0x30
                 // We don't handle larger sizes that are differently encoded.
                 {
-                    return Err(BertieError::TLS(255)); // TODO: error code
+                    return Err(t13Error::TLS(255)); // TODO: error code
                 }
 
                 // We only look for the first octet string.
@@ -316,7 +316,7 @@ pub fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, 
     };
     if raw_key.is_empty() {
         // We weren't able to read the key.
-        return Err(BertieError::TLS(255)); // TODO: error code
+        return Err(t13Error::TLS(255)); // TODO: error code
     }
     Ok(ServerDB::new(
         sni.into(),
@@ -327,7 +327,7 @@ pub fn init_db(host: &str, key_file: &str, cert_file: &str) -> Result<ServerDB, 
 }
 
 /// Read a binary file, e.g. key or certificate.
-fn read_file(file_name: &str) -> Result<Vec<u8>, BertieError> {
+fn read_file(file_name: &str) -> Result<Vec<u8>, t13Error> {
     let f = File::open(file_name)?;
     let mut reader = BufReader::new(f);
     let mut buffer = Vec::new();

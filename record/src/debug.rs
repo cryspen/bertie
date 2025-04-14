@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-use bertie::{get_hs_type, AlertDescription, AlertLevel, ContentType};
+use t13::{get_hs_type, AlertDescription, AlertLevel, ContentType};
 use tracing::{error, info};
 
 /// For debugging only.

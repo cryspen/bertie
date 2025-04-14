@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test to run Bertie against the X domains in top1m.txt
+# Test to run t13 against the X domains in top1m.txt
 
 url_file="cloudflare-top100.txt"
 count=10

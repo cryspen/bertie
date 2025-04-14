@@ -466,7 +466,7 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 /// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
 /// if successful, or an [`Asn1Error`] otherwise.
 // XXX: - enum variant constructors: Can't do
-// `${SignatureScheme::ED25519}_c()` since that is translated to `bertie__tls13crypto__SignatureScheme_ED25519(
+// `${SignatureScheme::ED25519}_c()` since that is translated to `t13__tls13crypto__SignatureScheme_ED25519(
 //
 // )_c()`
 // - Should find better solution for `_c()` and `_err()` terms

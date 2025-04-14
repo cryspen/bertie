@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use bertie::{
+use t13::{
     stream::init_db,
     tls13crypto::{
         Algorithms,
@@ -73,8 +73,8 @@ fn client_hello() {
     let sn = Bytes::from(vec![23; 0]);
     let start = Instant::now();
     for _ in 0..ITERATIONS {
-        let _ch = bertie::bench_client_hello(
-            &bertie::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
+        let _ch = t13::bench_client_hello(
+            &t13::tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
             cr.clone(),
             &gx,
             &sn,
@@ -97,13 +97,13 @@ fn parse_server_hello() {
     d3 e2 69 28 00 13 01 00 00 2e 00 33 00 24 00 1d 00 20 c9 82 88
     76 11 20 95 fe 66 76 2b db f7 c6 72 e1 56 d6 cc 25 3b 83 3d f1
     dd 69 b1 b0 4e 75 1f 0f 00 2b 00 02 03 04";
-    let sh = bertie::HandshakeData::from(Bytes::from_hex(SERVER_HELLO));
+    let sh = t13::HandshakeData::from(Bytes::from_hex(SERVER_HELLO));
     const ITERATIONS: usize = 5000000;
 
     let start = Instant::now();
     for _ in 0..ITERATIONS {
-        let _sh = bertie::bench_parse_server_hello(
-            &bertie::tls13crypto::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
+        let _sh = t13::bench_parse_server_hello(
+            &t13::tls13crypto::SHA256_Aes128Gcm_RsaPssRsaSha256_X25519,
             &sh,
         );
     }
@@ -140,12 +140,12 @@ fn parse_server_certificate() {
     c1 fc 63 a4 2a 99 be 5c 3e b7 10 7c 3c 54 e9 b9 eb 2b d5 20 3b
     1c 3b 84 e0 a8 b2 f7 59 40 9b a3 ea c9 d9 1d 40 2d cc 0c c8 f8
     96 12 29 ac 91 87 b4 2b 4d e1 00 00";
-    let sc = bertie::HandshakeData::from(Bytes::from_hex(SERVER_CERTIFICATE));
+    let sc = t13::HandshakeData::from(Bytes::from_hex(SERVER_CERTIFICATE));
     const ITERATIONS: usize = 10000000;
 
     let start = Instant::now();
     for _ in 0..ITERATIONS {
-        let _res = bertie::bench_parse_server_certificate(&sc);
+        let _res = t13::bench_parse_server_certificate(&sc);
     }
     let end = Instant::now();
 

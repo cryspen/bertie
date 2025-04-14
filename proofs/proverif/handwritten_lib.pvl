@@ -1,7 +1,7 @@
 (* We need to know this name explicitely.*)
 type impl_CryptoRng.
 
-type  std__collections__hash__map__t_HashMap_of_bitstring_bertie__tls13utils__t_Bytes_std__hash__random__t_RandomState.
+type  std__collections__hash__map__t_HashMap_of_bitstring_t13__tls13utils__t_Bytes_std__hash__random__t_RandomState.
 
 letfun rand_core__f_fill_bytes(rng: impl_CryptoRng, dest: bitstring) = new b: bitstring; (rng, b).
 

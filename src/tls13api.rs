@@ -1,7 +1,7 @@
 //! # Public TLS 1.3 API
 //!
-//! This is the entry point for consumers of Bertie.
-//! It defines the public API that users of Bertie use to establish TLS connections.
+//! This is the entry point for consumers of t13.
+//! It defines the public API that users of t13 use to establish TLS connections.
 //!
 //! **NOTE:** This is a low level TLS API that needs careful handling.
 //!           We will add a more usable API on top in future. But the verifiable
@@ -49,7 +49,7 @@ pub fn in_psk_mode(c: &Client) -> bool {
 
 impl Client {
     /// Start a TLS handshake as client.
-    /// Note that Bertie clients only support a single ciphersuite at a time and
+    /// Note that t13 clients only support a single ciphersuite at a time and
     /// do not perform ciphersuite negotiation.
     ///
     /// This function takes the
@@ -185,7 +185,7 @@ pub enum Server {
 #[hax_lib::attributes]
 impl Server {
     /// Start a new TLS handshake as server.
-    /// Note that Bertie servers only support a single ciphersuite at a time and
+    /// Note that t13 servers only support a single ciphersuite at a time and
     /// do not perform ciphersuite negotiation.
     ///
     /// This function takes the

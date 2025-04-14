@@ -1,7 +1,7 @@
 use std::net::TcpListener;
 
-use bertie::{
-    stream::BertieStream,
+use t13::{
+    stream::t13Stream,
     tls13crypto::{
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
@@ -85,7 +85,7 @@ fn test_sha256_chacha20_poly1305_rsa_pss_rsa_sha256_p256() {
 //     }
 // }
 
-fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
+fn self_test_algorithm(ciphersuite: t13::tls13crypto::Algorithms) {
     let _ = tracing_subscriber::fmt::try_init();
 
     let (tx, rx) = std::sync::mpsc::channel();
@@ -116,7 +116,7 @@ fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
             _ => unreachable!("Unknown ciphersuite {:?}", ciphersuite),
         };
         let mut server =
-            BertieStream::server("127.0.0.1", port, stream, ciphersuite, cert_file, key_file)
+            t13Stream::server("127.0.0.1", port, stream, ciphersuite, cert_file, key_file)
                 .unwrap();
 
         eprintln!("Server setup finished.");
@@ -127,16 +127,16 @@ fn self_test_algorithm(ciphersuite: bertie::tls13crypto::Algorithms) {
     // Client thread.
     let port = rx.recv().unwrap();
 
-    let mut client = BertieStream::client("127.0.0.1", port, ciphersuite, &mut rand::rng())
+    let mut client = t13Stream::client("127.0.0.1", port, ciphersuite, &mut rand::rng())
         .expect("Error connecting to server");
     eprintln!("Client connected to 127.0.0.1:{}.", port);
 
     client
         .write("GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".as_bytes())
-        .expect("Error writing to Bertie stream");
+        .expect("Error writing to t13 stream");
 
     // Exchange a message on the TLS channel.
-    let msg = "Hello from the Bertie server. Congratulations on the successful interop.".as_bytes();
+    let msg = "Hello from the t13 server. Congratulations on the successful interop.".as_bytes();
     let mut server = server.join().unwrap();
     server.write(msg).unwrap();
 

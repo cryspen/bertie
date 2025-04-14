@@ -1,7 +1,7 @@
-# Security and Functional Correctness Proofs for Bertie
+# Security and Functional Correctness Proofs for t13
 
 The `proofs/` directory holds ProVerif F\* proofs for code compiled by
-hax from the Bertie Rust implementation of TLS 1.3.
+hax from the t13 Rust implementation of TLS 1.3.
 
 ## Correctness Proofs in F\*
 
@@ -42,21 +42,21 @@ type-safe. This proof often requires the pre-conditions to be
 propagated to the calling functions, leading to additional annotations
 to the functions types in the `M.fsti` interface files.
 
-For the TLS 1.3 code in Bertie, the most interesting aspects of these
+For the TLS 1.3 code in t13, the most interesting aspects of these
 proofs are when we try to prove that the formatting and parsing functions
 do not overflow. Indeed, by typechecking in F*, we found a number of
 bugs in our packet parsing code.
 
 The code in the `proofs/fstar/extraction-panic-free` directory has
 been verified for panic freedom on all possible inputs. This means that
-even in the presence of an attacker sending Bertie malformed messages,
+even in the presence of an attacker sending t13 malformed messages,
 the verified code will never create a panic. Of course, there is other
 code outside the verification boundary that may yet panic and we intend
 to expand the scope of our verification ocer time.
 
 ## Security Proofs in ProVerif
 
-We also prove security for the TLS 1.3 protocol code in Bertie.
+We also prove security for the TLS 1.3 protocol code in t13.
 Using hax, we generate a ProVerif model of the TLS 1.3 handshake
 in `proofs/proverif/extraction/lib.pvl`.  This file contains the bulk of the extraction,
 while `analysis.pv` contains the top-level processes are set up and analysis queries.
@@ -79,6 +79,6 @@ The patches are necessary for parts of the model that we cannot currently genera
 * tls13formats related code, especially anything that relates to concatenation primitives
 
 Additionally, the patches introduce the following modifications:
-* A mock certificate validation, checking that the name in the certificate agrees with the name of the expected peer from the top-level process. This is because Bertie does not include full certificate validation at this time, but some binding between the name and the certificate is necessary for showing server authentication.
+* A mock certificate validation, checking that the name in the certificate agrees with the name of the expected peer from the top-level process. This is because t13 does not include full certificate validation at this time, but some binding between the name and the certificate is necessary for showing server authentication.
 * A model-side fix for the issue that is fixed on the Rust side in Correct argument order for process_psk_binder_zero_rtt #101 (until that is fixed on the Rust side).
 * The removal of all automatically generated events, since that leads to poor performance from ProVerif and is not necessary at all for the analysis (cf. [ProVerif] Emitting events unnecessarily blows up the extracted model hacspec/hax#581)

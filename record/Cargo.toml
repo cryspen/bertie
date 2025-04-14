@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 hex = "0.4.3"
 tracing = "0.1"
-bertie = { path = ".." }
+t13 = { path = ".." }
 anyhow = "1"
 thiserror = "1"

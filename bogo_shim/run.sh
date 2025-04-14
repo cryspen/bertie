@@ -13,7 +13,7 @@ fi
 
 cwd=$(cd $(dirname $0); pwd -P)
 
-# Build Bertie bogo shim
+# Build t13 bogo shim
 cargo build -p bogo_shim --no-default-features
 
 # Run bogo runner

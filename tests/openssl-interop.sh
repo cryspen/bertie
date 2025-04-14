@@ -1,5 +1,5 @@
 #!/bin/bash
-# Interop to test that Bertie works against OpenSSL
+# Interop to test that t13 works against OpenSSL
 
 set -e
 
@@ -16,7 +16,7 @@ if [[ $openssl_version != *"OpenSSL 3"* ]]; then
   exit 1
 fi
 
-# # === OpenSSL Server <-> Bertie Client ===
+# # === OpenSSL Server <-> t13 Client ===
 
 print_success() {
   if [ $? -eq 0 ]; then
@@ -41,16 +41,16 @@ run_openssl() {
   sleep 2
 }
 
-bertie_client_test() {
+t13_client_test() {
   # ECDH Server cert
   echo "Running OpenSSL Server with ECDSA P256 certificate"
   run_openssl p256
 
-  # run bertie client (auto closes after receiving http response)
-  echo "  Connecting with Bertie Client | Chacha20Poly1305 x25519"
+  # run t13 client (auto closes after receiving http response)
+  echo "  Connecting with t13 Client | Chacha20Poly1305 x25519"
   RUST_LOG=none cargo run -p simple_https_client -- localhost --port 6443 --ciphersuite SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519 2>/dev/null
   print_success
-  echo "  Connecting with Bertie Client | Chacha20Poly1305 P256"
+  echo "  Connecting with t13 Client | Chacha20Poly1305 P256"
   RUST_LOG=none cargo run -p simple_https_client -- localhost --port 6443 --ciphersuite SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256 2>/dev/null
   print_success
 
@@ -62,10 +62,10 @@ bertie_client_test() {
   echo "Running OpenSSL Server with RSA PSS certificate"
   run_openssl rsa
 
-  echo "  Connecting with Bertie Client | Chacha20Poly1305 x25519"
+  echo "  Connecting with t13 Client | Chacha20Poly1305 x25519"
   RUST_LOG=none cargo run -p simple_https_client -- localhost --port 6443 --ciphersuite SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519 2>/dev/null
   print_success
-  echo "  Connecting with Bertie Client | Chacha20Poly1305 P256"
+  echo "  Connecting with t13 Client | Chacha20Poly1305 P256"
   RUST_LOG=none cargo run -p simple_https_client -- localhost --port 6443 --ciphersuite SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256 2>/dev/null
   print_success
 
@@ -74,10 +74,10 @@ bertie_client_test() {
   kill $pid
 }
 
-# === Bertie Server <-> OpenSSL Client ===
+# === t13 Server <-> OpenSSL Client ===
 
-run_bertie() {
-  # start bertie server
+run_t13() {
+  # start t13 server
   cargo run -p simple_https_server -- localhost --port 6443 \
     --ciphersuite $2 \
     --key $cwd/assets/$1_key.der --cert $cwd/assets/$1_cert.der &
@@ -87,27 +87,27 @@ run_bertie() {
   sleep 2
 }
 
-bertie_server_test() {
-  echo "Running Bertie Server with ECDSA P256 certificate | Chacha20Poly1305 x25519"
-  run_bertie p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
+t13_server_test() {
+  echo "Running t13 Server with ECDSA P256 certificate | Chacha20Poly1305 x25519"
+  run_t13 p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519
   openssl s_client -curves X25519 -connect localhost:6443 </dev/null
   kill $pid
 
-  echo "Running Bertie Server with ECDSA P256 certificate | Chacha20Poly1305 P256"
-  run_bertie p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256
+  echo "Running t13 Server with ECDSA P256 certificate | Chacha20Poly1305 P256"
+  run_t13 p256 SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256
   openssl s_client -curves P-256 -connect localhost:6443 </dev/null
   kill $pid
 
-  echo "Running Bertie Server with RSA PSS certificate | Chacha20Poly1305 x25519"
-  run_bertie rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
+  echo "Running t13 Server with RSA PSS certificate | Chacha20Poly1305 x25519"
+  run_t13 rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519
   openssl s_client -curves X25519 -connect localhost:6443 </dev/null
   kill $pid
 
-  echo "Running Bertie Server with RSA PSS certificate | Chacha20Poly1305 P256"
-  run_bertie rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
+  echo "Running t13 Server with RSA PSS certificate | Chacha20Poly1305 P256"
+  run_t13 rsa SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256
   openssl s_client -curves P-256 -connect localhost:6443 </dev/null
   kill $pid
 }
 
-bertie_client_test
-bertie_server_test
+t13_client_test
+t13_server_test

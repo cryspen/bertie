@@ -15,7 +15,7 @@ use std::{
 };
 // use tracing::{event, Level};
 
-use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
+use super::t13_stream::{read_record, t13Error, t13Stream, TlsStream};
 use crate::{
     tls13crypto::*, tls13keyscheduler::key_schedule::TLSkeyscheduler, tls13utils::*, Client,
 };
@@ -38,10 +38,10 @@ impl<Stream: Read + Write> ClientState<Stream> {
 }
 
 impl<T: Read + Write> TlsStream<T> for ClientState<T> {
-    fn write_tls(&mut self, bytes: &[u8]) -> Result<(), BertieError> {
+    fn write_tls(&mut self, bytes: &[u8]) -> Result<(), t13Error> {
         let cstate = match self.cstate.take() {
             Some(state) => state,
-            None => return Err(BertieError::InvalidState),
+            None => return Err(t13Error::InvalidState),
         };
 
         let (wire_bytes, new_state) = cstate.write(AppData::new(bytes.into()))?;
@@ -53,10 +53,10 @@ impl<T: Read + Write> TlsStream<T> for ClientState<T> {
             .map_err(|e| e.into())
     }
 
-    fn read_tls(&mut self) -> Result<Vec<u8>, BertieError> {
+    fn read_tls(&mut self) -> Result<Vec<u8>, t13Error> {
         let mut state = match self.cstate.take() {
             Some(state) => state,
-            None => return Err(BertieError::InvalidState),
+            None => return Err(t13Error::InvalidState),
         };
 
         let application_data = loop {
@@ -77,13 +77,13 @@ impl<T: Read + Write> TlsStream<T> for ClientState<T> {
     }
 }
 
-impl<Stream: Read + Write> BertieStream<ClientState<Stream>> {
+impl<Stream: Read + Write> t13Stream<ClientState<Stream>> {
     /// Open a connection with the given stream, ciphersuite, and host.
     pub fn open_with_stream(
         host: &str,
         ciphersuite: Algorithms,
         stream: Stream,
-    ) -> Result<Self, BertieError> {
+    ) -> Result<Self, t13Error> {
         Ok(Self {
             state: ClientState::new(stream),
             ciphersuite,
@@ -92,8 +92,8 @@ impl<Stream: Read + Write> BertieStream<ClientState<Stream>> {
     }
 }
 
-impl BertieStream<ClientState<TcpStream>> {
-    /// Create a new Bertie stream connecting to `host:port`.
+impl t13Stream<ClientState<TcpStream>> {
+    /// Create a new t13 stream connecting to `host:port`.
     ///
     /// This uses a set of default ciphersuites.
     /// If you want to define your own set of ciphersuites, use [`open`],
@@ -103,7 +103,7 @@ impl BertieStream<ClientState<TcpStream>> {
         port: u16,
         ciphersuite: Algorithms,
         rng: &mut impl CryptoRng,
-    ) -> Result<Self, BertieError> {
+    ) -> Result<Self, t13Error> {
         let mut stream = Self::open(host, port, ciphersuite)?;
         stream.ciphersuite = ciphersuite;
         stream.start(rng)?;
@@ -111,7 +111,7 @@ impl BertieStream<ClientState<TcpStream>> {
     }
 
     /// Open a connection to `host:port`.
-    pub fn open(host: &str, port: u16, ciphersuite: Algorithms) -> Result<Self, BertieError> {
+    pub fn open(host: &str, port: u16, ciphersuite: Algorithms) -> Result<Self, t13Error> {
         let stream = TcpStream::connect((host, port))?;
         stream.set_nodelay(true)?;
         Ok(Self {
@@ -124,10 +124,10 @@ impl BertieStream<ClientState<TcpStream>> {
     /// Open the connection.
     ///
     /// This will fail if the connection wasn't set up correctly.
-    pub fn start(&mut self, rng: &mut impl CryptoRng) -> Result<(), BertieError> {
+    pub fn start(&mut self, rng: &mut impl CryptoRng) -> Result<(), t13Error> {
         // Initialize TLS 1.3 client.
         if self.state.cstate.is_some() {
-            return Err(BertieError::InvalidState);
+            return Err(t13Error::InvalidState);
         }
 
         let mut ks: TLSkeyscheduler = TLSkeyscheduler {
@@ -179,7 +179,7 @@ impl BertieStream<ClientState<TcpStream>> {
                     }
                     MISSING_KEY_SHARE => eprintln!("Hello message was missing a key share."),
                     DECODE_ERROR => eprintln!("Decode error."), // parsing of the server hello failed
-                    _ => eprintln!("Bertie client error {}", e),
+                    _ => eprintln!("t13 client error {}", e),
                 }
                 return Err(e.into());
             }
@@ -202,7 +202,7 @@ impl BertieStream<ClientState<TcpStream>> {
                     match e {
                         // signature verification failed or parsing of the certificate failed
                         INVALID_SIGNATURE => eprintln!("Invalid server signature"),
-                        _ => eprintln!("Bertie client error {}", e),
+                        _ => eprintln!("t13 client error {}", e),
                     }
                     return Err(e.into());
                 }
@@ -224,7 +224,7 @@ impl BertieStream<ClientState<TcpStream>> {
         Ok(())
     }
 
-    fn write_all(&mut self, bytes: &[u8]) -> Result<(), BertieError> {
+    fn write_all(&mut self, bytes: &[u8]) -> Result<(), t13Error> {
         self.state
             .stream_mut()
             .write_all(bytes)
@@ -234,14 +234,14 @@ impl BertieStream<ClientState<TcpStream>> {
     /// Read from the stream.
     ///
     /// This reads from the encrypted TLS channel
-    pub fn read(&mut self) -> Result<Vec<u8>, BertieError> {
+    pub fn read(&mut self) -> Result<Vec<u8>, t13Error> {
         self.state.read_tls()
     }
 
     /// Write to the stream.
     ///
     /// This writes to the encrypted TLS stream.
-    pub fn write(&mut self, bytes: &[u8]) -> Result<usize, BertieError> {
+    pub fn write(&mut self, bytes: &[u8]) -> Result<usize, t13Error> {
         self.state.write_tls(bytes)?;
         Ok(bytes.len())
     }
@@ -260,7 +260,7 @@ mod tests {
     fn client() {
         let host = "google.com";
         let port = 443;
-        let mut stream = BertieStream::client(
+        let mut stream = t13Stream::client(
             host,
             port,
             SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
@@ -272,7 +272,7 @@ mod tests {
         let request = format!("GET / HTTP/1.1\r\nHost: {}\r\n\r\n", host);
         stream
             .write(request.as_bytes())
-            .expect("Error writing to Bertie stream");
+            .expect("Error writing to t13 stream");
         let response = stream.read().unwrap();
         let response_string = String::from_utf8_lossy(&response);
         eprintln!("{response_string:}");

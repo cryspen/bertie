@@ -1,6 +1,6 @@
-diff -ruN extraction/Bertie.Tls13crypto.fsti extraction-lax/Bertie.Tls13crypto.fsti
---- extraction/Bertie.Tls13crypto.fsti	2024-04-10 09:10:50.119985620 +0200
-+++ extraction-lax/Bertie.Tls13crypto.fsti	2024-04-10 09:10:50.159963761 +0200
+diff -ruN extraction/t13.Tls13crypto.fsti extraction-lax/t13.Tls13crypto.fsti
+--- extraction/t13.Tls13crypto.fsti	2024-04-10 09:10:50.119985620 +0200
++++ extraction-lax/t13.Tls13crypto.fsti	2024-04-10 09:10:50.159963761 +0200
 @@ -46,10 +46,12 @@
  val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
      : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
@@ -35,7 +35,7 @@ diff -ruN extraction/Bertie.Tls13crypto.fsti extraction-lax/Bertie.Tls13crypto.f
        (fun _ -> Prims.l_True)
  
 +(*
- val supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
+ val supported_rsa_key_size (n: t13.Tls13utils.t_Bytes)
      : Prims.Pure (Core.Result.t_Result Libcrux.Signature.Rsa_pss.t_RsaPssKeySize u8)
        Prims.l_True
        (fun _ -> Prims.l_True)
@@ -52,19 +52,19 @@ diff -ruN extraction/Bertie.Tls13crypto.fsti extraction-lax/Bertie.Tls13crypto.f
      : Prims.Pure (Core.Result.t_Result Libcrux.Aead.t_Key u8) Prims.l_True (fun _ -> Prims.l_True)
 -
 +*)
- val impl__AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (alg: t_AeadAlgorithm)
+ val impl__AeadKey__new (bytes: t13.Tls13utils.t_Bytes) (alg: t_AeadAlgorithm)
      : Prims.Pure t_AeadKey Prims.l_True (fun _ -> Prims.l_True)
  
-diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.fst
---- extraction/Bertie.Tls13formats.fst	2024-04-10 09:10:50.124982888 +0200
-+++ extraction-lax/Bertie.Tls13formats.fst	2024-04-10 09:10:50.149969226 +0200
+diff -ruN extraction/t13.Tls13formats.fst extraction-lax/t13.Tls13formats.fst
+--- extraction/t13.Tls13formats.fst	2024-04-10 09:10:50.124982888 +0200
++++ extraction-lax/t13.Tls13formats.fst	2024-04-10 09:10:50.149969226 +0200
 @@ -104,16 +104,18 @@
  let check_psk_key_exchange_modes (client_hello: t_Slice u8) =
-   match Bertie.Tls13utils.check_length_encoding_u8_slice client_hello with
+   match t13.Tls13utils.check_length_encoding_u8_slice client_hello with
    | Core.Result.Result_Ok _ ->
--    Bertie.Tls13utils.check_eq_with_slice (Rust_primitives.unsize (let list =
-+    Bertie.Tls13utils.check_eq_slice (Rust_primitives.unsize (let list =
-               [Bertie.Tls13utils.v_U8 1uy <: u8]
+-    t13.Tls13utils.check_eq_with_slice (Rust_primitives.unsize (let list =
++    t13.Tls13utils.check_eq_slice (Rust_primitives.unsize (let list =
+               [t13.Tls13utils.v_U8 1uy <: u8]
              in
              FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
              Rust_primitives.Hax.array_of_list 1 list)
@@ -83,11 +83,11 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
  let check_supported_versions (client_hello: t_Slice u8) =
 @@ -152,7 +154,7 @@
      Core.Result.t_Result (Core.Option.t_Option v_T) u8
-   | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+   | _ -> t13.Tls13utils.tlserr (t13.Tls13utils.parse_failed () <: u8)
  
--let check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
-+let check_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
-   match Bertie.Tls13utils.length_u16_encoded ch with
+-let check_psk_shared_key (algs: t13.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
++let check_psk_shared_key (v__algs: t13.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
+   match t13.Tls13utils.length_u16_encoded ch with
    | Core.Result.Result_Ok len_id ->
      (match
 @@ -191,13 +193,8 @@
@@ -95,24 +95,24 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
                | Core.Result.Result_Ok _ ->
                  if
 -                  (((Core.Slice.impl__len ch <: usize) -! sz 5 <: usize) -! len_id <: usize) <>.
--                  (Bertie.Tls13crypto.impl__HashAlgorithm__hash_len (Bertie.Tls13crypto.impl__Algorithms__hash
+-                  (t13.Tls13crypto.impl__HashAlgorithm__hash_len (t13.Tls13crypto.impl__Algorithms__hash
 -                          algs
 -                        <:
--                        Bertie.Tls13crypto.t_HashAlgorithm)
+-                        t13.Tls13crypto.t_HashAlgorithm)
 -                    <:
 -                    usize)
 +                  (((Core.Slice.impl__len ch <: usize) -! sz 6 <: usize) -! len_id <: usize) <>.
 +                  sz 32
-                 then Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+                 then t13.Tls13utils.tlserr (t13.Tls13utils.parse_failed () <: u8)
                  else Core.Result.Result_Ok (() <: Prims.unit) <: Core.Result.t_Result Prims.unit u8
                | Core.Result.Result_Err err ->
 @@ -233,16 +230,18 @@
-   match Bertie.Tls13utils.check_length_encoding_u16_slice extension with
+   match t13.Tls13utils.check_length_encoding_u16_slice extension with
    | Core.Result.Result_Ok _ ->
      (match
--        Bertie.Tls13utils.check_eq_with_slice (Rust_primitives.unsize (let list =
-+        Bertie.Tls13utils.check_eq_slice (Rust_primitives.unsize (let list =
-                   [Bertie.Tls13utils.v_U8 0uy <: u8]
+-        t13.Tls13utils.check_eq_with_slice (Rust_primitives.unsize (let list =
++        t13.Tls13utils.check_eq_slice (Rust_primitives.unsize (let list =
+                   [t13.Tls13utils.v_U8 0uy <: u8]
                  in
                  FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 1);
                  Rust_primitives.Hax.array_of_list 1 list)
@@ -130,11 +130,11 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
        | Core.Result.Result_Ok _ ->
          (match
 @@ -278,12 +277,14 @@
-   match Bertie.Tls13crypto.impl__Algorithms__supported_group algs with
+   match t13.Tls13crypto.impl__Algorithms__supported_group algs with
    | Core.Result.Result_Ok hoist21 ->
      (match
--        Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw hoist21
-+        Bertie.Tls13utils.check_eq_slice (Bertie.Tls13utils.impl__Bytes__as_raw hoist21
+-        t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw hoist21
++        t13.Tls13utils.check_eq_slice (t13.Tls13utils.impl__Bytes__as_raw hoist21
 +            <:
 +            t_Slice u8)
 +          (b.[ { Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
@@ -149,36 +149,36 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
        | Core.Result.Result_Ok _ ->
          (match
 @@ -316,167 +317,157 @@
-     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+     Core.Result.Result_Err err <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8
  
- let check_server_extension (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
+ let check_server_extension (algs: t13.Tls13crypto.t_Algorithms) (b: t_Slice u8) =
 -  Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
 -        (Core.Slice.impl__len b <: usize) <. sz 4 <: bool
 -      then
 -        Core.Ops.Control_flow.ControlFlow_Continue
--        (Core.Result.Result_Err (Bertie.Tls13utils.parse_failed () <: u8)
+-        (Core.Result.Result_Err (t13.Tls13utils.parse_failed () <: u8)
 -          <:
--          Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+-          Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 -        <:
 -        Core.Ops.Control_flow.t_ControlFlow
--          (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
--          (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+-          (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
+-          (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 -      else
--        let l0:usize = cast (Bertie.Tls13utils.f_declassify (b.[ sz 0 ] <: u8) <: u8) <: usize in
--        let l1:usize = cast (Bertie.Tls13utils.f_declassify (b.[ sz 1 ] <: u8) <: u8) <: usize in
+-        let l0:usize = cast (t13.Tls13utils.f_declassify (b.[ sz 0 ] <: u8) <: u8) <: usize in
+-        let l1:usize = cast (t13.Tls13utils.f_declassify (b.[ sz 1 ] <: u8) <: u8) <: usize in
 -        match
--          Bertie.Tls13utils.length_u16_encoded (b.[ {
+-          t13.Tls13utils.length_u16_encoded (b.[ {
 -                  Core.Ops.Range.f_start = sz 2;
 -                  Core.Ops.Range.f_end = Core.Slice.impl__len b <: usize
 -                }
 -                <:
 -                Core.Ops.Range.t_Range usize ]
 +  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let l0:usize =
-+        cast (Bertie.Tls13utils.f_declassify (b.[ sz 0 ] <: u8) <: u8) <: usize
++        cast (t13.Tls13utils.f_declassify (b.[ sz 0 ] <: u8) <: u8) <: usize
 +      in
-+      let l1:usize = cast (Bertie.Tls13utils.f_declassify (b.[ sz 1 ] <: u8) <: u8) <: usize in
++      let l1:usize = cast (t13.Tls13utils.f_declassify (b.[ sz 1 ] <: u8) <: u8) <: usize in
 +      match
-+        Bertie.Tls13utils.length_u16_encoded (b.[ {
++        t13.Tls13utils.length_u16_encoded (b.[ {
 +                Core.Ops.Range.f_start = sz 2;
 +                Core.Ops.Range.f_end = Core.Slice.impl__len b <: usize
 +              }
@@ -186,10 +186,10 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -              t_Slice u8)
 -        with
 -        | Core.Result.Result_Ok len ->
--          let out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
--            Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+-          let out:Core.Option.t_Option t13.Tls13utils.t_Bytes =
+-            Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 -          in
--          let! out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
+-          let! out:Core.Option.t_Option t13.Tls13utils.t_Bytes =
 -            match (cast (l0 <: usize) <: u8), (cast (l1 <: usize) <: u8) <: (u8 & u8) with
 -            | 0uy, 43uy ->
 -              (match
@@ -207,8 +207,8 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                  Core.Ops.Control_flow.ControlFlow_Continue out
 -                  <:
 -                  Core.Ops.Control_flow.t_ControlFlow
--                    (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
--                        u8) (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                    (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
+-                        u8) (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                | Core.Result.Result_Err err ->
 -                  let! _:Prims.unit =
 -                    Core.Ops.Control_flow.ControlFlow_Break
@@ -218,10 +218,10 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +            t_Slice u8)
 +      with
 +      | Core.Result.Result_Ok len ->
-+        let out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-+          Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
++        let out:Core.Option.t_Option t13.Tls13utils.t_Bytes =
++          Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 +        in
-+        let! out:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
++        let! out:Core.Option.t_Option t13.Tls13utils.t_Bytes =
 +          match (cast (l0 <: usize) <: u8), (cast (l1 <: usize) <: u8) <: (u8 & u8) with
 +          | 0uy, 43uy ->
 +            (match
@@ -231,19 +231,19 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                        Core.Ops.Range.f_end = sz 4 +! len <: usize
 +                      }
                        <:
--                      Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                      Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                        u8)
 +                      Core.Ops.Range.t_Range usize ]
                      <:
 -                    Core.Ops.Control_flow.t_ControlFlow
--                      (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                      (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                          u8) Prims.unit
 -                  in
 -                  Core.Ops.Control_flow.ControlFlow_Continue out
 -                  <:
 -                  Core.Ops.Control_flow.t_ControlFlow
--                    (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
--                        u8) (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+-                    (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
+-                        u8) (Core.Option.t_Option t13.Tls13utils.t_Bytes))
 -            | 0uy, 51uy ->
 -              (match
 -                  check_server_key_share algs
@@ -258,17 +258,17 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                with
 -                | Core.Result.Result_Ok gx ->
 -                  Core.Ops.Control_flow.ControlFlow_Continue
--                  (Core.Option.Option_Some gx <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                  (Core.Option.Option_Some gx <: Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                  <:
 -                  Core.Ops.Control_flow.t_ControlFlow
--                    (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
--                        u8) (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                    (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
+-                        u8) (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                | Core.Result.Result_Err err ->
 -                  let! _:Prims.unit =
 -                    Core.Ops.Control_flow.ControlFlow_Break
 -                    (Core.Result.Result_Err err
 -                      <:
--                      Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                      Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                        u8)
 +                    t_Slice u8)
 +              with
@@ -276,24 +276,24 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                Core.Ops.Control_flow.ControlFlow_Continue out
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
++                  (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++                  (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 +              | Core.Result.Result_Err err ->
 +                let! _:Prims.unit =
 +                  Core.Ops.Control_flow.ControlFlow_Break
 +                  (Core.Result.Result_Err err
                      <:
 -                    Core.Ops.Control_flow.t_ControlFlow
--                      (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                      (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                          u8) Prims.unit
 -                  in
 -                  Core.Ops.Control_flow.ControlFlow_Continue out
-+                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
++                    Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8
 +                  )
                    <:
                    Core.Ops.Control_flow.t_ControlFlow
-                     (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
--                        u8) (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+                     (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
+-                        u8) (Core.Option.t_Option t13.Tls13utils.t_Bytes))
 -            | 0uy, 41uy ->
 -              (match
 -                  check_server_psk_shared_key algs
@@ -308,8 +308,8 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                Core.Ops.Control_flow.ControlFlow_Continue out
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
++                  (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++                  (Core.Option.t_Option t13.Tls13utils.t_Bytes))
 +          | 0uy, 51uy ->
 +            (match
 +                check_server_key_share algs
@@ -328,22 +328,22 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +              with
 +              | Core.Result.Result_Ok gx ->
 +                Core.Ops.Control_flow.ControlFlow_Continue
-+                (Core.Option.Option_Some gx <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
++                (Core.Option.Option_Some gx <: Core.Option.t_Option t13.Tls13utils.t_Bytes)
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
++                  (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++                  (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 +              | Core.Result.Result_Err err ->
 +                let! _:Prims.unit =
 +                  Core.Ops.Control_flow.ControlFlow_Break
 +                  (Core.Result.Result_Err err
 +                    <:
-+                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
++                    Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8
 +                  )
                    <:
                    Core.Ops.Control_flow.t_ControlFlow
-                     (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
--                        u8) (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+                     (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
+-                        u8) (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                | Core.Result.Result_Err err ->
 -                  let! _:Prims.unit =
 -                    Core.Ops.Control_flow.ControlFlow_Break
@@ -353,8 +353,8 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                Core.Ops.Control_flow.ControlFlow_Continue out
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
++                  (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++                  (Core.Option.t_Option t13.Tls13utils.t_Bytes))
 +          | 0uy, 41uy ->
 +            (match
 +                check_server_psk_shared_key algs
@@ -363,12 +363,12 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                        Core.Ops.Range.f_end = sz 4 +! len <: usize
 +                      }
                        <:
--                      Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                      Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                        u8)
 +                      Core.Ops.Range.t_Range usize ]
                      <:
 -                    Core.Ops.Control_flow.t_ControlFlow
--                      (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                      (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -                          u8) Prims.unit
 -                  in
 -                  Core.Ops.Control_flow.ControlFlow_Continue out
@@ -378,232 +378,232 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                Core.Ops.Control_flow.ControlFlow_Continue out
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
++                  (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++                  (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 +              | Core.Result.Result_Err err ->
 +                let! _:Prims.unit =
 +                  Core.Ops.Control_flow.ControlFlow_Break
 +                  (Core.Result.Result_Err err
 +                    <:
-+                    Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
++                    Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8
 +                  )
                    <:
                    Core.Ops.Control_flow.t_ControlFlow
-                     (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
--                        u8) (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+                     (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes)
+-                        u8) (Core.Option.t_Option t13.Tls13utils.t_Bytes))
 -            | _ ->
 -              Core.Ops.Control_flow.ControlFlow_Continue out
 -              <:
 -              Core.Ops.Control_flow.t_ControlFlow
--                (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
--                (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+-                (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
+-                (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 -          in
 -          Core.Ops.Control_flow.ControlFlow_Continue
 -          (Core.Result.Result_Ok
--            (sz 4 +! len, out <: (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
+-            (sz 4 +! len, out <: (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes))
 +                        u8) Prims.unit
 +                in
 +                Core.Ops.Control_flow.ControlFlow_Continue out
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
++                  (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++                  (Core.Option.t_Option t13.Tls13utils.t_Bytes))
 +          | _ ->
 +            Core.Ops.Control_flow.ControlFlow_Continue out
              <:
--            Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+-            Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 +            Core.Ops.Control_flow.t_ControlFlow
-+              (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+              (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
++              (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++              (Core.Option.t_Option t13.Tls13utils.t_Bytes)
 +        in
 +        Core.Ops.Control_flow.ControlFlow_Continue
 +        (Core.Result.Result_Ok
-+          (sz 4 +! len, out <: (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes))
++          (sz 4 +! len, out <: (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes))
            <:
 -          Core.Ops.Control_flow.t_ControlFlow
--            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
--            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+-            (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
+-            (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 -        | Core.Result.Result_Err err ->
 -          Core.Ops.Control_flow.ControlFlow_Continue
 -          (Core.Result.Result_Err err
 -            <:
--            Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+          Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+-            Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++          Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 +        <:
 +        Core.Ops.Control_flow.t_ControlFlow
-+          (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+          (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
++          (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++          (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 +      | Core.Result.Result_Err err ->
 +        Core.Ops.Control_flow.ControlFlow_Continue
 +        (Core.Result.Result_Err err
            <:
 -          Core.Ops.Control_flow.t_ControlFlow
--            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
--            (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8))
-+          Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
+-            (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
+-            (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8))
++          Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
 +        <:
 +        Core.Ops.Control_flow.t_ControlFlow
-+          (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8)
-+          (Core.Result.t_Result (usize & Core.Option.t_Option Bertie.Tls13utils.t_Bytes) u8))
++          (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8)
++          (Core.Result.t_Result (usize & Core.Option.t_Option t13.Tls13utils.t_Bytes) u8))
  
- let check_signature_algorithms (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
-   match Bertie.Tls13utils.check_length_encoding_u16_slice ch with
+ let check_signature_algorithms (algs: t13.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
+   match t13.Tls13utils.check_length_encoding_u16_slice ch with
 @@ -1021,48 +1012,83 @@
    | Core.Result.Result_Err err -> Core.Result.Result_Err err <: Core.Result.t_Result t_Extensions u8
  
- let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13utils.t_Bytes) =
+ let certificate_verify (algs: t13.Tls13crypto.t_Algorithms) (cv: t13.Tls13utils.t_Bytes) =
 -  match
--    match algs.Bertie.Tls13crypto.f_signature with
--    | Bertie.Tls13crypto.SignatureScheme_RsaPssRsaSha256  ->
+-    match algs.t13.Tls13crypto.f_signature with
+-    | t13.Tls13crypto.SignatureScheme_RsaPssRsaSha256  ->
 -      Core.Result.Result_Ok (Core.Clone.f_clone cv)
 -      <:
--      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
--    | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
--      if (Bertie.Tls13utils.impl__Bytes__len cv <: usize) <>. sz 64
+-      Core.Result.t_Result t13.Tls13utils.t_Bytes u8
+-    | t13.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
+-      if (t13.Tls13utils.impl__Bytes__len cv <: usize) <>. sz 64
 -      then
--        Core.Result.Result_Err (Bertie.Tls13utils.parse_failed ())
+-        Core.Result.Result_Err (t13.Tls13utils.parse_failed ())
 -        <:
--        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+-        Core.Result.t_Result t13.Tls13utils.t_Bytes u8
 -      else ecdsa_signature cv
--    | Bertie.Tls13crypto.SignatureScheme_ED25519  ->
--      Core.Result.Result_Err Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+-    | t13.Tls13crypto.SignatureScheme_ED25519  ->
+-      Core.Result.Result_Err t13.Tls13utils.v_UNSUPPORTED_ALGORITHM
 -      <:
--      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+-      Core.Result.t_Result t13.Tls13utils.t_Bytes u8
 -  with
 -  | Core.Result.Result_Ok sv ->
--    (match Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs with
+-    (match t13.Tls13crypto.impl__Algorithms__signature_algorithm algs with
 -      | Core.Result.Result_Ok hoist142 ->
--        (match Bertie.Tls13utils.encode_length_u16 sv with
+-        (match t13.Tls13utils.encode_length_u16 sv with
 -          | Core.Result.Result_Ok hoist141 ->
--            let sig:Bertie.Tls13utils.t_Bytes =
--              Bertie.Tls13utils.impl__Bytes__concat hoist142 hoist141
+-            let sig:t13.Tls13utils.t_Bytes =
+-              t13.Tls13utils.impl__Bytes__concat hoist142 hoist141
 -            in
--            Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_CertificateVerify
-+  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let! sv:Bertie.Tls13utils.t_Bytes =
-+        match algs.Bertie.Tls13crypto.f_signature with
-+        | Bertie.Tls13crypto.SignatureScheme_RsaPssRsaSha256  ->
+-            t13.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (t13.Tls13formats.Handshake_data.HandshakeType_CertificateVerify
++  Rust_primitives.Hax.Control_flow_monad.Mexception.run (let! sv:t13.Tls13utils.t_Bytes =
++        match algs.t13.Tls13crypto.f_signature with
++        | t13.Tls13crypto.SignatureScheme_RsaPssRsaSha256  ->
 +          Core.Ops.Control_flow.ControlFlow_Continue (Core.Clone.f_clone cv)
 +          <:
 +          Core.Ops.Control_flow.t_ControlFlow
-+            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-+            Bertie.Tls13utils.t_Bytes
-+        | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
-+          if (Bertie.Tls13utils.impl__Bytes__len cv <: usize) <>. sz 64
++            (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
++            t13.Tls13utils.t_Bytes
++        | t13.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
++          if (t13.Tls13utils.impl__Bytes__len cv <: usize) <>. sz 64
 +          then
 +            let! hoist141:Rust_primitives.Hax.t_Never =
 +              Core.Ops.Control_flow.ControlFlow_Break
-+              (Core.Result.Result_Err (Bertie.Tls13utils.parse_failed ())
++              (Core.Result.Result_Err (t13.Tls13utils.parse_failed ())
                  <:
--                Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+-                t13.Tls13formats.Handshake_data.t_HandshakeType)
 -              sig
 -          | Core.Result.Result_Err err ->
 -            Core.Result.Result_Err err
-+                Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 +              <:
 +              Core.Ops.Control_flow.t_ControlFlow
-+                (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 +                Rust_primitives.Hax.t_Never
 +            in
 +            Core.Ops.Control_flow.ControlFlow_Continue (Rust_primitives.Hax.never_to_any hoist141)
              <:
--            Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+-            Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 -      | Core.Result.Result_Err err ->
 -        Core.Result.Result_Err err
 -        <:
--        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+-        Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 -  | Core.Result.Result_Err err ->
 -    Core.Result.Result_Err err
 -    <:
--    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+-    Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8
 +            Core.Ops.Control_flow.t_ControlFlow
-+              (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-+              Bertie.Tls13utils.t_Bytes
++              (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
++              t13.Tls13utils.t_Bytes
 +          else
 +            (match ecdsa_signature cv with
 +              | Core.Result.Result_Ok ok ->
 +                Core.Ops.Control_flow.ControlFlow_Continue ok
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-+                  Bertie.Tls13utils.t_Bytes
++                  (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
++                  t13.Tls13utils.t_Bytes
 +              | Core.Result.Result_Err err ->
 +                Core.Ops.Control_flow.ControlFlow_Break
 +                (Core.Result.Result_Err err
 +                  <:
-+                  Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++                  Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-+                  Bertie.Tls13utils.t_Bytes)
-+        | Bertie.Tls13crypto.SignatureScheme_ED25519  ->
++                  (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
++                  t13.Tls13utils.t_Bytes)
++        | t13.Tls13crypto.SignatureScheme_ED25519  ->
 +          Core.Ops.Control_flow.ControlFlow_Continue
 +          (Rust_primitives.Hax.never_to_any (Core.Panicking.panic "not implemented"
 +                <:
 +                Rust_primitives.Hax.t_Never))
 +          <:
 +          Core.Ops.Control_flow.t_ControlFlow
-+            (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-+            Bertie.Tls13utils.t_Bytes
++            (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
++            t13.Tls13utils.t_Bytes
 +      in
 +      Core.Ops.Control_flow.ControlFlow_Continue
-+      (match Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs with
++      (match t13.Tls13crypto.impl__Algorithms__signature_algorithm algs with
 +        | Core.Result.Result_Ok hoist143 ->
-+          (match Bertie.Tls13utils.encode_length_u16 sv with
++          (match t13.Tls13utils.encode_length_u16 sv with
 +            | Core.Result.Result_Ok hoist142 ->
-+              let sig:Bertie.Tls13utils.t_Bytes =
-+                Bertie.Tls13utils.impl__Bytes__concat hoist143 hoist142
++              let sig:t13.Tls13utils.t_Bytes =
++                t13.Tls13utils.impl__Bytes__concat hoist143 hoist142
 +              in
-+              Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_CertificateVerify
++              t13.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (t13.Tls13formats.Handshake_data.HandshakeType_CertificateVerify
 +                  <:
-+                  Bertie.Tls13formats.Handshake_data.t_HandshakeType)
++                  t13.Tls13formats.Handshake_data.t_HandshakeType)
 +                sig
 +            | Core.Result.Result_Err err ->
 +              Core.Result.Result_Err err
 +              <:
-+              Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++              Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 +        | Core.Result.Result_Err err ->
 +          Core.Result.Result_Err err
 +          <:
-+          Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
++          Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
 +      <:
 +      Core.Ops.Control_flow.t_ControlFlow
-+        (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-+        (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8))
++        (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8)
++        (Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8))
  
- let check_handshake_record (p: Bertie.Tls13utils.t_Bytes) =
+ let check_handshake_record (p: t13.Tls13utils.t_Bytes) =
    Rust_primitives.Hax.Control_flow_monad.Mexception.run (if
 @@ -1235,8 +1261,8 @@
    with
    | Core.Result.Result_Ok legacy_session_id ->
-     (match Bertie.Tls13crypto.impl__Algorithms__ciphersuite algorithms with
+     (match t13.Tls13crypto.impl__Algorithms__ciphersuite algorithms with
 -      | Core.Result.Result_Ok hoist143 ->
--        (match Bertie.Tls13utils.encode_length_u16 hoist143 with
+-        (match t13.Tls13utils.encode_length_u16 hoist143 with
 +      | Core.Result.Result_Ok hoist144 ->
-+        (match Bertie.Tls13utils.encode_length_u16 hoist144 with
++        (match t13.Tls13utils.encode_length_u16 hoist144 with
            | Core.Result.Result_Ok cipher_suites ->
              (match build_server_name server_name with
                | Core.Result.Result_Ok server_name ->
 @@ -1445,12 +1471,12 @@
          <:
-         Bertie.Tls13utils.t_Bytes)
+         t13.Tls13utils.t_Bytes)
    with
 -  | Core.Result.Result_Ok hoist145 ->
--    (match Bertie.Tls13utils.encode_length_u24 hoist145 with
+-    (match t13.Tls13utils.encode_length_u24 hoist145 with
 -      | Core.Result.Result_Ok hoist147 ->
 +  | Core.Result.Result_Ok hoist146 ->
-+    (match Bertie.Tls13utils.encode_length_u24 hoist146 with
++    (match t13.Tls13utils.encode_length_u24 hoist146 with
 +      | Core.Result.Result_Ok hoist148 ->
          Core.Result.Result_Ok
-         (Bertie.Tls13formats.Handshake_data.HandshakeData
--          (Bertie.Tls13utils.impl__Bytes__concat handshake_type hoist147)
-+          (Bertie.Tls13utils.impl__Bytes__concat handshake_type hoist148)
+         (t13.Tls13formats.Handshake_data.HandshakeData
+-          (t13.Tls13utils.impl__Bytes__concat handshake_type hoist147)
++          (t13.Tls13utils.impl__Bytes__concat handshake_type hoist148)
            <:
-           Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+           t13.Tls13formats.Handshake_data.t_HandshakeData)
          <:
 @@ -1528,8 +1554,8 @@
-   match Bertie.Tls13utils.check_length_encoding_u16_slice ch with
+   match t13.Tls13utils.check_length_encoding_u16_slice ch with
    | Core.Result.Result_Ok _ ->
-     (match Bertie.Tls13crypto.impl__Algorithms__supported_group algs with
+     (match t13.Tls13crypto.impl__Algorithms__supported_group algs with
 -      | Core.Result.Result_Ok hoist150 ->
 -        find_key_share hoist150
 +      | Core.Result.Result_Ok hoist151 ->
@@ -612,28 +612,28 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
                  Core.Ops.Range.f_start = sz 2;
                  Core.Ops.Range.f_end = Core.Slice.impl__len ch <: usize
 @@ -1544,205 +1570,195 @@
-     Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+     Core.Result.Result_Err err <: Core.Result.t_Result t13.Tls13utils.t_Bytes u8
  
- let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8) =
+ let check_extension (algs: t13.Tls13crypto.t_Algorithms) (bytes: t_Slice u8) =
 -  if (Core.Slice.impl__len bytes <: usize) <. sz 4
 -  then
--    Core.Result.Result_Err (Bertie.Tls13utils.parse_failed ())
+-    Core.Result.Result_Err (t13.Tls13utils.parse_failed ())
 -    <:
 -    Core.Result.t_Result (usize & t_Extensions) u8
 -  else
--    let l0:usize = cast (Bertie.Tls13utils.f_declassify (bytes.[ sz 0 ] <: u8) <: u8) <: usize in
--    let l1:usize = cast (Bertie.Tls13utils.f_declassify (bytes.[ sz 1 ] <: u8) <: u8) <: usize in
+-    let l0:usize = cast (t13.Tls13utils.f_declassify (bytes.[ sz 0 ] <: u8) <: u8) <: usize in
+-    let l1:usize = cast (t13.Tls13utils.f_declassify (bytes.[ sz 1 ] <: u8) <: u8) <: usize in
 -    match
--      Bertie.Tls13utils.length_u16_encoded_slice (bytes.[ {
+-      t13.Tls13utils.length_u16_encoded_slice (bytes.[ {
 -              Core.Ops.Range.f_start = sz 2;
 -              Core.Ops.Range.f_end = Core.Slice.impl__len bytes <: usize
 -            }
 -            <:
 -            Core.Ops.Range.t_Range usize ]
-+  let l0:usize = cast (Bertie.Tls13utils.f_declassify (bytes.[ sz 0 ] <: u8) <: u8) <: usize in
-+  let l1:usize = cast (Bertie.Tls13utils.f_declassify (bytes.[ sz 1 ] <: u8) <: u8) <: usize in
++  let l0:usize = cast (t13.Tls13utils.f_declassify (bytes.[ sz 0 ] <: u8) <: u8) <: usize in
++  let l1:usize = cast (t13.Tls13utils.f_declassify (bytes.[ sz 1 ] <: u8) <: u8) <: usize in
 +  match
-+    Bertie.Tls13utils.length_u16_encoded_slice (bytes.[ {
++    t13.Tls13utils.length_u16_encoded_slice (bytes.[ {
 +            Core.Ops.Range.f_start = sz 2;
 +            Core.Ops.Range.f_end = Core.Slice.impl__len bytes <: usize
 +          }
@@ -643,10 +643,10 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -    | Core.Result.Result_Ok len ->
 -      let out:t_Extensions =
 -        {
--          f_sni = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
--          f_key_share = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
--          f_ticket = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
--          f_binder = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+-          f_sni = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
+-          f_key_share = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
+-          f_ticket = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
+-          f_binder = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 -        }
 +          Core.Ops.Range.t_Range usize ]
          <:
@@ -672,25 +672,25 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                    =
 -                    Core.Option.Option_Some hoist151
 -                    <:
--                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+-                    Core.Option.t_Option t13.Tls13utils.t_Bytes;
 -                    f_key_share
 -                    =
--                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+-                    Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 -                    f_ticket
 -                    =
--                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+-                    Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 -                    f_binder
 -                    =
--                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+-                    Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 +        t_Slice u8)
 +  with
 +  | Core.Result.Result_Ok len ->
 +    let out:t_Extensions =
 +      {
-+        f_sni = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
-+        f_key_share = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
-+        f_ticket = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
-+        f_binder = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
++        f_sni = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
++        f_key_share = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
++        f_ticket = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
++        f_binder = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 +      }
 +      <:
 +      t_Extensions
@@ -732,16 +732,16 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +              ({
 +                  f_sni
 +                  =
-+                  Core.Option.Option_Some hoist152 <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
++                  Core.Option.Option_Some hoist152 <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 +                  f_key_share
 +                  =
-+                  Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
++                  Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 +                  f_ticket
 +                  =
-+                  Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
++                  Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 +                  f_binder
 +                  =
-+                  Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
++                  Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 +                }
 +                <:
 +                t_Extensions)
@@ -881,16 +881,16 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                ({
 -                    f_sni
 -                    =
--                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+-                    Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 -                    f_key_share
 -                    =
--                    Core.Option.Option_Some gx <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+-                    Core.Option.Option_Some gx <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 -                    f_ticket
 -                    =
--                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
+-                    Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 -                    f_binder
 -                    =
--                    Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+-                    Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 +                  Core.Ops.Range.t_Range usize ]
 +                <:
 +                t_Slice u8)
@@ -918,16 +918,16 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +            Core.Result.Result_Ok
 +            (sz 4 +! len,
 +              ({
-+                  f_sni = Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
++                  f_sni = Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 +                  f_key_share
 +                  =
-+                  Core.Option.Option_Some gx <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
++                  Core.Option.Option_Some gx <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 +                  f_ticket
 +                  =
-+                  Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes;
++                  Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes;
 +                  f_binder
 +                  =
-+                  Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes
++                  Core.Option.Option_None <: Core.Option.t_Option t13.Tls13utils.t_Bytes
 +                }
                  <:
 -                (usize & t_Extensions))
@@ -935,7 +935,7 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
                <:
 -              Core.Result.t_Result (usize & t_Extensions) u8
 -            | Core.Result.Result_Err _ ->
--              Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_MISSING_KEY_SHARE)
+-              t13.Tls13utils.tlserr t13.Tls13utils.v_MISSING_KEY_SHARE)
 -        | 0uy, 41uy ->
 -          (match
 -              check_psk_shared_key algs
@@ -949,7 +949,7 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +            <:
 +            Core.Result.t_Result (usize & t_Extensions) u8
 +          | Core.Result.Result_Err _ ->
-+            Bertie.Tls13utils.tlserr Bertie.Tls13utils.v_MISSING_KEY_SHARE)
++            t13.Tls13utils.tlserr t13.Tls13utils.v_MISSING_KEY_SHARE)
 +      | 0uy, 41uy ->
 +        (match
 +            check_psk_shared_key algs
@@ -989,110 +989,110 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +  | Core.Result.Result_Err err ->
 +    Core.Result.Result_Err err <: Core.Result.t_Result (usize & t_Extensions) u8
  
- let finished (vd: Bertie.Tls13utils.t_Bytes) =
-   Bertie.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_Finished
+ let finished (vd: t13.Tls13utils.t_Bytes) =
+   t13.Tls13formats.Handshake_data.impl__HandshakeData__from_bytes (t13.Tls13formats.Handshake_data.HandshakeType_Finished
 @@ -1773,12 +1789,12 @@
    in
-   let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
-   match Bertie.Tls13utils.encode_length_u16 p.Bertie.Tls13formats.Handshake_data._0 with
+   let ver:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 3uy 3uy in
+   match t13.Tls13utils.encode_length_u16 p.t13.Tls13formats.Handshake_data._0 with
 -  | Core.Result.Result_Ok hoist155 ->
 +  | Core.Result.Result_Ok hoist156 ->
      Core.Result.Result_Ok
-     (Bertie.Tls13utils.impl__Bytes__concat (Bertie.Tls13utils.impl__Bytes__concat ty ver
+     (t13.Tls13utils.impl__Bytes__concat (t13.Tls13utils.impl__Bytes__concat ty ver
            <:
-           Bertie.Tls13utils.t_Bytes)
+           t13.Tls13utils.t_Bytes)
 -        hoist155)
 +        hoist156)
      <:
-     Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+     Core.Result.t_Result t13.Tls13utils.t_Bytes u8
    | Core.Result.Result_Err err ->
 @@ -1799,14 +1815,15 @@
-       Bertie.Tls13crypto.impl__Algorithms__signature algs
+       t13.Tls13crypto.impl__Algorithms__signature algs
      in
-     (match Bertie.Tls13crypto.impl__Algorithms__signature_algorithm algs with
+     (match t13.Tls13crypto.impl__Algorithms__signature_algorithm algs with
 -      | Core.Result.Result_Ok hoist157 ->
 +      | Core.Result.Result_Ok hoist158 ->
          (match
--            Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw hoist157
-+            Bertie.Tls13utils.check_eq hoist158
-+              (Bertie.Tls13utils.impl__Bytes__slice_range cv
+-            t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw hoist157
++            t13.Tls13utils.check_eq hoist158
++              (t13.Tls13utils.impl__Bytes__slice_range cv
 +                  ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 2 }
 +                    <:
 +                    Core.Ops.Range.t_Range usize)
                  <:
 -                t_Slice u8)
--              (Bertie.Tls13utils.impl__Bytes__as_raw cv <: t_Slice u8)
+-              (t13.Tls13utils.impl__Bytes__as_raw cv <: t_Slice u8)
 -              (sz 0)
 -              (sz 2)
-+                Bertie.Tls13utils.t_Bytes)
++                t13.Tls13utils.t_Bytes)
            with
            | Core.Result.Result_Ok _ ->
              (match
 @@ -1850,7 +1867,7 @@
                        Core.Result.Result_Ok
-                       (Bertie.Tls13utils.impl__Bytes__slice_range cv
+                       (t13.Tls13utils.impl__Bytes__slice_range cv
                            ({
 -                              Core.Ops.Range.f_start = sz 4;
 +                              Core.Ops.Range.f_start = sz 8;
-                               Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len cv <: usize
+                               Core.Ops.Range.f_end = t13.Tls13utils.impl__Bytes__len cv <: usize
                              }
                              <:
 @@ -1887,13 +1904,13 @@
          u8)
    in
    match
--    Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw expected_handshake_type
+-    t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw expected_handshake_type
 -
-+    Bertie.Tls13utils.check_eq expected_handshake_type
-+      (Bertie.Tls13utils.impl__Bytes__slice_range encrypted_extension_bytes
++    t13.Tls13utils.check_eq expected_handshake_type
++      (t13.Tls13utils.impl__Bytes__slice_range encrypted_extension_bytes
 +          ({ Core.Ops.Range.f_start = sz 0; Core.Ops.Range.f_end = sz 1 }
 +            <:
 +            Core.Ops.Range.t_Range usize)
          <:
 -        t_Slice u8)
--      (Bertie.Tls13utils.impl__Bytes__as_raw encrypted_extension_bytes <: t_Slice u8)
+-      (t13.Tls13utils.impl__Bytes__as_raw encrypted_extension_bytes <: t_Slice u8)
 -      (sz 0)
 -      (sz 1)
-+        Bertie.Tls13utils.t_Bytes)
++        t13.Tls13utils.t_Bytes)
    with
    | Core.Result.Result_Ok _ ->
-     Bertie.Tls13utils.check_length_encoding_u24 (Bertie.Tls13utils.impl__Bytes__raw_slice encrypted_extension_bytes
+     t13.Tls13utils.check_length_encoding_u24 (t13.Tls13utils.impl__Bytes__raw_slice encrypted_extension_bytes
 @@ -1932,7 +1949,7 @@
      let next:usize = sz 0 in
      (match
-         Bertie.Tls13utils.length_u8_encoded (sc.[ {
+         t13.Tls13utils.length_u8_encoded (sc.[ {
 -                Core.Ops.Range.f_start = sz 0;
 +                Core.Ops.Range.f_start = sz 4;
-                 Core.Ops.Range.f_end = Bertie.Tls13utils.impl__Bytes__len sc <: usize
+                 Core.Ops.Range.f_end = t13.Tls13utils.impl__Bytes__len sc <: usize
                }
                <:
 @@ -2005,157 +2022,197 @@
-       (algs: Bertie.Tls13crypto.t_Algorithms)
-       (server_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+       (algs: t13.Tls13crypto.t_Algorithms)
+       (server_hello: t13.Tls13formats.Handshake_data.t_HandshakeData)
       =
 -  match
--    Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message server_hello
--      (Bertie.Tls13formats.Handshake_data.HandshakeType_ServerHello
+-    t13.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message server_hello
+-      (t13.Tls13formats.Handshake_data.HandshakeType_ServerHello
 +  Rust_primitives.Hax.Control_flow_monad.Mexception.run (match
-+        Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message server_hello
-+          (Bertie.Tls13formats.Handshake_data.HandshakeType_ServerHello
++        t13.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message server_hello
++          (t13.Tls13formats.Handshake_data.HandshakeType_ServerHello
 +            <:
-+            Bertie.Tls13formats.Handshake_data.t_HandshakeType)
++            t13.Tls13formats.Handshake_data.t_HandshakeType)
          <:
--        Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+-        t13.Tls13formats.Handshake_data.t_HandshakeType)
 -  with
--  | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData server_hello) ->
--    let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
--    (match Bertie.Tls13crypto.impl__Algorithms__ciphersuite algs with
+-  | Core.Result.Result_Ok (t13.Tls13formats.Handshake_data.HandshakeData server_hello) ->
+-    let ver:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 3uy 3uy in
+-    (match t13.Tls13crypto.impl__Algorithms__ciphersuite algs with
 -      | Core.Result.Result_Ok cip ->
--        let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 0uy in
+-        let comp:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes1 0uy in
 -        let next:usize = sz 0 in
 -        (match
 -            match
--              Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw ver
+-              t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw ver
 -                  <:
 -                  t_Slice u8)
--                (Bertie.Tls13utils.impl__Bytes__as_raw server_hello <: t_Slice u8)
+-                (t13.Tls13utils.impl__Bytes__as_raw server_hello <: t_Slice u8)
 -                next
 -                (next +! sz 2 <: usize)
 -            with
@@ -1103,20 +1103,20 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -          | Core.Result.Result_Ok _ ->
 -            let next:usize = next +! sz 2 in
 -            (match
--                Bertie.Tls13utils.check ((Bertie.Tls13utils.impl__Bytes__len server_hello <: usize) >=.
+-                t13.Tls13utils.check ((t13.Tls13utils.impl__Bytes__len server_hello <: usize) >=.
 -                    (next +! sz 32 <: usize)
-+        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
++        Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8
 +      with
-+      | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData server_hello) ->
-+        let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
-+        (match Bertie.Tls13crypto.impl__Algorithms__ciphersuite algs with
++      | Core.Result.Result_Ok (t13.Tls13formats.Handshake_data.HandshakeData server_hello) ->
++        let ver:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 3uy 3uy in
++        (match t13.Tls13crypto.impl__Algorithms__ciphersuite algs with
 +          | Core.Result.Result_Ok cip ->
-+            let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes1 0uy in
++            let comp:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes1 0uy in
 +            let next:usize = sz 0 in
 +            let! _:Prims.unit =
 +              match
-+                Bertie.Tls13utils.check_eq ver
-+                  (Bertie.Tls13utils.impl__Bytes__slice_range server_hello
++                t13.Tls13utils.check_eq ver
++                  (t13.Tls13utils.impl__Bytes__slice_range server_hello
 +                      ({
 +                          Core.Ops.Range.f_start = next;
 +                          Core.Ops.Range.f_end = next +! sz 2 <: usize
@@ -1125,16 +1125,16 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                        Core.Ops.Range.t_Range usize)
                      <:
 -                    bool)
-+                    Bertie.Tls13utils.t_Bytes)
++                    t13.Tls13utils.t_Bytes)
                with
                | Core.Result.Result_Ok _ ->
--                let srand:Bertie.Tls13utils.t_Bytes =
--                  Bertie.Tls13utils.impl__Bytes__slice_range server_hello
+-                let srand:t13.Tls13utils.t_Bytes =
+-                  t13.Tls13utils.impl__Bytes__slice_range server_hello
 -                    ({
 +                Core.Ops.Control_flow.ControlFlow_Continue (() <: Prims.unit)
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
++                  (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 +                  Prims.unit
 +              | Core.Result.Result_Err _ ->
 +                match protocol_version_alert () with
@@ -1142,33 +1142,33 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                  Core.Ops.Control_flow.ControlFlow_Continue ok
 +                  <:
 +                  Core.Ops.Control_flow.t_ControlFlow
-+                    (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
++                    (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8
 +                    ) Prims.unit
 +                | Core.Result.Result_Err err ->
 +                  Core.Ops.Control_flow.ControlFlow_Break
 +                  (Core.Result.Result_Err err
 +                    <:
-+                    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
++                    Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 +                  <:
 +                  Core.Ops.Control_flow.t_ControlFlow
-+                    (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
++                    (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8
 +                    ) Prims.unit
 +            in
 +            let next:usize = next +! sz 2 in
-+            let srand:Bertie.Tls13utils.t_Bytes =
-+              Bertie.Tls13utils.impl__Bytes__slice_range server_hello
++            let srand:t13.Tls13utils.t_Bytes =
++              t13.Tls13utils.impl__Bytes__slice_range server_hello
 +                ({ Core.Ops.Range.f_start = next; Core.Ops.Range.f_end = next +! sz 32 <: usize }
 +                  <:
 +                  Core.Ops.Range.t_Range usize)
 +            in
 +            let next:usize = next +! sz 32 in
 +            (match
-+                Bertie.Tls13utils.length_u8_encoded (server_hello.[ {
++                t13.Tls13utils.length_u8_encoded (server_hello.[ {
                          Core.Ops.Range.f_start = next;
 -                        Core.Ops.Range.f_end = next +! sz 32 <: usize
 +                        Core.Ops.Range.f_end
 +                        =
-+                        Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
++                        t13.Tls13utils.impl__Bytes__len server_hello <: usize
                        }
                        <:
 -                      Core.Ops.Range.t_Range usize)
@@ -1180,8 +1180,8 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                let next:usize = (next +! sz 1 <: usize) +! sidlen in
 +                let! _:Prims.unit =
 +                  match
-+                    Bertie.Tls13utils.check_eq cip
-+                      (Bertie.Tls13utils.impl__Bytes__slice_range server_hello
++                    t13.Tls13utils.check_eq cip
++                      (t13.Tls13utils.impl__Bytes__slice_range server_hello
 +                          ({
 +                              Core.Ops.Range.f_start = next;
 +                              Core.Ops.Range.f_end = next +! sz 2 <: usize
@@ -1189,13 +1189,13 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                            <:
 +                            Core.Ops.Range.t_Range usize)
 +                        <:
-+                        Bertie.Tls13utils.t_Bytes)
++                        t13.Tls13utils.t_Bytes)
 +                  with
 +                  | Core.Result.Result_Ok _ ->
 +                    Core.Ops.Control_flow.ControlFlow_Continue (() <: Prims.unit)
 +                    <:
 +                    Core.Ops.Control_flow.t_ControlFlow
-+                      (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
++                      (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes)
 +                          u8) Prims.unit
 +                  | Core.Result.Result_Err _ ->
 +                    match unsupported_cipher_alert () with
@@ -1204,33 +1204,33 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                      <:
 +                      Core.Ops.Control_flow.t_ControlFlow
 +                        (Core.Result.t_Result
-+                            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) Prims.unit
++                            (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8) Prims.unit
 +                    | Core.Result.Result_Err err ->
 +                      Core.Ops.Control_flow.ControlFlow_Break
 +                      (Core.Result.Result_Err err
 +                        <:
-+                        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
++                        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes)
 +                          u8)
 +                      <:
 +                      Core.Ops.Control_flow.t_ControlFlow
 +                        (Core.Result.t_Result
-+                            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) Prims.unit
++                            (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8) Prims.unit
                  in
 -                let next:usize = next +! sz 32 in
 -                (match
--                    Bertie.Tls13utils.length_u8_encoded (server_hello.[ {
+-                    t13.Tls13utils.length_u8_encoded (server_hello.[ {
 -                            Core.Ops.Range.f_start = next;
 -                            Core.Ops.Range.f_end
 -                            =
--                            Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
+-                            t13.Tls13utils.impl__Bytes__len server_hello <: usize
 -                          }
 -                          <:
 -                          Core.Ops.Range.t_Range usize ]
 +                let next:usize = next +! sz 2 in
 +                let! _:Prims.unit =
 +                  match
-+                    Bertie.Tls13utils.check_eq comp
-+                      (Bertie.Tls13utils.impl__Bytes__slice_range server_hello
++                    t13.Tls13utils.check_eq comp
++                      (t13.Tls13utils.impl__Bytes__slice_range server_hello
 +                          ({
 +                              Core.Ops.Range.f_start = next;
 +                              Core.Ops.Range.f_end = next +! sz 1 <: usize
@@ -1239,13 +1239,13 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                            Core.Ops.Range.t_Range usize)
                          <:
 -                        t_Slice u8)
-+                        Bertie.Tls13utils.t_Bytes)
++                        t13.Tls13utils.t_Bytes)
 +                  with
 +                  | Core.Result.Result_Ok _ ->
 +                    Core.Ops.Control_flow.ControlFlow_Continue (() <: Prims.unit)
 +                    <:
 +                    Core.Ops.Control_flow.t_ControlFlow
-+                      (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
++                      (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes)
 +                          u8) Prims.unit
 +                  | Core.Result.Result_Err _ ->
 +                    match invalid_compression_method_alert () with
@@ -1254,33 +1254,33 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                      <:
 +                      Core.Ops.Control_flow.t_ControlFlow
 +                        (Core.Result.t_Result
-+                            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) Prims.unit
++                            (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8) Prims.unit
 +                    | Core.Result.Result_Err err ->
 +                      Core.Ops.Control_flow.ControlFlow_Break
 +                      (Core.Result.Result_Err err
 +                        <:
-+                        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes)
++                        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes)
 +                          u8)
 +                      <:
 +                      Core.Ops.Control_flow.t_ControlFlow
 +                        (Core.Result.t_Result
-+                            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) Prims.unit
++                            (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8) Prims.unit
 +                in
 +                Core.Ops.Control_flow.ControlFlow_Continue
 +                (let next:usize = next +! sz 1 in
 +                  match
-+                    Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
++                    t13.Tls13utils.check_length_encoding_u16 (t13.Tls13utils.impl__Bytes__slice_range
 +                          server_hello
 +                          ({
 +                              Core.Ops.Range.f_start = next;
 +                              Core.Ops.Range.f_end
 +                              =
-+                              Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
++                              t13.Tls13utils.impl__Bytes__len server_hello <: usize
 +                            }
 +                            <:
 +                            Core.Ops.Range.t_Range usize)
 +                        <:
-+                        Bertie.Tls13utils.t_Bytes)
++                        t13.Tls13utils.t_Bytes)
                    with
 -                  | Core.Result.Result_Ok sidlen ->
 -                    let next:usize = (next +! sz 1 <: usize) +! sidlen in
@@ -1288,18 +1288,18 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                    let next:usize = next +! sz 2 in
                      (match
 -                        match
--                          Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw
+-                          t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw
 -                                cip
 +                        check_server_extensions algs
 +                          (server_hello.[ {
 +                                Core.Ops.Range.f_start = next;
 +                                Core.Ops.Range.f_end
 +                                =
-+                                Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
++                                t13.Tls13utils.impl__Bytes__len server_hello <: usize
 +                              }
                                <:
 -                              t_Slice u8)
--                            (Bertie.Tls13utils.impl__Bytes__as_raw server_hello <: t_Slice u8)
+-                            (t13.Tls13utils.impl__Bytes__as_raw server_hello <: t_Slice u8)
 -                            next
 -                            (next +! sz 2 <: usize)
 -                        with
@@ -1316,11 +1316,11 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                        let next:usize = next +! sz 2 in
 -                        (match
 -                            match
--                              Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw
+-                              t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw
 -                                    comp
 -                                  <:
 -                                  t_Slice u8)
--                                (Bertie.Tls13utils.impl__Bytes__as_raw server_hello <: t_Slice u8)
+-                                (t13.Tls13utils.impl__Bytes__as_raw server_hello <: t_Slice u8)
 -                                next
 -                                (next +! sz 1 <: usize)
 -                            with
@@ -1333,18 +1333,18 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                          | Core.Result.Result_Ok _ ->
 -                            let next:usize = next +! sz 1 in
 -                            (match
--                                Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
+-                                t13.Tls13utils.check_length_encoding_u16 (t13.Tls13utils.impl__Bytes__slice_range
 -                                      server_hello
 -                                      ({
 -                                          Core.Ops.Range.f_start = next;
 -                                          Core.Ops.Range.f_end
 -                                          =
--                                          Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
+-                                          t13.Tls13utils.impl__Bytes__len server_hello <: usize
 -                                        }
 -                                        <:
 -                                        Core.Ops.Range.t_Range usize)
 -                                    <:
--                                    Bertie.Tls13utils.t_Bytes)
+-                                    t13.Tls13utils.t_Bytes)
 -                              with
 -                              | Core.Result.Result_Ok _ ->
 -                                let next:usize = next +! sz 2 in
@@ -1354,7 +1354,7 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                            Core.Ops.Range.f_start = next;
 -                                            Core.Ops.Range.f_end
 -                                            =
--                                            Bertie.Tls13utils.impl__Bytes__len server_hello <: usize
+-                                            t13.Tls13utils.impl__Bytes__len server_hello <: usize
 -                                          }
 -                                          <:
 -                                          Core.Ops.Range.t_Range usize ]
@@ -1367,144 +1367,144 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                        Core.Result.Result_Ok
 -                                        (srand, gy
 -                                          <:
--                                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
+-                                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes))
 -                                        <:
 -                                        Core.Result.t_Result
--                                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+-                                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8
 -                                      | _ ->
--                                        Core.Result.Result_Err Bertie.Tls13utils.v_MISSING_KEY_SHARE
+-                                        Core.Result.Result_Err t13.Tls13utils.v_MISSING_KEY_SHARE
 -                                        <:
 -                                        Core.Result.t_Result
--                                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+-                                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8
 -                                    )
 -                                  | Core.Result.Result_Err err ->
 -                                    Core.Result.Result_Err err
 -                                    <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 -                              | Core.Result.Result_Err err ->
 -                                Core.Result.Result_Err err
 -                                <:
 -                                Core.Result.t_Result
--                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+-                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 -                          | Core.Result.Result_Err err ->
 -                            Core.Result.Result_Err err
 +                      | Core.Result.Result_Ok gy ->
 +                        (match gy with
 +                          | Core.Option.Option_Some gy ->
 +                            Core.Result.Result_Ok
-+                            (srand, gy <: (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
++                            (srand, gy <: (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes))
 +                            <:
 +                            Core.Result.t_Result
-+                              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
++                              (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8
 +                          | _ ->
-+                            Core.Result.Result_Err Bertie.Tls13utils.v_MISSING_KEY_SHARE
++                            Core.Result.Result_Err t13.Tls13utils.v_MISSING_KEY_SHARE
                              <:
                              Core.Result.t_Result
-                               (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                               (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 @@ -2168,26 +2225,41 @@
                      Core.Result.Result_Err err
                      <:
-                     Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+                     Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
++                  (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
++                  (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
                | Core.Result.Result_Err err ->
 -                Core.Result.Result_Err err
 +                Core.Ops.Control_flow.ControlFlow_Continue
 +                (Core.Result.Result_Err err
 +                  <:
-+                  Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
++                  Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
                  <:
--                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+-                Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 +                Core.Ops.Control_flow.t_ControlFlow
-+                  (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-+                  (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
++                  (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
++                  (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8))
            | Core.Result.Result_Err err ->
 -            Core.Result.Result_Err err
 +            Core.Ops.Control_flow.ControlFlow_Continue
 +            (Core.Result.Result_Err err
 +              <:
-+              Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
++              Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
              <:
--            Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+-            Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 +            Core.Ops.Control_flow.t_ControlFlow
-+              (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-+              (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
++              (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
++              (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8))
        | Core.Result.Result_Err err ->
 -        Core.Result.Result_Err err
 +        Core.Ops.Control_flow.ControlFlow_Continue
 +        (Core.Result.Result_Err err
 +          <:
-+          Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
++          Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
          <:
--        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+-        Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
 -  | Core.Result.Result_Err err ->
 -    Core.Result.Result_Err err
 -    <:
--    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+-    Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8
 +        Core.Ops.Control_flow.t_ControlFlow
-+          (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
-+          (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8))
++          (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8)
++          (Core.Result.t_Result (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes) u8))
  
- let server_certificate (v__algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes) =
+ let server_certificate (v__algs: t13.Tls13crypto.t_Algorithms) (cert: t13.Tls13utils.t_Bytes) =
    match
--    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list:Prims.list u8 = [] in
-+    Bertie.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list : list u8 = [] in
+-    t13.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list:Prims.list u8 = [] in
++    t13.Tls13utils.encode_length_u8 (Rust_primitives.unsize (let list : list u8 = [] in
              FStar.Pervasives.assert_norm (Prims.eq2 (List.Tot.length list) 0);
              Rust_primitives.Hax.array_of_list 0 list)
          <:
 @@ -2533,33 +2605,29 @@
-       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
-       (client_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+       (ciphersuite: t13.Tls13crypto.t_Algorithms)
+       (client_hello: t13.Tls13formats.Handshake_data.t_HandshakeData)
       =
 -  match
--    Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message client_hello
--      (Bertie.Tls13formats.Handshake_data.HandshakeType_ClientHello
+-    t13.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message client_hello
+-      (t13.Tls13formats.Handshake_data.HandshakeType_ClientHello
 -        <:
--        Bertie.Tls13formats.Handshake_data.t_HandshakeType)
+-        t13.Tls13formats.Handshake_data.t_HandshakeType)
 -  with
--  | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData ch) ->
--    let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
--    let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 1uy 0uy in
+-  | Core.Result.Result_Ok (t13.Tls13formats.Handshake_data.HandshakeData ch) ->
+-    let ver:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 3uy 3uy in
+-    let comp:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 1uy 0uy in
 -    let next:usize = sz 0 in
 -    (match
--        Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw ver
+-        t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw ver
 +  Rust_primitives.Hax.Control_flow_monad.Mexception.run (match
-+        Bertie.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message client_hello
-+          (Bertie.Tls13formats.Handshake_data.HandshakeType_ClientHello
++        t13.Tls13formats.Handshake_data.impl__HandshakeData__as_handshake_message client_hello
++          (t13.Tls13formats.Handshake_data.HandshakeType_ClientHello
              <:
 -            t_Slice u8)
--          (Bertie.Tls13utils.impl__Bytes__as_raw ch <: t_Slice u8)
+-          (t13.Tls13utils.impl__Bytes__as_raw ch <: t_Slice u8)
 -          next
 -          (next +! sz 2 <: usize)
-+            Bertie.Tls13formats.Handshake_data.t_HandshakeType)
++            t13.Tls13formats.Handshake_data.t_HandshakeType)
 +        <:
-+        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
++        Core.Result.t_Result t13.Tls13formats.Handshake_data.t_HandshakeData u8
        with
 -      | Core.Result.Result_Ok _ ->
 -        let next:usize = next +! sz 2 in
-+      | Core.Result.Result_Ok (Bertie.Tls13formats.Handshake_data.HandshakeData ch) ->
-+        let ver:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 3uy 3uy in
-+        let comp:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.bytes2 1uy 0uy in
++      | Core.Result.Result_Ok (t13.Tls13formats.Handshake_data.HandshakeData ch) ->
++        let ver:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 3uy 3uy in
++        let comp:t13.Tls13utils.t_Bytes = t13.Tls13utils.bytes2 1uy 0uy in
 +        let next:usize = sz 0 in
          (match
--            Bertie.Tls13utils.check ((Bertie.Tls13utils.impl__Bytes__len ch <: usize) >=.
+-            t13.Tls13utils.check ((t13.Tls13utils.impl__Bytes__len ch <: usize) >=.
 -                (next +! sz 32 <: usize)
-+            Bertie.Tls13utils.check_eq ver
-+              (Bertie.Tls13utils.impl__Bytes__slice_range ch
++            t13.Tls13utils.check_eq ver
++              (t13.Tls13utils.impl__Bytes__slice_range ch
 +                  ({ Core.Ops.Range.f_start = next; Core.Ops.Range.f_end = next +! sz 2 <: usize }
 +                    <:
 +                    Core.Ops.Range.t_Range usize)
                  <:
 -                bool)
-+                Bertie.Tls13utils.t_Bytes)
++                t13.Tls13utils.t_Bytes)
            with
            | Core.Result.Result_Ok _ ->
 +            let next:usize = next +! sz 2 in
-             let crand:Bertie.Tls13utils.t_Bytes =
-               Bertie.Tls13utils.impl__Bytes__slice_range ch
+             let crand:t13.Tls13utils.t_Bytes =
+               t13.Tls13utils.impl__Bytes__slice_range ch
                  ({ Core.Ops.Range.f_start = next; Core.Ops.Range.f_end = next +! sz 32 <: usize }
 @@ -2602,27 +2670,85 @@
                    with
@@ -1512,11 +1512,11 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
                      let next:usize = next +! cslen in
 -                    (match
 -                        match
--                          Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl__Bytes__as_raw
+-                          t13.Tls13utils.check_eq_with_slice (t13.Tls13utils.impl__Bytes__as_raw
 -                                comp
 -                              <:
 -                              t_Slice u8)
--                            (Bertie.Tls13utils.impl__Bytes__as_raw ch <: t_Slice u8)
+-                            (t13.Tls13utils.impl__Bytes__as_raw ch <: t_Slice u8)
 -                            next
 -                            (next +! sz 2 <: usize)
 -                        with
@@ -1524,8 +1524,8 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                          Core.Result.Result_Ok (() <: Prims.unit)
 +                    let! _:Prims.unit =
 +                      match
-+                        Bertie.Tls13utils.check_eq comp
-+                          (Bertie.Tls13utils.impl__Bytes__slice_range ch
++                        t13.Tls13utils.check_eq comp
++                          (t13.Tls13utils.impl__Bytes__slice_range ch
 +                              ({
 +                                  Core.Ops.Range.f_start = next;
 +                                  Core.Ops.Range.f_end = next +! sz 2 <: usize
@@ -1533,18 +1533,18 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                                <:
 +                                Core.Ops.Range.t_Range usize)
 +                            <:
-+                            Bertie.Tls13utils.t_Bytes)
++                            t13.Tls13utils.t_Bytes)
 +                      with
 +                      | Core.Result.Result_Ok _ ->
 +                        Core.Ops.Control_flow.ControlFlow_Continue (() <: Prims.unit)
 +                        <:
 +                        Core.Ops.Control_flow.t_ControlFlow
 +                          (Core.Result.t_Result
-+                              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                Bertie.Tls13utils.t_Bytes &
-+                                Bertie.Tls13utils.t_Bytes &
-+                                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                              (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                t13.Tls13utils.t_Bytes &
++                                t13.Tls13utils.t_Bytes &
++                                Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                usize) u8) Prims.unit
 +                      | Core.Result.Result_Err _ ->
 +                        match invalid_compression_list () with
@@ -1555,72 +1555,72 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                        | Core.Result.Result_Err _ -> invalid_compression_list ()
 +                          Core.Ops.Control_flow.t_ControlFlow
 +                            (Core.Result.t_Result
-+                                (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                  Bertie.Tls13utils.t_Bytes &
-+                                  Bertie.Tls13utils.t_Bytes &
-+                                  Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                  Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                  t13.Tls13utils.t_Bytes &
++                                  t13.Tls13utils.t_Bytes &
++                                  Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                  Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                  usize) u8) Prims.unit
 +                        | Core.Result.Result_Err err ->
 +                          Core.Ops.Control_flow.ControlFlow_Break
 +                          (Core.Result.Result_Err err
 +                            <:
 +                            Core.Result.t_Result
-+                              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                Bertie.Tls13utils.t_Bytes &
-+                                Bertie.Tls13utils.t_Bytes &
-+                                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                              (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                t13.Tls13utils.t_Bytes &
++                                t13.Tls13utils.t_Bytes &
++                                Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                usize) u8)
 +                          <:
 +                          Core.Ops.Control_flow.t_ControlFlow
 +                            (Core.Result.t_Result
-+                                (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                  Bertie.Tls13utils.t_Bytes &
-+                                  Bertie.Tls13utils.t_Bytes &
-+                                  Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                  Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                  t13.Tls13utils.t_Bytes &
++                                  t13.Tls13utils.t_Bytes &
++                                  Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                  Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                  usize) u8) Prims.unit
 +                    in
 +                    Core.Ops.Control_flow.ControlFlow_Continue
 +                    (let next:usize = next +! sz 2 in
 +                      match
-+                        Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
++                        t13.Tls13utils.check_length_encoding_u16 (t13.Tls13utils.impl__Bytes__slice_range
 +                              ch
 +                              ({
 +                                  Core.Ops.Range.f_start = next;
 +                                  Core.Ops.Range.f_end
 +                                  =
-+                                  Bertie.Tls13utils.impl__Bytes__len ch <: usize
++                                  t13.Tls13utils.impl__Bytes__len ch <: usize
 +                                }
 +                                <:
 +                                Core.Ops.Range.t_Range usize)
 +                            <:
-+                            Bertie.Tls13utils.t_Bytes)
++                            t13.Tls13utils.t_Bytes)
                        with
                        | Core.Result.Result_Ok _ ->
                          let next:usize = next +! sz 2 in
                          (match
--                            Bertie.Tls13utils.check_length_encoding_u16 (Bertie.Tls13utils.impl__Bytes__slice_range
+-                            t13.Tls13utils.check_length_encoding_u16 (t13.Tls13utils.impl__Bytes__slice_range
 -                                  ch
 +                            check_extensions ciphersuite
-+                              (Bertie.Tls13utils.impl__Bytes__slice_range ch
++                              (t13.Tls13utils.impl__Bytes__slice_range ch
                                    ({
                                        Core.Ops.Range.f_start = next;
                                        Core.Ops.Range.f_end
 @@ -2634,194 +2760,168 @@
                                  <:
-                                 Bertie.Tls13utils.t_Bytes)
+                                 t13.Tls13utils.t_Bytes)
                            with
 -                          | Core.Result.Result_Ok _ ->
 -                            let next:usize = next +! sz 2 in
 +                          | Core.Result.Result_Ok exts ->
 +                            let trunc_len:usize =
-+                              ((Bertie.Tls13utils.impl__Bytes__len ch <: usize) -!
-+                                (Bertie.Tls13crypto.impl__HashAlgorithm__hash_len (Bertie.Tls13crypto.impl__Algorithms__hash
++                              ((t13.Tls13utils.impl__Bytes__len ch <: usize) -!
++                                (t13.Tls13crypto.impl__HashAlgorithm__hash_len (t13.Tls13crypto.impl__Algorithms__hash
 +                                        ciphersuite
 +                                      <:
-+                                      Bertie.Tls13crypto.t_HashAlgorithm)
++                                      t13.Tls13crypto.t_HashAlgorithm)
 +                                  <:
 +                                  usize)
 +                                <:
@@ -1629,28 +1629,28 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                            in
                              (match
 -                                check_extensions ciphersuite
--                                  (Bertie.Tls13utils.impl__Bytes__slice_range ch
+-                                  (t13.Tls13utils.impl__Bytes__slice_range ch
 -                                      ({
 -                                          Core.Ops.Range.f_start = next;
 -                                          Core.Ops.Range.f_end
 -                                          =
--                                          Bertie.Tls13utils.impl__Bytes__len ch <: usize
+-                                          t13.Tls13utils.impl__Bytes__len ch <: usize
 -                                        }
 -                                        <:
 -                                        Core.Ops.Range.t_Range usize)
 -                                    <:
--                                    Bertie.Tls13utils.t_Bytes)
-+                                Bertie.Tls13crypto.impl__Algorithms__psk_mode ciphersuite, exts
+-                                    t13.Tls13utils.t_Bytes)
++                                t13.Tls13crypto.impl__Algorithms__psk_mode ciphersuite, exts
 +                                <:
 +                                (bool & t_Extensions)
                                with
 -                              | Core.Result.Result_Ok exts ->
 -                                let trunc_len:usize =
--                                  ((Bertie.Tls13utils.impl__Bytes__len ch <: usize) -!
--                                    (Bertie.Tls13crypto.impl__HashAlgorithm__hash_len (Bertie.Tls13crypto.impl__Algorithms__hash
+-                                  ((t13.Tls13utils.impl__Bytes__len ch <: usize) -!
+-                                    (t13.Tls13crypto.impl__HashAlgorithm__hash_len (t13.Tls13crypto.impl__Algorithms__hash
 -                                            ciphersuite
 -                                          <:
--                                          Bertie.Tls13crypto.t_HashAlgorithm)
+-                                          t13.Tls13crypto.t_HashAlgorithm)
 -                                      <:
 -                                      usize)
 +                              | _,
@@ -1658,14 +1658,14 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                                f_key_share = Core.Option.Option_None  ;
 +                                f_ticket = _ ;
 +                                f_binder = _ } ->
-+                                Core.Result.Result_Err Bertie.Tls13utils.v_MISSING_KEY_SHARE
++                                Core.Result.Result_Err t13.Tls13utils.v_MISSING_KEY_SHARE
 +                                <:
 +                                Core.Result.t_Result
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize) u8
 +                              | true,
 +                              { f_sni = Core.Option.Option_Some sn ;
@@ -1683,8 +1683,8 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                  sz 3
 -                                in
 -                                (match
--                                    Bertie.Tls13crypto.impl__Algorithms__psk_mode ciphersuite, exts
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                    t13.Tls13crypto.impl__Algorithms__psk_mode ciphersuite, exts
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  (Core.Option.Option_Some binder
                                      <:
 -                                    (bool & t_Extensions)
@@ -1694,23 +1694,23 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                    f_key_share = Core.Option.Option_None  ;
 -                                    f_ticket = _ ;
 -                                    f_binder = _ } ->
--                                    Core.Result.Result_Err Bertie.Tls13utils.v_MISSING_KEY_SHARE
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                    Core.Result.Result_Err t13.Tls13utils.v_MISSING_KEY_SHARE
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  trunc_len
 +                                  <:
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize))
 +                                <:
 +                                Core.Result.t_Result
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize) u8
 +                              | true,
 +                              { f_sni = Core.Option.Option_None  ;
@@ -1720,16 +1720,16 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                                Core.Result.Result_Ok
 +                                (crand,
 +                                  sid,
-+                                  Bertie.Tls13utils.impl__Bytes__new (),
++                                  t13.Tls13utils.impl__Bytes__new (),
 +                                  gx,
 +                                  (Core.Option.Option_Some tkt
                                      <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize) u8
 -                                  | true,
 -                                  { f_sni = Core.Option.Option_Some sn ;
@@ -1743,27 +1743,27 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                      gx,
 -                                      (Core.Option.Option_Some tkt
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      (Core.Option.Option_Some binder
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      trunc_len
 -                                      <:
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize))
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  (Core.Option.Option_Some binder
                                      <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize) u8
 -                                  | true,
 -                                  { f_sni = Core.Option.Option_None  ;
@@ -1773,38 +1773,38 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                    Core.Result.Result_Ok
 -                                    (crand,
 -                                      sid,
--                                      Bertie.Tls13utils.impl__Bytes__new (),
+-                                      t13.Tls13utils.impl__Bytes__new (),
 -                                      gx,
 -                                      (Core.Option.Option_Some tkt
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      (Core.Option.Option_Some binder
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      trunc_len
 -                                      <:
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize))
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  trunc_len
 +                                  <:
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize))
 +                                <:
 +                                Core.Result.t_Result
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize) u8
 +                              | false,
 +                              { f_sni = Core.Option.Option_Some sn ;
@@ -1819,11 +1819,11 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                                  (Core.Option.Option_None
                                      <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize) u8
 -                                  | false,
 -                                  { f_sni = Core.Option.Option_Some sn ;
@@ -1837,27 +1837,27 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                      gx,
 -                                      (Core.Option.Option_None
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      (Core.Option.Option_None
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      sz 0
 -                                      <:
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize))
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  (Core.Option.Option_None
                                      <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize) u8
 -                                  | false,
 -                                  { f_sni = Core.Option.Option_None  ;
@@ -1867,38 +1867,38 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 -                                    Core.Result.Result_Ok
 -                                    (crand,
 -                                      sid,
--                                      Bertie.Tls13utils.impl__Bytes__new (),
+-                                      t13.Tls13utils.impl__Bytes__new (),
 -                                      gx,
 -                                      (Core.Option.Option_None
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      (Core.Option.Option_None
 -                                        <:
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes),
 -                                      sz 0
 -                                      <:
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize))
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  sz 0
 +                                  <:
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize))
 +                                <:
 +                                Core.Result.t_Result
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize) u8
 +                              | false,
 +                              { f_sni = Core.Option.Option_None  ;
@@ -1908,72 +1908,72 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                                Core.Result.Result_Ok
 +                                (crand,
 +                                  sid,
-+                                  Bertie.Tls13utils.impl__Bytes__new (),
++                                  t13.Tls13utils.impl__Bytes__new (),
 +                                  gx,
 +                                  (Core.Option.Option_None
                                      <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize) u8
 -                                  | _ ->
--                                    Core.Result.Result_Err (Bertie.Tls13utils.parse_failed ())
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
+-                                    Core.Result.Result_Err (t13.Tls13utils.parse_failed ())
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  (Core.Option.Option_None
                                      <:
 -                                    Core.Result.t_Result
--                                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--                                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-                                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-                                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -                                        usize) u8)
 -                              | Core.Result.Result_Err err ->
 -                                Core.Result.Result_Err err
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes),
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes),
 +                                  sz 0
 +                                  <:
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize))
 +                                <:
 +                                Core.Result.t_Result
-+                                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                                    usize) u8
 +                              | _ ->
-+                                Core.Result.Result_Err (Bertie.Tls13utils.parse_failed ())
++                                Core.Result.Result_Err (t13.Tls13utils.parse_failed ())
                                  <:
                                  Core.Result.t_Result
-                                   (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
+                                   (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
 @@ -2850,49 +2950,121 @@
-                             Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-                             Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                             Core.Option.t_Option t13.Tls13utils.t_Bytes &
+                             Core.Option.t_Option t13.Tls13utils.t_Bytes &
                              usize) u8)
 +                    <:
 +                    Core.Ops.Control_flow.t_ControlFlow
 +                      (Core.Result.t_Result
-+                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                            usize) u8)
 +                      (Core.Result.t_Result
-+                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                            usize) u8)
                    | Core.Result.Result_Err err ->
 -                    Core.Result.Result_Err err
@@ -1981,145 +1981,145 @@ diff -ruN extraction/Bertie.Tls13formats.fst extraction-lax/Bertie.Tls13formats.
 +                    (Core.Result.Result_Err err
 +                      <:
 +                      Core.Result.t_Result
-+                        (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                          Bertie.Tls13utils.t_Bytes &
-+                          Bertie.Tls13utils.t_Bytes &
-+                          Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                          Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                        (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                          t13.Tls13utils.t_Bytes &
++                          t13.Tls13utils.t_Bytes &
++                          Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                          Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                          usize) u8)
                      <:
 -                    Core.Result.t_Result
 +                    Core.Ops.Control_flow.t_ControlFlow
 +                      (Core.Result.t_Result
-+                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                            usize) u8)
 +                      (Core.Result.t_Result
-+                          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                            Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                            usize) u8))
 +              | Core.Result.Result_Err err ->
 +                Core.Ops.Control_flow.ControlFlow_Continue
 +                (Core.Result.Result_Err err
 +                  <:
 +                  Core.Result.t_Result
-+                    (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                      Bertie.Tls13utils.t_Bytes &
-+                      Bertie.Tls13utils.t_Bytes &
-+                      Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                      Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                    (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                      t13.Tls13utils.t_Bytes &
++                      t13.Tls13utils.t_Bytes &
++                      Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                      Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                      usize) u8)
 +                <:
 +                Core.Ops.Control_flow.t_ControlFlow
 +                  (Core.Result.t_Result
-                       (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-                         Bertie.Tls13utils.t_Bytes &
-                         Bertie.Tls13utils.t_Bytes &
-                         Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-                         Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                       (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+                         t13.Tls13utils.t_Bytes &
+                         t13.Tls13utils.t_Bytes &
+                         Core.Option.t_Option t13.Tls13utils.t_Bytes &
+                         Core.Option.t_Option t13.Tls13utils.t_Bytes &
                          usize) u8)
 -              | Core.Result.Result_Err err ->
 -                Core.Result.Result_Err err
 -                <:
 -                Core.Result.t_Result
 +                  (Core.Result.t_Result
-+                      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                        Bertie.Tls13utils.t_Bytes &
-+                        Bertie.Tls13utils.t_Bytes &
-+                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                        t13.Tls13utils.t_Bytes &
++                        t13.Tls13utils.t_Bytes &
++                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                        usize) u8))
 +          | Core.Result.Result_Err err ->
 +            Core.Ops.Control_flow.ControlFlow_Continue
 +            (Core.Result.Result_Err err
 +              <:
 +              Core.Result.t_Result
-+                (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                  Bertie.Tls13utils.t_Bytes &
-+                  Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                  Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                  t13.Tls13utils.t_Bytes &
++                  Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                  Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                  usize) u8)
 +            <:
 +            Core.Ops.Control_flow.t_ControlFlow
 +              (Core.Result.t_Result
-                   (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-                     Bertie.Tls13utils.t_Bytes &
-                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-                     Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                   (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+                     t13.Tls13utils.t_Bytes &
+                     Core.Option.t_Option t13.Tls13utils.t_Bytes &
+                     Core.Option.t_Option t13.Tls13utils.t_Bytes &
                      usize) u8)
 -          | Core.Result.Result_Err err ->
 -            Core.Result.Result_Err err
 -            <:
 -            Core.Result.t_Result
 +              (Core.Result.t_Result
-+                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                    Bertie.Tls13utils.t_Bytes &
-+                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++                  (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                    t13.Tls13utils.t_Bytes &
++                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                    Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                    usize) u8))
 +      | Core.Result.Result_Err err ->
 +        Core.Ops.Control_flow.ControlFlow_Continue
 +        (Core.Result.Result_Err err
 +          <:
 +          Core.Result.t_Result
-+            (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+              Bertie.Tls13utils.t_Bytes &
-+              Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+              Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++            (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++              t13.Tls13utils.t_Bytes &
++              Core.Option.t_Option t13.Tls13utils.t_Bytes &
++              Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +              usize) u8)
 +        <:
 +        Core.Ops.Control_flow.t_ControlFlow
 +          (Core.Result.t_Result
-               (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-                 Bertie.Tls13utils.t_Bytes &
-                 Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-                 Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+               (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+                 t13.Tls13utils.t_Bytes &
+                 Core.Option.t_Option t13.Tls13utils.t_Bytes &
+                 Core.Option.t_Option t13.Tls13utils.t_Bytes &
                  usize) u8)
 -      | Core.Result.Result_Err err ->
 -        Core.Result.Result_Err err
 -        <:
 -        Core.Result.t_Result
--          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--            Bertie.Tls13utils.t_Bytes &
--            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--            Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-          (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-            t13.Tls13utils.t_Bytes &
+-            Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-            Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -            usize) u8)
 -  | Core.Result.Result_Err err ->
 -    Core.Result.Result_Err err
 -    <:
 -    Core.Result.t_Result
--      (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
--        Bertie.Tls13utils.t_Bytes &
--        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
--        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+-      (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
+-        t13.Tls13utils.t_Bytes &
+-        Core.Option.t_Option t13.Tls13utils.t_Bytes &
+-        Core.Option.t_Option t13.Tls13utils.t_Bytes &
 -        usize) u8
 +          (Core.Result.t_Result
-+              (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
-+                Bertie.Tls13utils.t_Bytes &
-+                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-+                Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
++              (t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes & t13.Tls13utils.t_Bytes &
++                t13.Tls13utils.t_Bytes &
++                Core.Option.t_Option t13.Tls13utils.t_Bytes &
++                Core.Option.t_Option t13.Tls13utils.t_Bytes &
 +                usize) u8))
-diff -ruN extraction/Bertie.Tls13formats.fsti extraction-lax/Bertie.Tls13formats.fsti
---- extraction/Bertie.Tls13formats.fsti	2024-04-10 09:10:50.113988899 +0200
-+++ extraction-lax/Bertie.Tls13formats.fsti	2024-04-10 09:10:50.156965400 +0200
+diff -ruN extraction/t13.Tls13formats.fsti extraction-lax/t13.Tls13formats.fsti
+--- extraction/t13.Tls13formats.fsti	2024-04-10 09:10:50.113988899 +0200
++++ extraction-lax/t13.Tls13formats.fsti	2024-04-10 09:10:50.156965400 +0200
 @@ -408,7 +408,7 @@
-       | _ -> Bertie.Tls13utils.tlserr (Bertie.Tls13utils.parse_failed () <: u8)
+       | _ -> t13.Tls13utils.tlserr (t13.Tls13utils.parse_failed () <: u8)
    }
  
--val check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
-+val check_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
+-val check_psk_shared_key (algs: t13.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
++val check_psk_shared_key (v__algs: t13.Tls13crypto.t_Algorithms) (ch: t_Slice u8)
      : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
  
- val check_server_psk_shared_key (v__algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
-diff -ruN extraction/Bertie.Tls13utils.fsti extraction-lax/Bertie.Tls13utils.fsti
---- extraction/Bertie.Tls13utils.fsti	2024-04-10 09:10:50.129980156 +0200
-+++ extraction-lax/Bertie.Tls13utils.fsti	2024-04-10 09:10:50.165960482 +0200
+ val check_server_psk_shared_key (v__algs: t13.Tls13crypto.t_Algorithms) (b: t_Slice u8)
+diff -ruN extraction/t13.Tls13utils.fsti extraction-lax/t13.Tls13utils.fsti
+--- extraction/t13.Tls13utils.fsti	2024-04-10 09:10:50.129980156 +0200
++++ extraction-lax/t13.Tls13utils.fsti	2024-04-10 09:10:50.165960482 +0200
 @@ -129,9 +129,6 @@
  val check_eq_slice (b1 b2: t_Slice u8)
      : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)

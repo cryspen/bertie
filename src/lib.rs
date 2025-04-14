@@ -1,4 +1,4 @@
-//! Bertie is a minimal, high-assurance implementation of TLS 1.3
+//! t13 is a minimal, high-assurance implementation of TLS 1.3
 //!
 //! It is built upon the following design principles:
 //!
@@ -6,13 +6,13 @@
 //! 2) **Verification friendly**: written in a way that can be translated to verifiable models
 //! 3) **Succinct and minimal**: configured with a single protocol version and cipher suite.
 //!
-//! In particular, the protocol code in Bertie is passed through the [hax] verification toolchain
+//! In particular, the protocol code in t13 is passed through the [hax] verification toolchain
 //! to generate F* code that can be formally verified for correctness and security.
 //!
-//! Bertie is a library, which you can add as a dependency in your project.
-//! The API for this library is in [tls13api]. To create a Bertie client,
+//! t13 is a library, which you can add as a dependency in your project.
+//! The API for this library is in [tls13api]. To create a t13 client,
 //! you will need to use the methods for the [tls13api::Client] type.
-//! Similarly, you will use the methods for [tls13api::Server] to run a Bertie server.
+//! Similarly, you will use the methods for [tls13api::Server] to run a t13 server.
 //!
 //! For simple examples of how to use these APIs, look at the source code of [tls13client] and
 //! [tls13server].

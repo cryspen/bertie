@@ -30,7 +30,7 @@ jobs:
           cat > target/doc/index.html <<EOF
           <!doctype html>
           <html>
-          <a href="bertie/index.html">Docs</a>
+          <a href="t13/index.html">Docs</a>
           </html>
           EOF
 

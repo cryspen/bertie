@@ -4,8 +4,8 @@ use bytesize::ByteSize;
 use std::alloc;
 use std::net::TcpListener;
 
-use bertie::{
-    stream::BertieStream,
+use t13::{
+    stream::t13Stream,
     tls13crypto::{
         Algorithms,
         // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
@@ -113,7 +113,7 @@ fn protocol() {
                 _ => unreachable!("Unknown ciphersuite {:?}", ciphersuite),
             };
             let mut server =
-                BertieStream::server("127.0.0.1", port, stream, ciphersuite, cert_file, key_file)
+                t13Stream::server("127.0.0.1", port, stream, ciphersuite, cert_file, key_file)
                     .unwrap();
 
             server.connect(&mut rand::rng()).unwrap();
@@ -136,7 +136,7 @@ fn protocol() {
             }
 
             client = psm::on_stack(paintstack, STACK_SIZE, || {
-                BertieStream::client("127.0.0.1", port, ciphersuite, &mut rand::rng()).unwrap()
+                t13Stream::client("127.0.0.1", port, ciphersuite, &mut rand::rng()).unwrap()
             });
 
             for i in (0..STACK_SIZE).step_by(4) {
@@ -159,7 +159,7 @@ fn protocol() {
 
         // Exchange a message on the TLS channel.
         let msg =
-            "Hello from the Bertie server. Congratulations on the successful interop.".as_bytes();
+            "Hello from the t13 server. Congratulations on the successful interop.".as_bytes();
         let mut server = server.join().unwrap();
         server.write(msg).unwrap();
 

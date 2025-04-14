@@ -1398,11 +1398,11 @@ impl Transcript {
     #[cfg_attr(
         feature = "hax-pv",
         proverif::replace_body(
-            "let bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+            "let t13__tls13formats__Transcript(  (* XXX: hand-insert *)
             hash_algorithm: $:{HashAlgorithm},
             old_handshake_data: $:{HandshakeData}
         ) = self in
-    bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+    t13__tls13formats__Transcript(  (* XXX: hand-insert *)
         hash_algorithm,
         ${HandshakeData}(
             ${handshake_data::to_bytes_inner}(

@@ -6,8 +6,8 @@
 
 use std::io::{Cursor, Read, Write};
 
-use bertie::{
-    stream::BertieStream,
+use t13::{
+    stream::t13Stream,
     tls13crypto::{AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureScheme},
 };
 
@@ -54,7 +54,7 @@ fn test_adhoc() {
         let data = hex::decode(test).unwrap();
         let stream = Stream::new(&data);
 
-        let _ = BertieStream::open_with_stream(
+        let _ = t13Stream::open_with_stream(
             "127.0.0.1",
             Algorithms::new(
                 HashAlgorithm::SHA256,
