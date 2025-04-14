@@ -636,29 +636,6 @@ val get_psk_extensions
             len <=. (Bertie.Tls13utils.impl_Bytes__len extensions <: usize)
           | _ -> true)
 
-/// Build a ClientHello message.
-val client_hello
-      (algorithms: Bertie.Tls13crypto.t_Algorithms)
-      (client_random kem_pk server_name: Bertie.Tls13utils.t_Bytes)
-      (session_ticket: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure
-      (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
-      (requires (Bertie.Tls13utils.impl_Bytes__len client_random <: usize) =. mk_usize 32)
-      (ensures
-        fun result ->
-          let result:Core.Result.t_Result
-            (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8 =
-            result
-          in
-          match
-            result
-            <:
-            Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
-          with
-          | Core.Result.Result_Ok (ch, tl) ->
-            tl <=. (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len ch <: usize)
-          | _ -> true)
-
 val set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (binder: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
@@ -676,14 +653,6 @@ val set_client_hello_binder
 val invalid_compression_list: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
-/// Build the server hello message.
-val server_hello
-      (algs: Bertie.Tls13crypto.t_Algorithms)
-      (server_random sid gy: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      (requires (Bertie.Tls13utils.impl_Bytes__len server_random <: usize) =. mk_usize 32)
-      (fun _ -> Prims.l_True)
-
 val unsupported_cipher_alert: Prims.unit
   -> Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
@@ -700,15 +669,31 @@ val parse_encrypted_extensions
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
-val server_certificate (e_algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val parse_server_certificate (certificate: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+
+val server_certificate (e_algs: Bertie.Tls13crypto.t_Algorithms) (cert: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok cert_msg ->
+            (match
+                parse_server_certificate cert_msg
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok ct -> ct =. cert
+              | _ -> false)
+          | _ -> true)
 
 val ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
@@ -723,11 +708,6 @@ val parse_ecdsa_signature (sig: Bertie.Tls13utils.t_Bytes)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-val certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 val parse_certificate_verify
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (certificate_verify: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -735,15 +715,50 @@ val parse_certificate_verify
       Prims.l_True
       (fun _ -> Prims.l_True)
 
-val finished (vd: Bertie.Tls13utils.t_Bytes)
+val certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
       Prims.l_True
-      (fun _ -> Prims.l_True)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok cert_verify_msg ->
+            (match
+                parse_certificate_verify algs cert_verify_msg
+                <:
+                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok sig -> sig =. cv
+              | _ -> false)
+          | _ -> true)
 
 val parse_finished (finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
     : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+
+val finished (vd: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok finished_msg ->
+            (match
+                parse_finished finished_msg <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              with
+              | Core.Result.Result_Ok parsed_vd -> parsed_vd =. vd
+              | _ -> false)
+          | _ -> true)
 
 /// ```TLS
 /// enum {
@@ -902,6 +917,30 @@ val parse_server_hello
       Prims.l_True
       (fun _ -> Prims.l_True)
 
+/// Build the server hello message.
+val server_hello
+      (algs: Bertie.Tls13crypto.t_Algorithms)
+      (server_random session_id kem_ciphertext: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8)
+      (requires (Bertie.Tls13utils.impl_Bytes__len server_random <: usize) =. mk_usize 32)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8 =
+            result
+          in
+          match
+            result <: Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+          with
+          | Core.Result.Result_Ok sh ->
+            (match
+                parse_server_hello algs sh
+                <:
+                Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+              with
+              | Core.Result.Result_Ok (sr, ct) -> sr =. server_random && ct =. kem_ciphertext
+              | _ -> false)
+          | _ -> true)
+
 val check_extensions_slice (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u8)
     : Prims.Pure (Core.Result.t_Result t_Extensions u8)
       Prims.l_True
@@ -949,4 +988,40 @@ val parse_client_hello
           | Core.Result.Result_Ok (_, _, _, _, _, _, trunc_len) ->
             trunc_len <=.
             (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len client_hello <: usize)
+          | _ -> true)
+
+/// Build a ClientHello message.
+val client_hello
+      (algorithms: Bertie.Tls13crypto.t_Algorithms)
+      (client_random kem_pk server_name: Bertie.Tls13utils.t_Bytes)
+      (session_ticket: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure
+      (Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8)
+      (requires (Bertie.Tls13utils.impl_Bytes__len client_random <: usize) =. mk_usize 32)
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result
+            (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8 =
+            result
+          in
+          match
+            result
+            <:
+            Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
+          with
+          | Core.Result.Result_Ok (ch, trunc_len) ->
+            trunc_len <=. (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len ch <: usize) &&
+            (match
+                parse_client_hello algorithms ch
+                <:
+                Core.Result.t_Result
+                  (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
+                    Bertie.Tls13utils.t_Bytes &
+                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                    Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+                    usize) u8
+              with
+              | Core.Result.Result_Ok (cr, _, sn, pk, st, _, _) ->
+                cr =. client_random && pk =. kem_pk && sn =. server_name && st =. session_ticket
+              | _ -> false)
           | _ -> true)

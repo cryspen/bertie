@@ -33,7 +33,8 @@ libcrux-ecdsa = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/li
 hax-lib = { git = "https://github.com/cryspen/hax", branch = "bertie-libs"}
 
 [features]
-default = ["api", "std"]
+default = ["api", "std", "defensive"]
+defensive = []
 std = []
 test_utils = []
 secret_integers = []
