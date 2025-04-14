@@ -14,8 +14,6 @@ event ClientFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCi
 event ServerFinished(bertie__tls13utils__t_Bytes,bertie__tls13record__t_DuplexCipherState1, bertie__tls13handshake__t_ServerPostServerFinished).
 
 (* Reachability queries. *)
-(* Should fail: Full handshake can complete. *)
-query event(R).
 
 (* Should fail: Client can finish handshake. *)
 query server_name: bertie__tls13utils__t_Bytes,
@@ -191,6 +189,15 @@ query server_name:bertie__tls13utils__t_Bytes,
       ==> event(CompromisedServerCertSK(server_name))
           || event(CompromisedServerPSK(server_name)).
 
+fun extern__validate_cert(bertie__tls13utils__t_Bytes,bertie__tls13utils__t_Bytes): bool
+reduc forall server_name: bertie__tls13utils__t_Bytes,
+             alg: bertie__tls13crypto__t_SignatureScheme,
+             vk: bertie__tls13crypto__t_PublicVerificationKey;
+      extern__validate_cert(server_name, extern__certificate(server_name, alg, vk)) = true
+otherwise forall server_name: bertie__tls13utils__t_Bytes,
+                 invalid: bertie__tls13utils__t_Bytes;
+      extern__validate_cert(server_name, invalid) = false.
+
 letfun set_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
        if psk_mode then
           new psk: bertie__tls13utils__t_Bytes;
@@ -208,19 +215,18 @@ letfun get_psk(server_name: bertie__tls13utils__t_Bytes, psk_mode: bool) =
         else
           (None(), None()).
 
+(* Client and Server need to start from the same empty key schedule. *)
+const KS_EMPTY: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler.
+
 let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
-    (* REACHED *)
     in(c, server_name: bertie__tls13utils__t_Bytes);
     new rng_client: impl_CryptoRng;
-    new ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
-
+    let ks_client = KS_EMPTY in
 
     let (client_ticket_o: Option, psk_o: Option)
         = get_psk(server_name, psk_mode)
     in
 
-
-    (* REACHED *)
     let (rng_client: impl_CryptoRng, ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, client_init_out: bitstring)
         = bertie__tls13handshake__client_init(algs,
                                               server_name,
@@ -230,45 +236,56 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
                                               ks_client)
     in
 
-    (* REACHED *)
     let (nch: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher0: Option,
          client_state: bertie__tls13handshake__t_ClientPostClientHello)
         = client_init_out in
     out(c, nch);
     in(c, server_hello: bertie__tls13formats__handshake_data__t_HandshakeData);
-       
-    (* REACHED (attacker)*)
+
+
     let (ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler,
-         (duplex_cipher_state_h: bitstring,
+         (duplex_cipher_state_h: bertie__tls13record__t_DuplexCipherStateH,
          client_state: bertie__tls13handshake__t_ClientPostServerHello))
         = bertie__tls13handshake__client_set_params(server_hello,
                                                     client_state,
                                                     ks_client)
     in
-    (* NOT REACHED *)
-    (* event R; *)
-    in(c, flight: bertie__tls13formats__handshake_data__t_HandshakeData);
+
+    in(c, flight_encrypted: bitstring);
+
+    let flight = bertie__tls13record__decrypt_handshake(flight_encrypted, duplex_cipher_state_h) in
 
     let (ks_client: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, (client_finished: bertie__tls13formats__handshake_data__t_HandshakeData,
          cipher: bertie__tls13record__t_DuplexCipherState1,
          client_state: bertie__tls13handshake__t_ClientPostClientFinished))
-        = bertie__tls13handshake__client_finish((*server_name, (* XXX: This was here, before. *) *)
-                                                flight,
+        = bertie__tls13handshake__client_finish(flight,
                                                 client_state,
                                                 ks_client)
     in
-    event ClientFinished(server_name,cipher,client_state);
-    out(c, client_finished).
 
+    (* This is what `get_server_info` does *)
+    let server_pub_info = accessor_bertie__tls13handshake__t_ClientPostClientFinished_bertie__tls13handshake__3(client_state) in
+    let certificate_opt = accessor_bertie__server__t_ServerPubInfo_bertie__server__f_certificate(server_pub_info) in
+    let server_name_info = accessor_bertie__server__t_ServerPubInfo_bertie__server__f_server_name(
+                          server_pub_info
+                        ) in
+    let Some(certificate_bitstring) = certificate_opt in
+    let bertie__tls13utils__t_Bytes_to_bitstring(certificate) = certificate_bitstring in
+
+    (* Verify that certificate is valid *)        
+    if extern__validate_cert(server_name_info, certificate) = true then (
+       event ClientFinished(server_name,cipher,client_state);
+       let finish_encrypted = bertie__tls13record__encrypt_handshake(client_finished, 0, duplex_cipher_state_h) in
+       out(c, finish_encrypted)
+    ).
 
 let Server() =
-    (* REACHED *)
     in(c, server_name: bertie__tls13utils__t_Bytes);
     get server_dbs(=server_name, db, algs) in    
 
     new rng_server: impl_CryptoRng;
-    new ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler;
+    let ks_server = KS_EMPTY in
     
     in(c, nch: bertie__tls13formats__handshake_data__t_HandshakeData);
     let (rng_server: impl_CryptoRng, ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_init_output: bitstring)
@@ -278,7 +295,7 @@ let Server() =
                                               rng_server,
                                               ks_server)
     in
-    (* NOT REACHED *)
+
     let
       (server_hello: bertie__tls13formats__handshake_data__t_HandshakeData,
        flight: bertie__tls13formats__handshake_data__t_HandshakeData,
@@ -289,17 +306,20 @@ let Server() =
     = server_init_output in
 
     event ServerFinished(server_name,cipher1,server_state);
-    out(c, server_hello);
-    out(c, flight);
 
-    in(c, client_finished: bertie__tls13formats__handshake_data__t_HandshakeData);
+    out(c, server_hello);
+    
+    let flight_encrypted = bertie__tls13record__encrypt_handshake(flight, 0, cipher_hs) in
+    out(c, flight_encrypted);
+
+    in(c, finish_encrypted: bitstring);
+    let client_finished = bertie__tls13record__decrypt_handshake(finish_encrypted, cipher_hs) in
 
     let (ks_server: bertie__tls13keyscheduler__key_schedule__t_TLSkeyscheduler, server_state: bitstring)
         = bertie__tls13handshake__server_finish(client_finished,
                                                 server_state,
                                                 ks_server)
     in
-
     0.
 
 let CreateServer(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
@@ -359,8 +379,8 @@ let CompromiseServerPSK() =
     out(c, psk).
     
 process
-    in(c, psk_mode: bool);    
-    in(c, zero_rtt: bool);
+    let psk_mode = false in
+    let zero_rtt = false in
     
     (* SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519 *)
     let SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519 = 

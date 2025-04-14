@@ -177,7 +177,14 @@ elif options.sub == "extract-proverif":
                     "+!**::tls13formats::handshake_data::to_two_inner",
                     "+!**::tls13formats::handshake_data::to_four_inner",
                     "+!**::tls13crypto::hash",
-                    
+                    "+~**::tls13keyscheduler::derive_hk_ms",
+                    "+~**::tls13keyscheduler::derive_finished_key",
+                    "+~**::tls13keyscheduler::derive_hk_handles",
+                    "+~**::tls13keyscheduler::derive_aead_key_iv",
+                    "+~**::tls13keyscheduler::key_schedule::no_psk",
+                    "+~**::tls13keyscheduler::key_schedule::tagkey_from_handle",
+                    "+!**::tls13record::encrypt_handshake",
+                    "+!**::tls13record::decrypt_handshake"
                 ]
             ),
             "pro-verif",

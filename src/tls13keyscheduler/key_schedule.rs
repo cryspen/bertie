@@ -9,6 +9,7 @@ use std::vec;
 /* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
 
 /// HKDF expand with a `label`.
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn hkdf_expand_label(
     hash_algorithm: &HashAlgorithm,
     key: &Key,
@@ -29,11 +30,10 @@ pub(crate) fn hkdf_expand_label(
 }
 
 /// Get an empty key of the correct size.
-#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
     let handle = Handle {
-        alg: alg.clone(),
         name: ZeroSalt,
+        alg: alg.clone(),
         level: 0,
     };
     let _ = set_by_handle(
@@ -48,8 +48,8 @@ pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle
 pub(crate) fn no_psk(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle // TagKey
 {
     let handle = Handle {
-        alg: alg.clone(),
         name: PSK,
+        alg: alg.clone(),
         level: 0,
     };
     let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
@@ -59,8 +59,9 @@ pub(crate) fn no_psk(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle //
 /// Get an empty key of the correct size.
 pub(crate) fn zero_ikm(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
     let handle = Handle {
-        alg: alg.clone(),
         name: ZeroIKM,
+        alg: alg.clone(),
+
         level: 0,
     };
     let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
@@ -330,7 +331,7 @@ pub fn tagkey_from_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<TagKe
     Ok(TagKey {
         alg: handle.alg,
         tag: handle.name,
-        val: get_by_handle(ks, handle).ok_or(INCORRECT_STATE)?,
+        val: get_by_handle(ks, handle)?,
     })
 }
 
@@ -345,16 +346,43 @@ pub fn set_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle, key: Key) {
 }
 
 // XXX: Make this a destructor for above
-pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Option<Key> {
+#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
+pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<Key, TLSError> {
     ks.get(
         handle.name,
         handle.level,
         (handle.name, handle.alg, handle.level),
-    )
+    ).ok_or(INCORRECT_STATE)
 }
 
 #[allow(non_snake_case)]
-#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
+#[allow(clippy::assign_op_pattern)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::before(
+        "fun extern__XPD(
+                $:{TLSnames},
+                nat,
+                $:{Handle},
+                bool,
+                $:{Bytes}
+         )
+     : $:{Handle}."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body(
+        "(extern__XPD(
+              n,
+              l,
+              h1,
+              r,
+              args
+          )
+       )"
+    )
+)]
 pub fn XPD(
     ks: &mut TLSkeyscheduler,
     n: TLSnames,
@@ -418,7 +446,31 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
     })
 }
 
-#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
+#[allow(non_snake_case)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::before(
+        "fun extern__XTR(
+                nat,
+                $:{TLSnames},
+                $:{Handle},
+                $:{Handle}
+         )
+     : $:{Handle}."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body(
+        "(extern__XTR(
+              level,
+              name,
+              h1,
+              h2
+          )
+       )"
+    )
+)]
 #[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn XTR(
     ks: &mut TLSkeyscheduler,
