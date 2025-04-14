@@ -101,7 +101,9 @@ Class Dependencies := {
     TLSPrntN_is_PrntN: forall n, PrntN n == TLSPrntN n ;
 
     Labels : name -> bool -> code fset0 fset0 chLabel ;
+
     (* O_star : list name ; *)
+
     xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey ;
     xtr : chKey -> chKey -> code fset0 fset0 chKey ;
     xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle ;

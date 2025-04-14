@@ -150,6 +150,13 @@ Definition mem_tail : forall {A : eqType} a (l : list A), forall {x}, x \in l ->
   fun A a l x H =>
     (eq_ind_r [eta is_true] ([eta introTF (c:=true) orP] (or_intror H)) (in_cons (T:=A) a l x)).
 
+(* Definition sumR : forall (l u : nat), (l <= u)%nat -> (nat -> R) -> R := *)
+(*   (fun l u H f => \sum_(l <= i < u) (f i)). *)
+(*   (* (fun l u H f => bigop.body GRing.zero (iota l (u - l)) (fun i : nat => BigBody i GRing.add true (f i))). *) *)
+
+(* Definition sumR : forall (l u : nat), (l <= u)%nat -> (nat -> R) -> R := *)
+(*   (fun l u H f => bigop.body GRing.zero (iota l (u - l)) (fun i : nat => BigBody i GRing.add true (f i))). *)
+
 Definition sumR : forall (l u : nat), (l <= u)%nat -> (nat -> R) -> R :=
   (fun l u H f => (List.fold_left (fun y x => y + f x) (iota l (u - l)) 0)%R).
 
@@ -161,6 +168,104 @@ Fixpoint sumR_H_fuel start fuel (f : forall (ℓ : nat), (start <= ℓ)%nat -> (
         let Ht := (eq_ind_r (λ ℓ, (ℓ <= start + fuel)%N) (eq_ind_r [eta is_true] (leq_trans (n:=n.+1) (m:=n) (p:=fuel) (leqnSn n) H) (leq_add2l start n fuel)) (natrDE start n)) in
         f (start + n) (leq_addr _ _) Ht + sumR_H_fuel start n (fun ℓ Hstart Hend => f ℓ Hstart (leq_trans Hend Ht))
   end (leqnn fuel).
+
+(* Fixpoint map_with_in {A: eqType} {B} (l : list A) (f : forall (x : A), (x \in l) -> B) : list B := *)
+(*   match l as k return (k = l -> _) with *)
+(*   | [] => fun _ => [] *)
+(*   | ( x :: xs ) => *)
+(*       fun H => *)
+(*         f x (eq_ind (x :: xs) (fun l => x \in l) (mem_head x xs) _ H) *)
+(*           :: map_with_in xs (fun y H0 => f y (eq_ind (x :: xs)%SEQ *)
+(*                                             (λ l0 : seq A, (∀ x0 : A, x0 \in l0 → B) → (y \in l0) = true) *)
+(*                                             (λ f0 : ∀ x0 : A, x0 \in (x :: xs)%SEQ → B, *)
+(*                                                (eq_ind_r (Logic.eq^~ true) ([eta introTF (c:=true) orP] (or_intror H0)) (in_cons (T:=A) x xs y))) *)
+(*                                             l H f)) *)
+(*   end erefl. *)
+
+(* Definition sumR_H *)
+(*   (l u : nat) (H_ul : (u >= l)%nat) *)
+(*   (f : forall (ℓ : nat), (ℓ <= u)%nat -> R) : R. *)
+(*   (* refine (\sum_(l <= i < u | (i <=? u)%nat) (f i _)). *) *)
+
+(*   (* map_with_in *) *)
+(*   (* epose Tagged. *) *)
+(*   (* Check @tagged. *) *)
+(*   (* (* (index_iota l u; _) *) *) *)
+(*   (* (* (@tagged (seq R) _ _) *) *) *)
+(*   (* (GRing.zero ; leq0n) *) *)
+(*   refine (bigop.body (GRing.zero; _) (map_with_in (index_iota l u) (fun x H => (x; H))) _ (* (fun (i : ∑ y : nat, (y <= u)%nat) => BigBody _ _ true (f (i.π1) _; _)) *)).π1. *)
+(*   2:{ *)
+(*     intros i. *)
+(*     refine (BigBody i _ true (f (i.π1) _ ; _)). *)
+(*     2:{ *)
+(*       Bertie *)
+(*     - intros [] []. *)
+(*       econstructor. *)
+(*       + apply (GRing.add x y). *)
+(*     - hnf. *)
+(*       apply GRing.add. *)
+(*     -  *)
+  
+(*   refine (\sum_(l <= i < u) (f i _)). *)
+(*   Unset Printing Notations. *)
+(*   Show Proof. *)
+  
+
+(*   eapply reducebig. *)
+(*   3:{ *)
+(*     refine (fun i => BigBody i (f _ (i \in index_iota l u) 0). *)
+(*   } *)
+(*   1:{ *)
+(*     refine 0. *)
+(*   } *)
+(*   refine (index_iota l u). *)
+(* Qed. *)
+  
+(*   refine (List.map). *)
+  
+(*   (* foldr op idx r *) *)
+(*   (* refine \big[op/idx]_(x <- r) x *) *)
+  
+  
+    
+  
+(*   refine (projT1 (bigop.body _ _ _)). *)
+(*   3:{ *)
+(*     intros. *)
+(*     eapply reducebig. *)
+    
+    
+(*     unfold bigbody. *)
+  
+(*   2:{ *)
+(*     intros. *)
+    
+(* (* projT1 (bigop.body ?idx (index_iota l u) (fun i : nat => BigBody i ?Goal true ?Goal0)) *) *)
+(*   epose ((\big[_/_]_(l <= i < u) _).π1). *)
+(*   Unset Printing Notations. *)
+
+  
+(*   (0; leq0n _) *)
+  
+(*   refine (\big[(fun x => GRing.add x.1)/(0; leq0n _)]_(l <= i < u) _). *)
+(*   refine (\big[GRing.add/0]_(l <= i < u) _). *)
+(*   assert (0 <= i). *)
+  
+(*   Unset Printing Notations. *)
+(*   Show Proof. *)
+
+(*   Check (BIG_F _). *)
+
+(*   (f i _)). *)
+(*   refine (f i _). *)
+
+  
+(*   (fun l u H f => \sum_(l <= i < u) (f _ i)). *)
+
+(*   (* big_geq *) *)
+(* (* leq_bigmax *) *)
+(* (* leq_sum *) *)
+
 
 Definition sumR_H
   (l u : nat) (H_ul : (u >= l)%nat)
@@ -301,13 +406,24 @@ Fixpoint sumR_l_in_rel {T : eqType} (l : list T) (l' : list T) (H_in : forall x,
   end H_in.
 (* Definition sum (l u : nat) (f : nat -> nat) : nat := sum_accum (u - l) l f 0%R. *)
 
-Definition max_val : R -> R -> R :=
-  fun x y =>
-    if (x > y)%R
-    then x
-    else y.
+Definition maxR (f : bool -> R) : R := Order.max (f false) (f true).
 
-Definition maxR (f : bool -> R) : R :=
-  max_val (f false) (f true).
-
-Axiom max_leq : forall f g, (forall b, f b <= g b)%R -> (maxR f <= maxR g)%R.
+Lemma max_leq : forall f g, (forall b, f b <= g b)%R -> (maxR f <= maxR g)%R.
+Proof.
+  intros.
+  unfold maxR.
+  unfold Num.max at 1.
+  destruct (f _ < f _) eqn:f_largest.
+  - refine (Order.le_trans (H true) _).
+    unfold Num.max.
+    destruct (g false < g true)%R eqn:g_largest.
+    + easy.
+    + destruct (Order.POrderTheory.comparable_leP (Num.Theory.real_comparable (Num.Theory.num_real (g true)) (Num.Theory.num_real (g false)))).
+      * apply i.
+      * now rewrite i in g_largest.
+  - refine (Order.le_trans (H false) _).
+    unfold Num.max.
+    destruct (g false < g true)%R eqn:g_largest.
+    + easy.
+    + easy.
+Qed.

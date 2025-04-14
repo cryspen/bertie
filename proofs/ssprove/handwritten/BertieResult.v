@@ -224,6 +224,19 @@ Proof.
     (* unfold label_pow. *)
 Admitted.
 
+Program Definition chKey_to_t_TagKey (x : chKey) `{H_not_bot : nfto (fto (otf x).2) <> BOT} (bytes : both t_Bytes) : both t_TagKey :=
+  prod_b (
+      chHash_to_t_HashAlgorithm (fto (otf x).1),
+      name_to_t_TLSname (H_not_bot := H_not_bot) (nfto (fto (otf x).2)),
+      bytes (* TODO *)
+    ).
+
+Definition t_TagKey_to_chKey (x : t_TagKey) : chKey :=
+  (fto (
+      otf (t_HashAlgorithm_to_chHash x.1.1) ,
+      otf (name_to_chName (t_TLSname_option_pair_to_name (Some x.1.2)))
+    )).
+
 Obligation Tactic := (* try timeout 8 *) idtac.
 Program Fixpoint bitvec_to_bitstring (x : bitvec) {measure x} : chList int8 :=
   match x with
@@ -306,10 +319,7 @@ Section BertieKeySchedule.
        let s := H0.1 in
        let b :=
          xpd
-           (prod_b (
-                chHash_to_t_HashAlgorithm (fto (otf H).1),
-                name_to_t_TLSname (H_not_bot := n) (nfto (fto (otf H).2)),
-                _))
+           (chKey_to_t_TagKey (H_not_bot := n) H (ret_both (chLabel_to_label H0.1) (* TODO? *)))
            (ret_both (chLabel_to_label H0.1))
            (ret_both (bitvec_to_bitstring H0.2))
        in
@@ -323,26 +333,29 @@ Section BertieKeySchedule.
              end) in
            otf (name_to_chName (t_TLSname_option_pair_to_name X1)))) }
    end).
-  Next Obligation.
-    intros.
-    refine (ret_both (chLabel_to_label H0.1)).
-  Qed.
   Final Obligation.
     intros.
     fold chElement in *.
     ssprove_valid.
     apply b.
-  Qed.
+  Defined.
   Fail Next Obligation.
 
   Definition Bertie_xtr : chKey -> chKey -> code fset0 fset0 chKey.
   Proof.
     intros.
-    refine {code ret _}.
-    admit.
-    (* refine X. *)
-    (* Qed. *)
-  Admitted.
+    destruct (nfto (fto (otf X).2) == BOT) eqn:X_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, inord 0) : chKey))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | move /eqP in X_not_bot ].
+    destruct (nfto (fto (otf X0).2) == BOT) eqn:X0_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, inord 0) : chKey))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | move /eqP in X0_not_bot ].
+    refine {code is_state (matchb xtr
+                             (chKey_to_t_TagKey X (H_not_bot := X_not_bot) (ret_both ([] : t_Bytes) (* TODO *)))
+                             (chKey_to_t_TagKey X0 (H_not_bot := X0_not_bot) (ret_both ([] : t_Bytes) (* TODO *))) with
+                          | Result_Ok_case v => ret_both (t_TagKey_to_chKey v)
+                          | Result_Err_case _ => ret_both (fto (inord 0, inord 0) : chKey)
+                           end)
+              #with
+        (ChoiceEquality.is_valid_code (both_prog_valid _))
+      }.
+  Defined.
 
   Definition chHandle_to_t_Handle : forall (h : chHandle), nfto (fto (otf h).1) <> BOT -> t_Handle.
   Proof.
