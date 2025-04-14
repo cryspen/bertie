@@ -345,7 +345,6 @@ pub fn set_by_handle(ks: &mut TLSkeyscheduler, handle: &Handle, key: Key) {
     );
 }
 
-// XXX: Make this a destructor for above
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<Key, TLSError> {
     ks.get(

@@ -282,7 +282,7 @@ let Client(algs: bertie__tls13crypto__t_Algorithms, psk_mode: bool) =
 
 let Server() =
     in(c, server_name: bertie__tls13utils__t_Bytes);
-    get server_dbs(=server_name, db, algs) in    
+    get server_dbs(=server_name, db, algs) in
 
     new rng_server: impl_CryptoRng;
     let ks_server = KS_EMPTY in

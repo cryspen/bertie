@@ -323,7 +323,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
     feature = "hax-pv",
     proverif::replace(
         "
-(* XXX: This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
+(* This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
 fun extern__certificate(
             $:{Bytes}, (* server name *)
             $:{SignatureScheme},
@@ -458,11 +458,6 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 ///
 /// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
 /// if successful, or an [`Asn1Error`] otherwise.
-// XXX: - enum variant constructors: Can't do
-// `${SignatureScheme::ED25519}_c()` since that is translated to `bertie__tls13crypto__SignatureScheme_ED25519(
-//
-// )_c()`
-// - Should find better solution for `_c()` and `_err()` terms
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(

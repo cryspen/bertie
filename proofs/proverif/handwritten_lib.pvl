@@ -1,7 +1,9 @@
-(* We need to know this name explicitely.*)
+(* The terms defined in this file can not be extracted by hax at the
+moment, thus we provide them here.*)
+
 type impl_CryptoRng.
 
-type  std__collections__hash__map__t_HashMap_of_bitstring_bertie__tls13utils__t_Bytes_std__hash__random__t_RandomState.
+type std__collections__hash__map__t_HashMap_of_bitstring_bertie__tls13utils__t_Bytes_std__hash__random__t_RandomState.
 
 letfun rand_core__f_fill_bytes(rng: impl_CryptoRng, dest: bitstring) = new b: bitstring; (rng, b).
 
@@ -9,15 +11,3 @@ fun rust_primitives__hax__repeat(nat, nat): bitstring.
 
 letfun core__ops__bit__f_not(b: bool) = if b then false else true.
 letfun core__cmp__f_ge(lhs: nat, rhs:nat ) = lhs >= rhs.
-
-event R.
-
-(* type libcrux__digest__Algorithm. *)
-(* fun libcrux__digest__Algorithm_Algorithm_Sha256_c(): libcrux__digest__Algorithm [data]. *)
-(* fun libcrux__digest__Algorithm_Algorithm_Sha384_c(): libcrux__digest__Algorithm [data]. *)
-(* fun libcrux__digest__Algorithm_Algorithm_Sha512_c(): libcrux__digest__Algorithm [data]. *)
-
-(* letfun libcrux__digest__digest_size(alg: libcrux__digest__Algorithm) = *)
-(*        let libcrux__digest__Algorithm_Algorithm_Sha256_c() = alg in 32 *)
-(*        else let libcrux__digest__Algorithm_Algorithm_Sha384_c() = alg in 48 *)
-(*        else let libcrux__digest__Algorithm_Algorithm_Sha512_c() = alg in 64. *)

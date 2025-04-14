@@ -730,7 +730,6 @@ pub fn bench_parse_client_hello(
 }
 
 /// Parse the provided `client_hello` with the given `ciphersuite`.
-// XXX: Can `Option` not be hardwired like this?
 #[allow(clippy::type_complexity)]
 #[cfg_attr(
     feature = "hax-pv",
@@ -1434,10 +1433,6 @@ impl Transcript {
     }
 
     /// Add the [`HandshakeData`] `msg` to this transcript.
-    // XXX: ${Struct} does not work to get the name of the struct
-    // constructor. Either the backend should output different
-    // constructor names for record types (i.e. accessble via
-    // $:{Struct}), or the interpolation should be changed.
     #[cfg_attr(
         feature = "hax-pv",
         proverif::replace_body(

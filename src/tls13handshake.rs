@@ -601,7 +601,7 @@ fn process_psk_binder_zero_rtt(
                 let (key_iv, early_exporter_ms_handle) =
                     derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_handle, &th, ks)?;
                 let early_exporter_ms = tagkey_from_handle(ks, &early_exporter_ms_handle)?;
-                Ok(Some(server_cipher_state0(key_iv, 0, early_exporter_ms))) // XXX: This is a PV issue. Bad interaction of &mut hoisting and our treatment of Option
+                Ok(Some(server_cipher_state0(key_iv, 0, early_exporter_ms)))
             } else {
                 Ok(None)
             }
@@ -952,9 +952,13 @@ pub fn server_finish(
 }
 
 #[cfg(feature = "hax-pv")]
+/// This module exists only to guide hax towards extracting the
+/// definitions it depends on earlier that they would normally be
+/// extracted.
 mod proverif_extra {
     use crate::tls13utils::Bytes;
 
+    #[hax_lib::proverif::replace("")]
     fn f() {
         let b = Bytes::new();
     }

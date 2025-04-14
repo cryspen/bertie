@@ -79,7 +79,6 @@ pub struct RsaVerificationKey {
 
 /// Bertie public verification keys.
 #[derive(Debug, Clone)]
-// XXX: Extracting this still leads to ambigous accessors, so I removed these here.
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
@@ -481,7 +480,6 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-// XXX: Review this.
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(

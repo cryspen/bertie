@@ -25,8 +25,6 @@ pub fn derive_binder_key(
 }
 
 /// Derive an AEAD key and iv.
-// XXX: PV can't handle the use of `ok_or` here.
-// #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 #[allow(clippy::assign_op_pattern)]
 #[cfg_attr(
     feature = "hax-pv",

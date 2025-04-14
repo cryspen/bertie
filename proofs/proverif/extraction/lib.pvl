@@ -3995,7 +3995,7 @@ letfun bertie__tls13keyscheduler__derive_rms(
        (ks, hax_temp_output).
 
 
-(* XXX: This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
+(* This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
 fun extern__certificate(
             bertie__tls13utils__t_Bytes, (* server name *)
             bertie__tls13crypto__t_SignatureScheme,
@@ -4097,6 +4097,8 @@ letfun bertie__server__lookup_db(
           )
           else bertie__server__t_ServerInfo_err())
        else (bertie__server__t_ServerInfo_err()).
+
+
 
 letfun bertie__tls13handshake__algs_post_client_hello(
          st : bertie__tls13handshake__t_ClientPostClientHello
@@ -5974,8 +5976,4 @@ letfun bertie__tls13handshake__server_finish(
        let ks = (tmp0) in
        let hax_temp_output = (v_out) in
        (ks, hax_temp_output).
-
-letfun bertie__tls13handshake__proverif_extra__f(wildcard14 : bitstring) =
-       let b = (bertie__tls13utils__impl_Bytes__new(())) in
-       ().
 
