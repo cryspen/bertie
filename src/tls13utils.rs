@@ -586,6 +586,9 @@ pub(crate) fn eq1(b1: U8, b2: U8) -> bool {
 /// Parser function to check if [Bytes] `b1` and `b2` have the same value,
 /// returning a [TLSError] otherwise.
 #[allow(dead_code)]
+#[hax_lib::ensures(|result| match result {
+    Ok(_) => b1 == b2,
+    _ => true })]
 pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
     if eq1(b1, b2) {
         Ok(())
@@ -657,8 +660,25 @@ pub(crate) fn check_eq_with_slice(
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Ok(_) => b1 == b2,
+    _ => true })]
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_inner(b1, b2)
+}
+
+/// Parse function to check if two [Option<Bytes>] slices `b1` and `b2` are of the same
+/// length and agree on all positions, returning a [TLSError] otherwise.
+#[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Ok(_) => b1 == b2,
+    _ => true })]
+pub(crate) fn check_eq_option(b1: &Option<Bytes>, b2: &Option<Bytes>) -> Result<(), TLSError> {
+    match (b1, b2) {
+        (None, None) => Ok(()),
+        (Some(b1), Some(b2)) => check_eq_inner(b1, b2),
+        _ => Err(parse_failed()),
+    }
 }
 
 // TODO: This function should short-circuit once hax supports returns within loops

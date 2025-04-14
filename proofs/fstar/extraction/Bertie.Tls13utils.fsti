@@ -355,7 +355,14 @@ val eq1 (b1 b2: u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 /// Parser function to check if [Bytes] `b1` and `b2` have the same value,
 /// returning a [TLSError] otherwise.
 val check_eq1 (b1 b2: u8)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ -> b1 =. b2
+          | _ -> true)
 
 /// Check if [U8] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
@@ -393,7 +400,26 @@ val check_eq_with_slice (b1 b2: t_Slice u8) (start v_end: usize)
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 val check_eq (b1 b2: t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ -> b1 =. b2
+          | _ -> true)
+
+/// Parse function to check if two [Option<Bytes>] slices `b1` and `b2` are of the same
+/// length and agree on all positions, returning a [TLSError] otherwise.
+val check_eq_option (b1 b2: Core.Option.t_Option t_Bytes)
+    : Prims.Pure (Core.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core.Result.t_Result Prims.unit u8 = result in
+          match result <: Core.Result.t_Result Prims.unit u8 with
+          | Core.Result.Result_Ok _ -> b1 =. b2
+          | _ -> true)
 
 /// Compare the two provided byte slices.
 /// Returns `Ok(())` when they are equal, and a [`TLSError`] otherwise.
