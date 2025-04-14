@@ -5,7 +5,7 @@
 
 ./fextraction/Fixes.v
 ./fextraction/Bertie_Tls13utils.v
-./fextraction/Bertie_Tls13formats_Handshake_data.v
+# ./fextraction/Bertie_Tls13formats_Handshake_data.v
 ./fextraction/Bertie_Tls13crypto.v
 ./fextraction/Bertie_Tls13formats.v
 ./fextraction/Bertie_Tls13keyscheduler_Key_schedule.v

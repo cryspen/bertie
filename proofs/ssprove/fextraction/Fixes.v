@@ -368,3 +368,5 @@ Definition impl_2__extend_from_slice {A} (a : both (t_Vec A t_Global)) (b : both
 #[global] Notation "'t_HashMap'" := (fun x y _ => chMap x y) (at level 100).
 
 #[global] Notation "'impl_Bytes__declassify'" := id.
+
+Definition impl__is_empty {A} (l : both (chList A)) := (l =.? array_to_list (array_from_list [])).

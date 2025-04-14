@@ -32,9 +32,6 @@ Require Import Bertie_Tls13utils.
 
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
-(* Definition t_RsaVerificationKey : choice_type := *)
-(*   ⊥. *)
-
 Definition t_HashAlgorithm : choice_type :=
   ('unit ∐ 'unit ∐ 'unit).
 Notation "'HashAlgorithm_SHA256_case'" := (inl (inl tt)) (at level 100).
@@ -53,6 +50,18 @@ Equations HashAlgorithm_SHA512 : both t_HashAlgorithm :=
     ret_both (inr (tt : 'unit) : t_HashAlgorithm) : both t_HashAlgorithm.
 Fail Next Obligation.
 
+Equations t_HashAlgorithm_cast_to_repr (x : both t_HashAlgorithm) : both uint_size :=
+  t_HashAlgorithm_cast_to_repr x  :=
+    matchb x with
+    | HashAlgorithm_SHA256_case  =>
+      ret_both (0 : uint_size)
+    | HashAlgorithm_SHA384_case  =>
+      ret_both (1 : uint_size)
+    | HashAlgorithm_SHA512_case  =>
+      ret_both (2 : uint_size)
+    end : both uint_size.
+Fail Next Obligation.
+
 #[global] Program Instance t_HashAlgorithm_t_PartialEq : t_PartialEq t_HashAlgorithm t_HashAlgorithm :=
   _.
 Fail Next Obligation.
@@ -68,14 +77,6 @@ Hint Unfold t_HashAlgorithm_t_Eq.
 (* Fail Next Obligation. *)
 (* Hint Unfold t_HashAlgorithm_t_Hash. *)
 
-(* Equations hash (ha : both t_HashAlgorithm) (data : both t_Bytes) : both (t_Result t_Bytes int8) := *)
-(*   hash ha data  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hasher := impl_HashAlgorithm__libcrux_algorithm ha in *)
-(*     Result_Ok (letb digest := from_elem (ret_both (0 : int8)) (impl_Algorithm__hash_len hasher) in *)
-(*     letb digest := impl_Algorithm__hash hasher (f_deref (impl_Bytes__declassify data)) digest in *)
-(*     Result_Ok (f_into digest))) : both (t_Result t_Bytes int8). *)
-(* Fail Next Obligation. *)
-
 Equations hash_len_inner (h : both t_HashAlgorithm) : both uint_size :=
   hash_len_inner h :=
     matchb h with
@@ -89,39 +90,55 @@ Equations impl_HashAlgorithm__hash_len (self : both t_HashAlgorithm) : both uint
     hash_len_inner self : both uint_size.
 Fail Next Obligation.
 
-(* Equations impl_HashAlgorithm__hmac_tag_len (self : both t_HashAlgorithm) : both uint_size := *)
-(*   impl_HashAlgorithm__hmac_tag_len self  := *)
-(*     impl_HashAlgorithm__hash_len self : both uint_size. *)
-(* Fail Next Obligation. *)
-
 (* Equations hmac_tag (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) : both (t_Result t_Bytes int8) := *)
 (*   hmac_tag alg mk input  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist268 := impl_HashAlgorithm__hmac_algorithm alg in *)
-(*     Result_Ok (letb hoist269 := hmac hoist268 (f_deref (impl_Bytes__declassify mk)) (f_deref (impl_Bytes__declassify input)) Option_None in *)
-(*     letb hoist270 := f_into hoist269 in *)
-(*     Result_Ok hoist270)) : both (t_Result t_Bytes int8). *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist20 := impl_HashAlgorithm__hmac_algorithm alg in *)
+(*     Result_Ok (letb hoist21 := hmac hoist20 (f_deref (impl_Bytes__declassify mk)) (f_deref (impl_Bytes__declassify input)) Option_None in *)
+(*     letb hoist22 := f_into hoist21 in *)
+(*     Result_Ok hoist22)) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
 
-Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes :=
-  zero_key alg  :=
-    impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes.
-Fail Next Obligation.
+(* Equations hmac_verify (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) (tag : both t_Bytes) : both (t_Result 'unit int8) := *)
+(*   hmac_verify alg mk input tag  := *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hmac_tag alg mk input in *)
+(*     Result_Ok (letb hoist24 := eq hoist23 tag in *)
+(*     ifb hoist24 *)
+(*     then Result_Ok (ret_both (tt : 'unit)) *)
+(*     else tlserr v_CRYPTO_ERROR)) : both (t_Result 'unit int8). *)
+(* Fail Next Obligation. *)
+
+(* Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes := *)
+(*   zero_key alg  := *)
+(*     impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes. *)
+(* Fail Next Obligation. *)
+
+(* Equations hkdf_algorithm (alg : both t_HashAlgorithm) : both (t_Result t_Algorithm int8) := *)
+(*   hkdf_algorithm alg  := *)
+(*     matchb alg with *)
+(*     | HashAlgorithm_SHA256_case  => *)
+(*       Result_Ok Algorithm_Sha256 *)
+(*     | HashAlgorithm_SHA384_case  => *)
+(*       Result_Ok Algorithm_Sha384 *)
+(*     | HashAlgorithm_SHA512_case  => *)
+(*       Result_Ok Algorithm_Sha512 *)
+(*     end : both (t_Result t_Algorithm int8). *)
+(* Fail Next Obligation. *)
 
 (* Equations hkdf_extract (alg : both t_HashAlgorithm) (ikm : both t_Bytes) (salt : both t_Bytes) : both (t_Result t_Bytes int8) := *)
 (*   hkdf_extract alg ikm salt  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist273 := hkdf_algorithm alg in *)
-(*     Result_Ok (letb hoist274 := extract hoist273 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
-(*     letb hoist275 := impl__map hoist274 (fun bytes => *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist25 := hkdf_algorithm alg in *)
+(*     Result_Ok (letb hoist26 := extract hoist25 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
+(*     letb hoist27 := impl__map hoist26 (fun bytes => *)
 (*       f_into bytes) in *)
-(*     impl__map_err hoist275 (fun _ => *)
+(*     impl__map_err hoist27 (fun _ => *)
 (*       v_CRYPTO_ERROR))) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
 
 (* Equations hkdf_expand (alg : both t_HashAlgorithm) (prk : both t_Bytes) (info : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) := *)
 (*   hkdf_expand alg prk info len  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist276 := hkdf_algorithm alg in *)
-(*     Result_Ok (letb hoist277 := expand hoist276 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
-(*     matchb hoist277 with *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist28 := hkdf_algorithm alg in *)
+(*     Result_Ok (letb hoist29 := expand hoist28 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
+(*     matchb hoist29 with *)
 (*     | Result_Ok_case x => *)
 (*       letb x := ret_both ((x) : (t_Vec int8 t_Global)) in *)
 (*       Result_Ok (f_into x) *)
@@ -130,408 +147,3 @@ Fail Next Obligation.
 (*       tlserr v_CRYPTO_ERROR *)
 (*     end)) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
-
-Definition t_AeadAlgorithm : choice_type :=
-  ('unit ∐ 'unit ∐ 'unit).
-Notation "'AeadAlgorithm_Chacha20Poly1305_case'" := (inl (inl tt)) (at level 100).
-Equations AeadAlgorithm_Chacha20Poly1305 : both t_AeadAlgorithm :=
-  AeadAlgorithm_Chacha20Poly1305  :=
-    ret_both (inl (inl (tt : 'unit)) : t_AeadAlgorithm) : both t_AeadAlgorithm.
-Fail Next Obligation.
-Notation "'AeadAlgorithm_Aes128Gcm_case'" := (inl (inr tt)) (at level 100).
-Equations AeadAlgorithm_Aes128Gcm : both t_AeadAlgorithm :=
-  AeadAlgorithm_Aes128Gcm  :=
-    ret_both (inl (inr (tt : 'unit)) : t_AeadAlgorithm) : both t_AeadAlgorithm.
-Fail Next Obligation.
-Notation "'AeadAlgorithm_Aes256Gcm_case'" := (inr tt) (at level 100).
-Equations AeadAlgorithm_Aes256Gcm : both t_AeadAlgorithm :=
-  AeadAlgorithm_Aes256Gcm  :=
-    ret_both (inr (tt : 'unit) : t_AeadAlgorithm) : both t_AeadAlgorithm.
-Fail Next Obligation.
-
-Definition t_AeadKey : choice_type :=
-  (t_Bytes × t_AeadAlgorithm).
-Equations f_bytes (s : both t_AeadKey) : both t_Bytes :=
-  f_bytes s  :=
-    bind_both s (fun x =>
-      ret_both (fst x : t_Bytes)) : both t_Bytes.
-Fail Next Obligation.
-Equations f_e_alg (s : both t_AeadKey) : both t_AeadAlgorithm :=
-  f_e_alg s  :=
-    bind_both s (fun x =>
-      ret_both (snd x : t_AeadAlgorithm)) : both t_AeadAlgorithm.
-Fail Next Obligation.
-Equations Build_t_AeadKey {f_bytes : both t_Bytes} {f_e_alg : both t_AeadAlgorithm} : both (t_AeadKey) :=
-  Build_t_AeadKey  :=
-    bind_both f_e_alg (fun f_e_alg =>
-      bind_both f_bytes (fun f_bytes =>
-        ret_both ((f_bytes,f_e_alg) : (t_AeadKey)))) : both (t_AeadKey).
-Fail Next Obligation.
-#[global] Program Instance t_AeadKey_Settable : Settable (both t_AeadKey) :=
-  let mkT := fun x =>  (bind_both (f_e_alg x) (fun f_e_alg =>
-    bind_both (f_bytes x) (fun f_bytes =>
-      ret_both ((f_bytes,f_e_alg) : (t_AeadKey))))) : _ in
-  {| mkT := (@mkT)|}.
-Admit Obligations.
-Fail Next Obligation.
-
-Definition t_AeadKeyIV : choice_type :=
-  (t_AeadKey × t_Bytes).
-Equations f_key (s : both t_AeadKeyIV) : both t_AeadKey :=
-  f_key s  :=
-    bind_both s (fun x =>
-      ret_both (fst x : t_AeadKey)) : both t_AeadKey.
-Fail Next Obligation.
-Equations f_iv (s : both t_AeadKeyIV) : both t_Bytes :=
-  f_iv s  :=
-    bind_both s (fun x =>
-      ret_both (snd x : t_Bytes)) : both t_Bytes.
-Fail Next Obligation.
-Equations Build_t_AeadKeyIV {f_key : both t_AeadKey} {f_iv : both t_Bytes} : both (t_AeadKeyIV) :=
-  Build_t_AeadKeyIV  :=
-    bind_both f_iv (fun f_iv =>
-      bind_both f_key (fun f_key =>
-        ret_both ((f_key,f_iv) : (t_AeadKeyIV)))) : both (t_AeadKeyIV).
-Fail Next Obligation.
-#[global] Program Instance t_AeadKeyIV_Settable : Settable (both t_AeadKeyIV) :=
-  let mkT := fun x =>  (bind_both (f_iv x) (fun f_iv =>
-    bind_both (f_key x) (fun f_key =>
-      ret_both ((f_key,f_iv) : (t_AeadKeyIV))))) : _ in
-  {| mkT := (@mkT)|}.
-Admit Obligations.
-Fail Next Obligation.
-
-Equations impl_AeadKeyIV__new (key : both t_AeadKey) (iv : both t_Bytes) : both t_AeadKeyIV :=
-  impl_AeadKeyIV__new key iv  :=
-    Build_t_AeadKeyIV (f_key := key) (f_iv := iv) : both t_AeadKeyIV.
-Fail Next Obligation.
-
-Equations impl_AeadKey__new (bytes : both t_Bytes) (e_alg : both t_AeadAlgorithm) : both t_AeadKey :=
-  impl_AeadKey__new bytes e_alg  :=
-    Build_t_AeadKey (f_bytes := bytes) (f_e_alg := e_alg) : both t_AeadKey.
-Fail Next Obligation.
-
-Equations impl_AeadAlgorithm__key_len (self : both t_AeadAlgorithm) : both uint_size :=
-  impl_AeadAlgorithm__key_len self  :=
-    matchb self with
-    | AeadAlgorithm_Chacha20Poly1305_case  =>
-      ret_both (32 : uint_size)
-    | AeadAlgorithm_Aes128Gcm_case  =>
-      ret_both (16 : uint_size)
-    | AeadAlgorithm_Aes256Gcm_case  =>
-      ret_both (32 : uint_size)
-    end : both uint_size.
-Fail Next Obligation.
-
-Equations impl_AeadAlgorithm__iv_len (self : both t_AeadAlgorithm) : both uint_size :=
-  impl_AeadAlgorithm__iv_len self  :=
-    matchb self with
-    | AeadAlgorithm_Chacha20Poly1305_case  =>
-      ret_both (12 : uint_size)
-    | AeadAlgorithm_Aes128Gcm_case  =>
-      ret_both (12 : uint_size)
-    | AeadAlgorithm_Aes256Gcm_case  =>
-      ret_both (12 : uint_size)
-    end : both uint_size.
-Fail Next Obligation.
-
-Definition t_SignatureScheme : choice_type :=
-  ('unit ∐ 'unit ∐ 'unit).
-Notation "'SignatureScheme_RsaPssRsaSha256_case'" := (inl (inl tt)) (at level 100).
-Equations SignatureScheme_RsaPssRsaSha256 : both t_SignatureScheme :=
-  SignatureScheme_RsaPssRsaSha256  :=
-    ret_both (inl (inl (tt : 'unit)) : t_SignatureScheme) : both t_SignatureScheme.
-Fail Next Obligation.
-Notation "'SignatureScheme_EcdsaSecp256r1Sha256_case'" := (inl (inr tt)) (at level 100).
-Equations SignatureScheme_EcdsaSecp256r1Sha256 : both t_SignatureScheme :=
-  SignatureScheme_EcdsaSecp256r1Sha256  :=
-    ret_both (inl (inr (tt : 'unit)) : t_SignatureScheme) : both t_SignatureScheme.
-Fail Next Obligation.
-Notation "'SignatureScheme_ED25519_case'" := (inr tt) (at level 100).
-Equations SignatureScheme_ED25519 : both t_SignatureScheme :=
-  SignatureScheme_ED25519  :=
-    ret_both (inr (tt : 'unit) : t_SignatureScheme) : both t_SignatureScheme.
-Fail Next Obligation.
-
-(* Equations sign_rsa {iimpl_447424039_ : iimpl_447424039_} `{ t_Sized iimpl_447424039_} `{ t_CryptoRng iimpl_447424039_} (sk : both t_Bytes) (pk_modulus : both t_Bytes) (pk_exponent : both t_Bytes) (cert_scheme : both t_SignatureScheme) (input : both t_Bytes) (rng : both iimpl_447424039_) : both (iimpl_447424039_ × t_Result t_Bytes int8) := *)
-(*   sign_rsa sk pk_modulus pk_exponent cert_scheme input rng  := *)
-(*     run (letb salt := repeat (ret_both (0 : int8)) (ret_both (32 : uint_size)) in *)
-(*     letb '(tmp0,tmp1) := f_fill_bytes rng salt in *)
-(*     letb rng := tmp0 in *)
-(*     letb salt := tmp1 in *)
-(*     letb _ := ret_both (tt : 'unit) in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] _ := ifb f_not (matchb cert_scheme with *)
-(*     | SignatureScheme_RsaPssRsaSha256_case  => *)
-(*       ret_both (true : 'bool) *)
-(*     | _ => *)
-(*       ret_both (false : 'bool) *)
-(*     end) *)
-(*     then letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist278 := ControlFlow_Break (prod_b (rng,tlserr v_CRYPTO_ERROR)) in *)
-(*     ControlFlow_Continue (never_to_any hoist278) *)
-(*     else ControlFlow_Continue (ret_both (tt : 'unit)) in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] _ := ifb f_not (valid_rsa_exponent (impl_Bytes__declassify pk_exponent)) *)
-(*     then letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist279 := ControlFlow_Break (prod_b (rng,tlserr v_UNSUPPORTED_ALGORITHM)) in *)
-(*     ControlFlow_Continue (never_to_any hoist279) *)
-(*     else ControlFlow_Continue (ret_both (tt : 'unit)) in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] _ := matchb f_branch (supported_rsa_key_size pk_modulus) with *)
-(*     | ControlFlow_Break_case residual => *)
-(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist280 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*       ControlFlow_Continue (never_to_any hoist280) *)
-(*     | ControlFlow_Continue_case val => *)
-(*       letb val := ret_both ((val) : ('unit)) in *)
-(*       ControlFlow_Continue val *)
-(*     end in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] pk := matchb f_branch (impl__map_err (f_try_from ((impl_Bytes__declassify pk_modulus).a[(Build_t_RangeFrom (f_start := ret_both (1 : uint_size)))])) (fun _ => *)
-(*       v_INCORRECT_ARRAY_LENGTH)) with *)
-(*     | ControlFlow_Break_case residual => *)
-(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist281 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*       ControlFlow_Continue (never_to_any hoist281) *)
-(*     | ControlFlow_Continue_case val => *)
-(*       letb val := ret_both ((val) : (t_VarLenPublicKey)) in *)
-(*       ControlFlow_Continue val *)
-(*     end in *)
-(*     letb pk_modulus_vec := impl_Bytes__declassify pk_modulus in *)
-(*     letb sk_vec := impl_Bytes__declassify sk in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] sk := matchb f_branch (impl__map_err (impl_4__from_components (pk_modulus_vec.a[(Build_t_RangeFrom (f_start := ret_both (1 : uint_size)))]) (f_deref sk_vec)) (fun _ => *)
-(*       v_INCORRECT_ARRAY_LENGTH)) with *)
-(*     | ControlFlow_Break_case residual => *)
-(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist282 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*       ControlFlow_Continue (never_to_any hoist282) *)
-(*     | ControlFlow_Continue_case val => *)
-(*       letb val := ret_both ((val) : (t_VarLenPrivateKey)) in *)
-(*       ControlFlow_Continue val *)
-(*     end in *)
-(*     letb msg := impl_Bytes__declassify input in *)
-(*     letb signature := repeat (ret_both (0 : int8)) (ret_both (512 : uint_size)) in *)
-(*     letb '(tmp0,out) := sign_varlen DigestAlgorithm_Sha2_256_ sk (f_deref msg) (unsize salt) signature in *)
-(*     letb signature := tmp0 in *)
-(*     letb hoist284 := out in *)
-(*     letb hoist285 := impl__map_err hoist284 (fun _ => *)
-(*       v_CRYPTO_ERROR) in *)
-(*     letb hoist286 := f_branch hoist285 in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] _ := matchb hoist286 with *)
-(*     | ControlFlow_Break_case residual => *)
-(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist283 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*       ControlFlow_Continue (never_to_any hoist283) *)
-(*     | ControlFlow_Continue_case val => *)
-(*       letb val := ret_both ((val) : ('unit)) in *)
-(*       ControlFlow_Continue val *)
-(*     end in *)
-(*     ControlFlow_Continue (letb hax_temp_output := Result_Ok (f_into signature) in *)
-(*     prod_b (rng,hax_temp_output))) : both (iimpl_447424039_ × t_Result t_Bytes int8). *)
-(* Fail Next Obligation. *)
-
-(* Equations sign {iimpl_447424039_ : iimpl_447424039_} `{ t_Sized iimpl_447424039_} `{ t_CryptoRng iimpl_447424039_} (algorithm : both t_SignatureScheme) (sk : both t_Bytes) (input : both t_Bytes) (rng : both iimpl_447424039_) : both (iimpl_447424039_ × t_Result t_Bytes int8) := *)
-(*   sign algorithm sk input rng  := *)
-(*     run (letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] '(rng,hax_temp_output) := matchb algorithm with *)
-(*     | SignatureScheme_EcdsaSecp256r1Sha256_case  => *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist288 := matchb f_branch (impl__map_err (f_try_into (impl_1__as_slice (impl_Bytes__declassify sk))) (fun _ => *)
-(*         v_INCORRECT_ARRAY_LENGTH)) with *)
-(*       | ControlFlow_Break_case residual => *)
-(*         letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*         letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist287 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*         ControlFlow_Continue (never_to_any hoist287) *)
-(*       | ControlFlow_Continue_case val => *)
-(*         letb val := ret_both ((val) : (t_PrivateKey)) in *)
-(*         ControlFlow_Continue val *)
-(*       end in *)
-(*       ControlFlow_Continue (letb '(tmp0,out) := sign Algorithm_Sha256 (f_deref (impl_Bytes__declassify input)) hoist288 rng in *)
-(*       letb rng := tmp0 in *)
-(*       letb hoist289 := out in *)
-(*       letb hoist290 := impl__map_err hoist289 (fun _ => *)
-(*         v_CRYPTO_ERROR) in *)
-(*       prod_b (rng,impl__map hoist290 (fun s => *)
-(*           letb '(r,s) := impl__as_bytes s in *)
-(*           impl_Bytes__concat (f_from r) (f_from s)))) *)
-(*     | SignatureScheme_ED25519_case  => *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist292 := matchb f_branch (impl__map_err (f_try_into (impl_Bytes__declassify sk)) (fun _ => *)
-(*         v_INCORRECT_ARRAY_LENGTH)) with *)
-(*       | ControlFlow_Break_case residual => *)
-(*         letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*         letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result t_Bytes int8)] hoist291 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*         ControlFlow_Continue (never_to_any hoist291) *)
-(*       | ControlFlow_Continue_case val => *)
-(*         letb val := ret_both ((val) : (nseq int8 32)) in *)
-(*         ControlFlow_Continue val *)
-(*       end in *)
-(*       ControlFlow_Continue (letb hoist293 := sign (f_deref (impl_Bytes__declassify input)) hoist292 in *)
-(*       letb hoist294 := impl__map_err hoist293 (fun _ => *)
-(*         v_CRYPTO_ERROR) in *)
-(*       prod_b (rng,impl__map hoist294 (fun s => *)
-(*           f_into s))) *)
-(*     | SignatureScheme_RsaPssRsaSha256_case  => *)
-(*       ControlFlow_Continue (prod_b (rng,never_to_any (panic_fmt (impl_4__new_const (array_from_list [ret_both (wrong function, use sign_rsa : chString)]))))) *)
-(*     end in *)
-(*     ControlFlow_Continue (prod_b (rng,hax_temp_output))) : both (iimpl_447424039_ × t_Result t_Bytes int8). *)
-(* Fail Next Obligation. *)
-
-Definition t_KemScheme : choice_type :=
-  ('unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit).
-Notation "'KemScheme_X25519_case'" := (inl (inl (inl (inl (inl (inl tt)))))) (at level 100).
-Equations KemScheme_X25519 : both t_KemScheme :=
-  KemScheme_X25519  :=
-    ret_both (inl (inl (inl (inl (inl (inl (tt : 'unit)))))) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-Notation "'KemScheme_Secp256r1_case'" := (inl (inl (inl (inl (inl (inr tt)))))) (at level 100).
-Equations KemScheme_Secp256r1 : both t_KemScheme :=
-  KemScheme_Secp256r1  :=
-    ret_both (inl (inl (inl (inl (inl (inr (tt : 'unit)))))) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-Notation "'KemScheme_X448_case'" := (inl (inl (inl (inl (inr tt))))) (at level 100).
-Equations KemScheme_X448 : both t_KemScheme :=
-  KemScheme_X448  :=
-    ret_both (inl (inl (inl (inl (inr (tt : 'unit))))) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-Notation "'KemScheme_Secp384r1_case'" := (inl (inl (inl (inr tt)))) (at level 100).
-Equations KemScheme_Secp384r1 : both t_KemScheme :=
-  KemScheme_Secp384r1  :=
-    ret_both (inl (inl (inl (inr (tt : 'unit)))) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-Notation "'KemScheme_Secp521r1_case'" := (inl (inl (inr tt))) (at level 100).
-Equations KemScheme_Secp521r1 : both t_KemScheme :=
-  KemScheme_Secp521r1  :=
-    ret_both (inl (inl (inr (tt : 'unit))) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-Notation "'KemScheme_X25519Kyber768Draft00_case'" := (inl (inr tt)) (at level 100).
-Equations KemScheme_X25519Kyber768Draft00 : both t_KemScheme :=
-  KemScheme_X25519Kyber768Draft00  :=
-    ret_both (inl (inr (tt : 'unit)) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-Notation "'KemScheme_X25519MlKem768_case'" := (inr tt) (at level 100).
-Equations KemScheme_X25519MlKem768 : both t_KemScheme :=
-  KemScheme_X25519MlKem768  :=
-    ret_both (inr (tt : 'unit) : t_KemScheme) : both t_KemScheme.
-Fail Next Obligation.
-
-(* Equations kem_keygen {iimpl_447424039_ : iimpl_447424039_} `{ t_Sized iimpl_447424039_} `{ t_CryptoRng iimpl_447424039_} (alg : both t_KemScheme) (rng : both iimpl_447424039_) : both (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8) := *)
-(*   kem_keygen alg rng  := *)
-(*     run (letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8)] hoist306 := matchb f_branch (impl_KemScheme__libcrux_kem_algorithm alg) with *)
-(*     | ControlFlow_Break_case residual => *)
-(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8)] hoist305 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*       ControlFlow_Continue (never_to_any hoist305) *)
-(*     | ControlFlow_Continue_case val => *)
-(*       letb val := ret_both ((val) : (t_Algorithm)) in *)
-(*       ControlFlow_Continue val *)
-(*     end in *)
-(*     ControlFlow_Continue (letb '(tmp0,out) := key_gen hoist306 rng in *)
-(*     letb rng := tmp0 in *)
-(*     letb res := out in *)
-(*     letb hax_temp_output := matchb res with *)
-(*     | Result_Ok_case (sk,pk) => *)
-(*       letb '(sk,pk) := ret_both (((sk,pk)) : (t_PrivateKey × t_PublicKey)) in *)
-(*       Result_Ok (prod_b (f_from (impl_PrivateKey__encode sk),impl_Bytes__concat (encoding_prefix alg) (f_from (impl_PublicKey__encode pk)))) *)
-(*     | Result_Err_case _ => *)
-(*       letb _ := ret_both (tt (* Empty tuple *) : (t_Error)) in *)
-(*       tlserr v_CRYPTO_ERROR *)
-(*     end in *)
-(*     prod_b (rng,hax_temp_output))) : both (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8). *)
-(* Fail Next Obligation. *)
-
-(* Equations kem_encap {iimpl_447424039_ : iimpl_447424039_} `{ t_Sized iimpl_447424039_} `{ t_CryptoRng iimpl_447424039_} (alg : both t_KemScheme) (pk : both t_Bytes) (rng : both iimpl_447424039_) : both (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8) := *)
-(*   kem_encap alg pk rng  := *)
-(*     run (letb pk := into_raw alg (f_clone pk) in *)
-(*     letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8)] hoist308 := matchb f_branch (impl_KemScheme__libcrux_kem_algorithm alg) with *)
-(*     | ControlFlow_Break_case residual => *)
-(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
-(*       letm[choice_typeMonad.result_bind_code (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8)] hoist307 := ControlFlow_Break (prod_b (rng,f_from_residual residual)) in *)
-(*       ControlFlow_Continue (never_to_any hoist307) *)
-(*     | ControlFlow_Continue_case val => *)
-(*       letb val := ret_both ((val) : (t_Algorithm)) in *)
-(*       ControlFlow_Continue val *)
-(*     end in *)
-(*     ControlFlow_Continue (letb hoist309 := impl_PublicKey__decode hoist308 (f_deref (impl_Bytes__declassify pk)) in *)
-(*     letb pk := impl__unwrap hoist309 in *)
-(*     letb '(tmp0,out) := impl_PublicKey__encapsulate pk rng in *)
-(*     letb rng := tmp0 in *)
-(*     letb res := out in *)
-(*     letb hax_temp_output := matchb res with *)
-(*     | Result_Ok_case (shared_secret,ct) => *)
-(*       letb '(shared_secret,ct) := ret_both (((shared_secret,ct)) : (t_Ss × t_Ct)) in *)
-(*       letb ct := impl_Bytes__concat (encoding_prefix alg) (f_from (impl_Ct__encode ct)) in *)
-(*       letb shared_secret := to_shared_secret alg (f_from (impl_Ss__encode shared_secret)) in *)
-(*       Result_Ok (prod_b (shared_secret,ct)) *)
-(*     | Result_Err_case _ => *)
-(*       letb _ := ret_both (tt (* Empty tuple *) : (t_Error)) in *)
-(*       tlserr v_CRYPTO_ERROR *)
-(*     end in *)
-(*     prod_b (rng,hax_temp_output))) : both (iimpl_447424039_ × t_Result (t_Bytes × t_Bytes) int8). *)
-(* Fail Next Obligation. *)
-
-Definition t_Algorithms : choice_type :=
-  (t_HashAlgorithm × t_AeadAlgorithm × t_SignatureScheme × t_KemScheme × 'bool × 'bool).
-Equations f_hash (s : both t_Algorithms) : both t_HashAlgorithm :=
-  f_hash s  :=
-    bind_both s (fun x =>
-      ret_both (fst (fst (fst (fst (fst x)))) : t_HashAlgorithm)) : both t_HashAlgorithm.
-Fail Next Obligation.
-Equations f_aead (s : both t_Algorithms) : both t_AeadAlgorithm :=
-  f_aead s  :=
-    bind_both s (fun x =>
-      ret_both (snd (fst (fst (fst (fst x)))) : t_AeadAlgorithm)) : both t_AeadAlgorithm.
-Fail Next Obligation.
-Equations f_signature (s : both t_Algorithms) : both t_SignatureScheme :=
-  f_signature s  :=
-    bind_both s (fun x =>
-      ret_both (snd (fst (fst (fst x))) : t_SignatureScheme)) : both t_SignatureScheme.
-Fail Next Obligation.
-Equations f_kem (s : both t_Algorithms) : both t_KemScheme :=
-  f_kem s  :=
-    bind_both s (fun x =>
-      ret_both (snd (fst (fst x)) : t_KemScheme)) : both t_KemScheme.
-Fail Next Obligation.
-Equations f_psk_mode (s : both t_Algorithms) : both 'bool :=
-  f_psk_mode s  :=
-    bind_both s (fun x =>
-      ret_both (snd (fst x) : 'bool)) : both 'bool.
-Fail Next Obligation.
-Equations f_zero_rtt (s : both t_Algorithms) : both 'bool :=
-  f_zero_rtt s  :=
-    bind_both s (fun x =>
-      ret_both (snd x : 'bool)) : both 'bool.
-Fail Next Obligation.
-Equations Build_t_Algorithms {f_hash : both t_HashAlgorithm} {f_aead : both t_AeadAlgorithm} {f_signature : both t_SignatureScheme} {f_kem : both t_KemScheme} {f_psk_mode : both 'bool} {f_zero_rtt : both 'bool} : both (t_Algorithms) :=
-  Build_t_Algorithms  :=
-    bind_both f_zero_rtt (fun f_zero_rtt =>
-      bind_both f_psk_mode (fun f_psk_mode =>
-        bind_both f_kem (fun f_kem =>
-          bind_both f_signature (fun f_signature =>
-            bind_both f_aead (fun f_aead =>
-              bind_both f_hash (fun f_hash =>
-                ret_both ((f_hash,f_aead,f_signature,f_kem,f_psk_mode,f_zero_rtt) : (t_Algorithms)))))))) : both (t_Algorithms).
-Fail Next Obligation.
-#[global] Program Instance t_Algorithms_Settable : Settable (both t_Algorithms) :=
-  let mkT := fun x =>  (bind_both (f_zero_rtt x) (fun f_zero_rtt =>
-    bind_both (f_psk_mode x) (fun f_psk_mode =>
-      bind_both (f_kem x) (fun f_kem =>
-        bind_both (f_signature x) (fun f_signature =>
-          bind_both (f_aead x) (fun f_aead =>
-            bind_both (f_hash x) (fun f_hash =>
-              ret_both ((f_hash,f_aead,f_signature,f_kem,f_psk_mode,f_zero_rtt) : (t_Algorithms))))))))) : _ in
-  {| mkT := (@mkT)|}.
-Admit Obligations.
-Fail Next Obligation.
-
-Equations impl_Algorithms__hash (self : both t_Algorithms) : both t_HashAlgorithm :=
-  impl_Algorithms__hash self  :=
-    f_hash self : both t_HashAlgorithm.
-Fail Next Obligation.
-
-Equations impl_Algorithms__signature (self : both t_Algorithms) : both t_SignatureScheme :=
-  impl_Algorithms__signature self  :=
-    f_signature self : both t_SignatureScheme.
-Fail Next Obligation.
-
-Equations impl_Algorithms__kem (self : both t_Algorithms) : both t_KemScheme :=
-  impl_Algorithms__kem self  :=
-    f_kem self : both t_KemScheme.
-Fail Next Obligation.
-
-Equations impl_Algorithms__psk_mode (self : both t_Algorithms) : both 'bool :=
-  impl_Algorithms__psk_mode self  :=
-    f_psk_mode self : both 'bool.
-Fail Next Obligation.

@@ -26,13 +26,13 @@ From RecordUpdate Require Import RecordUpdate.
 
 Import RecordSetNotations.
 
-From BertieExtraction Require Import Fixes.
+Require Import Fixes.
 
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
-Equations v_UNSUPPORTED_ALGORITHM : both int8 :=
-  v_UNSUPPORTED_ALGORITHM  :=
-    ret_both (1 : int8) : both int8.
+Equations v_CRYPTO_ERROR : both int8 :=
+  v_CRYPTO_ERROR  :=
+    ret_both (2 : int8) : both int8.
 Fail Next Obligation.
 
 Equations v_INCORRECT_STATE : both int8 :=
@@ -45,19 +45,9 @@ Equations v_PAYLOAD_TOO_LONG : both int8 :=
     ret_both (130 : int8) : both int8.
 Fail Next Obligation.
 
-Equations v_PSK_MODE_MISMATCH : both int8 :=
-  v_PSK_MODE_MISMATCH  :=
-    ret_both (131 : int8) : both int8.
-Fail Next Obligation.
-
-Equations v_PARSE_FAILED : both int8 :=
-  v_PARSE_FAILED  :=
-    ret_both (133 : int8) : both int8.
-Fail Next Obligation.
-
-Equations parse_failed (_ : both 'unit) : both int8 :=
-  parse_failed _  :=
-    v_PARSE_FAILED : both int8.
+Equations tlserr {v_T : choice_type} `{ t_Sized v_T} (err : both int8) : both (t_Result v_T int8) :=
+  tlserr err  :=
+    Result_Err err : both (t_Result v_T int8).
 Fail Next Obligation.
 
 Equations v_U16 (x : both int16) : both int16 :=
@@ -77,12 +67,7 @@ Equations Build_t_Bytes {t_Bytes0 : both (t_Vec int8 t_Global)} : both (t_Bytes)
     bind_both t_Bytes0 (fun t_Bytes0 =>
       ret_both ((t_Bytes0) : (t_Bytes))) : both (t_Bytes).
 Fail Next Obligation.
-#[global] Program Instance t_Bytes_Settable : Settable (both t_Bytes) :=
-  let mkT := fun x =>  (bind_both (t_Bytes0 x) (fun t_Bytes0 =>
-    ret_both ((t_Bytes0) : (t_Bytes)))) : _ in
-  {| mkT := (@mkT)|}.
-Admit Obligations.
-Fail Next Obligation.
+Notation "'Build_t_Bytes' '[' x ']' '(' '0' ':=' y ')'" := (Build_t_Bytes (t_Bytes0 := y)).
 
 #[global] Program Instance t_Bytes_t_Clone : t_Clone t_Bytes :=
   _.
@@ -90,7 +75,7 @@ Fail Next Obligation.
 Hint Unfold t_Bytes_t_Clone.
 
 #[global] Program Instance t_Bytes_t_From : t_From (both t_Bytes) (both (t_Vec int8 t_Global)) :=
-  let f_from := fun  (x : both (t_Vec int8 t_Global)) => Build_t_Bytes (t_Bytes0 := x) : both t_Bytes in
+  let f_from := fun  (x : both (t_Vec int8 t_Global)) => t_Bytes0 x : both t_Bytes in
   {| f_from := (@f_from)|}.
 Fail Next Obligation.
 Hint Unfold t_Bytes_t_From.
@@ -111,35 +96,24 @@ Hint Unfold t_Bytes_t_From.
 
 (* Equations impl_Bytes__as_raw (self : both t_Bytes) : both (seq int8) := *)
 (*   impl_Bytes__as_raw self  := *)
-(*     f_deref (t_Bytes0 self) : both (seq int8). *)
+(*     f_deref (0 self) : both (seq int8). *)
 (* Fail Next Obligation. *)
 
-(* #[global] Program Instance t_Bytes_t_From {v_C : both uint_size} : t_From t_Bytes (nseq int8 (is_pure (v_C))) := *)
-(*   let f_from := fun  (x : both (nseq int8 (is_pure (v_C)))) => f_into (impl__to_vec (unsize x)) : both t_Bytes in *)
-(*   {| f_from := (@f_from)|}. *)
+(* Equations u16_as_be_bytes (val : both int16) : both (nseq int8 2) := *)
+(*   u16_as_be_bytes val  := *)
+(*     letb val := impl_u16__to_be_bytes val in *)
+(*     array_from_list [v_U8 (val.a[(ret_both (0 : uint_size))]); *)
+(*       v_U8 (val.a[(ret_both (1 : uint_size))])] : both (nseq int8 2). *)
 (* Fail Next Obligation. *)
-(* Hint Unfold t_Bytes_t_From. *)
-
-Equations bytes (x : both (seq int8)) : both t_Bytes :=
-  bytes x  :=
-    f_into x : both t_Bytes.
-Fail Next Obligation.
-
-Equations impl_Bytes__new (_ : both 'unit) : both t_Bytes :=
-  impl_Bytes__new _  :=
-    Build_t_Bytes (t_Bytes0 := impl__new) : both t_Bytes.
-Fail Next Obligation.
 
 Equations impl_Bytes__from_slice (s : both (seq int8)) : both t_Bytes :=
   impl_Bytes__from_slice s  :=
     f_into s : both t_Bytes.
 Fail Next Obligation.
 
-Definition v_U8 : both uint8 -> both uint8 := id.
-
 Equations impl_Bytes__zeroes (len : both uint_size) : both t_Bytes :=
   impl_Bytes__zeroes len  :=
-    Build_t_Bytes (t_Bytes0 := from_elem (v_U8 (ret_both (0 : int8))) len) : both t_Bytes.
+    Build_t_Bytes (t_Bytes0 := from_elem ((* v_U8 *) (ret_both (0 : int8))) len) : both t_Bytes.
 Fail Next Obligation.
 
 (* Equations impl_Bytes__concat (self : both t_Bytes) (other : both t_Bytes) : both t_Bytes := *)
@@ -150,11 +124,6 @@ Fail Next Obligation.
 (* Equations eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both 'bool := *)
 (*   eq b1 b2  := *)
 (*     eq_inner b1 b2 : both 'bool. *)
-(* Fail Next Obligation. *)
-
-(* Equations check_eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both (t_Result 'unit int8) := *)
-(*   check_eq b1 b2  := *)
-(*     check_eq_inner b1 b2 : both (t_Result 'unit int8). *)
 (* Fail Next Obligation. *)
 
 (* Equations encode_length_u8 (bytes : both (seq int8)) : both (t_Result t_Bytes int8) := *)

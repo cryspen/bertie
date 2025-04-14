@@ -126,10 +126,16 @@ elif options.sub == "extract-ssprove":
             "-i",
             " ".join([
                 "-**",
-                "+~**::tls13keyscheduler::**",
-                "+~**::tls13utils::parse_failed", # transitive dependencies required
-                "+~**::tls13crypto::zero_key", # transitive dependencies required
-                ]),
+                "+~**::tls13crypto::hkdf_expand::**",
+                "+~**::tls13crypto::hkdf_extract::**",
+                "+~**::tls13crypto::hkdf_algorithm::**",
+                "+~**::tls13crypto::zero_key::**",
+                "+~**::tls13crypto::hmac_verify::**",
+                "+~**::tls13crypto::HashAlgorithm::**",
+                # "-**::tls13crypto::verify::**"
+                # "+~**::tls13formats::**",
+                "+~**::tls13keyscheduler::key_schedule::**",
+            ]),
             "ssprove",
         ],
         cwd=".",
