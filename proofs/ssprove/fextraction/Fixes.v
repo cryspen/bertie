@@ -25,6 +25,9 @@ Import choice.Choice.Exports.
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 Axiom t_String : choice_type.
+Class t_From (A B : Type) := {
+    f_from : B -> A ;
+  }.
 
 Instance sized_int8 : t_Sized int8 := { Sized := id }.
 Instance sized_int32 : t_Sized int32 := { Sized := id }.
@@ -44,6 +47,11 @@ Definition impl__u16__to_be_bytes val := bind_both val uint16_to_be_bytes.
 
 Axiom impl__Bytes__declassify : both (t_Vec int8 t_Global) -> both (t_Vec int8 t_Global).
 Notation f_deref := id.
+
+Axiom from_elem : forall {A : choice_type} (x : both A) (n : both uint_size), both (t_Vec uint8 t_Global).
+(* Axiom from_elem : forall {A : choice_type} (x : both A) (n : both uint_size), both (nseq_ A (is_pure n)). *)
+
+Notation impl__len := len.
 
 Definition impl__new {A : choice_type} : both (t_Vec A t_Global) :=
   ret_both ([] : chList A).
@@ -355,3 +363,10 @@ Definition impl_1__push {A} (a : both (t_Vec A t_Global)) (x : both A) : both (t
 
 Definition impl_2__extend_from_slice {A} (a : both (t_Vec A t_Global)) (b : both (t_Seq A)) : both (t_Vec A t_Global) :=
   lift2_both (fun (x y : t_Vec A t_Global) => ((app x y) : t_Vec A t_Global)) a (seq_to_list b).
+
+#[global] Notation "'t_RandomState'" := (tt).
+#[global] Notation "'t_HashMap'" := (fun x y _ => chMap x y) (at level 100).
+
+#[global] Notation "'impl_Bytes__declassify'" := id.
+
+Definition impl__is_empty {A} (l : both (chList A)) := (l =.? array_to_list (array_from_list [])).

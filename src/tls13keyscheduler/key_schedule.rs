@@ -36,7 +36,7 @@ pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle
         alg: alg.clone(),
         level: 0,
     };
-    let _ = set_by_handle(
+    set_by_handle(
         ks,
         &handle,
         Bytes::zeroes(1), // alg.hash_len()
@@ -52,7 +52,7 @@ pub(crate) fn no_psk(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle //
         alg: alg.clone(),
         level: 0,
     };
-    let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
+    set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
     handle
 }
 
@@ -61,10 +61,9 @@ pub(crate) fn zero_ikm(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle 
     let handle = Handle {
         name: ZeroIKM,
         alg: alg.clone(),
-
         level: 0,
     };
-    let _ = set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
+    set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
     handle
 }
 
@@ -84,6 +83,7 @@ pub struct TLSkeyscheduler {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum TLSnames {
     ES,
     EEM,
@@ -148,7 +148,7 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
     }
 
     fn get(&self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8)) -> Option<Key> {
-        self.keys.get(&h).map(|x| x.clone())
+        self.keys.get(&h).cloned()
     }
 
     fn set(&mut self, name: TLSnames, level: u8, h: (TLSnames, HashAlgorithm, u8), k: Key) {
@@ -163,6 +163,7 @@ impl KeySchedule<TLSnames> for TLSkeyscheduler {
 
 #[derive(Debug, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
+#[allow(clippy::just_underscores_and_digits)]
 pub(crate) enum Label {
     ____________,
     RES_BINDER__,
@@ -206,13 +207,14 @@ fn convert_label(label: Bytes) -> Option<Label> {
         Some(S_HS_TRAFFIC)
     } else if l == [82, 69, 83, 85, 77, 80, 84, 73, 79, 78] {
         Some(RESUMPTION__)
-    } else if l == [] {
+    } else if l.is_empty() {
         Some(____________)
     } else {
         None
     }
 }
 
+#[allow(clippy::just_underscores_and_digits)]
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 fn label_to_bytes(label: Label) -> Bytes {
     match label {
@@ -228,7 +230,7 @@ fn label_to_bytes(label: Label) -> Bytes {
         C_HS_TRAFFIC => vec![099, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099].into(),
         S_HS_TRAFFIC => vec![115, 032, 104, 115, 032, 116, 114, 097, 102, 102, 105, 099].into(),
         RESUMPTION__ => vec![82, 69, 83, 85, 77, 80, 84, 73, 79, 78].into(),
-        ____________ => vec![].into(),
+        ____________ => vec::Vec::<u8>::new().into(),
     }
 }
 
@@ -241,7 +243,6 @@ pub struct TagKey {
 
 pub(crate) fn xtr_alg(alg: &HashAlgorithm, k1: &Key, k2: &Key) -> Result<Bytes, TLSError> {
     hkdf_extract(alg, k1, k2)
-    // hmac_tag(alg, k1, k2)
 }
 
 pub(crate) fn xpd_alg(
@@ -251,9 +252,7 @@ pub(crate) fn xpd_alg(
     d: &Digest,
 ) -> Result<Bytes, TLSError> {
     let kvt = convert_label(label.clone());
-    if kvt == Some(____________)
-    // || kvt == None
-    {
+    if kvt == Some(____________) {
         hmac_tag(alg, k1, d)
     } else {
         hkdf_expand_label(alg, k1, label, d, alg.hash_len())
@@ -261,27 +260,25 @@ pub(crate) fn xpd_alg(
 }
 
 pub(crate) fn xtr(k1: &TagKey, k2: &TagKey) -> Result<TagKey, TLSError> {
-    // let k_n = match (k1.tag, k2.tag) {
-    //     (PSK, ZeroSalt) => ES,
-    //     (KEM, ESalt) => HS,
-    //     (ZeroIKM, HSalt) => AS,
-    //     _ => Err(INCORRECT_STATE)?,
-    // };
-
     let val = xtr_alg(&k1.alg, &k1.val, &k2.val)?;
 
     Ok(TagKey {
-        alg: k1.alg.clone(),
-        tag: k1.tag.clone(),
+        alg: k1.alg,
+        tag: k1.tag,
         val,
     })
 }
 
 pub(crate) fn xpd(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSError> {
-    let TagKey { alg, tag, val: k1 } = k1.clone();
-    let val = xpd_alg(&alg, &k1, label, d)?;
+    let alg = k1.clone().alg;
+    let v = k1.clone().val;
+    let val = xpd_alg(&alg, &v, label, d)?;
 
-    Ok(TagKey { tag, alg, val })
+    Ok(TagKey {
+        tag: k1.tag,
+        alg,
+        val,
+    })
 }
 
 #[derive(Clone, Debug)]
@@ -297,30 +294,8 @@ pub(crate) fn xpd_angle(
     parrent_handle: &Handle,
     args: &Bytes,
 ) -> Result<Handle, TLSError> {
-    // let n: TLSnames = match (parrent_handle.name, convert_label(label.clone())) {
-    //     (ES, Some(EXT_BINDER__ | RES_BINDER__)) => Bind,
-    //     (Bind, None) => Binder,
-    //     (ES, Some(C_E_TRAFFIC_)) => CET,
-    //     (ES, Some(E_EXP_MASTER)) => EEM,
-    //     (ES, Some(DERIVED_____)) => ESalt,
-
-    //     (HS, Some(C_HS_TRAFFIC)) => CHT,
-    //     (HS, Some(S_HS_TRAFFIC)) => SHT,
-    //     (HS, Some(DERIVED_____)) => HSalt,
-
-    //     (AS, Some(C_AP_TRAFFIC)) => CAT,
-    //     (AS, Some(S_AP_TRAFFIC)) => SAT,
-    //     (AS, Some(EXP_MASTER__)) => EAM,
-    //     (AS, Some(RES_MASTER__)) => RM,
-
-    //     (RM, Some(RESUMPTION__)) => PSK,
-
-    //     _ => Err(INCORRECT_STATE)?,
-    // };
-
     Ok(Handle {
         name,
-        // key: k.val,
         alg: parrent_handle.alg,
         level: parrent_handle.level,
     })
@@ -394,8 +369,9 @@ pub fn XPD(
     let label = TLSkeyscheduler::labels(n, r)?;
 
     let h = xpd_angle(n, label.clone(), h1, args)?;
+    let n1_unwrap = n1.ok_or(INCORRECT_STATE)?;
     let k1 = ks
-        .get(n1.unwrap(), l, (h1.name, h1.alg, h1.level))
+        .get(n1_unwrap, l, (h1.name, h1.alg, h1.level))
         .ok_or(INCORRECT_STATE)?;
 
     let k: TagKey = if n == PSK {
@@ -421,23 +397,12 @@ pub fn XPD(
             &d,
         )?
     };
-    // let h =
-    let _ = ks.set(n, l, (h.name, h.alg, h.level), k.val);
-    // set(&mut self, name: N, level: u8, h: (N, HashAlgorithm, u8), hon: bool, k: (N, Key));
+    ks.set(n, l, (h.name, h.alg, h.level), k.val);
 
     Ok(h)
 }
 
 pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<Handle, TLSError> {
-    // let k_n = match (left.name, right.name) {
-    //     (PSK, ZeroSalt) => ES,
-    //     // (ESalt, DH) => HS,
-    //     (DH, ESalt) => HS, // TODO: Should use ^ instead
-    //     // (HSalt, ZeroIKM) => AS,
-    //     (ZeroIKM, HSalt) => AS, // TODO: should use ^ instead
-    //     _ => Err(INCORRECT_STATE)?,
-    // };
-
     Ok(Handle {
         alg: left.alg,
         name,
@@ -479,125 +444,27 @@ pub(crate) fn XTR(
     h2: &Handle,
 ) -> Result<Handle, TLSError> {
     let (n1, n2) = TLSkeyscheduler::prnt_n(name);
-    // if h1.is_some() && h2.is_some() {
-    //     assert_eq!(h1.unwrap().alg, h2.unwrap().alg)
-    // }
     let h = xtr_angle(name, h1.clone(), h2.clone())?;
+    let n1_unwrap = n1.ok_or(INCORRECT_STATE)?;
+    let n2_unwrap = n2.ok_or(INCORRECT_STATE)?;
     let k1 = ks
-        .get(n1.unwrap(), level.clone(), (h1.name, h1.alg, h1.level))
+        .get(n1_unwrap, level, (h1.name, h1.alg, h1.level))
         .ok_or(INCORRECT_STATE)?;
     let k2 = ks
-        .get(n2.unwrap(), level.clone(), (h2.name, h2.alg, h2.level))
+        .get(n2_unwrap, level, (h2.name, h2.alg, h2.level))
         .ok_or(INCORRECT_STATE)?;
     let k = xtr(
         &TagKey {
-            alg: h1.alg.clone(),
+            alg: h1.alg,
             tag: h1.name,
             val: k1,
         },
         &TagKey {
-            alg: h2.alg.clone(),
+            alg: h2.alg,
             tag: h2.name,
             val: k2,
         },
     )?;
-    // let hon = hon1 || hon2;
-    // if b && hon2 {
-
-    // }
     ks.set(name, level, (h.name, h.alg, h.level), k.val);
     Ok(h)
 }
-
-// fn nextKeys(
-//     alg: &HashAlgorithm,
-//     label: Option<Bytes>,
-//     digest: &Digest,
-//     key: &TagKey,
-//     other_key: Option<&TagKey>,
-//     resumption_bit: bool,
-// ) -> Result<TagKey, TLSError> {
-//     match (key.tag, label.clone().map_or(None, |x| convert_label(x)), other_key.map(|x| x.tag)) {
-//         (PSK, None, Some(ZeroSalt)) => xtr(alg, key, other_key.unwrap()), // -> ES
-//         (ES, Some(EXT_BINDER__ | RES_BINDER__), None) => xpd(
-//             alg,
-//             key,
-//             label.unwrap(),
-//             &Into::<Digest>::into(Vec::<u8>::new()),
-//         ),
-//         (Bind, Some(____________), None) => xpd(
-//             alg,
-//             key,
-//             label.unwrap(),
-//             &Into::<Digest>::into(Vec::<u8>::new()),
-//         ),
-//         (ES, Some(C_E_TRAFFIC_ | E_EXP_MASTER), None) => xpd(alg, key, label.unwrap(), digest),
-//         (ES, Some(C_E_TRAFFIC_ | E_EXP_MASTER), None) => xpd(alg, key, label.unwrap(), digest),
-//         _ => panic!(),
-//     }
-// }
-
-// fn next_keys(keys: Vec<&TagKey>, data: Vec<Bytes>) -> Vec<&TagKey> {
-//     match keys.iter().map(|x| x.tag).collect::<Vec<_>>()[..] {
-//         [PSK] => vec![],
-//         [ES] => vec![],
-//         _ => todo!(),
-//     }
-// }
-
-/////////
-// Description from paper
-/////////
-
-////
-// Key package
-////
-
-// fn UNQ(n,h,hon,k) {
-
-// }
-
-// struct KPackage {
-//     n : TLSnames,
-//     l : u8,
-//     K : std::collections::HashMap<[u8; 12], (TagKey, bool)>
-// }
-
-// impl KPackage {
-//     // fn SET(self, h : &Handle, hon : bool, k_star : TagKey){
-//     //     assert!(h.name == self.n);
-//     //     assert!(h.level == self.l);
-//     //     assert!(k_star.alg == h.alg);
-//     //     if self.K[h].is_some() {
-//     //         return h;
-//     //     }
-//     //     let mut k = k_star.untag();
-//     //     assert!(h.alg.len() == k.size());
-//     //     if b {
-//     //         if hon {
-//     //             k = random_sample(h.alg.len())
-//     //         }
-//     //     }
-//     //     UNQ(n,h,hon,k);
-//     //     self.K[h] = (k, hon);
-//     //     return h;
-//     // }
-
-//     fn GET(self, n : TLSnames, l: u8, h : &Handle){
-//         assert!(self.K.contains_key(h));
-//         let (k_star, hon) = self.K[h];
-//         let k = tag(h, k_star);
-//         return (k, hon)
-//     }
-// }
-
-// pub(crate) fn nextKeys(key: &TagKey, extra: Bytes, digest: &Digest, aead_algorithm: &AeadAlgorithm,) -> Vec<TagKey> {
-//     // 0-RTT (k_cet)
-//     derive_0rtt_keys(
-
-//     // handshake messages (k_cht, k_sht)
-
-//     // 1-RTT data (k_cat, k_sat)
-
-//     // eksporter secrets (k_eem, k_eam)
-// }

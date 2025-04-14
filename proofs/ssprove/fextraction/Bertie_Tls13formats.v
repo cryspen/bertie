@@ -22,28 +22,18 @@ From Hacspec Require Import Hacspec_Lib.
 Open Scope hacspec_scope.
 Import choice.Choice.Exports.
 
+From RecordUpdate Require Import RecordUpdate.
+
+Import RecordSetNotations.
+
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
-Require Import ClientState.
-Export ClientState.
-
-Require Import ServerState.
-Export ServerState.
-
-Require Import BertieError.
-Export BertieError.
-
-Require Import BertieStream.
-Export BertieStream.
-
-Require Import TlsStream.
-Export TlsStream.
-
-Require Import init_db.
-Export init_db.
-
-(*Not implemented yet? todo(item)*)
-
-(*Not implemented yet? todo(item)*)
-
-(*Not implemented yet? todo(item)*)
+Equations v_LABEL_TLS13 : both (nseq int8 6) :=
+  v_LABEL_TLS13  :=
+    array_from_list [ret_both (116 : int8);
+      ret_both (108 : int8);
+      ret_both (115 : int8);
+      ret_both (49 : int8);
+      ret_both (51 : int8);
+      ret_both (32 : int8)] : both (nseq int8 6).
+Fail Next Obligation.

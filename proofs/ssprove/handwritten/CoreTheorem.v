@@ -413,7 +413,7 @@ Section CoreTheorem.
           all: now rewrite !nfto_name_to_chName_cancel.
         }
   Qed.
-  
+
   (* Lemma filter_slow : *)
   (*   let ioc := [:: PSK; ZERO_SALT; DH; ZERO_IKM] in *)
   (*   [:: ES] = filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names. *)
@@ -438,7 +438,7 @@ Section CoreTheorem.
   (*   replace (filter _ _) with [ES]. *)
   (*   2:{ *)
   (*     repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf). *)
-      
+
   (*     unfold all ; *)
   (*       simpl (if _ then _ else _) ; *)
   (*       hnf ; *)
@@ -542,8 +542,8 @@ Section CoreTheorem.
         Advantage (Gxtr d k H_lt ES ℓ) (A ∘ R_xtr ES ℓ erefl))%R.
   Proof.
     intros.
-    
-    
+
+
   Admitted.
 
   Lemma d12 :
@@ -658,7 +658,12 @@ Section CoreTheorem.
                                                              | _ => D
                                                              end) B H_uniq_B)
               Adv = 0)%R.
-      1: admit.
+      1:{
+        clear. intros.
+        unfold KeysAndHash.
+        unfold pack.
+        admit.
+      }
 
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
       instantiate (1 := (KeysAndHash d k H_lt
@@ -671,7 +676,7 @@ Section CoreTheorem.
                                                   end) ([:: PSK; ZERO_SALT; DH; ZERO_IKM] ++ [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ESALT]) erefl)).
 
       rewrite H2.
-      2:{ admit. }
+      2: clear ; split ; intros ; rewrite !in_cons in H ; repeat move: H => /orP [ /eqP ? | H ] ; [ subst ; easy .. | discriminate ].
       rewrite add0r.
 
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
@@ -694,7 +699,8 @@ Section CoreTheorem.
                                                   end) ([:: PSK; ZERO_SALT; DH; ZERO_IKM] ++ [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ESALT]) erefl)).
 
       rewrite H2.
-      2:{ admit. }
+      2: clear ; split ; intros ; rewrite !in_cons in H ; repeat move: H => /orP [ /eqP ? | H ] ; [ subst ; easy .. | discriminate ].
+
       rewrite addr0.
 
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
@@ -708,7 +714,8 @@ Section CoreTheorem.
                                                   end) ([:: PSK; ZERO_SALT; DH; ZERO_IKM] ++ [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ESALT]) erefl)).
 
       rewrite H2.
-      2:{ admit. }
+      2: clear ; split ; intros ; rewrite !in_cons in H ; repeat move: H => /orP [ /eqP ? | H ] ; [ subst ; easy .. | discriminate ].
+
       rewrite addr0.
 
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
@@ -1077,12 +1084,12 @@ Section CoreTheorem.
       apply eq_ler.
       rewrite Num.Theory.normr0.
       reflexivity.
-      
-      
+
+
       (* rewrite add0r. *)
       (* rewrite add0n. *)
     (* now apply eq_ler. *)
-      
+
       (* reflexivity. *)
     (* rewrite subrr. *)
     (* rewrite Num.Theory.normr0. *)
@@ -1192,9 +1199,9 @@ Section CoreTheorem.
     rewrite in_fset in H.
     rewrite mem_seq1 in H.
     move/eqP: H => H ; inversion_clear H.
-    
+
     unfold get_op_default.
-    
+
     unfold L_package.
     unfold pack.
 
@@ -1360,7 +1367,7 @@ Section CoreTheorem.
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
     (* forall (K_table : chHandle -> nat), *)
-      forall i,
+    forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
       (AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i)

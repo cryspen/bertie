@@ -10,7 +10,7 @@ use key_schedule::{TLSnames::*, *};
 /// Get the hash of an empty byte slice.
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
 fn hash_empty(algorithm: &HashAlgorithm) -> Result<Digest, TLSError> {
-    hash(&algorithm, &Bytes::new())
+    hash(algorithm, &Bytes::new())
 }
 
 #[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
@@ -20,7 +20,7 @@ pub fn derive_binder_key(
     ks: &mut TLSkeyscheduler,
 ) -> Result<Handle, TLSError> {
     let zero_salt_handle = zero_salt(ks, ha);
-    let early_secret = XTR(ks, 0, ES, &handle, &zero_salt_handle)?;
+    let early_secret = XTR(ks, 0, ES, handle, &zero_salt_handle)?;
     XPD(ks, Bind, 0, &early_secret, true, &hash_empty(ha)?) // res or ext? or is a bit needed to determine this?
 }
 
@@ -56,7 +56,7 @@ pub(crate) fn derive_aead_key_iv(
     handle: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<AeadKeyIV, TLSError> {
-    let key = tagkey_from_handle(ks, &handle)?.val;
+    let key = tagkey_from_handle(ks, handle)?.val;
     let sender_write_key = hkdf_expand_label(
         hash_algorithm,
         &key,
@@ -84,7 +84,7 @@ pub(crate) fn next_keys_c_2(
     ks: &mut TLSkeyscheduler,
 ) -> Result<(Handle, Handle, Handle), TLSError> {
     let zero_salt_handle = zero_salt(ks, hash_algorithm);
-    let early_secret = XTR(ks, 0, ES, &handle, &zero_salt_handle)?;
+    let early_secret = XTR(ks, 0, ES, handle, &zero_salt_handle)?;
     let digest_emp = hash_empty(hash_algorithm)?;
     let derived_secret = XPD(ks, ESalt, 0, &early_secret, true, &digest_emp)?;
     let client_early_traffic_secret = XPD(ks, CET, 0, &early_secret, true, tx)?;
@@ -144,7 +144,7 @@ pub fn derive_finished_key(
     handle: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<MacKey, TLSError> {
-    let k = tagkey_from_handle(ks, &handle)?;
+    let k = tagkey_from_handle(ks, handle)?;
     hkdf_expand_label(
         ha,
         &k.val,
@@ -169,7 +169,7 @@ pub(crate) fn derive_hk_handles(
     };
 
     let zero_salt_handle = zero_salt(ks, ha);
-    let early_secret = XTR(ks, 0, ES, &psk_handle, &zero_salt_handle)?;
+    let early_secret = XTR(ks, 0, ES, psk_handle, &zero_salt_handle)?;
     let digest_emp = hash_empty(ha)?;
     let derived_secret = XPD(ks, ESalt, 0, &early_secret, true, &digest_emp)?;
 
@@ -196,10 +196,10 @@ pub(crate) fn derive_hk_ms(
     server_handshake_traffic_secret: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(AeadKeyIV, AeadKeyIV, MacKey, MacKey), TLSError> {
-    let client_finished_key = derive_finished_key(ha, &client_handshake_traffic_secret, ks)?;
-    let server_finished_key = derive_finished_key(ha, &server_handshake_traffic_secret, ks)?;
-    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_handshake_traffic_secret, ks)?;
-    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_handshake_traffic_secret, ks)?;
+    let client_finished_key = derive_finished_key(ha, client_handshake_traffic_secret, ks)?;
+    let server_finished_key = derive_finished_key(ha, server_handshake_traffic_secret, ks)?;
+    let client_write_key_iv = derive_aead_key_iv(ha, ae, client_handshake_traffic_secret, ks)?;
+    let server_write_key_iv = derive_aead_key_iv(ha, ae, server_handshake_traffic_secret, ks)?;
 
     Ok((
         client_write_key_iv,
@@ -216,9 +216,9 @@ pub(crate) fn derive_app_handles(
     tx: &Digest,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(Handle, Handle, Handle), TLSError> {
-    let client_application_traffic_secret_0 = XPD(ks, CAT, 0, master_secret, true, &tx)?;
-    let server_application_traffic_secret_0 = XPD(ks, SAT, 0, master_secret, true, &tx)?;
-    let exporter_master_secret = XPD(ks, EAM, 0, master_secret, true, &tx)?;
+    let client_application_traffic_secret_0 = XPD(ks, CAT, 0, master_secret, true, tx)?;
+    let server_application_traffic_secret_0 = XPD(ks, SAT, 0, master_secret, true, tx)?;
+    let exporter_master_secret = XPD(ks, EAM, 0, master_secret, true, tx)?;
 
     Ok((
         client_application_traffic_secret_0,
@@ -234,8 +234,8 @@ pub(crate) fn derive_app_keys(
     server_application_traffic_secret_0: &Handle,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(AeadKeyIV, AeadKeyIV), TLSError> {
-    let client_write_key_iv = derive_aead_key_iv(ha, ae, &client_application_traffic_secret_0, ks)?;
-    let server_write_key_iv = derive_aead_key_iv(ha, ae, &server_application_traffic_secret_0, ks)?;
+    let client_write_key_iv = derive_aead_key_iv(ha, ae, client_application_traffic_secret_0, ks)?;
+    let server_write_key_iv = derive_aead_key_iv(ha, ae, server_application_traffic_secret_0, ks)?;
 
     Ok((client_write_key_iv, server_write_key_iv))
 }
@@ -246,5 +246,5 @@ pub(crate) fn derive_rms(
     tx: &Digest,
     ks: &mut TLSkeyscheduler,
 ) -> Result<Handle, TLSError> {
-    XPD(ks, RM, 0, &master_secret, true, &tx)
+    XPD(ks, RM, 0, master_secret, true, tx)
 }

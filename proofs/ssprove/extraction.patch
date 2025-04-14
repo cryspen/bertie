@@ -1,0 +1,1520 @@
+diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Bertie_Tls13crypto.v fextraction/Bertie_Tls13crypto.v
+--- extraction/Bertie_Tls13crypto.v	2025-04-14 18:53:43.619849935 +0200
++++ fextraction/Bertie_Tls13crypto.v	2025-04-14 18:26:59.302599854 +0200
+@@ -26,6 +26,10 @@
+ 
+ Import RecordSetNotations.
+ 
++Require Import Fixes.
++
++Require Import Bertie_Tls13utils.
++
+ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
+ 
+ Definition t_HashAlgorithm : choice_type :=
+@@ -68,70 +72,78 @@
+ Fail Next Obligation.
+ Hint Unfold t_HashAlgorithm_t_Eq.
+ 
+-#[global] Program Instance t_HashAlgorithm_t_Hash : t_Hash t_HashAlgorithm :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_HashAlgorithm_t_Hash.
++(* #[global] Program Instance t_HashAlgorithm_t_Hash : t_Hash t_HashAlgorithm := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_HashAlgorithm_t_Hash. *)
++
++Equations hash_len_inner (h : both t_HashAlgorithm) : both uint_size :=
++  hash_len_inner h :=
++    matchb h with
++    | HashAlgorithm_SHA256_case => ret_both 32
++    | HashAlgorithm_SHA384_case => ret_both 48
++    | HashAlgorithm_SHA512_case => ret_both 64
++    end.
+ 
+ Equations impl_HashAlgorithm__hash_len (self : both t_HashAlgorithm) : both uint_size :=
+   impl_HashAlgorithm__hash_len self  :=
+     hash_len_inner self : both uint_size.
+ Fail Next Obligation.
+ 
+-Equations hmac_tag (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) : both (t_Result t_Bytes int8) :=
+-  hmac_tag alg mk input  :=
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist20 := impl_HashAlgorithm__hmac_algorithm alg in
+-    Result_Ok (letb hoist21 := hmac hoist20 (f_deref (impl_Bytes__declassify mk)) (f_deref (impl_Bytes__declassify input)) Option_None in
+-    letb hoist22 := f_into hoist21 in
+-    Result_Ok hoist22)) : both (t_Result t_Bytes int8).
+-Fail Next Obligation.
+-
+-Equations hmac_verify (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) (tag : both t_Bytes) : both (t_Result 'unit int8) :=
+-  hmac_verify alg mk input tag  :=
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hmac_tag alg mk input in
+-    Result_Ok (letb hoist24 := eq hoist23 tag in
+-    ifb hoist24
+-    then Result_Ok (ret_both (tt : 'unit))
+-    else tlserr v_CRYPTO_ERROR)) : both (t_Result 'unit int8).
+-Fail Next Obligation.
+-
+-Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes :=
+-  zero_key alg  :=
+-    impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes.
+-Fail Next Obligation.
+-
+-Equations hkdf_algorithm (alg : both t_HashAlgorithm) : both (t_Result t_Algorithm int8) :=
+-  hkdf_algorithm alg  :=
+-    matchb alg with
+-    | HashAlgorithm_SHA256_case  =>
+-      Result_Ok Algorithm_Sha256
+-    | HashAlgorithm_SHA384_case  =>
+-      Result_Ok Algorithm_Sha384
+-    | HashAlgorithm_SHA512_case  =>
+-      Result_Ok Algorithm_Sha512
+-    end : both (t_Result t_Algorithm int8).
+-Fail Next Obligation.
+-
+-Equations hkdf_extract (alg : both t_HashAlgorithm) (ikm : both t_Bytes) (salt : both t_Bytes) : both (t_Result t_Bytes int8) :=
+-  hkdf_extract alg ikm salt  :=
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist25 := hkdf_algorithm alg in
+-    Result_Ok (letb hoist26 := extract hoist25 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in
+-    letb hoist27 := impl__map hoist26 (fun bytes =>
+-      f_into bytes) in
+-    impl__map_err hoist27 (fun _ =>
+-      v_CRYPTO_ERROR))) : both (t_Result t_Bytes int8).
+-Fail Next Obligation.
+-
+-Equations hkdf_expand (alg : both t_HashAlgorithm) (prk : both t_Bytes) (info : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) :=
+-  hkdf_expand alg prk info len  :=
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist28 := hkdf_algorithm alg in
+-    Result_Ok (letb hoist29 := expand hoist28 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in
+-    matchb hoist29 with
+-    | Result_Ok_case x =>
+-      letb x := ret_both ((x) : (t_Vec int8 t_Global)) in
+-      Result_Ok (f_into x)
+-    | Result_Err_case _ =>
+-      letb _ := ret_both (tt (* Empty tuple *) : (t_Error)) in
+-      tlserr v_CRYPTO_ERROR
+-    end)) : both (t_Result t_Bytes int8).
+-Fail Next Obligation.
++(* Equations hmac_tag (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) : both (t_Result t_Bytes int8) := *)
++(*   hmac_tag alg mk input  := *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist20 := impl_HashAlgorithm__hmac_algorithm alg in *)
++(*     Result_Ok (letb hoist21 := hmac hoist20 (f_deref (impl_Bytes__declassify mk)) (f_deref (impl_Bytes__declassify input)) Option_None in *)
++(*     letb hoist22 := f_into hoist21 in *)
++(*     Result_Ok hoist22)) : both (t_Result t_Bytes int8). *)
++(* Fail Next Obligation. *)
++
++(* Equations hmac_verify (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) (tag : both t_Bytes) : both (t_Result 'unit int8) := *)
++(*   hmac_verify alg mk input tag  := *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hmac_tag alg mk input in *)
++(*     Result_Ok (letb hoist24 := eq hoist23 tag in *)
++(*     ifb hoist24 *)
++(*     then Result_Ok (ret_both (tt : 'unit)) *)
++(*     else tlserr v_CRYPTO_ERROR)) : both (t_Result 'unit int8). *)
++(* Fail Next Obligation. *)
++
++(* Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes := *)
++(*   zero_key alg  := *)
++(*     impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes. *)
++(* Fail Next Obligation. *)
++
++(* Equations hkdf_algorithm (alg : both t_HashAlgorithm) : both (t_Result t_Algorithm int8) := *)
++(*   hkdf_algorithm alg  := *)
++(*     matchb alg with *)
++(*     | HashAlgorithm_SHA256_case  => *)
++(*       Result_Ok Algorithm_Sha256 *)
++(*     | HashAlgorithm_SHA384_case  => *)
++(*       Result_Ok Algorithm_Sha384 *)
++(*     | HashAlgorithm_SHA512_case  => *)
++(*       Result_Ok Algorithm_Sha512 *)
++(*     end : both (t_Result t_Algorithm int8). *)
++(* Fail Next Obligation. *)
++
++(* Equations hkdf_extract (alg : both t_HashAlgorithm) (ikm : both t_Bytes) (salt : both t_Bytes) : both (t_Result t_Bytes int8) := *)
++(*   hkdf_extract alg ikm salt  := *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist25 := hkdf_algorithm alg in *)
++(*     Result_Ok (letb hoist26 := extract hoist25 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
++(*     letb hoist27 := impl__map hoist26 (fun bytes => *)
++(*       f_into bytes) in *)
++(*     impl__map_err hoist27 (fun _ => *)
++(*       v_CRYPTO_ERROR))) : both (t_Result t_Bytes int8). *)
++(* Fail Next Obligation. *)
++
++(* Equations hkdf_expand (alg : both t_HashAlgorithm) (prk : both t_Bytes) (info : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) := *)
++(*   hkdf_expand alg prk info len  := *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist28 := hkdf_algorithm alg in *)
++(*     Result_Ok (letb hoist29 := expand hoist28 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
++(*     matchb hoist29 with *)
++(*     | Result_Ok_case x => *)
++(*       letb x := ret_both ((x) : (t_Vec int8 t_Global)) in *)
++(*       Result_Ok (f_into x) *)
++(*     | Result_Err_case _ => *)
++(*       letb _ := ret_both (tt (* Empty tuple *) : (t_Error)) in *)
++(*       tlserr v_CRYPTO_ERROR *)
++(*     end)) : both (t_Result t_Bytes int8). *)
++(* Fail Next Obligation. *)
+diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Bertie_Tls13keyscheduler_Key_schedule.v fextraction/Bertie_Tls13keyscheduler_Key_schedule.v
+--- extraction/Bertie_Tls13keyscheduler_Key_schedule.v	2025-04-14 18:53:43.619849935 +0200
++++ fextraction/Bertie_Tls13keyscheduler_Key_schedule.v	2025-04-14 18:40:28.458051708 +0200
+@@ -30,50 +30,55 @@
+ 
+ (*Not implemented yet? todo(item)*)
+ 
+-Require Import hkdf_expand.
+-Export hkdf_expand.
++(* Require Import hkdf_expand. *)
++(* Export hkdf_expand. *)
+ 
+-Require Import hkdf_extract.
+-Export hkdf_extract.
++(* Require Import hkdf_extract. *)
++(* Export hkdf_extract. *)
+ 
+-Require Import hmac_tag.
+-Export hmac_tag.
++(* Require Import hmac_tag. *)
++(* Export hmac_tag. *)
+ 
+-Require Import Digest.
+-Export Digest.
++(* Require Import Digest. *)
++(* Export Digest. *)
+ 
+-Require Import HashAlgorithm.
+-Export HashAlgorithm.
++(* Require Import HashAlgorithm. *)
++(* Export HashAlgorithm. *)
+ 
+-Require Import Key.
+-Export Key.
++(* Require Import Key. *)
++(* Export Key. *)
+ 
+-Require Import Crate_Tls13formats.
+-Export Crate_Tls13formats.
++Require Import Bertie_Tls13formats.
++Export Bertie_Tls13formats.
+ 
+-Require Import Crate_Tls13utils.
+-Export Crate_Tls13utils.
++Require Import Bertie_Tls13utils.
++Export Bertie_Tls13utils.
+ 
+-Require Import HashMap.
+-Export HashMap.
++(* Require Import HashMap. *)
++(* Export HashMap. *)
+ 
+-Require Import vec.
+-Export vec.
++(* Require Import vec. *)
++(* Export vec. *)
+ 
+-Equations hkdf_expand_label (hash_algorithm : both t_HashAlgorithm) (key : both t_Bytes) (label : both t_Bytes) (context : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) :=
+-  hkdf_expand_label hash_algorithm key label context len  :=
+-    run (ifb len >=.? (ret_both (65536 : uint_size))
+-    then Result_Ok (Result_Err v_PAYLOAD_TOO_LONG)
+-    else letb lenb := u16_as_be_bytes (v_U16 (cast_int (WS2 := _) len)) in
+-    letb tls13_label := impl_Bytes__concat (impl_Bytes__from_slice (unsize v_LABEL_TLS13)) label in
+-    letm[choice_typeMonad.result_bind_code int8] hoist2 := encode_length_u8 (impl_Bytes__as_raw tls13_label) in
+-    letm[choice_typeMonad.result_bind_code int8] hoist1 := encode_length_u8 (impl_Bytes__as_raw context) in
+-    Result_Ok (letb hoist3 := impl_Bytes__concat hoist2 hoist1 in
+-    letb info := impl_Bytes__prefix hoist3 (unsize lenb) in
+-    hkdf_expand hash_algorithm key info len)) : both (t_Result t_Bytes int8).
+-Fail Next Obligation.
++Require Import Bertie_Tls13crypto.
++Export Bertie_Tls13crypto.
++
++Require Import Fixes.
+ 
+-Class t_KeySchedule (Self : choice_type) (v_Self : v_Self) {v_N : v_N} `{ t_Sized v_N} := {
++(* Equations hkdf_expand_label (hash_algorithm : both t_HashAlgorithm) (key : both t_Bytes) (label : both t_Bytes) (context : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) := *)
++(*   hkdf_expand_label hash_algorithm key label context len  := *)
++(*     run (ifb len >=.? (ret_both (65536 : uint_size)) *)
++(*     then Result_Ok (Result_Err v_PAYLOAD_TOO_LONG) *)
++(*     else letb lenb := u16_as_be_bytes (v_U16 (cast_int (WS2 := _) len)) in *)
++(*     letb tls13_label := impl_Bytes__concat (impl_Bytes__from_slice (unsize v_LABEL_TLS13)) label in *)
++(*     letm[choice_typeMonad.result_bind_code int8] hoist2 := encode_length_u8 (impl_Bytes__as_raw tls13_label) in *)
++(*     letm[choice_typeMonad.result_bind_code int8] hoist1 := encode_length_u8 (impl_Bytes__as_raw context) in *)
++(*     Result_Ok (letb hoist3 := impl_Bytes__concat hoist2 hoist1 in *)
++(*     letb info := impl_Bytes__prefix hoist3 (unsize lenb) in *)
++(*     hkdf_expand hash_algorithm key info len)) : both (t_Result t_Bytes int8). *)
++(* Fail Next Obligation. *)
++
++Class t_KeySchedule (Self : choice_type) (v_Self : choice_type) {v_N : choice_type} (* `{ t_Sized v_N} *) := {
+   f_labels : (both v_N -> both 'bool -> both (t_Result t_Bytes int8)) ;
+   f_prnt_n : (both v_N -> both (t_Option v_N × t_Option v_N)) ;
+   f_get : (both v_Self -> both v_N -> both int8 -> both (v_N × t_HashAlgorithm × int8) -> both (t_Option t_Bytes)) ;
+@@ -181,12 +186,12 @@
+ 
+ Definition t_TLSkeyscheduler : choice_type :=
+   (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState).
+-Equations f_keys (s : both t_TLSkeyscheduler) : both (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState) :=
++Timeout 1 Equations f_keys (s : both t_TLSkeyscheduler) : both (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState) :=
+   f_keys s  :=
+     bind_both s (fun x =>
+       ret_both (x : (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState))) : both (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState).
+ Fail Next Obligation.
+-Equations Build_t_TLSkeyscheduler {f_keys : both (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState)} : both (t_TLSkeyscheduler) :=
++Timeout 1 Equations Build_t_TLSkeyscheduler {f_keys : both (t_HashMap (t_TLSnames × t_HashAlgorithm × int8) t_Bytes t_RandomState)} : both (t_TLSkeyscheduler) :=
+   Build_t_TLSkeyscheduler  :=
+     bind_both f_keys (fun f_keys =>
+       ret_both ((f_keys) : (t_TLSkeyscheduler))) : both (t_TLSkeyscheduler).
+@@ -247,10 +252,10 @@
+ Fail Next Obligation.
+ Hint Unfold t_TLSnames_t_Copy.
+ 
+-#[global] Program Instance t_TLSnames_t_StructuralPartialEq : t_StructuralPartialEq t_TLSnames :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_TLSnames_t_StructuralPartialEq.
++(* #[global] Program Instance t_TLSnames_t_StructuralPartialEq : t_StructuralPartialEq t_TLSnames := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_TLSnames_t_StructuralPartialEq. *)
+ 
+ #[global] Program Instance t_TLSnames_t_PartialEq : t_PartialEq t_TLSnames t_TLSnames :=
+   _.
+@@ -262,18 +267,18 @@
+ Fail Next Obligation.
+ Hint Unfold t_TLSnames_t_Eq.
+ 
+-#[global] Program Instance t_TLSnames_t_Hash : t_Hash t_TLSnames :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_TLSnames_t_Hash.
++(* #[global] Program Instance t_TLSnames_t_Hash : t_Hash t_TLSnames := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_TLSnames_t_Hash. *)
++
++(* #[global] Program Instance t_TLSnames_t_Debug : t_Debug t_TLSnames := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_TLSnames_t_Debug. *)
+ 
+-#[global] Program Instance t_TLSnames_t_Debug : t_Debug t_TLSnames :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_TLSnames_t_Debug.
+-
+-Require Import TLSnames.
+-Export TLSnames.
++(* Require Import TLSnames. *)
++(* Export TLSnames. *)
+ 
+ Definition t_Label : choice_type :=
+   ('unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit).
+@@ -375,15 +380,15 @@
+     end : both uint_size.
+ Fail Next Obligation.
+ 
+-#[global] Program Instance t_Label_t_Debug : t_Debug t_Label :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_Label_t_Debug.
+-
+-#[global] Program Instance t_Label_t_StructuralPartialEq : t_StructuralPartialEq t_Label :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_Label_t_StructuralPartialEq.
++(* #[global] Program Instance t_Label_t_Debug : t_Debug t_Label := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_Label_t_Debug. *)
++
++(* #[global] Program Instance t_Label_t_StructuralPartialEq : t_StructuralPartialEq t_Label := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_Label_t_StructuralPartialEq. *)
+ 
+ #[global] Program Instance t_Label_t_PartialEq : t_PartialEq t_Label t_Label :=
+   _.
+@@ -395,13 +400,13 @@
+ Fail Next Obligation.
+ Hint Unfold t_Label_t_Eq.
+ 
+-Require Import Label.
+-Export Label.
++(* Require Import Label. *)
++(* Export Label. *)
+ 
+ Equations convert_label (label : both t_Bytes) : both (t_Option t_Label) :=
+   convert_label label  :=
+-    letb l := (impl_Bytes__declassify label).a[RangeFull] in
+-    ifb l =.? (array_from_list [ret_both (101 : int8);
++    letb l := (impl_Bytes__declassify label)(* .a[RangeFull] *) in
++    ifb l =.? array_to_list (array_from_list [ret_both (101 : int8);
+       ret_both (120 : int8);
+       ret_both (116 : int8);
+       ret_both (32 : int8);
+@@ -412,7 +417,7 @@
+       ret_both (101 : int8);
+       ret_both (114 : int8)])
+     then Option_Some Label_EXT_BINDER_e_
+-    else ifb l =.? (array_from_list [ret_both (114 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (114 : int8);
+       ret_both (101 : int8);
+       ret_both (115 : int8);
+       ret_both (32 : int8);
+@@ -423,7 +428,7 @@
+       ret_both (101 : int8);
+       ret_both (114 : int8)])
+     then Option_Some Label_RES_BINDER_e_
+-    else ifb l =.? (array_from_list [ret_both (99 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (99 : int8);
+       ret_both (32 : int8);
+       ret_both (101 : int8);
+       ret_both (32 : int8);
+@@ -435,7 +440,7 @@
+       ret_both (105 : int8);
+       ret_both (99 : int8)])
+     then Option_Some Label_C_E_TRAFFIC_
+-    else ifb l =.? (array_from_list [ret_both (101 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (101 : int8);
+       ret_both (32 : int8);
+       ret_both (101 : int8);
+       ret_both (120 : int8);
+@@ -448,7 +453,7 @@
+       ret_both (101 : int8);
+       ret_both (114 : int8)])
+     then Option_Some Label_E_EXP_MASTER
+-    else ifb l =.? (array_from_list [ret_both (99 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (99 : int8);
+       ret_both (32 : int8);
+       ret_both (97 : int8);
+       ret_both (112 : int8);
+@@ -461,7 +466,7 @@
+       ret_both (105 : int8);
+       ret_both (99 : int8)])
+     then Option_Some Label_C_AP_TRAFFIC
+-    else ifb l =.? (array_from_list [ret_both (115 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (115 : int8);
+       ret_both (32 : int8);
+       ret_both (97 : int8);
+       ret_both (112 : int8);
+@@ -474,7 +479,7 @@
+       ret_both (105 : int8);
+       ret_both (99 : int8)])
+     then Option_Some Label_S_AP_TRAFFIC
+-    else ifb l =.? (array_from_list [ret_both (101 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (101 : int8);
+       ret_both (120 : int8);
+       ret_both (112 : int8);
+       ret_both (32 : int8);
+@@ -485,7 +490,7 @@
+       ret_both (101 : int8);
+       ret_both (114 : int8)])
+     then Option_Some Label_EXP_MASTER_e_
+-    else ifb l =.? (array_from_list [ret_both (114 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (114 : int8);
+       ret_both (101 : int8);
+       ret_both (115 : int8);
+       ret_both (32 : int8);
+@@ -496,7 +501,7 @@
+       ret_both (101 : int8);
+       ret_both (114 : int8)])
+     then Option_Some Label_RES_MASTER_e_
+-    else ifb l =.? (array_from_list [ret_both (100 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (100 : int8);
+       ret_both (101 : int8);
+       ret_both (114 : int8);
+       ret_both (105 : int8);
+@@ -504,7 +509,7 @@
+       ret_both (101 : int8);
+       ret_both (100 : int8)])
+     then Option_Some Label_DERIVED_e__e__
+-    else ifb l =.? (array_from_list [ret_both (99 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (99 : int8);
+       ret_both (32 : int8);
+       ret_both (104 : int8);
+       ret_both (115 : int8);
+@@ -517,7 +522,7 @@
+       ret_both (105 : int8);
+       ret_both (99 : int8)])
+     then Option_Some Label_C_HS_TRAFFIC
+-    else ifb l =.? (array_from_list [ret_both (115 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (115 : int8);
+       ret_both (32 : int8);
+       ret_both (104 : int8);
+       ret_both (115 : int8);
+@@ -530,7 +535,7 @@
+       ret_both (105 : int8);
+       ret_both (99 : int8)])
+     then Option_Some Label_S_HS_TRAFFIC
+-    else ifb l =.? (array_from_list [ret_both (82 : int8);
++    else ifb l =.? array_to_list (array_from_list [ret_both (82 : int8);
+       ret_both (69 : int8);
+       ret_both (83 : int8);
+       ret_both (85 : int8);
+@@ -691,28 +696,59 @@
+         ret_both (78 : int8)]))))
+     | Label_e__e__e__e__e__e___case  =>
+       f_into impl__new
+-    end : both t_Bytes.
++end : both t_Bytes.
++Next Obligation.
++  refine 'nat.
++Defined.
+ Fail Next Obligation.
+ 
++Axiom hmac_tag : forall (x : both t_HashAlgorithm) (y z : both t_Bytes), both (t_Result t_Bytes uint8).
++Axiom hkdf_expand_label : forall (x : both t_HashAlgorithm) (y z w : both t_Bytes) (a : both uint_size), both (t_Result t_Bytes uint8).
++Axiom hkdf_extract : forall (x : both t_HashAlgorithm) (y z : both t_Bytes), both (t_Result t_Bytes uint8).
++Notation "'impl_2__cloned'" := id.
++Axiom impl_2__get : forall {A B : choice_type} (x : both (chMap A B)) (z : both A), both B. (* := *)
++  (* bind_both x (fun (y : chMap A B) => *)
++(* bind_both z (fun (w : A) => ret_both (fmap.getm y w))). *)
++Axiom impl_2__insert : forall {A B : choice_type} (x : both (chMap A B)) (z : both A) (w : both B), both (chProd A (chMap A B)). (* := *)
++(* fmap.setm. *)
++
+ #[global] Program Instance t_TLSkeyscheduler_t_KeySchedule : t_KeySchedule t_TLSkeyscheduler t_TLSnames :=
+   let f_prnt_n := fun  (a : both t_TLSnames) => matchb a with
+   | TLSnames_ES_case  =>
+     prod_b (Option_Some TLSnames_ZeroSalt,Option_Some TLSnames_PSK)
+-  | TLSnames_EEM  | TLSnames_CET  | TLSnames_Bind  =>
++  | TLSnames_EEM_case =>
++    prod_b (Option_Some TLSnames_ES,Option_None)
++  | TLSnames_CET_case =>
++    prod_b (Option_Some TLSnames_ES,Option_None)
++  | TLSnames_Bind_case =>
+     prod_b (Option_Some TLSnames_ES,Option_None)
+   | TLSnames_Binder_case  =>
+     prod_b (Option_Some TLSnames_Bind,Option_None)
+   | TLSnames_HS_case  =>
+     prod_b (Option_Some TLSnames_ESalt,Option_Some TLSnames_KEM)
+-  | TLSnames_SHT  | TLSnames_CHT  | TLSnames_HSalt  =>
++  | TLSnames_SHT_case =>
++    prod_b (Option_Some TLSnames_HS,Option_None)
++  | TLSnames_CHT_case =>
++    prod_b (Option_Some TLSnames_HS,Option_None)
++  | TLSnames_HSalt_case =>
+     prod_b (Option_Some TLSnames_HS,Option_None)
+   | TLSnames_AS_case  =>
+     prod_b (Option_Some TLSnames_HSalt,Option_Some TLSnames_ZeroIKM)
+-  | TLSnames_RM  | TLSnames_CAT  | TLSnames_SAT  | TLSnames_EAM  =>
++  | TLSnames_RM_case =>
++    prod_b (Option_Some TLSnames_AS,Option_None)
++  | TLSnames_CAT_case =>
++    prod_b (Option_Some TLSnames_AS,Option_None)
++  | TLSnames_SAT_case =>
++    prod_b (Option_Some TLSnames_AS,Option_None)
++  | TLSnames_EAM_case =>
+     prod_b (Option_Some TLSnames_AS,Option_None)
+   | TLSnames_PSK_case  =>
+     prod_b (Option_Some TLSnames_RM,Option_None)
+-  | TLSnames_ZeroSalt  | TLSnames_KEM  | TLSnames_ZeroIKM  =>
++  | TLSnames_ZeroSalt_case =>
++    prod_b (Option_None, Option_None)
++  | TLSnames_KEM_case =>
++    prod_b (Option_None,Option_None)
++  | TLSnames_ZeroIKM_case =>
+     prod_b (Option_None,Option_None)
+   | TLSnames_ESalt_case  =>
+     prod_b (Option_Some TLSnames_ES,Option_None)
+@@ -724,9 +760,13 @@
+     else Label_EXT_BINDER_e_)
+   | TLSnames_RM_case  =>
+     Result_Ok Label_RES_MASTER_e_
+-  | TLSnames_ESalt  | TLSnames_HSalt  =>
++  | TLSnames_ESalt_case  =>
+     Result_Ok Label_DERIVED_e__e__
+-  | TLSnames_EEM  | TLSnames_EAM  =>
++  | TLSnames_HSalt_case  =>
++    Result_Ok Label_DERIVED_e__e__
++  | TLSnames_EEM_case  =>
++    Result_Ok Label_E_EXP_MASTER
++  | TLSnames_EAM_case  =>
+     Result_Ok Label_E_EXP_MASTER
+   | TLSnames_CET_case  =>
+     Result_Ok Label_C_E_TRAFFIC_
+@@ -756,13 +796,36 @@
+   f_get := (@f_get);
+   f_set := (@f_set);
+   f_hash := (@f_hash)|}.
++Next Obligation.
++  refine uint8.
++Defined.
++Next Obligation.
++  unfold t_TLSkeyscheduler_t_KeySchedule_obligation_8.
++  unfold t_Result.
++  admit.
++Admitted.
++Next Obligation.
++  admit.
++Admitted.
++Next Obligation.
++  admit.
++Admitted.
++Next Obligation.
++  admit.
++Admitted.
++Next Obligation.
++  admit.
++Admitted.
++Next Obligation.
++  admit.
++Admitted.
+ Fail Next Obligation.
+ Hint Unfold t_TLSkeyscheduler_t_KeySchedule.
+ 
+ Definition t_TagKey : choice_type :=
+   (t_HashAlgorithm × t_TLSnames × t_Bytes).
+-Equations f_alg (s : both t_TagKey) : both t_HashAlgorithm :=
+-  f_alg s  :=
++Equations f_TagKey_alg (s : both t_TagKey) : both t_HashAlgorithm :=
++  f_TagKey_alg s  :=
+     bind_both s (fun x =>
+       ret_both (fst (fst x) : t_HashAlgorithm)) : both t_HashAlgorithm.
+ Fail Next Obligation.
+@@ -784,8 +847,8 @@
+           ret_both ((f_alg,f_tag,f_val) : (t_TagKey))))) : both (t_TagKey).
+ Fail Next Obligation.
+ Notation "'Build_t_TagKey' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_TagKey (f_alg := y) (f_tag := f_tag x) (f_val := f_val x)).
+-Notation "'Build_t_TagKey' '[' x ']' '(' 'f_tag' ':=' y ')'" := (Build_t_TagKey (f_alg := f_alg x) (f_tag := y) (f_val := f_val x)).
+-Notation "'Build_t_TagKey' '[' x ']' '(' 'f_val' ':=' y ')'" := (Build_t_TagKey (f_alg := f_alg x) (f_tag := f_tag x) (f_val := y)).
++Notation "'Build_t_TagKey' '[' x ']' '(' 'f_tag' ':=' y ')'" := (Build_t_TagKey (f_alg := f_TagKey_alg x) (f_tag := y) (f_val := f_val x)).
++Notation "'Build_t_TagKey' '[' x ']' '(' 'f_val' ':=' y ')'" := (Build_t_TagKey (f_alg := f_TagKey_alg x) (f_tag := f_tag x) (f_val := y)).
+ 
+ #[global] Program Instance t_TagKey_t_Clone : t_Clone t_TagKey :=
+   _.
+@@ -807,16 +870,16 @@
+ 
+ Equations xtr (k1 : both t_TagKey) (k2 : both t_TagKey) : both (t_Result t_TagKey int8) :=
+   xtr k1 k2  :=
+-    run (letm[choice_typeMonad.result_bind_code int8] val := xtr_alg (f_alg k1) (f_val k1) (f_val k2) in
+-    Result_Ok (Result_Ok (Build_t_TagKey (f_alg := f_alg k1) (f_tag := f_tag k1) (f_val := val)))) : both (t_Result t_TagKey int8).
++    (* run *) (letm[choice_typeMonad.result_bind_code int8] val := xtr_alg (f_TagKey_alg k1) (f_val k1) (f_val k2) in
++    (* Result_Ok *) (Result_Ok (Build_t_TagKey (f_alg := f_TagKey_alg k1) (f_tag := f_tag k1) (f_val := val)))) : both (t_Result t_TagKey int8).
+ Fail Next Obligation.
+ 
+ Equations xpd (k1 : both t_TagKey) (label : both t_Bytes) (d : both t_Bytes) : both (t_Result t_TagKey int8) :=
+   xpd k1 label d  :=
+-    run (letb alg := f_alg (f_clone k1) in
++    (* run *) (letb alg := f_TagKey_alg (f_clone k1) in
+     letb v := f_val (f_clone k1) in
+     letm[choice_typeMonad.result_bind_code int8] val := xpd_alg alg v label d in
+-    Result_Ok (Result_Ok (Build_t_TagKey (f_tag := f_tag k1) (f_alg := alg) (f_val := val)))) : both (t_Result t_TagKey int8).
++    (* Result_Ok *) (Result_Ok (Build_t_TagKey (f_tag := f_tag k1) (f_alg := alg) (f_val := val)))) : both (t_Result t_TagKey int8).
+ Fail Next Obligation.
+ 
+ Definition t_Handle : choice_type :=
+@@ -826,8 +889,8 @@
+     bind_both s (fun x =>
+       ret_both (fst (fst x) : t_TLSnames)) : both t_TLSnames.
+ Fail Next Obligation.
+-Equations f_alg (s : both t_Handle) : both t_HashAlgorithm :=
+-  f_alg s  :=
++Equations f_Handle_alg (s : both t_Handle) : both t_HashAlgorithm :=
++  f_Handle_alg s  :=
+     bind_both s (fun x =>
+       ret_both (snd (fst x) : t_HashAlgorithm)) : both t_HashAlgorithm.
+ Fail Next Obligation.
+@@ -843,195 +906,195 @@
+         bind_both f_name (fun f_name =>
+           ret_both ((f_name,f_alg,f_level) : (t_Handle))))) : both (t_Handle).
+ Fail Next Obligation.
+-Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_alg := f_alg x) (f_level := f_level x)).
++Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_alg := f_Handle_alg x) (f_level := f_level x)).
+ Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := y) (f_level := f_level x)).
+-Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := f_alg x) (f_level := y)).
++Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := f_Handle_alg x) (f_level := y)).
+ 
+ #[global] Program Instance t_Handle_t_Clone : t_Clone t_Handle :=
+   _.
+ Fail Next Obligation.
+ Hint Unfold t_Handle_t_Clone.
+ 
+-#[global] Program Instance t_Handle_t_Debug : t_Debug t_Handle :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_Handle_t_Debug.
++(* #[global] Program Instance t_Handle_t_Debug : t_Debug t_Handle := *)
++(*   _. *)
++(* Fail Next Obligation. *)
++(* Hint Unfold t_Handle_t_Debug. *)
+ 
+ Equations xpd_angle (name : both t_TLSnames) (label : both t_Bytes) (parrent_handle : both t_Handle) (args : both t_Bytes) : both (t_Result t_Handle int8) :=
+   xpd_angle name label parrent_handle args  :=
+-    Result_Ok (Build_t_Handle (f_name := name) (f_alg := f_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
++    Result_Ok (Build_t_Handle (f_name := name) (f_alg := f_Handle_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
+ Fail Next Obligation.
+ 
+-Equations set_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) (key : both t_Bytes) : both t_TLSkeyscheduler :=
+-  set_by_handle ks handle key  :=
+-    letb ks := f_set ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle)) key in
+-    ks : both t_TLSkeyscheduler.
+-Fail Next Obligation.
+-
+-Equations zero_salt (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) :=
+-  zero_salt ks alg  :=
+-    letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroSalt) (f_level := ret_both (0 : int8)) in
+-    letb ks := set_by_handle ks handle (impl_Bytes__zeroes (ret_both (1 : uint_size))) in
+-    letb hax_temp_output := handle in
+-    prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle).
+-Fail Next Obligation.
+-
+-Equations no_psk (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) :=
+-  no_psk ks alg  :=
+-    letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_PSK) (f_level := ret_both (0 : int8)) in
+-    letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in
+-    letb hax_temp_output := handle in
+-    prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle).
+-Fail Next Obligation.
+-
+-Equations zero_ikm (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) :=
+-  zero_ikm ks alg  :=
+-    letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroIKM) (f_level := ret_both (0 : int8)) in
+-    letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in
+-    letb hax_temp_output := handle in
+-    prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle).
+-Fail Next Obligation.
+-
+-Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Option t_Bytes) :=
+-  get_by_handle ks handle  :=
+-    f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle)) : both (t_Option t_Bytes).
+-Fail Next Obligation.
+-
+-Equations tagkey_from_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_TagKey int8) :=
+-  tagkey_from_handle ks handle  :=
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist6 := impl__ok_or (get_by_handle ks handle) v_INCORRECT_STATE in
+-    Result_Ok (letb hoist7 := Build_t_TagKey (f_alg := f_alg handle) (f_tag := f_name handle) (f_val := hoist6) in
+-    Result_Ok hoist7)) : both (t_Result t_TagKey int8).
+-Fail Next Obligation.
+-
+-Equations v_XPD (ks : both t_TLSkeyscheduler) (n : both t_TLSnames) (l : both int8) (h1 : both t_Handle) (r : both 'bool) (args : both t_Bytes) : both (t_TLSkeyscheduler × t_Result t_Handle int8) :=
+-  v_XPD ks n l h1 r args  :=
+-    run (letb '(n1,_) := f_prnt_n n in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] label := matchb f_branch (f_labels n r) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist8 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist8)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Bytes)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] h := matchb f_branch (xpd_angle n (f_clone label) h1 args) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist9 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist9)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Handle)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n1_unwrap := matchb f_branch (impl__ok_or n1 v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist10 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist10)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TLSnames)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k1 := matchb f_branch (impl__ok_or (f_get ks n1_unwrap l (prod_b (f_name h1,f_alg h1,f_level h1))) v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist11 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist11)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Bytes)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] '(l,(k : t_TagKey)) := ifb n =.? TLSnames_PSK
+-    then letb l := l .+ (ret_both (1 : int8)) in
+-    matchb f_branch (xpd (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) label args) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist12 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (prod_b (l,never_to_any hoist12))
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TagKey)) in
+-      ControlFlow_Continue (prod_b (l,val))
+-    end
+-    else letb d := f_hash args in
+-    matchb f_branch (xpd (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) label d) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist13 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (prod_b (l,never_to_any hoist13))
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TagKey)) in
+-      ControlFlow_Continue (prod_b (l,val))
+-    end in
+-    ControlFlow_Continue (letb ks := f_set ks n l (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in
+-    letb hax_temp_output := Result_Ok h in
+-    prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8).
+-Fail Next Obligation.
+-
+-Equations xtr_angle (name : both t_TLSnames) (v_left : both t_Handle) (v_right : both t_Handle) : both (t_Result t_Handle int8) :=
+-  xtr_angle name v_left v_right  :=
+-    Result_Ok (Build_t_Handle (f_alg := f_alg v_left) (f_name := name) (f_level := f_level v_left)) : both (t_Result t_Handle int8).
+-Fail Next Obligation.
+-
+-Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) :=
+-  v_XTR ks level name h1 h2  :=
+-    run (letb '(n1,n2) := f_prnt_n name in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] h := matchb f_branch (xtr_angle name (f_clone h1) (f_clone h2)) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist14 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist14)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Handle)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n1_unwrap := matchb f_branch (impl__ok_or n1 v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist15 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist15)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TLSnames)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n2_unwrap := matchb f_branch (impl__ok_or n2 v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist16 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist16)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TLSnames)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k1 := matchb f_branch (impl__ok_or (f_get ks n1_unwrap level (prod_b (f_name h1,f_alg h1,f_level h1))) v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist17 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist17)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Bytes)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k2 := matchb f_branch (impl__ok_or (f_get ks n2_unwrap level (prod_b (f_name h2,f_alg h2,f_level h2))) v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist18 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist18)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Bytes)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k := matchb f_branch (xtr (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) (Build_t_TagKey (f_alg := f_alg h2) (f_tag := f_name h2) (f_val := k2))) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist19 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist19)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TagKey)) in
+-      ControlFlow_Continue val
+-    end in
+-    ControlFlow_Continue (letb ks := f_set ks name level (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in
+-    letb hax_temp_output := Result_Ok h in
+-    prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8).
+-Fail Next Obligation.
++(* Equations set_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) (key : both t_Bytes) : both t_TLSkeyscheduler := *)
++(*   set_by_handle ks handle key  := *)
++(*     letb ks := f_set ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_Handle_alg handle,f_level handle)) key in *)
++(*     ks : both t_TLSkeyscheduler. *)
++(* Fail Next Obligation. *)
++
++(* Equations zero_salt (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
++(*   zero_salt ks alg  := *)
++(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroSalt) (f_level := ret_both (0 : int8)) in *)
++(*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (ret_both (1 : uint_size))) in *)
++(*     letb hax_temp_output := handle in *)
++(*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
++(* Fail Next Obligation. *)
++
++(* Equations no_psk (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
++(*   no_psk ks alg  := *)
++(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_PSK) (f_level := ret_both (0 : int8)) in *)
++(*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in *)
++(*     letb hax_temp_output := handle in *)
++(*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
++(* Fail Next Obligation. *)
++
++(* Equations zero_ikm (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
++(*   zero_ikm ks alg  := *)
++(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroIKM) (f_level := ret_both (0 : int8)) in *)
++(*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in *)
++(*     letb hax_temp_output := handle in *)
++(*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
++(* Fail Next Obligation. *)
++
++(* Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Option t_Bytes) := *)
++(*   get_by_handle ks handle  := *)
++(*     f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle)) : both (t_Option t_Bytes). *)
++(* Fail Next Obligation. *)
++
++(* Equations tagkey_from_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_TagKey int8) := *)
++(*   tagkey_from_handle ks handle  := *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist6 := impl__ok_or (get_by_handle ks handle) v_INCORRECT_STATE in *)
++(*     Result_Ok (letb hoist7 := Build_t_TagKey (f_alg := f_alg handle) (f_tag := f_name handle) (f_val := hoist6) in *)
++(*     Result_Ok hoist7)) : both (t_Result t_TagKey int8). *)
++(* Fail Next Obligation. *)
++
++(* Equations v_XPD (ks : both t_TLSkeyscheduler) (n : both t_TLSnames) (l : both int8) (h1 : both t_Handle) (r : both 'bool) (args : both t_Bytes) : both (t_TLSkeyscheduler × t_Result t_Handle int8) := *)
++(*   v_XPD ks n l h1 r args  := *)
++(*     run (letb '(n1,_) := f_prnt_n n in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] label := matchb f_branch (f_labels n r) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist8 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist8) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_Bytes)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] h := matchb f_branch (xpd_angle n (f_clone label) h1 args) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist9 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist9) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_Handle)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n1_unwrap := matchb f_branch (impl__ok_or n1 v_INCORRECT_STATE) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist10 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist10) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_TLSnames)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k1 := matchb f_branch (impl__ok_or (f_get ks n1_unwrap l (prod_b (f_name h1,f_alg h1,f_level h1))) v_INCORRECT_STATE) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist11 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist11) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_Bytes)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] '(l,(k : t_TagKey)) := ifb n =.? TLSnames_PSK *)
++(*     then letb l := l .+ (ret_both (1 : int8)) in *)
++(*     matchb f_branch (xpd (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) label args) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist12 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (prod_b (l,never_to_any hoist12)) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_TagKey)) in *)
++(*       ControlFlow_Continue (prod_b (l,val)) *)
++(*     end *)
++(*     else letb d := f_hash args in *)
++(*     matchb f_branch (xpd (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) label d) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist13 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (prod_b (l,never_to_any hoist13)) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_TagKey)) in *)
++(*       ControlFlow_Continue (prod_b (l,val)) *)
++(*     end in *)
++(*     ControlFlow_Continue (letb ks := f_set ks n l (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in *)
++(*     letb hax_temp_output := Result_Ok h in *)
++(*     prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8). *)
++(* Fail Next Obligation. *)
++
++Equations xtr_angle (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) : both (t_Result t_Handle int8) :=
++  xtr_angle name left_ right_  :=
++    Result_Ok (Build_t_Handle (f_alg := f_Handle_alg left_) (f_name := name) (f_level := f_level left_)) : both (t_Result t_Handle int8).
++Fail Next Obligation.
++
++(* Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) := *)
++(*   v_XTR ks level name h1 h2  := *)
++(*     run (letb '(n1,n2) := f_prnt_n name in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] h := matchb f_branch (xtr_angle name (f_clone h1) (f_clone h2)) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist14 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist14) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_Handle)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n1_unwrap := matchb f_branch (impl__ok_or n1 v_INCORRECT_STATE) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist15 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist15) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_TLSnames)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n2_unwrap := matchb f_branch (impl__ok_or n2 v_INCORRECT_STATE) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist16 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist16) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_TLSnames)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k1 := matchb f_branch (impl__ok_or (f_get ks n1_unwrap level (prod_b (f_name h1,f_alg h1,f_level h1))) v_INCORRECT_STATE) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist17 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist17) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_Bytes)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k2 := matchb f_branch (impl__ok_or (f_get ks n2_unwrap level (prod_b (f_name h2,f_alg h2,f_level h2))) v_INCORRECT_STATE) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist18 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist18) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_Bytes)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k := matchb f_branch (xtr (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) (Build_t_TagKey (f_alg := f_alg h2) (f_tag := f_name h2) (f_val := k2))) with *)
++(*     | ControlFlow_Break_case residual => *)
++(*       letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in *)
++(*       letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist19 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in *)
++(*       ControlFlow_Continue (never_to_any hoist19) *)
++(*     | ControlFlow_Continue_case val => *)
++(*       letb val := ret_both ((val) : (t_TagKey)) in *)
++(*       ControlFlow_Continue val *)
++(*     end in *)
++(*     ControlFlow_Continue (letb ks := f_set ks name level (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in *)
++(*     letb hax_temp_output := Result_Ok h in *)
++(*     prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8). *)
++(* Fail Next Obligation. *)
+diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Bertie_Tls13utils.v fextraction/Bertie_Tls13utils.v
+--- extraction/Bertie_Tls13utils.v	2025-04-14 18:53:43.619849935 +0200
++++ fextraction/Bertie_Tls13utils.v	2025-04-14 17:57:23.449444214 +0200
+@@ -26,6 +26,8 @@
+ 
+ Import RecordSetNotations.
+ 
++Require Import Fixes.
++
+ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
+ 
+ Equations v_CRYPTO_ERROR : both int8 :=
+@@ -43,7 +45,7 @@
+     ret_both (130 : int8) : both int8.
+ Fail Next Obligation.
+ 
+-Equations tlserr {v_T : v_T} `{ t_Sized v_T} (err : both int8) : both (t_Result v_T int8) :=
++Equations tlserr {v_T : choice_type} `{ t_Sized v_T} (err : both int8) : both (t_Result v_T int8) :=
+   tlserr err  :=
+     Result_Err err : both (t_Result v_T int8).
+ Fail Next Obligation.
+@@ -55,54 +57,54 @@
+ 
+ Definition t_Bytes : choice_type :=
+   (t_Vec int8 t_Global).
+-Equations 0 (s : both t_Bytes) : both (t_Vec int8 t_Global) :=
+-  0 s  :=
++Equations t_Bytes0 (s : both t_Bytes) : both (t_Vec int8 t_Global) :=
++  t_Bytes0 s  :=
+     bind_both s (fun x =>
+       ret_both (x : (t_Vec int8 t_Global))) : both (t_Vec int8 t_Global).
+ Fail Next Obligation.
+-Equations Build_t_Bytes {0 : both (t_Vec int8 t_Global)} : both (t_Bytes) :=
++Equations Build_t_Bytes {t_Bytes0 : both (t_Vec int8 t_Global)} : both (t_Bytes) :=
+   Build_t_Bytes  :=
+-    bind_both 0 (fun 0 =>
+-      ret_both ((0) : (t_Bytes))) : both (t_Bytes).
++    bind_both t_Bytes0 (fun t_Bytes0 =>
++      ret_both ((t_Bytes0) : (t_Bytes))) : both (t_Bytes).
+ Fail Next Obligation.
+-Notation "'Build_t_Bytes' '[' x ']' '(' '0' ':=' y ')'" := (Build_t_Bytes (0 := y)).
++Notation "'Build_t_Bytes' '[' x ']' '(' '0' ':=' y ')'" := (Build_t_Bytes (t_Bytes0 := y)).
+ 
+ #[global] Program Instance t_Bytes_t_Clone : t_Clone t_Bytes :=
+   _.
+ Fail Next Obligation.
+ Hint Unfold t_Bytes_t_Clone.
+ 
+-#[global] Program Instance t_Bytes_t_From : t_From t_Bytes (t_Vec int8 t_Global) :=
+-  let f_from := fun  (x : both (t_Vec int8 t_Global)) => Bytes x : both t_Bytes in
++#[global] Program Instance t_Bytes_t_From : t_From (both t_Bytes) (both (t_Vec int8 t_Global)) :=
++  let f_from := fun  (x : both (t_Vec int8 t_Global)) => t_Bytes0 x : both t_Bytes in
+   {| f_from := (@f_from)|}.
+ Fail Next Obligation.
+ Hint Unfold t_Bytes_t_From.
+ 
+-Equations impl_Bytes__declassify (self : both t_Bytes) : both (t_Vec int8 t_Global) :=
+-  impl_Bytes__declassify self  :=
+-    f_collect (f_map (impl__iter (f_deref (0 self))) (fun x =>
+-      f_declassify x)) : both (t_Vec int8 t_Global).
+-Fail Next Obligation.
+-
+-Equations impl_Bytes__prefix (self : both t_Bytes) (prefix : both (seq int8)) : both t_Bytes :=
+-  impl_Bytes__prefix self prefix  :=
+-    letb out := impl__with_capacity ((impl__len prefix) .+ (impl_Bytes__len self)) in
+-    letb out := impl_2__extend_from_slice out prefix in
+-    letb out := impl_2__extend_from_slice out (f_deref (0 self)) in
+-    Bytes out : both t_Bytes.
+-Fail Next Obligation.
+-
+-Equations impl_Bytes__as_raw (self : both t_Bytes) : both (seq int8) :=
+-  impl_Bytes__as_raw self  :=
+-    f_deref (0 self) : both (seq int8).
+-Fail Next Obligation.
+-
+-Equations u16_as_be_bytes (val : both int16) : both (nseq int8 2) :=
+-  u16_as_be_bytes val  :=
+-    letb val := impl_u16__to_be_bytes val in
+-    array_from_list [v_U8 (val.a[(ret_both (0 : uint_size))]);
+-      v_U8 (val.a[(ret_both (1 : uint_size))])] : both (nseq int8 2).
+-Fail Next Obligation.
++(* Equations impl_Bytes__declassify (self : both t_Bytes) : both (t_Vec int8 t_Global) := *)
++(*   impl_Bytes__declassify self  := *)
++(*     f_collect (f_map (impl__iter (f_deref (0 self))) (fun x => *)
++(*       f_declassify x)) : both (t_Vec int8 t_Global). *)
++(* Fail Next Obligation. *)
++
++(* Equations impl_Bytes__prefix (self : both t_Bytes) (prefix : both (seq int8)) : both t_Bytes := *)
++(*   impl_Bytes__prefix self prefix  := *)
++(*     letb out := impl__with_capacity ((impl__len prefix) .+ (impl_Bytes__len self)) in *)
++(*     letb out := impl_2__extend_from_slice out prefix in *)
++(*     letb out := impl_2__extend_from_slice out (f_deref (0 self)) in *)
++(*     Bytes out : both t_Bytes. *)
++(* Fail Next Obligation. *)
++
++(* Equations impl_Bytes__as_raw (self : both t_Bytes) : both (seq int8) := *)
++(*   impl_Bytes__as_raw self  := *)
++(*     f_deref (0 self) : both (seq int8). *)
++(* Fail Next Obligation. *)
++
++(* Equations u16_as_be_bytes (val : both int16) : both (nseq int8 2) := *)
++(*   u16_as_be_bytes val  := *)
++(*     letb val := impl_u16__to_be_bytes val in *)
++(*     array_from_list [v_U8 (val.a[(ret_both (0 : uint_size))]); *)
++(*       v_U8 (val.a[(ret_both (1 : uint_size))])] : both (nseq int8 2). *)
++(* Fail Next Obligation. *)
+ 
+ Equations impl_Bytes__from_slice (s : both (seq int8)) : both t_Bytes :=
+   impl_Bytes__from_slice s  :=
+@@ -111,26 +113,26 @@
+ 
+ Equations impl_Bytes__zeroes (len : both uint_size) : both t_Bytes :=
+   impl_Bytes__zeroes len  :=
+-    Bytes (from_elem (v_U8 (ret_both (0 : int8))) len) : both t_Bytes.
+-Fail Next Obligation.
+-
+-Equations impl_Bytes__concat (self : both t_Bytes) (other : both t_Bytes) : both t_Bytes :=
+-  impl_Bytes__concat self other  :=
+-    concat_inner self other : both t_Bytes.
++    Build_t_Bytes (t_Bytes0 := from_elem ((* v_U8 *) (ret_both (0 : int8))) len) : both t_Bytes.
+ Fail Next Obligation.
+ 
+-Equations eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both 'bool :=
+-  eq b1 b2  :=
+-    eq_inner b1 b2 : both 'bool.
+-Fail Next Obligation.
+-
+-Equations encode_length_u8 (bytes : both (seq int8)) : both (t_Result t_Bytes int8) :=
+-  encode_length_u8 bytes  :=
+-    letb len := impl__len bytes in
+-    ifb len >=.? (ret_both (256 : uint_size))
+-    then Result_Err v_PAYLOAD_TOO_LONG
+-    else letb lenb := impl_Bytes__new_alloc ((ret_both (1 : uint_size)) .+ (impl__len bytes)) in
+-    letb lenb := impl_Bytes__push lenb (v_U8 (cast_int (WS2 := _) len)) in
+-    letb lenb := Build_t_Bytes[lenb] (0 := impl_2__extend_from_slice (0 lenb) bytes) in
+-    Result_Ok lenb : both (t_Result t_Bytes int8).
+-Fail Next Obligation.
++(* Equations impl_Bytes__concat (self : both t_Bytes) (other : both t_Bytes) : both t_Bytes := *)
++(*   impl_Bytes__concat self other  := *)
++(*     concat_inner self other : both t_Bytes. *)
++(* Fail Next Obligation. *)
++
++(* Equations eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both 'bool := *)
++(*   eq b1 b2  := *)
++(*     eq_inner b1 b2 : both 'bool. *)
++(* Fail Next Obligation. *)
++
++(* Equations encode_length_u8 (bytes : both (seq int8)) : both (t_Result t_Bytes int8) := *)
++(*   encode_length_u8 bytes  := *)
++(*     letb len := impl__len bytes in *)
++(*     ifb len >=.? (ret_both (256 : uint_size)) *)
++(*     then Result_Err v_PAYLOAD_TOO_LONG *)
++(*     else letb lenb := impl_Bytes__new_alloc ((ret_both (1 : uint_size)) .+ (impl__len bytes)) in *)
++(*     letb lenb := impl_Bytes__push lenb (v_U8 (cast_int (WS2 := _) len)) in *)
++(*     letb lenb := Build_t_Bytes[lenb] (0 := impl_2__extend_from_slice (0 lenb) bytes) in *)
++(*     Result_Ok lenb : both (t_Result t_Bytes int8). *)
++(* Fail Next Obligation. *)
+diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Fixes.v fextraction/Fixes.v
+--- extraction/Fixes.v	1970-01-01 01:00:00.000000000 +0100
++++ fextraction/Fixes.v	2025-04-14 18:10:02.800209278 +0200
+@@ -0,0 +1,372 @@
++(* File automatically generated by Hacspec *)
++Set Warnings "-notation-overridden,-ambiguous-paths".
++From Crypt Require Import choice_type Package Prelude.
++Import PackageNotation.
++From extructures Require Import ord fset.
++From mathcomp Require Import word_ssrZ word.
++(* From Jasmin Require Import word. *)
++
++From Coq Require Import ZArith.
++From Coq Require Import Strings.String.
++Import List.ListNotations.
++Open Scope list_scope.
++Open Scope Z_scope.
++Open Scope bool_scope.
++
++From Hacspec Require Import ChoiceEquality.
++From Hacspec Require Import LocationUtility.
++From Hacspec Require Import Hacspec_Lib_Comparable.
++From Hacspec Require Import Hacspec_Lib_Pre.
++From Hacspec Require Import Hacspec_Lib.
++
++Open Scope hacspec_scope.
++Import choice.Choice.Exports.
++
++Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
++
++Axiom t_String : choice_type.
++Class t_From (A B : Type) := {
++    f_from : B -> A ;
++  }.
++
++Instance sized_int8 : t_Sized int8 := { Sized := id }.
++Instance sized_int32 : t_Sized int32 := { Sized := id }.
++Instance sized_any {A} : t_Sized A := { Sized := id }.
++
++Axiom string_from_int : both int8 -> both t_String.
++
++Definition impl__u32__from_be_bytes val := bind_both val uint32_from_be_bytes.
++Definition impl__u32__to_be_bytes val := bind_both val uint32_to_be_bytes.
++
++Definition impl__u16__to_be_bytes val := bind_both val uint16_to_be_bytes.
++
++(* Definition len {A l} (x : array_or_seq A l) : both uint_size := ret_both l. *)
++
++(* Definition t_Bytes : choice_type := *)
++(*   (t_Vec int8 t_Global). *)
++
++Axiom impl__Bytes__declassify : both (t_Vec int8 t_Global) -> both (t_Vec int8 t_Global).
++Notation f_deref := id.
++
++Axiom from_elem : forall {A : choice_type} (x : both A) (n : both uint_size), both (t_Vec uint8 t_Global).
++(* Axiom from_elem : forall {A : choice_type} (x : both A) (n : both uint_size), both (nseq_ A (is_pure n)). *)
++
++Notation impl__len := len.
++
++Definition impl__new {A : choice_type} : both (t_Vec A t_Global) :=
++  ret_both ([] : chList A).
++
++Definition impl__with_capacity {A : choice_type} (n : both uint_size) := @impl__new A.
++
++Module Digest.
++Definition t_Algorithm : choice_type :=
++  ('unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit).
++
++Notation "'Algorithm_Sha1_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl tt)))))))))) (at level 100).
++Equations Algorithm_Sha1 : both t_Algorithm :=
++  Algorithm_Sha1  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl (tt : 'unit)))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha224_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inl (inr tt)))))))))) (at level 100).
++Equations Algorithm_Sha224 : both t_Algorithm :=
++  Algorithm_Sha224  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit)))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha256_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inr tt))))))))) (at level 100).
++Equations Algorithm_Sha256 : both t_Algorithm :=
++  Algorithm_Sha256  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha384_case'" := (inl (inl (inl (inl (inl (inl (inl (inr tt)))))))) (at level 100).
++Equations Algorithm_Sha384 : both t_Algorithm :=
++  Algorithm_Sha384  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit)))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha512_case'" := (inl (inl (inl (inl (inl (inl (inr tt))))))) (at level 100).
++Equations Algorithm_Sha512 : both t_Algorithm :=
++  Algorithm_Sha512  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inr (tt : 'unit))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Blake2s_case'" := (inl (inl (inl (inl (inl (inr tt)))))) (at level 100).
++Equations Algorithm_Blake2s : both t_Algorithm :=
++  Algorithm_Blake2s  :=
++    ret_both (inl (inl (inl (inl (inl (inr (tt : 'unit)))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Blake2b_case'" := (inl (inl (inl (inl (inr tt))))) (at level 100).
++Equations Algorithm_Blake2b : both t_Algorithm :=
++  Algorithm_Blake2b  :=
++    ret_both (inl (inl (inl (inl (inr (tt : 'unit))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha3_224_case'" := (inl (inl (inl (inr tt)))) (at level 100).
++Equations Algorithm_Sha3_224 : both t_Algorithm :=
++  Algorithm_Sha3_224  :=
++    ret_both (inl (inl (inl (inr (tt : 'unit)))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha3_256_case'" := (inl (inl (inr tt))) (at level 100).
++Equations Algorithm_Sha3_256 : both t_Algorithm :=
++  Algorithm_Sha3_256  :=
++    ret_both (inl (inl (inr (tt : 'unit))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha3_384_case'" := (inl (inr tt)) (at level 100).
++Equations Algorithm_Sha3_384 : both t_Algorithm :=
++  Algorithm_Sha3_384  :=
++    ret_both (inl (inr (tt : 'unit)) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha3_512_case'" := (inr tt) (at level 100).
++Equations Algorithm_Sha3_512 : both t_Algorithm :=
++  Algorithm_Sha3_512  :=
++    ret_both (inr (tt : 'unit) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++
++Definition digest_size(mode : both t_Algorithm) : both uint_size :=
++  matchb mode with
++  | Algorithm_Sha1_case => ret_both 20
++  | Algorithm_Sha224_case => ret_both 28
++  | Algorithm_Sha256_case => ret_both 32
++  | Algorithm_Sha384_case => ret_both 48
++  | Algorithm_Sha512_case => ret_both 64
++  | Algorithm_Blake2s_case => ret_both 32
++  | Algorithm_Blake2b_case => ret_both 64
++  | Algorithm_Sha3_224_case => ret_both 28
++  | Algorithm_Sha3_256_case => ret_both 32
++  | Algorithm_Sha3_384_case => ret_both 48
++  | Algorithm_Sha3_512_case => ret_both 64
++  end.
++
++Axiom hash : forall (alg: both t_Algorithm) (payload: both (t_Vec int8 t_Global)), both (t_Vec int8 t_Global).
++
++(* // Error?? *)
++(*         (* Algorithm::Sha1 => todo!(), *) *)
++
++(* /// Create the digest for the given `data` and mode `alg`. *)
++(* /// The output has length [`digest_size(alg)`], i.e. blake2 returns a full-sized *)
++(* /// digest. *)
++(* /// *)
++(* /// Note that this will return a vector on the heap. Use functions like [`sha2_256`] *)
++(* /// if you want an array. *)
++(* pub fn hash(alg: Algorithm, payload: &[u8]) -> Vec<u8> { *)
++(*     // Note that one-shot hacl functions are slower than streaming. *)
++(*     // So we only use streaming. *)
++(*     match alg { *)
++(*         Algorithm::Sha1 => todo!(), *)
++(*         Algorithm::Sha224 => sha2::sha224(payload).into(), *)
++(*         Algorithm::Sha256 => sha2::sha256(payload).into(), *)
++(*         Algorithm::Sha384 => sha2::sha384(payload).into(), *)
++(*         Algorithm::Sha512 => sha2::sha512(payload).into(), *)
++(*         Algorithm::Blake2s => blake2s(payload, &[]), *)
++(*         Algorithm::Blake2b => blake2b(payload, &[]), *)
++(*         Algorithm::Sha3_224 => sha3_224(payload).into(), *)
++(*         Algorithm::Sha3_256 => sha3_256(payload).into(), *)
++(*         Algorithm::Sha3_384 => sha3_384(payload).into(), *)
++(*         Algorithm::Sha3_512 => sha3_512(payload).into(), *)
++(*     } *)
++(* } *)
++
++End Digest.
++
++Module Hkdf.
++Definition t_Algorithm : choice_type :=
++  ('unit ∐ 'unit ∐ 'unit).
++
++Notation "'Algorithm_Sha256_case'" := (inl (inl tt)) (at level 100).
++Equations Algorithm_Sha256 : both t_Algorithm :=
++  Algorithm_Sha256  :=
++    ret_both (inl (inl (tt : 'unit)) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha384_case'" := (inl (inr tt)) (at level 100).
++Equations Algorithm_Sha384 : both t_Algorithm :=
++  Algorithm_Sha384  :=
++    ret_both (inl (inr (tt : 'unit)) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Sha512_case'" := (inr tt) (at level 100).
++Equations Algorithm_Sha512 : both t_Algorithm :=
++  Algorithm_Sha512  :=
++    ret_both (inr (tt : 'unit) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++
++Definition t_Error : choice_type := 'unit.
++Notation "'Error_OkmLengthTooLarge_case'" := (inl (inl tt)) (at level 100).
++Equations Error_OkmLengthTooLarge : both t_Error :=
++  Error_OkmLengthTooLarge  :=
++    ret_both ((tt : 'unit) : t_Error) : both t_Error.
++Fail Next Obligation.
++
++Axiom expand : forall (alg : both t_Algorithm) (prk : both (t_Vec int8 t_Global)) (info : both (t_Vec int8 t_Global)) (okm_len : both uint_size), both (t_Result (t_Vec int8 t_Global) (t_Error)).
++(* /// HKDF expand using hash function `mode`, pre-key material `prk`, `info`, and output length `okm_len`. *)
++(* /// Returns the key material in a vector of length `okm_len` or [`Error::OkmLengthTooLarge`] *)
++(* /// if the requested output length is too large. *)
++(* pub fn expand( *)
++(*     alg: Algorithm, *)
++(*     prk: impl AsRef<[u8]>, *)
++(*     info: impl AsRef<[u8]>, *)
++(*     okm_len: usize, *)
++(* ) -> Result<Vec<u8>, Error> { *)
++(*     match alg { *)
++(*         Algorithm::Sha256 => { *)
++(*             crate::hacl::hkdf::sha2_256::vec::expand(prk.as_ref(), info.as_ref(), okm_len) *)
++(*                 .map_err(|_| Error::OkmLengthTooLarge) *)
++(*         } *)
++(*         Algorithm::Sha384 => { *)
++(*             crate::hacl::hkdf::sha2_384::vec::expand(prk.as_ref(), info.as_ref(), okm_len) *)
++(*                 .map_err(|_| Error::OkmLengthTooLarge) *)
++(*         } *)
++(*         Algorithm::Sha512 => { *)
++(*             crate::hacl::hkdf::sha2_512::vec::expand(prk.as_ref(), info.as_ref(), okm_len) *)
++(*                 .map_err(|_| Error::OkmLengthTooLarge) *)
++(*         } *)
++(*     } *)
++(* } *)
++
++Axiom extract : forall (alg : both t_Algorithm) (salt : both (t_Vec int8 t_Global)) (ikm : both (t_Vec int8 t_Global)), both (t_Result (t_Vec int8 t_Global) (t_Error)).
++(* /// HKDF extract using hash function `mode`, `salt`, and the input key material `ikm`. *)
++(* /// Returns the pre-key material in a vector of tag length. *)
++(* pub fn extract(alg: Algorithm, salt: impl AsRef<[u8]>, ikm: impl AsRef<[u8]>) -> Vec<u8> { *)
++(*     match alg { *)
++(*         Algorithm::Sha256 => { *)
++(*             crate::hacl::hkdf::sha2_256::extract(salt.as_ref(), ikm.as_ref()).into() *)
++(*         } *)
++(*         Algorithm::Sha384 => { *)
++(*             crate::hacl::hkdf::sha2_384::extract(salt.as_ref(), ikm.as_ref()).into() *)
++(*         } *)
++(*         Algorithm::Sha512 => { *)
++(*             crate::hacl::hkdf::sha2_512::extract(salt.as_ref(), ikm.as_ref()).into() *)
++(*         } *)
++(*     } *)
++(* } *)
++
++End Hkdf.
++
++
++Module Signature.
++Definition t_DigestAlgorithm : choice_type :=
++  ('unit ∐ 'unit ∐ 'unit).
++Notation "'DigestAlgorithm_Sha256_case'" := (inl (inl tt)) (at level 100).
++Equations DigestAlgorithm_Sha256 : both t_DigestAlgorithm :=
++  DigestAlgorithm_Sha256  :=
++    ret_both (inl (inl (tt : 'unit)) : t_DigestAlgorithm) : both t_DigestAlgorithm.
++Fail Next Obligation.
++Notation "'DigestAlgorithm_Sha384_case'" := (inl (inr tt)) (at level 100).
++Equations DigestAlgorithm_Sha384 : both t_DigestAlgorithm :=
++  DigestAlgorithm_Sha384  :=
++    ret_both (inl (inr (tt : 'unit)) : t_DigestAlgorithm) : both t_DigestAlgorithm.
++Fail Next Obligation.
++Notation "'DigestAlgorithm_Sha512_case'" := (inr tt) (at level 100).
++Equations DigestAlgorithm_Sha512 : both t_DigestAlgorithm :=
++  DigestAlgorithm_Sha512  :=
++    ret_both (inr (tt : 'unit) : t_DigestAlgorithm) : both t_DigestAlgorithm.
++Fail Next Obligation.
++
++
++Definition t_Algorithm : choice_type :=
++  (t_DigestAlgorithm ∐ 'unit ∐ t_DigestAlgorithm).
++Notation "'Algorithm_EcDsaP256_case' x" := (inl (inl x)) (at level 100).
++Equations Algorithm_EcDsaP256 (x : both t_DigestAlgorithm) : both t_Algorithm :=
++  Algorithm_EcDsaP256 x :=
++    bind_both x (fun x =>
++    ret_both (inl (inl x) : t_Algorithm)) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_RsaPss_case'" := (inl (inr tt)) (at level 100).
++Equations Algorithm_Ed25519 : both t_Algorithm :=
++  Algorithm_Ed25519 :=
++    ret_both (inl (inr (tt : 'unit)) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_RsaPss_case' x" := (inr x) (at level 100).
++Equations Algorithm_RsaPss (x : both t_DigestAlgorithm) : both t_Algorithm :=
++  Algorithm_RsaPss x :=
++    bind_both x (fun x =>
++    ret_both (inr x : t_Algorithm)) : both t_Algorithm.
++Fail Next Obligation.
++End Signature.
++
++Module Libcrux_kem.
++Definition t_Algorithm : choice_type :=
++  ('unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit ∐ 'unit).
++
++Notation "'Algorithm_X25519_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl tt))))))))))) (at level 100).
++Equations Algorithm_X25519 : both t_Algorithm :=
++  Algorithm_X25519  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl (tt : 'unit))))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_X448_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl (inr tt))))))))))) (at level 100).
++Equations Algorithm_X448 : both t_Algorithm :=
++  Algorithm_X448  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit))))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Secp256r1_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inl (inr tt)))))))))) (at level 100).
++Equations Algorithm_Secp256r1 : both t_Algorithm :=
++  Algorithm_Secp256r1  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit)))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Secp384r1_case'" := (inl (inl (inl (inl (inl (inl (inl (inl (inr tt))))))))) (at level 100).
++Equations Algorithm_Secp384r1 : both t_Algorithm :=
++  Algorithm_Secp384r1  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit))))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_Secp521r1_case'" := (inl (inl (inl (inl (inl (inl (inl (inr tt)))))))) (at level 100).
++Equations Algorithm_Secp521r1 : both t_Algorithm :=
++  Algorithm_Secp521r1  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inl (inr (tt : 'unit)))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_MlKem512_case'" := (inl (inl (inl (inl (inl (inl (inr tt))))))) (at level 100).
++Equations Algorithm_MlKem512 : both t_Algorithm :=
++  Algorithm_MlKem512  :=
++    ret_both (inl (inl (inl (inl (inl (inl (inr (tt : 'unit))))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_MlKem768_case'" := (inl (inl (inl (inl (inl (inr tt)))))) (at level 100).
++Equations Algorithm_MlKem768 : both t_Algorithm :=
++  Algorithm_MlKem768  :=
++    ret_both (inl (inl (inl (inl (inl (inr (tt : 'unit)))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_X25519MlKem768Draft00_case'" := (inl (inl (inl (inl (inr tt))))) (at level 100).
++Equations Algorithm_X25519MlKem768Draft00 : both t_Algorithm :=
++  Algorithm_X25519MlKem768Draft00  :=
++    ret_both (inl (inl (inl (inl (inr (tt : 'unit))))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_XWingKemDraft02_case'" := (inl (inl (inl (inr tt)))) (at level 100).
++Equations Algorithm_XWingKemDraft02 : both t_Algorithm :=
++  Algorithm_XWingKemDraft02  :=
++    ret_both (inl (inl (inl (inr (tt : 'unit)))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_X25519Kyber768Draft00_case'" := (inl (inl (inr tt))) (at level 100).
++Equations Algorithm_X25519Kyber768Draft00 : both t_Algorithm :=
++  Algorithm_X25519Kyber768Draft00  :=
++    ret_both (inl (inl (inr (tt : 'unit))) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_XWingKyberDraft02_case'" := (inl (inr tt)) (at level 100).
++Equations Algorithm_XWingKyberDraft02 : both t_Algorithm :=
++  Algorithm_XWingKyberDraft02  :=
++    ret_both (inl (inr (tt : 'unit)) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++Notation "'Algorithm_MlKem1024_case'" := (inr tt) (at level 100).
++Equations Algorithm_MlKem1024 : both t_Algorithm :=
++  Algorithm_MlKem1024  :=
++    ret_both (inr (tt : 'unit) : t_Algorithm) : both t_Algorithm.
++Fail Next Obligation.
++
++End Libcrux_kem.
++
++Class t_TryFrom (A B : choice_type) :=
++  { f_Error : choice_type ;
++    f_try_from : both B -> both (t_Result A B) }.
++
++Class Into A B := f_into : both A -> both B.
++Instance into_any {A B} : Into A B. Admitted.
++
++Definition Option_Some {A} := lift1_both (fun x => (Some x : 'option A)).
++Definition Option_None {A} := ret_both (None : 'option A).
++
++Definition impl_1__append {A} (a : both (t_Vec A t_Global)) (b : both (t_Vec A t_Global)) : both (t_Vec A t_Global × t_Vec A t_Global) :=
++  lift2_both (fun (x y : t_Vec A t_Global) => (([], app x y) : t_Vec A t_Global × t_Vec A t_Global)) a b.
++
++Definition impl_1__push {A} (a : both (t_Vec A t_Global)) (x : both A) : both (t_Vec A t_Global) :=
++  lift2_both (fun (x : t_Vec A t_Global) (y : A) => ((cons y x) : t_Vec A t_Global)) a x.
++
++Definition impl_2__extend_from_slice {A} (a : both (t_Vec A t_Global)) (b : both (t_Seq A)) : both (t_Vec A t_Global) :=
++  lift2_both (fun (x y : t_Vec A t_Global) => ((app x y) : t_Vec A t_Global)) a (seq_to_list b).
++
++#[global] Notation "'t_RandomState'" := (tt).
++#[global] Notation "'t_HashMap'" := (fun x y _ => chMap x y) (at level 100).
++
++#[global] Notation "'impl_Bytes__declassify'" := id.
++
++Definition impl__is_empty {A} (l : both (chList A)) := (l =.? array_to_list (array_from_list [])).

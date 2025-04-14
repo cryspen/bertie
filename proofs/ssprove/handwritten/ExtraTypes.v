@@ -89,9 +89,10 @@ Definition bitvec := chNat. (* {0,1}^96 *)
   eq_ind_r [eta Positive] (erefl : Positive 1) card_unit.
 
 (* Label *)
-Definition fin_label := 'fin (Nat.pow 2 96).
+Definition label_pow : nat := (Nat.pow 2 96).
+Definition fin_label := 'fin label_pow.
 #[global] Instance pos_label : Positive #|fin_label| :=
-  eq_ind_r [eta Positive] (erefl : Positive (Nat.pow 2 96)) (card_ord (Nat.pow 2 96)).
+  eq_ind_r [eta Positive] (erefl : Positive label_pow) (card_ord label_pow).
 Definition chLabel : choice_type := chFin (mkpos #|fin_label|).
 
 (* Name *)
@@ -163,18 +164,18 @@ Defined.
 Definition fin_handle : finType :=
   Casts.prod_finType
     (fin_name)
-    (Casts.prod_finType
-       (fin_label)
+    (* (Casts.prod_finType *)
+    (*    (fin_label) *)
        (Casts.prod_finType
           (fin_hash)
-          ('unit))).
+          ('unit))(* ) *).
 #[global] Instance pos_handle : Positive #|fin_handle| :=
-  pos_prod (pos_name) (pos_prod pos_label (pos_prod pos_hash pos_unit))
+  pos_prod (pos_name) (* (pos_prod pos_label *) (pos_prod pos_hash pos_unit)(* ) *)
 .
 Definition chHandle : choice_type := chFin (mkpos #|fin_handle|).
 
 Definition chHandle_to_chHash (h : chHandle) : chHash :=
-  fto (fst (snd (snd (otf h)))).
+  fto (fst (* (snd *) (snd (otf h)))(* ) *).
 
 Definition fin_key := (Casts.prod_finType fin_hash fin_name).
 #[global] Instance pos_key : Positive #|fin_key| := pos_prod pos_hash pos_name.

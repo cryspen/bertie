@@ -72,19 +72,27 @@ From KeyScheduleTheorem Require Import Utility.
 
 From KeyScheduleTheorem Require Import Dependencies.
 
-From KeyScheduleTheorem Require Import ssp_helper.
+(* From KeyScheduleTheorem Require Import ssp_helper. *)
 
-From KeyScheduleTheorem Require Import BasePackages.
-From KeyScheduleTheorem Require Import KeyPackages.
-From KeyScheduleTheorem Require Import XTR_XPD.
+(* From KeyScheduleTheorem Require Import BasePackages. *)
+(* From KeyScheduleTheorem Require Import KeyPackages. *)
+(* From KeyScheduleTheorem Require Import XTR_XPD. *)
 
-From KeyScheduleTheorem Require Import Core.
-From KeyScheduleTheorem Require Import MapPackage.
+(* From KeyScheduleTheorem Require Import Core. *)
+(* From KeyScheduleTheorem Require Import MapPackage. *)
 
 From KeyScheduleTheorem Require Import CoreTheorem.
 
 
-From BertieExtraction Require Import Bertie_Tls13keyscheduler.
+From BertieExtraction Require Import Bertie_Tls13keyscheduler_Key_schedule.
+
+(* ./extraction/Fixes.v *)
+(* ./extraction/Bertie_Tls13utils.v *)
+(* ./extraction/Bertie_Tls13formats_Handshake_data.v *)
+(* ./extraction/Bertie_Tls13crypto.v *)
+(* ./extraction/Bertie_Tls13formats.v *)
+(* ./extraction/Bertie_Tls13keyscheduler_Key_schedule.v *)
+
 
 Definition name_to_t_TLSname (n : name) {H_not_bot : n <> BOT} : both t_TLSnames :=
   match n return (n <> BOT) -> _ with
@@ -168,10 +176,66 @@ Definition chHash_to_t_HashAlgorithm (x : chHash) : both t_HashAlgorithm :=
   | n => fun H => False_rect _ (ltac:(easy))
   end%nat (ltn_ord (otf x)).
 
+Definition t_HashAlgorithm_to_chHash (x : t_HashAlgorithm) : chHash :=
+  match x with
+  | HashAlgorithm_SHA256_case => fto (inord 0)
+  | HashAlgorithm_SHA384_case => fto (inord 1)
+  | HashAlgorithm_SHA512_case => fto (inord 2)
+  end.
+
 Definition chLabel_to_label (l : chLabel) : (* both *) (chList int8) :=
   (* array_from_list *) (List.map (fun (x : nat) => (* ret_both *) (((otf l / Nat.pow 2 (x * 8)) mod 8)%nat : int8)) (iota 0 12)).
 
 Notation repr := (fun WS x => wrepr WS x : int WS).
+
+Fixpoint t_Bytes_to_nat (x : t_Bytes) : nat :=
+  (match x with
+   | [] => 0
+   | (y :: ys) => t_Bytes_to_nat ys * 256 + Z.to_nat (toword y)
+   end%nat).
+
+(* Theorem pow_eq : Nat.pow 2 96 = N.pow 2 96. *)
+(* Proof. *)
+(*   refine Nnat.Nat2N.inj_pow. *)
+
+(* Definition label_pow := 2. *)
+
+(* Do not compute type.. Nat.pow 2 96 is a large number *)
+Definition t_Bytes_to_chLabel (x : t_Bytes) : chLabel.
+  apply fto.
+  hnf.
+  set {| pos := _ |}.
+  assert (p.(pos) > 0) by easy.
+  generalize dependent p.
+  intros.
+  destruct p.(pos).
+  - discriminate.
+  - apply inord.
+    apply (t_Bytes_to_nat x).
+Defined.
+
+Lemma t_Bytes_to_chLabel_correct :
+  forall x, chLabel_to_label (t_Bytes_to_chLabel x) = x.
+Proof.
+  intros.
+  induction x.
+  - unfold t_Bytes_to_chLabel.
+    unfold pos.
+    (* unfold label_pow. *)
+Admitted.
+
+Program Definition chKey_to_t_TagKey (x : chKey) `{H_not_bot : nfto (fto (otf x).2) <> BOT} (bytes : both t_Bytes) : both t_TagKey :=
+  prod_b (
+      chHash_to_t_HashAlgorithm (fto (otf x).1),
+      name_to_t_TLSname (H_not_bot := H_not_bot) (nfto (fto (otf x).2)),
+      bytes (* TODO *)
+    ).
+
+Definition t_TagKey_to_chKey (x : t_TagKey) : chKey :=
+  (fto (
+      otf (t_HashAlgorithm_to_chHash x.1.1) ,
+      otf (name_to_chName (t_TLSname_option_pair_to_name (Some x.1.2)))
+    )).
 
 Obligation Tactic := (* try timeout 8 *) idtac.
 Program Fixpoint bitvec_to_bitstring (x : bitvec) {measure x} : chList int8 :=
@@ -195,23 +259,46 @@ Final Obligation.
 Admitted.
 
 Section BertieKeySchedule.
-  Definition Bertie_PrntN : name -> code fset0 fset0 (chName × chName) :=
+  Definition Bertie_PrntN : name -> (* code fset0 fset0 *) (chProd chName chName) :=
     (fun n =>
        match n as k return n = k -> _ with
-       | BOT => fun _ => {code ret (name_to_chName BOT , name_to_chName BOT)}
+       | BOT => fun _ => (* {code ret *) (name_to_chName BOT , name_to_chName BOT) (* } *)
        | n0 => fun H =>
-                {code x ← is_state (both_prog (@f_prnt_n _ _ _ t_TLSkeyscheduler_t_KeySchedule (name_to_t_TLSname (H_not_bot := ltac:(easy)) n))) ;;
-                 ret (
-                     (name_to_chName (t_TLSname_option_pair_to_name (fst x))) ,
-                     (name_to_chName (t_TLSname_option_pair_to_name (snd x))))
-                   #with
-                  ltac:(ssprove_valid; apply f_prnt_n)
-                }
+                is_pure (
+                    letb x := (@f_prnt_n _ _ _ t_TLSkeyscheduler_t_KeySchedule (name_to_t_TLSname (H_not_bot := ltac:(easy)) n)) in
+                      bind_both x (fun x =>
+                      prod_b (
+                          (ret_both (name_to_chName (t_TLSname_option_pair_to_name (fst x)))) ,
+                          (ret_both (name_to_chName (t_TLSname_option_pair_to_name (snd x)))))))
+                (* {code x ← is_state (both_prog (@f_prnt_n _ _ _ t_TLSkeyscheduler_t_KeySchedule (name_to_t_TLSname (H_not_bot := ltac:(easy)) n))) ;; *)
+                (*  ret ( *)
+                (*      (name_to_chName (t_TLSname_option_pair_to_name (fst x))) , *)
+                (*      (name_to_chName (t_TLSname_option_pair_to_name (snd x)))) *)
+                (*    #with *)
+                (*   ltac:(ssprove_valid; apply f_prnt_n) *)
+                (* } *)
        end erefl).
 
-  Definition Bertie_Labels : name -> bool -> code fset0 fset0 chLabel.
+  Lemma Bertie_PrntN_correct : ∀ n : name, PrntN n == Bertie_PrntN n.
   Proof.
     intros.
+    apply /eqP.
+    destruct n ; unfold PrntN ; unfold Bertie_PrntN ; now try rewrite let_both_equation_1.
+  Qed.
+
+  Program Definition Bertie_Labels : name -> bool -> code fset0 fset0 chLabel :=
+    fun n b => {code
+               is_state (letb r := f_labels (name_to_t_TLSname n (H_not_bot := _)) (ret_both (b : 'bool)) in
+                           matchb r with
+                        | Result_Ok_case v => ret_both (t_Bytes_to_chLabel v)
+                        | Result_Err_case v => ret_both (t_Bytes_to_chLabel [])
+                         end
+               )
+         #with
+             (ChoiceEquality.is_valid_code (both_prog_valid _))}.
+  Next Obligation.
+    intros.
+    admit.
   Admitted.
 
   Definition Bertie_O_star : list name :=
@@ -232,8 +319,7 @@ Section BertieKeySchedule.
        let s := H0.1 in
        let b :=
          xpd
-           (chHash_to_t_HashAlgorithm (fto (otf H).1))
-           (prod_b (name_to_t_TLSname (H_not_bot := n) (nfto (fto (otf H).2)), _))
+           (chKey_to_t_TagKey (H_not_bot := n) H (ret_both (chLabel_to_label H0.1) (* TODO? *)))
            (ret_both (chLabel_to_label H0.1))
            (ret_both (bitvec_to_bitstring H0.2))
        in
@@ -241,32 +327,88 @@ Section BertieKeySchedule.
         ret
           (fto ((otf H).1,
            let X1 :=
-             match x with
-             | Result_Ok_case s0 => Option_Some (fst s0)
+             (match x with
+             | Result_Ok_case s0 => Some (snd (fst s0))
              | Result_Err_case _ => None
-             end in
+             end) in
            otf (name_to_chName (t_TLSname_option_pair_to_name X1)))) }
    end).
-  Next Obligation.
-    admit.
-  Admitted.
   Final Obligation.
     intros.
+    fold chElement in *.
     ssprove_valid.
     apply b.
-  Qed.
+  Defined.
+  Fail Next Obligation.
 
   Definition Bertie_xtr : chKey -> chKey -> code fset0 fset0 chKey.
   Proof.
     intros.
-    refine {code ret _}.
-    admit.
-    (* refine X. *)
-    (* Qed. *)
-  Admitted.
+    destruct (nfto (fto (otf X).2) == BOT) eqn:X_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, inord 0) : chKey))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | move /eqP in X_not_bot ].
+    destruct (nfto (fto (otf X0).2) == BOT) eqn:X0_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, inord 0) : chKey))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | move /eqP in X0_not_bot ].
+    refine {code is_state (matchb xtr
+                             (chKey_to_t_TagKey X (H_not_bot := X_not_bot) (ret_both ([] : t_Bytes) (* TODO *)))
+                             (chKey_to_t_TagKey X0 (H_not_bot := X0_not_bot) (ret_both ([] : t_Bytes) (* TODO *))) with
+                          | Result_Ok_case v => ret_both (t_TagKey_to_chKey v)
+                          | Result_Err_case _ => ret_both (fto (inord 0, inord 0) : chKey)
+                           end)
+              #with
+        (ChoiceEquality.is_valid_code (both_prog_valid _))
+      }.
+  Defined.
 
-  Definition Bertie_xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle. Admitted.
-  Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle. Admitted.
+  Definition chHandle_to_t_Handle : forall (h : chHandle), nfto (fto (otf h).1) <> BOT -> t_Handle.
+  Proof.
+    intros h1 ?.
+    unfold t_Handle.
+
+    refine (is_pure (prod_b (_, _, _))).
+    + refine (name_to_t_TLSname (nfto (fto (otf h1).1)) (H_not_bot := H)).
+    + refine (chHash_to_t_HashAlgorithm (fto (otf h1).2.1)).
+    + refine (ret_both 0).
+  Defined.
+
+  Definition t_Handle_to_chHandle : forall (h : t_Handle), chHandle.
+  Proof.
+    intros.
+    unfold t_Handle in h.
+    destruct h as [[]].
+    unfold chHandle.
+
+    apply fto.
+    unfold fin_handle.
+    refine (otf _, (otf _, _)).
+    - apply (name_to_chName (t_TLSname_option_pair_to_name (Some s))).
+    - apply (t_HashAlgorithm_to_chHash s0).
+    - refine (Datatypes.tt : 'unit). (* TODO *)
+  Defined.
+
+  Definition Bertie_xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle.
+    intros n h1 h2.
+    destruct (n == BOT) eqn:n_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, (inord 0, Datatypes.tt)) : chHandle))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | ].
+    destruct (nfto (fto (otf h1).1) == BOT) eqn:h1_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, (inord 0, Datatypes.tt)) : chHandle))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | ].
+    destruct (nfto (fto (otf h2).1) == BOT) eqn:h2_not_bot ; [ refine {code is_state (ret_both (fto (inord 0, (inord 0, Datatypes.tt)) : chHandle))#with (ChoiceEquality.is_valid_code (both_prog_valid _))} | ].
+    move /eqP in n_not_bot.
+    move /eqP in h1_not_bot.
+    move /eqP in h2_not_bot.
+
+    refine (
+      {code
+         is_state (
+           letb x := Bertie_Tls13keyscheduler_Key_schedule.xtr_angle (name_to_t_TLSname (H_not_bot := _) n) (ret_both (chHandle_to_t_Handle h1 _)) (ret_both (chHandle_to_t_Handle h2 _)) in
+             matchb x with
+             | Result_Ok_case v => ret_both (t_Handle_to_chHandle v)
+             | Result_Err_case v => ret_both (fto (inord 0, (inord 0, Datatypes.tt)) : chHandle)
+         end
+         )
+         #with
+        (ChoiceEquality.is_valid_code (both_prog_valid _))}) ; assumption.
+  Defined.
+
+  (* (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) *)
+
+  Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle.
+  Admitted.
   Definition Bertie_PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName). Admitted.
   Definition Bertie_ord : chGroup → nat. Admitted.
   Definition Bertie_E : nat -> nat. Admitted.
@@ -288,27 +430,10 @@ Section BertieKeySchedule.
 
 End BertieKeySchedule.
 
-(* Program *) Instance BertieKeySchedule (d : nat) : Dependencies :=
-(* Proof. *)
-(*   econstructor. *)
-(*   - refine (Bertie_PrntN). *)
-(*   - refine (Bertie_Labels). *)
-(*   - refine (Bertie_xpd). *)
-(*   - refine (Bertie_xtr). *)
-(*   - refine (Bertie_xtr_angle). *)
-(*   - refine (Bertie_xpd_angle). *)
-(*   - refine (Bertie_PrntIdx). *)
-(*   - refine (Bertie_ord). *)
-(*   - refine (Bertie_E). *)
-
-(*   - refine (Bertie_in_K_table). *)
-(*   - refine (Bertie_H). *)
-(*   - refine (d). *)
-(*   - refine (Bertie_DHGEN_function). *)
-(*   - refine (Bertie_DHEXP_function). *)
-
+Instance BertieKeySchedule (d : nat) : Dependencies :=
   {
-    (* PrntN := Bertie_PrntN; *)
+    TLSPrntN := Bertie_PrntN;
+    TLSPrntN_is_PrntN := Bertie_PrntN_correct ;
     Labels := Bertie_Labels ;
 
     xpd := Bertie_xpd ;
@@ -337,6 +462,5 @@ End BertieKeySchedule.
     DHEXP_function := Bertie_DHEXP_function ;
   }.
 
-Definition BertieKeyScheduleCoreSimulator (d k : nat) : Simulator d k. Admitted.
 Definition BertieKeyScheduleCoreTheorem (d k : nat) (H_lt : (d < k)%nat) :=
-  core_theorem (DepInstance := BertieKeySchedule d) d k H_lt (BertieKeyScheduleCoreSimulator d k).
+  core_theorem (DepInstance := BertieKeySchedule d) d k H_lt.
