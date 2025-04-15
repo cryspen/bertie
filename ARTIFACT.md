@@ -15,6 +15,13 @@ verification of the proof artifacts, so an installation of Python 3 is
 required.
 
 ### Setting up F*
+We use F* version 2025.03.25 to prove runtime safety and transcript
+unambiguity as described in section 7 of the paper submission. To
+reproduce these results for yourself, please install F* following the
+instructions at:
+
+https://fstar-lang.org/index.html#download
+
 ### Setting up Rocq + SSProve
 We use Rocq version 8.18.0 and SSProve for the security proofs of the
 key schedule as described in section 5 of the paper submission. Installation
@@ -37,6 +44,11 @@ https://bblanche.gitlabpages.inria.fr/proverif/
 
 ## Proof extraction using hax
 ### F*
+To regenerate the extraction to F*, run
+```
+./hax-driver.py extract-fstar
+```
+
 ### SSProve
 To regenerate the extraction for the key schedule in SSProve, run
 ```
@@ -62,6 +74,11 @@ the Rust source code.
 
 ## Running the Proofs
 ### F*
+To run the F* proofs, run the following command:
+```
+./hax-driver.py typecheck
+```
+
 ### SSProve
 First generate the Makefile from the _CoqProject
 ```
