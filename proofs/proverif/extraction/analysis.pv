@@ -113,6 +113,26 @@ query i: time, j: time,
       && attacker(s2ckiv)
       ==> event(CompromisedServerCertSK(server_name))@j && j < i.
 
+(* Should succeed: Harvest-Now-Decrypt-Later security is guaranteed unless
+                   certificate signing key was leaked to attacker
+                   earlier. *)
+query i: time, j: time,
+      server_name:bertie__tls13utils__t_Bytes,
+      alg: bertie__tls13crypto__t_AeadAlgorithm,
+      c2skiv: bertie__tls13crypto__t_AeadKeyIV,
+      c2sctr:nat,
+      s2ckiv:bertie__tls13crypto__t_AeadKeyIV,
+      s2cctr:nat,
+      ccipher:bertie__tls13record__t_DuplexCipherState1,
+      cst:bertie__tls13handshake__t_ClientPostClientFinished,
+      kstk:bertie__tls13keyscheduler__key_schedule__t_TagKey;
+
+      event(ClientFinishedHandshake(server_name,
+                           bertie__tls13record__DuplexCipherState1(alg,c2skiv,c2sctr,s2ckiv,s2cctr,kstk),
+                           cst))@i
+      && attacker(s2ckiv) phase 1
+      ==> event(CompromisedServerCertSK(server_name))@j && j < i.
+
 (* This is how we model external certificate validation. *)
 fun extern__validate_cert(bertie__tls13utils__t_Bytes,bertie__tls13utils__t_Bytes): bool
 reduc forall server_name: bertie__tls13utils__t_Bytes,
