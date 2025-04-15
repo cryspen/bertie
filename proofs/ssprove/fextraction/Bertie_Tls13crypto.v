@@ -50,17 +50,10 @@ Equations HashAlgorithm_SHA512 : both t_HashAlgorithm :=
     ret_both (inr (tt : 'unit) : t_HashAlgorithm) : both t_HashAlgorithm.
 Fail Next Obligation.
 
-Equations t_HashAlgorithm_cast_to_repr (x : both t_HashAlgorithm) : both uint_size :=
-  t_HashAlgorithm_cast_to_repr x  :=
-    matchb x with
-    | HashAlgorithm_SHA256_case  =>
-      ret_both (0 : uint_size)
-    | HashAlgorithm_SHA384_case  =>
-      ret_both (1 : uint_size)
-    | HashAlgorithm_SHA512_case  =>
-      ret_both (2 : uint_size)
-    end : both uint_size.
+#[global] Program Instance t_HashAlgorithm_t_Clone : t_Clone t_HashAlgorithm :=
+  _.
 Fail Next Obligation.
+Hint Unfold t_HashAlgorithm_t_Clone.
 
 #[global] Program Instance t_HashAlgorithm_t_PartialEq : t_PartialEq t_HashAlgorithm t_HashAlgorithm :=
   _.
@@ -77,8 +70,8 @@ Hint Unfold t_HashAlgorithm_t_Eq.
 (* Fail Next Obligation. *)
 (* Hint Unfold t_HashAlgorithm_t_Hash. *)
 
-Equations hash_len_inner (h : both t_HashAlgorithm) : both uint_size :=
-  hash_len_inner h :=
+Equations impl_Algorithm__hash_len (h : both t_HashAlgorithm) : both uint_size :=
+  impl_Algorithm__hash_len h :=
     matchb h with
     | HashAlgorithm_SHA256_case => ret_both 32
     | HashAlgorithm_SHA384_case => ret_both 48
@@ -87,7 +80,14 @@ Equations hash_len_inner (h : both t_HashAlgorithm) : both uint_size :=
 
 Equations impl_HashAlgorithm__hash_len (self : both t_HashAlgorithm) : both uint_size :=
   impl_HashAlgorithm__hash_len self  :=
-    hash_len_inner self : both uint_size.
+    matchb self with
+    | HashAlgorithm_SHA256_case  =>
+      impl_Algorithm__hash_len HashAlgorithm_SHA256
+    | HashAlgorithm_SHA384_case  =>
+      impl_Algorithm__hash_len HashAlgorithm_SHA384
+    | HashAlgorithm_SHA512_case  =>
+      impl_Algorithm__hash_len HashAlgorithm_SHA512
+    end : both uint_size.
 Fail Next Obligation.
 
 (* Equations hmac_tag (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) : both (t_Result t_Bytes int8) := *)
@@ -98,47 +98,21 @@ Fail Next Obligation.
 (*     Result_Ok hoist22)) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
 
-(* Equations hmac_verify (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) (tag : both t_Bytes) : both (t_Result 'unit int8) := *)
-(*   hmac_verify alg mk input tag  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hmac_tag alg mk input in *)
-(*     Result_Ok (letb hoist24 := eq hoist23 tag in *)
-(*     ifb hoist24 *)
-(*     then Result_Ok (ret_both (tt : 'unit)) *)
-(*     else tlserr v_CRYPTO_ERROR)) : both (t_Result 'unit int8). *)
-(* Fail Next Obligation. *)
-
-(* Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes := *)
-(*   zero_key alg  := *)
-(*     impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes. *)
-(* Fail Next Obligation. *)
-
-(* Equations hkdf_algorithm (alg : both t_HashAlgorithm) : both (t_Result t_Algorithm int8) := *)
-(*   hkdf_algorithm alg  := *)
-(*     matchb alg with *)
-(*     | HashAlgorithm_SHA256_case  => *)
-(*       Result_Ok Algorithm_Sha256 *)
-(*     | HashAlgorithm_SHA384_case  => *)
-(*       Result_Ok Algorithm_Sha384 *)
-(*     | HashAlgorithm_SHA512_case  => *)
-(*       Result_Ok Algorithm_Sha512 *)
-(*     end : both (t_Result t_Algorithm int8). *)
-(* Fail Next Obligation. *)
-
 (* Equations hkdf_extract (alg : both t_HashAlgorithm) (ikm : both t_Bytes) (salt : both t_Bytes) : both (t_Result t_Bytes int8) := *)
 (*   hkdf_extract alg ikm salt  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist25 := hkdf_algorithm alg in *)
-(*     Result_Ok (letb hoist26 := extract hoist25 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
-(*     letb hoist27 := impl__map hoist26 (fun bytes => *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hkdf_algorithm alg in *)
+(*     Result_Ok (letb hoist24 := extract hoist23 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
+(*     letb hoist25 := impl__map hoist24 (fun bytes => *)
 (*       f_into bytes) in *)
-(*     impl__map_err hoist27 (fun _ => *)
+(*     impl__map_err hoist25 (fun _ => *)
 (*       v_CRYPTO_ERROR))) : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
 
 (* Equations hkdf_expand (alg : both t_HashAlgorithm) (prk : both t_Bytes) (info : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) := *)
 (*   hkdf_expand alg prk info len  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist28 := hkdf_algorithm alg in *)
-(*     Result_Ok (letb hoist29 := expand hoist28 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
-(*     matchb hoist29 with *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist26 := hkdf_algorithm alg in *)
+(*     Result_Ok (letb hoist27 := expand hoist26 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
+(*     matchb hoist27 with *)
 (*     | Result_Ok_case x => *)
 (*       letb x := ret_both ((x) : (t_Vec int8 t_Global)) in *)
 (*       Result_Ok (f_into x) *)

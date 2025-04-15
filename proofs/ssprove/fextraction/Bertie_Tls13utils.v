@@ -30,11 +30,6 @@ Require Import Fixes.
 
 Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
-Equations v_CRYPTO_ERROR : both int8 :=
-  v_CRYPTO_ERROR  :=
-    ret_both (2 : int8) : both int8.
-Fail Next Obligation.
-
 Equations v_INCORRECT_STATE : both int8 :=
   v_INCORRECT_STATE  :=
     ret_both (128 : int8) : both int8.
@@ -43,11 +38,6 @@ Fail Next Obligation.
 Equations v_PAYLOAD_TOO_LONG : both int8 :=
   v_PAYLOAD_TOO_LONG  :=
     ret_both (130 : int8) : both int8.
-Fail Next Obligation.
-
-Equations tlserr {v_T : choice_type} `{ t_Sized v_T} (err : both int8) : both (t_Result v_T int8) :=
-  tlserr err  :=
-    Result_Err err : both (t_Result v_T int8).
 Fail Next Obligation.
 
 Equations v_U16 (x : both int16) : both int16 :=
@@ -119,11 +109,6 @@ Fail Next Obligation.
 (* Equations impl_Bytes__concat (self : both t_Bytes) (other : both t_Bytes) : both t_Bytes := *)
 (*   impl_Bytes__concat self other  := *)
 (*     concat_inner self other : both t_Bytes. *)
-(* Fail Next Obligation. *)
-
-(* Equations eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both 'bool := *)
-(*   eq b1 b2  := *)
-(*     eq_inner b1 b2 : both 'bool. *)
 (* Fail Next Obligation. *)
 
 (* Equations encode_length_u8 (bytes : both (seq int8)) : both (t_Result t_Bytes int8) := *)

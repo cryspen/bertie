@@ -1,6 +1,6 @@
-diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Bertie_Tls13crypto.v fextraction/Bertie_Tls13crypto.v
---- extraction/Bertie_Tls13crypto.v	2025-04-14 18:53:43.619849935 +0200
-+++ fextraction/Bertie_Tls13crypto.v	2025-04-14 18:26:59.302599854 +0200
+diff -x '*.aux' -x '*.cache' -x '*.glob' -x '*.vo' -x '*.vos' -x '*.orig' -x '*.rej' -ruN extraction/Bertie_Tls13crypto.v fextraction/Bertie_Tls13crypto.v
+--- extraction/Bertie_Tls13crypto.v	2025-04-15 11:54:12.176821013 +0200
++++ fextraction/Bertie_Tls13crypto.v	2025-04-15 11:56:09.926205382 +0200
 @@ -26,6 +26,10 @@
  
  Import RecordSetNotations.
@@ -12,7 +12,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
  Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
  
  Definition t_HashAlgorithm : choice_type :=
-@@ -68,70 +72,78 @@
+@@ -61,51 +65,59 @@
  Fail Next Obligation.
  Hint Unfold t_HashAlgorithm_t_Eq.
  
@@ -25,8 +25,8 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(* Fail Next Obligation. *)
 +(* Hint Unfold t_HashAlgorithm_t_Hash. *)
 +
-+Equations hash_len_inner (h : both t_HashAlgorithm) : both uint_size :=
-+  hash_len_inner h :=
++Equations impl_Algorithm__hash_len (h : both t_HashAlgorithm) : both uint_size :=
++  impl_Algorithm__hash_len h :=
 +    matchb h with
 +    | HashAlgorithm_SHA256_case => ret_both 32
 +    | HashAlgorithm_SHA384_case => ret_both 48
@@ -35,7 +35,17 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
  
  Equations impl_HashAlgorithm__hash_len (self : both t_HashAlgorithm) : both uint_size :=
    impl_HashAlgorithm__hash_len self  :=
-     hash_len_inner self : both uint_size.
+     matchb self with
+     | HashAlgorithm_SHA256_case  =>
+-      impl_Algorithm__hash_len Algorithm_Sha256
++      impl_Algorithm__hash_len HashAlgorithm_SHA256
+     | HashAlgorithm_SHA384_case  =>
+-      impl_Algorithm__hash_len Algorithm_Sha384
++      impl_Algorithm__hash_len HashAlgorithm_SHA384
+     | HashAlgorithm_SHA512_case  =>
+-      impl_Algorithm__hash_len Algorithm_Sha512
++      impl_Algorithm__hash_len HashAlgorithm_SHA512
+     end : both uint_size.
  Fail Next Obligation.
  
 -Equations hmac_tag (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) : both (t_Result t_Bytes int8) :=
@@ -46,47 +56,21 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 -    Result_Ok hoist22)) : both (t_Result t_Bytes int8).
 -Fail Next Obligation.
 -
--Equations hmac_verify (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) (tag : both t_Bytes) : both (t_Result 'unit int8) :=
--  hmac_verify alg mk input tag  :=
--    run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hmac_tag alg mk input in
--    Result_Ok (letb hoist24 := eq hoist23 tag in
--    ifb hoist24
--    then Result_Ok (ret_both (tt : 'unit))
--    else tlserr v_CRYPTO_ERROR)) : both (t_Result 'unit int8).
--Fail Next Obligation.
--
--Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes :=
--  zero_key alg  :=
--    impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes.
--Fail Next Obligation.
--
--Equations hkdf_algorithm (alg : both t_HashAlgorithm) : both (t_Result t_Algorithm int8) :=
--  hkdf_algorithm alg  :=
--    matchb alg with
--    | HashAlgorithm_SHA256_case  =>
--      Result_Ok Algorithm_Sha256
--    | HashAlgorithm_SHA384_case  =>
--      Result_Ok Algorithm_Sha384
--    | HashAlgorithm_SHA512_case  =>
--      Result_Ok Algorithm_Sha512
--    end : both (t_Result t_Algorithm int8).
--Fail Next Obligation.
--
 -Equations hkdf_extract (alg : both t_HashAlgorithm) (ikm : both t_Bytes) (salt : both t_Bytes) : both (t_Result t_Bytes int8) :=
 -  hkdf_extract alg ikm salt  :=
--    run (letm[choice_typeMonad.result_bind_code int8] hoist25 := hkdf_algorithm alg in
--    Result_Ok (letb hoist26 := extract hoist25 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in
--    letb hoist27 := impl__map hoist26 (fun bytes =>
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hkdf_algorithm alg in
+-    Result_Ok (letb hoist24 := extract hoist23 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in
+-    letb hoist25 := impl__map hoist24 (fun bytes =>
 -      f_into bytes) in
--    impl__map_err hoist27 (fun _ =>
+-    impl__map_err hoist25 (fun _ =>
 -      v_CRYPTO_ERROR))) : both (t_Result t_Bytes int8).
 -Fail Next Obligation.
 -
 -Equations hkdf_expand (alg : both t_HashAlgorithm) (prk : both t_Bytes) (info : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) :=
 -  hkdf_expand alg prk info len  :=
--    run (letm[choice_typeMonad.result_bind_code int8] hoist28 := hkdf_algorithm alg in
--    Result_Ok (letb hoist29 := expand hoist28 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in
--    matchb hoist29 with
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist26 := hkdf_algorithm alg in
+-    Result_Ok (letb hoist27 := expand hoist26 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in
+-    matchb hoist27 with
 -    | Result_Ok_case x =>
 -      letb x := ret_both ((x) : (t_Vec int8 t_Global)) in
 -      Result_Ok (f_into x)
@@ -103,47 +87,21 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(*     Result_Ok hoist22)) : both (t_Result t_Bytes int8). *)
 +(* Fail Next Obligation. *)
 +
-+(* Equations hmac_verify (alg : both t_HashAlgorithm) (mk : both t_Bytes) (input : both t_Bytes) (tag : both t_Bytes) : both (t_Result 'unit int8) := *)
-+(*   hmac_verify alg mk input tag  := *)
-+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hmac_tag alg mk input in *)
-+(*     Result_Ok (letb hoist24 := eq hoist23 tag in *)
-+(*     ifb hoist24 *)
-+(*     then Result_Ok (ret_both (tt : 'unit)) *)
-+(*     else tlserr v_CRYPTO_ERROR)) : both (t_Result 'unit int8). *)
-+(* Fail Next Obligation. *)
-+
-+(* Equations zero_key (alg : both t_HashAlgorithm) : both t_Bytes := *)
-+(*   zero_key alg  := *)
-+(*     impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg) : both t_Bytes. *)
-+(* Fail Next Obligation. *)
-+
-+(* Equations hkdf_algorithm (alg : both t_HashAlgorithm) : both (t_Result t_Algorithm int8) := *)
-+(*   hkdf_algorithm alg  := *)
-+(*     matchb alg with *)
-+(*     | HashAlgorithm_SHA256_case  => *)
-+(*       Result_Ok Algorithm_Sha256 *)
-+(*     | HashAlgorithm_SHA384_case  => *)
-+(*       Result_Ok Algorithm_Sha384 *)
-+(*     | HashAlgorithm_SHA512_case  => *)
-+(*       Result_Ok Algorithm_Sha512 *)
-+(*     end : both (t_Result t_Algorithm int8). *)
-+(* Fail Next Obligation. *)
-+
 +(* Equations hkdf_extract (alg : both t_HashAlgorithm) (ikm : both t_Bytes) (salt : both t_Bytes) : both (t_Result t_Bytes int8) := *)
 +(*   hkdf_extract alg ikm salt  := *)
-+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist25 := hkdf_algorithm alg in *)
-+(*     Result_Ok (letb hoist26 := extract hoist25 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
-+(*     letb hoist27 := impl__map hoist26 (fun bytes => *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist23 := hkdf_algorithm alg in *)
++(*     Result_Ok (letb hoist24 := extract hoist23 (impl_Bytes__declassify salt) (impl_Bytes__declassify ikm) in *)
++(*     letb hoist25 := impl__map hoist24 (fun bytes => *)
 +(*       f_into bytes) in *)
-+(*     impl__map_err hoist27 (fun _ => *)
++(*     impl__map_err hoist25 (fun _ => *)
 +(*       v_CRYPTO_ERROR))) : both (t_Result t_Bytes int8). *)
 +(* Fail Next Obligation. *)
 +
 +(* Equations hkdf_expand (alg : both t_HashAlgorithm) (prk : both t_Bytes) (info : both t_Bytes) (len : both uint_size) : both (t_Result t_Bytes int8) := *)
 +(*   hkdf_expand alg prk info len  := *)
-+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist28 := hkdf_algorithm alg in *)
-+(*     Result_Ok (letb hoist29 := expand hoist28 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
-+(*     matchb hoist29 with *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist26 := hkdf_algorithm alg in *)
++(*     Result_Ok (letb hoist27 := expand hoist26 (impl_Bytes__declassify prk) (impl_Bytes__declassify info) len in *)
++(*     matchb hoist27 with *)
 +(*     | Result_Ok_case x => *)
 +(*       letb x := ret_both ((x) : (t_Vec int8 t_Global)) in *)
 +(*       Result_Ok (f_into x) *)
@@ -152,9 +110,9 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(*       tlserr v_CRYPTO_ERROR *)
 +(*     end)) : both (t_Result t_Bytes int8). *)
 +(* Fail Next Obligation. *)
-diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Bertie_Tls13keyscheduler_Key_schedule.v fextraction/Bertie_Tls13keyscheduler_Key_schedule.v
---- extraction/Bertie_Tls13keyscheduler_Key_schedule.v	2025-04-14 18:53:43.619849935 +0200
-+++ fextraction/Bertie_Tls13keyscheduler_Key_schedule.v	2025-04-14 18:40:28.458051708 +0200
+diff -x '*.aux' -x '*.cache' -x '*.glob' -x '*.vo' -x '*.vos' -x '*.orig' -x '*.rej' -ruN extraction/Bertie_Tls13keyscheduler_Key_schedule.v fextraction/Bertie_Tls13keyscheduler_Key_schedule.v
+--- extraction/Bertie_Tls13keyscheduler_Key_schedule.v	2025-04-15 11:54:12.176821013 +0200
++++ fextraction/Bertie_Tls13keyscheduler_Key_schedule.v	2025-04-15 12:00:57.793539599 +0200
 @@ -30,50 +30,55 @@
  
  (*Not implemented yet? todo(item)*)
@@ -282,6 +240,11 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 -  _.
 -Fail Next Obligation.
 -Hint Unfold t_TLSnames_t_Hash.
+-
+-#[global] Program Instance t_TLSnames_t_Debug : t_Debug t_TLSnames :=
+-  _.
+-Fail Next Obligation.
+-Hint Unfold t_TLSnames_t_Debug.
 +(* #[global] Program Instance t_TLSnames_t_Hash : t_Hash t_TLSnames := *)
 +(*   _. *)
 +(* Fail Next Obligation. *)
@@ -292,11 +255,6 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(* Fail Next Obligation. *)
 +(* Hint Unfold t_TLSnames_t_Debug. *)
  
--#[global] Program Instance t_TLSnames_t_Debug : t_Debug t_TLSnames :=
--  _.
--Fail Next Obligation.
--Hint Unfold t_TLSnames_t_Debug.
--
 -Require Import TLSnames.
 -Export TLSnames.
 +(* Require Import TLSnames. *)
@@ -517,44 +475,22 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
      Result_Ok Label_RES_MASTER_e_
 -  | TLSnames_ESalt  | TLSnames_HSalt  =>
 +  | TLSnames_ESalt_case  =>
++    Result_Ok Label_DERIVED_e__e__
++  | TLSnames_HSalt_case  =>
      Result_Ok Label_DERIVED_e__e__
 -  | TLSnames_EEM  | TLSnames_EAM  =>
-+  | TLSnames_HSalt_case  =>
-+    Result_Ok Label_DERIVED_e__e__
 +  | TLSnames_EEM_case  =>
 +    Result_Ok Label_E_EXP_MASTER
 +  | TLSnames_EAM_case  =>
      Result_Ok Label_E_EXP_MASTER
    | TLSnames_CET_case  =>
      Result_Ok Label_C_E_TRAFFIC_
-@@ -756,13 +796,36 @@
+@@ -756,13 +796,13 @@
    f_get := (@f_get);
    f_set := (@f_set);
    f_hash := (@f_hash)|}.
-+Next Obligation.
-+  refine uint8.
-+Defined.
-+Next Obligation.
-+  unfold t_TLSkeyscheduler_t_KeySchedule_obligation_8.
-+  unfold t_Result.
-+  admit.
-+Admitted.
-+Next Obligation.
-+  admit.
-+Admitted.
-+Next Obligation.
-+  admit.
-+Admitted.
-+Next Obligation.
-+  admit.
-+Admitted.
-+Next Obligation.
-+  admit.
-+Admitted.
-+Next Obligation.
-+  admit.
-+Admitted.
- Fail Next Obligation.
+-Fail Next Obligation.
++Admit Obligations.
  Hint Unfold t_TLSkeyscheduler_t_KeySchedule.
  
  Definition t_TagKey : choice_type :=
@@ -566,7 +502,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
      bind_both s (fun x =>
        ret_both (fst (fst x) : t_HashAlgorithm)) : both t_HashAlgorithm.
  Fail Next Obligation.
-@@ -784,8 +847,8 @@
+@@ -784,8 +824,8 @@
            ret_both ((f_alg,f_tag,f_val) : (t_TagKey))))) : both (t_TagKey).
  Fail Next Obligation.
  Notation "'Build_t_TagKey' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_TagKey (f_alg := y) (f_tag := f_tag x) (f_val := f_val x)).
@@ -577,7 +513,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
  
  #[global] Program Instance t_TagKey_t_Clone : t_Clone t_TagKey :=
    _.
-@@ -807,16 +870,16 @@
+@@ -807,16 +847,16 @@
  
  Equations xtr (k1 : both t_TagKey) (k2 : both t_TagKey) : both (t_Result t_TagKey int8) :=
    xtr k1 k2  :=
@@ -598,7 +534,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
  Fail Next Obligation.
  
  Definition t_Handle : choice_type :=
-@@ -826,8 +889,8 @@
+@@ -826,8 +866,8 @@
      bind_both s (fun x =>
        ret_both (fst (fst x) : t_TLSnames)) : both t_TLSnames.
  Fail Next Obligation.
@@ -609,15 +545,25 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
      bind_both s (fun x =>
        ret_both (snd (fst x) : t_HashAlgorithm)) : both t_HashAlgorithm.
  Fail Next Obligation.
-@@ -843,195 +906,195 @@
+@@ -836,202 +876,202 @@
+     bind_both s (fun x =>
+       ret_both (snd x : int8)) : both int8.
+ Fail Next Obligation.
+-Equations Build_t_Handle {f_name : both t_TLSnames} {f_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) :=
++Equations Build_t_Handle {f_name : both t_TLSnames} {f_Handle_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) :=
+   Build_t_Handle  :=
+     bind_both f_level (fun f_level =>
+-      bind_both f_alg (fun f_alg =>
++      bind_both f_Handle_alg (fun f_alg =>
          bind_both f_name (fun f_name =>
            ret_both ((f_name,f_alg,f_level) : (t_Handle))))) : both (t_Handle).
  Fail Next Obligation.
 -Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_alg := f_alg x) (f_level := f_level x)).
-+Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_alg := f_Handle_alg x) (f_level := f_level x)).
- Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := y) (f_level := f_level x)).
+-Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := y) (f_level := f_level x)).
 -Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := f_alg x) (f_level := y)).
-+Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := f_Handle_alg x) (f_level := y)).
++Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_Handle_alg := f_Handle_alg x) (f_level := f_level x)).
++Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_Handle_alg := y) (f_level := f_level x)).
++Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_Handle_alg := f_Handle_alg x) (f_level := y)).
  
  #[global] Program Instance t_Handle_t_Clone : t_Clone t_Handle :=
    _.
@@ -636,7 +582,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
  Equations xpd_angle (name : both t_TLSnames) (label : both t_Bytes) (parrent_handle : both t_Handle) (args : both t_Bytes) : both (t_Result t_Handle int8) :=
    xpd_angle name label parrent_handle args  :=
 -    Result_Ok (Build_t_Handle (f_name := name) (f_alg := f_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
-+    Result_Ok (Build_t_Handle (f_name := name) (f_alg := f_Handle_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
++    Result_Ok (Build_t_Handle (f_name := name) (f_Handle_alg := f_Handle_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
  Fail Next Obligation.
  
 -Equations set_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) (key : both t_Bytes) : both t_TLSkeyscheduler :=
@@ -647,7 +593,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 -
 -Equations zero_salt (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) :=
 -  zero_salt ks alg  :=
--    letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroSalt) (f_level := ret_both (0 : int8)) in
+-    letb handle := Build_t_Handle (f_name := TLSnames_ZeroSalt) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in
 -    letb ks := set_by_handle ks handle (impl_Bytes__zeroes (ret_both (1 : uint_size))) in
 -    letb hax_temp_output := handle in
 -    prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle).
@@ -655,7 +601,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 -
 -Equations no_psk (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) :=
 -  no_psk ks alg  :=
--    letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_PSK) (f_level := ret_both (0 : int8)) in
+-    letb handle := Build_t_Handle (f_name := TLSnames_PSK) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in
 -    letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in
 -    letb hax_temp_output := handle in
 -    prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle).
@@ -663,20 +609,20 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 -
 -Equations zero_ikm (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) :=
 -  zero_ikm ks alg  :=
--    letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroIKM) (f_level := ret_both (0 : int8)) in
+-    letb handle := Build_t_Handle (f_name := TLSnames_ZeroIKM) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in
 -    letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in
 -    letb hax_temp_output := handle in
 -    prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle).
 -Fail Next Obligation.
 -
--Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Option t_Bytes) :=
+-Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_Bytes int8) :=
 -  get_by_handle ks handle  :=
--    f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle)) : both (t_Option t_Bytes).
+-    impl__ok_or (f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle))) v_INCORRECT_STATE : both (t_Result t_Bytes int8).
 -Fail Next Obligation.
 -
 -Equations tagkey_from_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_TagKey int8) :=
 -  tagkey_from_handle ks handle  :=
--    run (letm[choice_typeMonad.result_bind_code int8] hoist6 := impl__ok_or (get_by_handle ks handle) v_INCORRECT_STATE in
+-    run (letm[choice_typeMonad.result_bind_code int8] hoist6 := get_by_handle ks handle in
 -    Result_Ok (letb hoist7 := Build_t_TagKey (f_alg := f_alg handle) (f_tag := f_name handle) (f_val := hoist6) in
 -    Result_Ok hoist7)) : both (t_Result t_TagKey int8).
 -Fail Next Obligation.
@@ -745,73 +691,6 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 -    letb hax_temp_output := Result_Ok h in
 -    prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8).
 -Fail Next Obligation.
--
--Equations xtr_angle (name : both t_TLSnames) (v_left : both t_Handle) (v_right : both t_Handle) : both (t_Result t_Handle int8) :=
--  xtr_angle name v_left v_right  :=
--    Result_Ok (Build_t_Handle (f_alg := f_alg v_left) (f_name := name) (f_level := f_level v_left)) : both (t_Result t_Handle int8).
--Fail Next Obligation.
--
--Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) :=
--  v_XTR ks level name h1 h2  :=
--    run (letb '(n1,n2) := f_prnt_n name in
--    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] h := matchb f_branch (xtr_angle name (f_clone h1) (f_clone h2)) with
--    | ControlFlow_Break_case residual =>
--      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
--      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist14 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
--      ControlFlow_Continue (never_to_any hoist14)
--    | ControlFlow_Continue_case val =>
--      letb val := ret_both ((val) : (t_Handle)) in
--      ControlFlow_Continue val
--    end in
--    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n1_unwrap := matchb f_branch (impl__ok_or n1 v_INCORRECT_STATE) with
--    | ControlFlow_Break_case residual =>
--      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
--      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist15 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
--      ControlFlow_Continue (never_to_any hoist15)
--    | ControlFlow_Continue_case val =>
--      letb val := ret_both ((val) : (t_TLSnames)) in
--      ControlFlow_Continue val
--    end in
--    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n2_unwrap := matchb f_branch (impl__ok_or n2 v_INCORRECT_STATE) with
--    | ControlFlow_Break_case residual =>
--      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
--      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist16 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
--      ControlFlow_Continue (never_to_any hoist16)
--    | ControlFlow_Continue_case val =>
--      letb val := ret_both ((val) : (t_TLSnames)) in
--      ControlFlow_Continue val
--    end in
--    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k1 := matchb f_branch (impl__ok_or (f_get ks n1_unwrap level (prod_b (f_name h1,f_alg h1,f_level h1))) v_INCORRECT_STATE) with
--    | ControlFlow_Break_case residual =>
--      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
--      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist17 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
--      ControlFlow_Continue (never_to_any hoist17)
--    | ControlFlow_Continue_case val =>
--      letb val := ret_both ((val) : (t_Bytes)) in
--      ControlFlow_Continue val
--    end in
--    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k2 := matchb f_branch (impl__ok_or (f_get ks n2_unwrap level (prod_b (f_name h2,f_alg h2,f_level h2))) v_INCORRECT_STATE) with
--    | ControlFlow_Break_case residual =>
--      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
--      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist18 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
--      ControlFlow_Continue (never_to_any hoist18)
--    | ControlFlow_Continue_case val =>
--      letb val := ret_both ((val) : (t_Bytes)) in
--      ControlFlow_Continue val
--    end in
--    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k := matchb f_branch (xtr (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) (Build_t_TagKey (f_alg := f_alg h2) (f_tag := f_name h2) (f_val := k2))) with
--    | ControlFlow_Break_case residual =>
--      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
--      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist19 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
--      ControlFlow_Continue (never_to_any hoist19)
--    | ControlFlow_Continue_case val =>
--      letb val := ret_both ((val) : (t_TagKey)) in
--      ControlFlow_Continue val
--    end in
--    ControlFlow_Continue (letb ks := f_set ks name level (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in
--    letb hax_temp_output := Result_Ok h in
--    prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8).
--Fail Next Obligation.
 +(* Equations set_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) (key : both t_Bytes) : both t_TLSkeyscheduler := *)
 +(*   set_by_handle ks handle key  := *)
 +(*     letb ks := f_set ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_Handle_alg handle,f_level handle)) key in *)
@@ -820,7 +699,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +
 +(* Equations zero_salt (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
 +(*   zero_salt ks alg  := *)
-+(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroSalt) (f_level := ret_both (0 : int8)) in *)
++(*     letb handle := Build_t_Handle (f_name := TLSnames_ZeroSalt) (f_Handle_alg := f_clone alg) (f_level := ret_both (0 : int8)) in *)
 +(*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (ret_both (1 : uint_size))) in *)
 +(*     letb hax_temp_output := handle in *)
 +(*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
@@ -828,7 +707,7 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +
 +(* Equations no_psk (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
 +(*   no_psk ks alg  := *)
-+(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_PSK) (f_level := ret_both (0 : int8)) in *)
++(*     letb handle := Build_t_Handle (f_name := TLSnames_PSK) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in *)
 +(*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in *)
 +(*     letb hax_temp_output := handle in *)
 +(*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
@@ -836,20 +715,20 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +
 +(* Equations zero_ikm (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
 +(*   zero_ikm ks alg  := *)
-+(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroIKM) (f_level := ret_both (0 : int8)) in *)
++(*     letb handle := Build_t_Handle (f_name := TLSnames_ZeroIKM) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in *)
 +(*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in *)
 +(*     letb hax_temp_output := handle in *)
 +(*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
 +(* Fail Next Obligation. *)
 +
-+(* Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Option t_Bytes) := *)
++(* Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_Bytes int8) := *)
 +(*   get_by_handle ks handle  := *)
-+(*     f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle)) : both (t_Option t_Bytes). *)
++(*     impl__ok_or (f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle))) v_INCORRECT_STATE : both (t_Result t_Bytes int8). *)
 +(* Fail Next Obligation. *)
 +
 +(* Equations tagkey_from_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_TagKey int8) := *)
 +(*   tagkey_from_handle ks handle  := *)
-+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist6 := impl__ok_or (get_by_handle ks handle) v_INCORRECT_STATE in *)
++(*     run (letm[choice_typeMonad.result_bind_code int8] hoist6 := get_by_handle ks handle in *)
 +(*     Result_Ok (letb hoist7 := Build_t_TagKey (f_alg := f_alg handle) (f_tag := f_name handle) (f_val := hoist6) in *)
 +(*     Result_Ok hoist7)) : both (t_Result t_TagKey int8). *)
 +(* Fail Next Obligation. *)
@@ -918,12 +797,74 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(*     letb hax_temp_output := Result_Ok h in *)
 +(*     prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8). *)
 +(* Fail Next Obligation. *)
-+
-+Equations xtr_angle (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) : both (t_Result t_Handle int8) :=
-+  xtr_angle name left_ right_  :=
-+    Result_Ok (Build_t_Handle (f_alg := f_Handle_alg left_) (f_name := name) (f_level := f_level left_)) : both (t_Result t_Handle int8).
-+Fail Next Obligation.
-+
+ 
+ Equations xtr_angle (name : both t_TLSnames) (v_left : both t_Handle) (v_right : both t_Handle) : both (t_Result t_Handle int8) :=
+   xtr_angle name v_left v_right  :=
+-    Result_Ok (Build_t_Handle (f_alg := f_alg v_left) (f_name := name) (f_level := f_level v_left)) : both (t_Result t_Handle int8).
++    Result_Ok (Build_t_Handle (f_Handle_alg := f_Handle_alg v_left) (f_name := name) (f_level := f_level v_left)) : both (t_Result t_Handle int8).
+ Fail Next Obligation.
+ 
+-Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) :=
+-  v_XTR ks level name h1 h2  :=
+-    run (letb '(n1,n2) := f_prnt_n name in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] h := matchb f_branch (xtr_angle name (f_clone h1) (f_clone h2)) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist14 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist14)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Handle)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n1_unwrap := matchb f_branch (impl__ok_or n1 v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist15 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist15)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TLSnames)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] n2_unwrap := matchb f_branch (impl__ok_or n2 v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist16 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist16)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TLSnames)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k1 := matchb f_branch (impl__ok_or (f_get ks n1_unwrap level (prod_b (f_name h1,f_alg h1,f_level h1))) v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist17 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist17)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Bytes)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k2 := matchb f_branch (impl__ok_or (f_get ks n2_unwrap level (prod_b (f_name h2,f_alg h2,f_level h2))) v_INCORRECT_STATE) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist18 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist18)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_Bytes)) in
+-      ControlFlow_Continue val
+-    end in
+-    letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] k := matchb f_branch (xtr (Build_t_TagKey (f_alg := f_alg h1) (f_tag := f_name h1) (f_val := k1)) (Build_t_TagKey (f_alg := f_alg h2) (f_tag := f_name h2) (f_val := k2))) with
+-    | ControlFlow_Break_case residual =>
+-      letb residual := ret_both ((residual) : (t_Result t_Infallible int8)) in
+-      letm[choice_typeMonad.result_bind_code (t_TLSkeyscheduler × t_Result t_Handle int8)] hoist19 := ControlFlow_Break (prod_b (ks,f_from_residual residual)) in
+-      ControlFlow_Continue (never_to_any hoist19)
+-    | ControlFlow_Continue_case val =>
+-      letb val := ret_both ((val) : (t_TagKey)) in
+-      ControlFlow_Continue val
+-    end in
+-    ControlFlow_Continue (letb ks := f_set ks name level (prod_b (f_name h,f_alg h,f_level h)) (f_val k) in
+-    letb hax_temp_output := Result_Ok h in
+-    prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8).
+-Fail Next Obligation.
 +(* Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) := *)
 +(*   v_XTR ks level name h1 h2  := *)
 +(*     run (letb '(n1,n2) := f_prnt_n name in *)
@@ -985,9 +926,9 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(*     letb hax_temp_output := Result_Ok h in *)
 +(*     prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8). *)
 +(* Fail Next Obligation. *)
-diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Bertie_Tls13utils.v fextraction/Bertie_Tls13utils.v
---- extraction/Bertie_Tls13utils.v	2025-04-14 18:53:43.619849935 +0200
-+++ fextraction/Bertie_Tls13utils.v	2025-04-14 17:57:23.449444214 +0200
+diff -x '*.aux' -x '*.cache' -x '*.glob' -x '*.vo' -x '*.vos' -x '*.orig' -x '*.rej' -ruN extraction/Bertie_Tls13utils.v fextraction/Bertie_Tls13utils.v
+--- extraction/Bertie_Tls13utils.v	2025-04-15 11:54:12.176821013 +0200
++++ fextraction/Bertie_Tls13utils.v	2025-04-15 11:53:42.953475007 +0200
 @@ -26,6 +26,8 @@
  
  Import RecordSetNotations.
@@ -996,17 +937,8 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +
  Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
  
- Equations v_CRYPTO_ERROR : both int8 :=
-@@ -43,7 +45,7 @@
-     ret_both (130 : int8) : both int8.
- Fail Next Obligation.
- 
--Equations tlserr {v_T : v_T} `{ t_Sized v_T} (err : both int8) : both (t_Result v_T int8) :=
-+Equations tlserr {v_T : choice_type} `{ t_Sized v_T} (err : both int8) : both (t_Result v_T int8) :=
-   tlserr err  :=
-     Result_Err err : both (t_Result v_T int8).
- Fail Next Obligation.
-@@ -55,54 +57,54 @@
+ Equations v_INCORRECT_STATE : both int8 :=
+@@ -45,54 +47,54 @@
  
  Definition t_Bytes : choice_type :=
    (t_Vec int8 t_Global).
@@ -1094,22 +1026,17 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
  
  Equations impl_Bytes__from_slice (s : both (seq int8)) : both t_Bytes :=
    impl_Bytes__from_slice s  :=
-@@ -111,26 +113,26 @@
+@@ -101,21 +103,21 @@
  
  Equations impl_Bytes__zeroes (len : both uint_size) : both t_Bytes :=
    impl_Bytes__zeroes len  :=
 -    Bytes (from_elem (v_U8 (ret_both (0 : int8))) len) : both t_Bytes.
--Fail Next Obligation.
--
--Equations impl_Bytes__concat (self : both t_Bytes) (other : both t_Bytes) : both t_Bytes :=
--  impl_Bytes__concat self other  :=
--    concat_inner self other : both t_Bytes.
 +    Build_t_Bytes (t_Bytes0 := from_elem ((* v_U8 *) (ret_both (0 : int8))) len) : both t_Bytes.
  Fail Next Obligation.
  
--Equations eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both 'bool :=
--  eq b1 b2  :=
--    eq_inner b1 b2 : both 'bool.
+-Equations impl_Bytes__concat (self : both t_Bytes) (other : both t_Bytes) : both t_Bytes :=
+-  impl_Bytes__concat self other  :=
+-    concat_inner self other : both t_Bytes.
 -Fail Next Obligation.
 -
 -Equations encode_length_u8 (bytes : both (seq int8)) : both (t_Result t_Bytes int8) :=
@@ -1127,11 +1054,6 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(*     concat_inner self other : both t_Bytes. *)
 +(* Fail Next Obligation. *)
 +
-+(* Equations eq (b1 : both t_Bytes) (b2 : both t_Bytes) : both 'bool := *)
-+(*   eq b1 b2  := *)
-+(*     eq_inner b1 b2 : both 'bool. *)
-+(* Fail Next Obligation. *)
-+
 +(* Equations encode_length_u8 (bytes : both (seq int8)) : both (t_Result t_Bytes int8) := *)
 +(*   encode_length_u8 bytes  := *)
 +(*     letb len := impl__len bytes in *)
@@ -1142,9 +1064,9 @@ diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/B
 +(*     letb lenb := Build_t_Bytes[lenb] (0 := impl_2__extend_from_slice (0 lenb) bytes) in *)
 +(*     Result_Ok lenb : both (t_Result t_Bytes int8). *)
 +(* Fail Next Obligation. *)
-diff -x .lia.cache -x '*.aux' -x '*.glob' -x '*.vo' -x '*.vos' -ruN extraction/Fixes.v fextraction/Fixes.v
+diff -x '*.aux' -x '*.cache' -x '*.glob' -x '*.vo' -x '*.vos' -x '*.orig' -x '*.rej' -ruN extraction/Fixes.v fextraction/Fixes.v
 --- extraction/Fixes.v	1970-01-01 01:00:00.000000000 +0100
-+++ fextraction/Fixes.v	2025-04-14 18:10:02.800209278 +0200
++++ fextraction/Fixes.v	2025-04-15 11:48:13.212478552 +0200
 @@ -0,0 +1,372 @@
 +(* File automatically generated by Hacspec *)
 +Set Warnings "-notation-overridden,-ambiguous-paths".
