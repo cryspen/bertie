@@ -8,7 +8,7 @@ diff -x '*.aux' -x "*.glob" -x "*.vo" -x "*.vos" -x "*.orig" -x "*.rej" -ruN ext
 ```
 we get the `extraction.patch` file. To apply the patch instead do
 ```bash
-patch -ruN -d extraction/ < extraction.patch
+patch -d extraction/ < extraction.patch
 rm -rf fextraction/
 mv extraction/ fextraction/
 ```
