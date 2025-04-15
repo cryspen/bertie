@@ -796,30 +796,7 @@ Axiom impl_2__insert : forall {A B : choice_type} (x : both (chMap A B)) (z : bo
   f_get := (@f_get);
   f_set := (@f_set);
   f_hash := (@f_hash)|}.
-Next Obligation.
-  refine uint8.
-Defined.
-Next Obligation.
-  unfold t_TLSkeyscheduler_t_KeySchedule_obligation_8.
-  unfold t_Result.
-  admit.
-Admitted.
-Next Obligation.
-  admit.
-Admitted.
-Next Obligation.
-  admit.
-Admitted.
-Next Obligation.
-  admit.
-Admitted.
-Next Obligation.
-  admit.
-Admitted.
-Next Obligation.
-  admit.
-Admitted.
-Fail Next Obligation.
+Admit Obligations.
 Hint Unfold t_TLSkeyscheduler_t_KeySchedule.
 
 Definition t_TagKey : choice_type :=
@@ -899,16 +876,16 @@ Equations f_level (s : both t_Handle) : both int8 :=
     bind_both s (fun x =>
       ret_both (snd x : int8)) : both int8.
 Fail Next Obligation.
-Equations Build_t_Handle {f_name : both t_TLSnames} {f_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) :=
+Equations Build_t_Handle {f_name : both t_TLSnames} {f_Handle_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) :=
   Build_t_Handle  :=
     bind_both f_level (fun f_level =>
-      bind_both f_alg (fun f_alg =>
+      bind_both f_Handle_alg (fun f_alg =>
         bind_both f_name (fun f_name =>
           ret_both ((f_name,f_alg,f_level) : (t_Handle))))) : both (t_Handle).
 Fail Next Obligation.
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_alg := f_Handle_alg x) (f_level := f_level x)).
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := y) (f_level := f_level x)).
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_alg := f_Handle_alg x) (f_level := y)).
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_Handle_alg := f_Handle_alg x) (f_level := f_level x)).
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_Handle_alg := y) (f_level := f_level x)).
+Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_Handle_alg := f_Handle_alg x) (f_level := y)).
 
 #[global] Program Instance t_Handle_t_Clone : t_Clone t_Handle :=
   _.
@@ -922,7 +899,7 @@ Hint Unfold t_Handle_t_Clone.
 
 Equations xpd_angle (name : both t_TLSnames) (label : both t_Bytes) (parrent_handle : both t_Handle) (args : both t_Bytes) : both (t_Result t_Handle int8) :=
   xpd_angle name label parrent_handle args  :=
-    Result_Ok (Build_t_Handle (f_name := name) (f_alg := f_Handle_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
+    Result_Ok (Build_t_Handle (f_name := name) (f_Handle_alg := f_Handle_alg parrent_handle) (f_level := f_level parrent_handle)) : both (t_Result t_Handle int8).
 Fail Next Obligation.
 
 (* Equations set_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) (key : both t_Bytes) : both t_TLSkeyscheduler := *)
@@ -933,7 +910,7 @@ Fail Next Obligation.
 
 (* Equations zero_salt (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
 (*   zero_salt ks alg  := *)
-(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroSalt) (f_level := ret_both (0 : int8)) in *)
+(*     letb handle := Build_t_Handle (f_name := TLSnames_ZeroSalt) (f_Handle_alg := f_clone alg) (f_level := ret_both (0 : int8)) in *)
 (*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (ret_both (1 : uint_size))) in *)
 (*     letb hax_temp_output := handle in *)
 (*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
@@ -941,7 +918,7 @@ Fail Next Obligation.
 
 (* Equations no_psk (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
 (*   no_psk ks alg  := *)
-(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_PSK) (f_level := ret_both (0 : int8)) in *)
+(*     letb handle := Build_t_Handle (f_name := TLSnames_PSK) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in *)
 (*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in *)
 (*     letb hax_temp_output := handle in *)
 (*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
@@ -949,20 +926,20 @@ Fail Next Obligation.
 
 (* Equations zero_ikm (ks : both t_TLSkeyscheduler) (alg : both t_HashAlgorithm) : both (t_TLSkeyscheduler × t_Handle) := *)
 (*   zero_ikm ks alg  := *)
-(*     letb handle := Build_t_Handle (f_alg := alg) (f_name := TLSnames_ZeroIKM) (f_level := ret_both (0 : int8)) in *)
+(*     letb handle := Build_t_Handle (f_name := TLSnames_ZeroIKM) (f_alg := f_clone alg) (f_level := ret_both (0 : int8)) in *)
 (*     letb ks := set_by_handle ks handle (impl_Bytes__zeroes (impl_HashAlgorithm__hash_len alg)) in *)
 (*     letb hax_temp_output := handle in *)
 (*     prod_b (ks,hax_temp_output) : both (t_TLSkeyscheduler × t_Handle). *)
 (* Fail Next Obligation. *)
 
-(* Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Option t_Bytes) := *)
+(* Equations get_by_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_Bytes int8) := *)
 (*   get_by_handle ks handle  := *)
-(*     f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle)) : both (t_Option t_Bytes). *)
+(*     impl__ok_or (f_get ks (f_name handle) (f_level handle) (prod_b (f_name handle,f_alg handle,f_level handle))) v_INCORRECT_STATE : both (t_Result t_Bytes int8). *)
 (* Fail Next Obligation. *)
 
 (* Equations tagkey_from_handle (ks : both t_TLSkeyscheduler) (handle : both t_Handle) : both (t_Result t_TagKey int8) := *)
 (*   tagkey_from_handle ks handle  := *)
-(*     run (letm[choice_typeMonad.result_bind_code int8] hoist6 := impl__ok_or (get_by_handle ks handle) v_INCORRECT_STATE in *)
+(*     run (letm[choice_typeMonad.result_bind_code int8] hoist6 := get_by_handle ks handle in *)
 (*     Result_Ok (letb hoist7 := Build_t_TagKey (f_alg := f_alg handle) (f_tag := f_name handle) (f_val := hoist6) in *)
 (*     Result_Ok hoist7)) : both (t_Result t_TagKey int8). *)
 (* Fail Next Obligation. *)
@@ -1032,9 +1009,9 @@ Fail Next Obligation.
 (*     prod_b (ks,hax_temp_output))) : both (t_TLSkeyscheduler × t_Result t_Handle int8). *)
 (* Fail Next Obligation. *)
 
-Equations xtr_angle (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) : both (t_Result t_Handle int8) :=
-  xtr_angle name left_ right_  :=
-    Result_Ok (Build_t_Handle (f_alg := f_Handle_alg left_) (f_name := name) (f_level := f_level left_)) : both (t_Result t_Handle int8).
+Equations xtr_angle (name : both t_TLSnames) (v_left : both t_Handle) (v_right : both t_Handle) : both (t_Result t_Handle int8) :=
+  xtr_angle name v_left v_right  :=
+    Result_Ok (Build_t_Handle (f_Handle_alg := f_Handle_alg v_left) (f_name := name) (f_level := f_level v_left)) : both (t_Result t_Handle int8).
 Fail Next Obligation.
 
 (* Equations v_XTR (ks : both t_TLSkeyscheduler) (level : both int8) (name : both t_TLSnames) (h1 : both t_Handle) (h2 : both t_Handle) : both (t_TLSkeyscheduler × t_Result t_Handle int8) := *)
