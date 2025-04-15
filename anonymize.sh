@@ -12,6 +12,13 @@ rm -rf CLA.md
 find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/assets/d' {} \;
 find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/cryspen/d' {} \;
 
+find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/PUBLICATIONS/d' {} \;
+find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/a number of prior/d' {} \;
+find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/Some of the most relevant/d' {} \;
+find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/succinct, executable/d' {} \;
+find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/Verified Models and Reference/d' {} \;
+find ./README.md -not -path "./.git/*" -type f -exec sed -i -e '/A Messy State of the Union/d' {} \;
+
 find . -not -path "./.git/*" -type f -exec sed -i -e '/reach out to Crypsen/d' {} \;
 
 find . -not -path "./.git/*" -type f -exec sed -i -e '/LICENSE/d' {} \;
