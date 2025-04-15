@@ -30,7 +30,7 @@ libcrux-ecdsa = { version = "0.0.2-beta.3", git = "https://github.com/cryspen/li
     "rand",
 ] }
 #hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
-hax-lib = { git = "https://github.com/cryspen/hax", branch = "bertie-libs"}
+hax-lib = { git = "https://github.com/cryspen/hax" }
 
 [features]
 default = ["api", "std", "defensive"]
