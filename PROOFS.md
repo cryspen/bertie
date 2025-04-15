@@ -72,3 +72,18 @@ The intended flow using the driver is to run
 ./hax-driver.py extract-proverif to extract the ProVerif model to proofs/proverif/extraction.
 ./hax-driver.py typecheck-proverif to run the analysis
 ```
+
+## Security of the Key Schedule in SSProve
+
+We extract the implementation of the Key Schedule from SSProve.
+We then fix the implementation to only include the parts we need, and make sure the translation is actually valid.
+This is done with a patch file, to allow easier updates to the implementation.
+
+The proof for security of the key schedule is done on a specification.
+The entry functions of the specification are generalized, and then instantiated with the functions in the implemention.
+We show the implemented functions fulfil some properties to be valid in the key schedule proof.
+
+The proof for the specification follows the proof in "Key-schedule Security for the TLS 1.3 Standard".
+We prove the Core Key Schedule Theorem, by showing the main lemma D6.
+The other lemmas are direct consequence of the correct implementation of the cryptographic primitives which we inherit from \libcrux.
+These lemmas are therefore only stated, and the proof is Admitted.
