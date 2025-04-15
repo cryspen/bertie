@@ -6,6 +6,8 @@ rm -f CODE_OF_CONDUCT.md
 rm -f util/top1m.txt
 rm -rf .github/ISSUE_TEMPLATE
 rm -rf CLA.md
+rm -rf bench.md
+rm -rf LICENSE
 
 ### ACKNOWLEDGEMENTS
 
