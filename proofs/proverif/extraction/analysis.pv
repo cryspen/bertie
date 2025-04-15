@@ -302,6 +302,11 @@ let CompromiseServerCertSK() =
 
 let QuantumAttack() =
     phase 1;
+    (* In phase 1 we assume that a quantum attacker can compromise
+    pre-quantum signature algorithms and forge signature. In this
+    model, we assume a PQ-KEM is used in the handshake, so
+    Harvest-Now-Decrypt-Later security is maintained for pre-quantum
+    session keys. *)
     CompromiseServerCertSK().
     
 process
@@ -355,14 +360,31 @@ process
                                        false,
                                        false)
     in
-      !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519)
+      (* We populate the table of server long-term secrets for
+      different choices of ciphersuites. *)
+      !CreateServer(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519) 
     | !CreateServer(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519)
     | !CreateServer(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519)
     | !CreateServer(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519)
     | !CreateServer(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
+
+      (* For all the above ciphersuites, we create a client which
+      attempts a connection to the server using that ciphersuite. *)
     | !Client(SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519)
     | !Client(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519)
     | !Client(SHA256_Aes128Gcm_RsaPssRsaSha256_X25519)
     | !Client(SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519)
     | !Client(SHA384_Aes256Gcm_RsaPssRsaSha256_X25519)
-    | !Server() | !CompromiseServerCertSK() | QuantumAttack()
+
+      (* The Server process listens for clients' connection attempts
+      and reads long-term secrets from the table populated by
+      CreateServer *)
+    | !Server()
+
+      (* This models a compromise of the servers long-term secrets *)
+    | !CompromiseServerCertSK()
+
+      (* This models the transition into a post-quantum world, where a
+      quantum attacker has the ability to forge pre-quantum
+      signatures.  *)
+    | QuantumAttack()
