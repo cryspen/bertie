@@ -49,6 +49,7 @@ find . -not -path "./.git/*" -type f -iname '*bertie*' | while read FILE ; do
     mv "${FILE}" "${newfile}" ;
 done
 
+find . -not -path "./.git/*" -not -path "./tests/*" -type f -exec sed -i 's/Bertie/T13/gi' {} \;
 find . -not -path "./.git/*" -not -path "./tests/*" -type f -exec sed -i 's/bertie/t13/gi' {} \;
 find ./tests -name "*.md" -type f -exec sed -i 's/bertie/t13/gi' {} \;
 find ./tests -name "*.rs" -type f -exec sed -i 's/bertie/t13/gi' {} \;
