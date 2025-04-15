@@ -15,7 +15,18 @@ verification of the proof artifacts, so an installation of Python 3 is
 required.
 
 ### Setting up F*
-### Setting up Roq + SSProve
+### Setting up Rocq + SSProve
+We use Rocq version 8.18.0 and SSProve for the security proofs of the
+key schedule as described in section 5 of the paper submission. Installation
+instructions can be found at:
+
+https://rocq-prover.org/install
+https://github.com/SSProve/ssprove
+
+Furthermore, Rust core library, which is used by the Hax translation, for Rocq/SSProve is located at:
+
+https://github.com/cryspen/hax/tree/main/proof-libs
+
 ### Setting up ProVerif
 We use ProVerif version 2.05 to perform protocol security analysis of the
 implementation, as described in section 6 of the paper submission.
@@ -27,6 +38,18 @@ https://bblanche.gitlabpages.inria.fr/proverif/
 ## Proof extraction using hax
 ### F*
 ### SSProve
+To regenerate the extraction for the key schedule in SSProve, run
+```
+./hax-driver.py extract-ssprove
+```
+
+To get the code running we apply a patch
+```
+patch -d extraction/ < extraction.patch
+rm -rf fextraction/
+mv extraction/ fextraction/
+```
+
 ### ProVerif
 The ProVerif proofs described in section 6 of the paper submission can
 be extracted from the Rust source code by running
@@ -40,6 +63,12 @@ the Rust source code.
 ## Running the Proofs
 ### F*
 ### SSProve
+First generate the Makefile from the _CoqProject
+```
+coq_makefile -f _CoqProject -o Makefile
+```
+and run `make`.
+
 ### ProVerif
 To run the ProVerif analysis, as described in section 6 of the paper
 submission, run
