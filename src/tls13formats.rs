@@ -549,20 +549,7 @@ fn get_psk_extensions(
 }
 
 /// Build a ClientHello message.
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::before(
-        "fun extern__client_hello_c(
-      $:{Bytes}, (* client_randomness *)
-      $:{Bytes}, (* session_id *)
-      $:{Bytes}, (*server name /sni*)
-      $:{Bytes}, (*kem_pk / gx*)
-      Option, (*tkto*)
-      Option, (*bindero*)
-      nat) (*trunc_len*)
-      : $:{HandshakeData} [data]."
-    )
-)]
+
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(
@@ -661,6 +648,20 @@ pub(crate) fn client_hello(
 
 #[cfg_attr(
     feature = "hax-pv",
+    proverif::before(
+        "fun extern__client_hello_c(
+      $:{Bytes}, (* client_randomness *)
+      $:{Bytes}, (* session_id *)
+      $:{Bytes}, (*server name /sni*)
+      $:{Bytes}, (*kem_pk / gx*)
+      Option, (*tkto*)
+      Option, (*bindero*)
+      nat) (*trunc_len*)
+      : $:{HandshakeData} [data]."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
     proverif::replace_body(
         "
        let extern__client_hello_c(client_randomness,
@@ -729,7 +730,6 @@ pub fn bench_parse_client_hello(
 }
 
 /// Parse the provided `client_hello` with the given `ciphersuite`.
-// XXX: Can `Option` not be hardwired like this?
 #[allow(clippy::type_complexity)]
 #[cfg_attr(
     feature = "hax-pv",
@@ -873,7 +873,7 @@ pub(super) fn parse_client_hello(
 }
 
 /// Build the server hello message.
-#[hax_lib::pv_constructor]
+#[hax_lib::proverif::replace("")]
 #[hax_lib::requires(server_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
     Result::Ok(sh) => {
@@ -947,7 +947,19 @@ pub fn bench_parse_server_hello(
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "reduc forall
+"(* marked as constructor *)
+fun bertie__tls13formats__server_hello(
+      bertie__tls13crypto__t_Algorithms,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes,
+      bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+
+
+
+        reduc forall
    algs: $:{Algorithms},
    server_random: $:{Bytes},
    sid: $:{Bytes},
@@ -1001,7 +1013,12 @@ pub(crate) fn parse_server_hello(
     }
 }
 
-#[hax_lib::pv_constructor]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        ""
+    )
+)]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     let enc_extensions_msg =
@@ -1013,6 +1030,12 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
     feature = "hax-pv",
     proverif::replace(
         "
+(* marked as constructor *)
+fun ${encrypted_extensions}(bertie__tls13crypto__t_Algorithms
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+
 reduc forall algs: $:{Algorithms};
 
       ${parse_encrypted_extensions}(
@@ -1037,7 +1060,7 @@ pub(crate) fn parse_encrypted_extensions(
     check_length_encoding_u24(extensions)
 }
 
-#[hax_lib::pv_constructor]
+#[hax_lib::proverif::replace("")]
 #[hax_lib::ensures(|result| match result {
     Result::Ok(cert_msg) => {
         match parse_server_certificate(&cert_msg) {
@@ -1078,6 +1101,13 @@ pub fn bench_parse_server_certificate(certificate: &HandshakeData) -> Result<Byt
     feature = "hax-pv",
     proverif::replace(
         "
+(* marked as constructor *)
+fun bertie__tls13formats__server_certificate(
+      bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+
 reduc forall
 algs: $:{Algorithms},
 cert: $:{Bytes};
@@ -1155,7 +1185,6 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
         }
     }
 }
-#[hax_lib::pv_constructor]
 #[hax_lib::ensures(|result| match result {
     Result::Ok(cert_verify_msg) => {
         match parse_certificate_verify(algs, &cert_verify_msg) {
@@ -1164,6 +1193,7 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
             _ => false
         }},
     _ => true})]
+#[hax_lib::proverif::replace("")]
 pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
     let sv = (match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => Ok(cv.clone()),
@@ -1194,6 +1224,13 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
     feature = "hax-pv",
     proverif::replace(
         "
+(* marked as constructor *)
+fun bertie__tls13formats__certificate_verify(
+      bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
+    )
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+
 reduc forall
 algs: $:{Algorithms},
 cert: $:{Bytes};
@@ -1225,7 +1262,7 @@ pub(crate) fn parse_certificate_verify(
     }
 }
 
-#[hax_lib::pv_constructor]
+#[hax_lib::proverif::replace("")]
 #[hax_lib::ensures(|result| match result {
     Result::Ok(finished_msg) => {
         match parse_finished(&finished_msg) {
@@ -1251,6 +1288,11 @@ pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
     feature = "hax-pv",
     proverif::replace(
         "
+(* marked as constructor *)
+fun bertie__tls13formats__finished(bertie__tls13utils__t_Bytes)
+    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
+
+
 reduc forall
   vd: $:{Bytes};
 
@@ -1391,10 +1433,6 @@ impl Transcript {
     }
 
     /// Add the [`HandshakeData`] `msg` to this transcript.
-    // XXX: ${Struct} does not work to get the name of the struct
-    // constructor. Either the backend should output different
-    // constructor names for record types (i.e. accessble via
-    // $:{Struct}), or the interpolation should be changed.
     #[cfg_attr(
         feature = "hax-pv",
         proverif::replace_body(

@@ -70,16 +70,15 @@ impl AeadKey {
 }
 
 /// An RSA public key.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
-pub(crate) struct RsaVerificationKey {
-    pub(crate) modulus: Bytes,
-    pub(crate) exponent: Bytes,
+pub struct RsaVerificationKey {
+    pub modulus: Bytes,
+    pub exponent: Bytes,
 }
 
 /// Bertie public verification keys.
-#[derive(Debug)]
-// XXX: Extracting this still leads to ambigous accessors, so I removed these here.
+#[derive(Debug, Clone)]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
@@ -107,7 +106,7 @@ fun ${PublicVerificationKey::Rsa}(
 "
     )
 )]
-pub(crate) enum PublicVerificationKey {
+pub enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
 }
@@ -120,14 +119,6 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
-#[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
-fn hash_len_inner(h: &HashAlgorithm) -> usize {
-    match h {
-        HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
-        HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
-        HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
-    }
-}
 
 /// Hash `data` with the given `algorithm`.
 ///
@@ -155,8 +146,13 @@ impl HashAlgorithm {
 
     /// Get the size of the hash digest.
     #[hax_lib::ensures(|result| result <= 64)]
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn hash_len(&self) -> usize {
-        hash_len_inner(self)
+        match self {
+                HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
+                HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
+                HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
+            }
     }
 
     /// Get the libcrux hmac algorithm.
@@ -169,6 +165,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hmac tag.
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("0"))]
     pub(crate) fn hmac_tag_len(&self) -> usize {
         self.hash_len()
     }
@@ -280,6 +277,7 @@ pub enum AeadAlgorithm {
 
 impl AeadAlgorithm {
     /// Get the key length of the AEAD algorithm in bytes.
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn key_len(&self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 32,
@@ -289,6 +287,7 @@ impl AeadAlgorithm {
     }
 
     /// Get the length of the IV for this algorithm.
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn iv_len(self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 12,
@@ -481,7 +480,6 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-// XXX: Review this.
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(

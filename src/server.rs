@@ -7,7 +7,7 @@
 //! * optional PSKs
 
 use crate::{
-    tls13crypto::{Algorithms, Psk, SignatureKey},
+    tls13crypto::{Algorithms, Psk, PublicVerificationKey, SignatureKey},
     tls13utils::{check_eq, eq, parse_failed, Bytes, TLSError, PSK_MODE_MISMATCH},
 };
 
@@ -46,6 +46,14 @@ pub(crate) struct ServerInfo {
     pub(crate) psk_opt: Option<Psk>,
 }
 
+#[derive(Clone)]
+pub struct ServerPubInfo {
+    pub server_name: Bytes,
+    pub certificate: Option<Bytes>,
+    pub public_key: Option<PublicVerificationKey>,
+    pub session_ticket: Option<Bytes>,
+}
+
 /// Look up a server for the given `ciphersuite`.
 ///
 /// The function returns a server with the first algorithm it finds.
@@ -55,7 +63,8 @@ pub(crate) fn lookup_db(
     sni: &Bytes,
     tkt: &Option<Bytes>,
 ) -> Result<ServerInfo, TLSError> {
-    if eq(sni, &Bytes::new()) || eq(sni, &db.server_name) {
+    if //eq(sni, &Bytes::new()) || 
+      eq(sni, &db.server_name) {
         match (ciphersuite.psk_mode(), tkt, &db.psk_opt) {
             (true, Some(ctkt), Some((stkt, psk))) => {
                 check_eq(ctkt, stkt)?;

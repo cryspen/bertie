@@ -1,7 +1,7 @@
 use rand::CryptoRng;
 
 use crate::{
-    server::{lookup_db, ServerDB, ServerInfo},
+    server::{lookup_db, ServerDB, ServerInfo, ServerPubInfo},
     tls13cert::{cert_public_key, rsa_public_key, verification_key_from_cert},
     tls13crypto::{
         hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign, sign_rsa, verify,
@@ -14,6 +14,7 @@ use crate::{
     },
     tls13record::*,
     tls13utils::*,
+    Server,
 };
 
 /* Handshake State Machine */
@@ -23,11 +24,19 @@ PostServerFinished -> PostClientFinished
 There are no optional steps, all states must be traversed, even if the traversals are NOOPS.
 See "put_psk_skip_server_signature" below */
 
-pub struct ClientPostClientHello(Random, Algorithms, KemSk, Option<Psk>, Transcript);
+pub struct ClientPostClientHello(
+    Random,
+    Algorithms,
+    ServerPubInfo,
+    KemSk,
+    Option<Psk>,
+    Transcript,
+);
 pub struct ClientPostServerHello(
     Random,
     Random,
     Algorithms,
+    ServerPubInfo,
     Handle,
     MacKey,
     MacKey,
@@ -37,15 +46,31 @@ pub struct ClientPostCertificateVerify(
     Random,
     Random,
     Algorithms,
+    ServerPubInfo,
     Handle,
     MacKey,
     MacKey,
     Transcript,
 );
-pub struct ClientPostServerFinished(Random, Random, Algorithms, Handle, MacKey, Transcript);
+pub struct ClientPostServerFinished(
+    Random,
+    Random,
+    Algorithms,
+    ServerPubInfo,
+    Handle,
+    MacKey,
+    Transcript,
+);
 // We do not use most of this state, but we keep the unused parts for verification purposes.
 #[allow(dead_code)]
-pub struct ClientPostClientFinished(Random, Random, Algorithms, Handle, Transcript);
+pub struct ClientPostClientFinished(
+    Random,
+    Random,
+    Algorithms,
+    ServerPubInfo,
+    Handle,
+    Transcript,
+);
 
 pub fn algs_post_client_hello(st: &ClientPostClientHello) -> Algorithms {
     st.1
@@ -55,6 +80,16 @@ pub fn algs_post_server_hello(st: &ClientPostServerHello) -> Algorithms {
 }
 pub fn algs_post_client_finished(st: &ClientPostClientFinished) -> Algorithms {
     st.2
+}
+
+pub fn server_info_post_client_hello(st: &ClientPostClientHello) -> ServerPubInfo {
+    st.2.clone()
+}
+pub fn server_info_post_server_hello(st: &ClientPostServerHello) -> ServerPubInfo {
+    st.3.clone()
+}
+pub fn server_info_post_client_finished(st: &ClientPostClientFinished) -> ServerPubInfo {
+    st.3.clone()
 }
 
 /// Server state after processing the client hello.
@@ -100,8 +135,8 @@ pub struct ServerPostClientFinished(Random, Random, Algorithms, Handle, Transcri
 
 fn build_client_hello(
     ciphersuite: Algorithms,
-    sn: &Bytes,
-    tkt: Option<Bytes>,
+    server_name: &Bytes,
+    session_ticket: Option<Bytes>,
     psk: Option<Psk>,
     rng: &mut impl CryptoRng,
     ks: &mut TLSkeyscheduler,
@@ -117,14 +152,31 @@ fn build_client_hello(
     let mut client_random = [0u8; 32];
     rng.fill_bytes(&mut client_random);
     let (kem_sk, kem_pk) = kem_keygen(ciphersuite.kem(), rng)?;
-    let (client_hello, trunc_len) =
-        client_hello(&ciphersuite, bytes(&client_random), &kem_pk, sn, &tkt)?;
+    let (client_hello, trunc_len) = client_hello(
+        &ciphersuite,
+        bytes(&client_random),
+        &kem_pk,
+        server_name,
+        &session_ticket,
+    )?;
     let (nch, cipher0, tx_ch) =
         compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx, ks)?;
     Ok((
         nch,
         cipher0,
-        ClientPostClientHello(client_random.into(), ciphersuite, kem_sk, psk, tx_ch),
+        ClientPostClientHello(
+            client_random.into(),
+            ciphersuite,
+            ServerPubInfo {
+                server_name: server_name.clone(),
+                certificate: None,
+                public_key: None,
+                session_ticket,
+            },
+            kem_sk,
+            psk,
+            tx_ch,
+        ),
     ))
 }
 
@@ -185,7 +237,7 @@ fn put_server_hello(
     state: ClientPostClientHello,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
-    let ClientPostClientHello(client_random, ciphersuite, sk, psk, tx) = state;
+    let ClientPostClientHello(client_random, ciphersuite, server_info, sk, psk, tx) = state;
 
     let (sr, ct) = parse_server_hello(&ciphersuite, handshake)?;
     let tx = tx.add(handshake);
@@ -232,7 +284,16 @@ fn put_server_hello(
 
     Ok((
         DuplexCipherStateH::new(chk, 0, shk, 0),
-        ClientPostServerHello(client_random, sr, ciphersuite, ms_handle, cfk, sfk, tx),
+        ClientPostServerHello(
+            client_random,
+            sr,
+            ciphersuite,
+            server_info,
+            ms_handle,
+            cfk,
+            sfk,
+            tx,
+        ),
     ))
 }
 
@@ -246,6 +307,7 @@ fn put_server_signature(
         client_random,
         server_random,
         algorithms,
+        server_info,
         master_secret_handle,
         client_finished_key,
         server_finished_key,
@@ -258,16 +320,27 @@ fn put_server_signature(
         let transcript = transcript.add(server_certificate);
         let transcript_hash_server_certificate = transcript.transcript_hash()?;
         let spki = verification_key_from_cert(&certificate)?;
-        let cert_pk = cert_public_key(&certificate, &spki)?;
+        let public_key = cert_public_key(&certificate, &spki)?;
         let cert_signature = parse_certificate_verify(&algorithms, server_certificate_verify)?;
         let sigval = (Bytes::from_slice(&PREFIX_SERVER_SIGNATURE))
             .concat(transcript_hash_server_certificate);
-        verify(&algorithms.signature(), &cert_pk, &sigval, &cert_signature)?;
+        verify(
+            &algorithms.signature(),
+            &public_key,
+            &sigval,
+            &cert_signature,
+        )?;
         let transcript = transcript.add(server_certificate_verify);
         Ok(ClientPostCertificateVerify(
             client_random,
             server_random,
             algorithms,
+            ServerPubInfo {
+                server_name: server_info.server_name,
+                certificate: Some(certificate),
+                public_key: Some(public_key),
+                session_ticket: server_info.session_ticket,
+            },
             master_secret_handle,
             client_finished_key,
             server_finished_key,
@@ -286,6 +359,7 @@ fn put_psk_skip_server_signature(
         client_random,
         server_random,
         algorithms,
+        server_info,
         master_secret_handle,
         client_finished_key,
         server_finished_key,
@@ -298,6 +372,7 @@ fn put_psk_skip_server_signature(
             client_random,
             server_random,
             algorithms,
+            server_info,
             master_secret_handle,
             client_finished_key,
             server_finished_key,
@@ -317,6 +392,7 @@ fn put_server_finished(
         client_random,
         server_random,
         algorithms,
+        server_info,
         master_secret_handle,
         client_finished_key,
         server_finished_key,
@@ -351,6 +427,7 @@ fn put_server_finished(
             client_random,
             server_random,
             algorithms,
+            server_info,
             master_secret_handle,
             client_finished_key,
             transcript,
@@ -366,6 +443,7 @@ fn get_client_finished(
         client_random,
         server_random,
         algorithms,
+        server_info,
         master_secret_handle,
         client_finished_key,
         transcript,
@@ -387,6 +465,7 @@ fn get_client_finished(
             client_random,
             server_random,
             algorithms,
+            server_info,
             resumption_master_secret,
             transcript,
         ),
@@ -522,7 +601,7 @@ fn process_psk_binder_zero_rtt(
                 let (key_iv, early_exporter_ms_handle) =
                     derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_handle, &th, ks)?;
                 let early_exporter_ms = tagkey_from_handle(ks, &early_exporter_ms_handle)?;
-                Ok(Some(server_cipher_state0(key_iv, 0, early_exporter_ms))) // XXX: This is a PV issue. Bad interaction of &mut hoisting and our treatment of Option
+                Ok(Some(server_cipher_state0(key_iv, 0, early_exporter_ms)))
             } else {
                 Ok(None)
             }
@@ -873,9 +952,13 @@ pub fn server_finish(
 }
 
 #[cfg(feature = "hax-pv")]
+/// This module exists only to guide hax towards extracting the
+/// definitions it depends on earlier that they would normally be
+/// extracted.
 mod proverif_extra {
     use crate::tls13utils::Bytes;
 
+    #[hax_lib::proverif::replace("")]
     fn f() {
         let b = Bytes::new();
     }

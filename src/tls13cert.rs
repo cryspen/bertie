@@ -315,9 +315,15 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-#[cfg_attr(feature = "hax-pv", proverif::replace(
+#[cfg_attr(feature = "hax-pv", proverif::before(
     "
-(* XXX: This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
+
+"))]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
+(* This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
 fun extern__certificate(
             $:{Bytes}, (* server name *)
             $:{SignatureScheme},
@@ -325,36 +331,23 @@ fun extern__certificate(
         )
         : $:{Bytes} [private].
 
+(* If we have a certificate created using the constructor above, proceed. Otherwise this blocks. *)
+reduc forall 
+            server_name: $:{Bytes}, (* server name *)
+            alg:         $:{SignatureScheme},
+            vk:          $:{PublicVerificationKey};
 
-    reduc forall
-              server_name: $:{Bytes},
-                      alg: $:{SignatureScheme},
-                  cert_vk: $:{PublicVerificationKey};
-
-(* This checks whether the certificate is valid. *)
-        extern__cert_verify(
-            server_name,
+    ${verification_key_from_cert}(
             extern__certificate(
-                server_name,
-                alg,
-                cert_vk
+               server_name,
+               alg,
+               vk
             )
-        )
-        = extern__certificate(server_name, alg, cert_vk).
-
-    reduc forall
-                 server_name: $:{Bytes},
-                         alg: $:{SignatureScheme},
-                    cert_key: $:{PublicVerificationKey};
-
-        ${verification_key_from_cert}(
-            extern__certificate(
-                server_name,
-                alg,
-                cert_key
-            ) 
-        )
-        = (server_name, alg, cert_key)."
+    ) = extern__certificate(
+               server_name,
+               alg,
+               vk
+            )."
     ))]
 pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error> {
     // An x509 cert is an ASN.1 sequence of [Certificate, SignatureAlgorithm, Signature].
@@ -465,40 +458,24 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
 ///
 /// On input of a `certificate` and `spki`, return a [`PublicVerificationKey`]
 /// if successful, or an [`Asn1Error`] otherwise.
-// XXX: - enum variant constructors: Can't do
-// `${SignatureScheme::ED25519}_c()` since that is translated to `bertie__tls13crypto__SignatureScheme_ED25519(
-//
-// )_c()`
-// - Should find better solution for `_c()` and `_err()` terms
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
- letfun ${cert_public_key}(
-            certificate : $:{Bytes},
-            spki        : bitstring
-        )
-        =
-        let (
-             server_name : $:{Bytes}, 
-             scheme         : $:{SignatureScheme},
-             cert_vk     : $:{PublicVerificationKey}
-            ) = spki in
-        let certificate = extern__cert_verify(server_name, certificate) in
+        "(* If we have a certificate created using the private constructor above, return vk. Otherwise this blocks. *)
+reduc forall 
+            server_name: $:{Bytes}, (* server name *)
+            alg:         $:{SignatureScheme},
+            vk:          $:{PublicVerificationKey},
+            spki:        $:{Bytes};
 
-        let ${SignatureScheme::EcdsaSecp256r1Sha256} = scheme in (
-           let ${PublicVerificationKey::EcDsa}(pk) = cert_vk in
-               ${PublicVerificationKey::EcDsa}(pk)
-           else $:{PublicVerificationKey}_err()
-        )
-        else (
-            let ${SignatureScheme::RsaPssRsaSha256} = scheme in (
-                let ${PublicVerificationKey::Rsa}(pk) = cert_vk in
-                    ${PublicVerificationKey::Rsa}(pk)
-                else $:{PublicVerificationKey}_err()
-            )
-           else $:{PublicVerificationKey}_err()
-         )."
+    ${cert_public_key}(
+            extern__certificate(
+               server_name,
+               alg,
+               vk
+            ),
+            spki
+    ) = vk."
     )
 )]
 pub(crate) fn cert_public_key(
