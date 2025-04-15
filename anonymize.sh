@@ -47,7 +47,7 @@ find ./tests -name "*.md" -type f -exec sed -i 's/bertie/t13/gi' {} \;
 find ./tests -name "*.rs" -type f -exec sed -i 's/bertie/t13/gi' {} \;
 find ./tests -name "*.sh" -type f -exec sed -i 's/bertie/t13/gi' {} \;
 
-find ./Cargo.toml -type f -exec sed -i 's/t13-libs/bertie-libs/g' {} \;
+find ./Cargo.toml -type f -exec sed -i 's/bertie-libs/t13-libs/g' {} \;
 
 rm Cargo.lock
 cargo clean
