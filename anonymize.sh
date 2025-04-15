@@ -61,4 +61,6 @@ grep -riI "Karthikeyan" --exclude-dir=.git
 grep -riI "Karthikeyan Bhargavan" --exclude-dir=.git
 find . -type f -iname '*bertie*'
 
+rm -rf .git
 rm -f anonymize.sh
+
