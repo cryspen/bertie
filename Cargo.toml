@@ -17,16 +17,14 @@ backtrace = "0.3.0"
 rand = "0.9"
 hex = "0.4.3"
 tracing = "0.1"
-libcrux-kem = { version = "0.0.2", git = "https://github.com/cryspen/libcrux", features = [
-    "kyber",
-] }
-libcrux-sha2 = { version = "0.0.2", git = "https://github.com/cryspen/libcrux" }
-libcrux-hmac = { version = "0.0.2", git = "https://github.com/cryspen/libcrux" }
-libcrux-hkdf = { version = "0.0.2", git = "https://github.com/cryspen/libcrux" }
+libcrux-kem = { version = "0.0.2", features = ["kyber"] }
+libcrux-sha2 = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux" }
+libcrux-hmac = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux" }
+libcrux-hkdf = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux" }
 libcrux-chacha20poly1305 = { version = "0.0.2", git = "https://github.com/cryspen/libcrux" }
-libcrux-rsa = { version = "0.0.2", git = "https://github.com/cryspen/libcrux" }
-libcrux-ed25519 = { version = "0.0.2", git = "https://github.com/cryspen/libcrux" }
-libcrux-ecdsa = { version = "0.0.2", git = "https://github.com/cryspen/libcrux", features = [
+libcrux-rsa = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux" }
+libcrux-ed25519 = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux" }
+libcrux-ecdsa = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux", features = [
     "rand",
 ] }
 hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
