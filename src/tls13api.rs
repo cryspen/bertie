@@ -178,6 +178,8 @@ pub enum Server {
     /// channel in this state.
     Server1(ServerPostClientFinished, DuplexCipherState1),
 }
+
+#[hax_lib::attributes]
 impl Server {
     /// Start a new TLS handshake as server.
     /// Note that Bertie servers only support a single ciphersuite at a time and
@@ -194,6 +196,7 @@ impl Server {
     /// server hello record as bytes, the second the server finished record as bytes,
     /// and the new [`Server`] state as the third element.
     /// If an error occurs, it returns a [`TLSError`].
+    #[requires(client_hello.len() >= 5)]
     pub fn accept(
         ciphersuite: Algorithms,
         db: ServerDB,

@@ -79,7 +79,9 @@ val duplex_cipher_state1
 
 /// Derive the AEAD IV with counter `n`
 val derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes
+      (requires (Bertie.Tls13utils.impl_Bytes__len iv <: usize) >=. mk_usize 8)
+      (fun _ -> Prims.l_True)
 
 /// Encrypt the record `payload` with the given `key_iv`.
 val encrypt_record_payload
@@ -116,7 +118,13 @@ val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
       (fun _ -> Prims.l_True)
 
 val padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure usize
+      (requires (Bertie.Tls13utils.impl_Bytes__len b <: usize) >=. n)
+      (ensures
+        fun out ->
+          let out:usize = out in
+          out <=. n)
+      (decreases (Rust_primitives.Hax.Int.from_machine n <: Hax_lib.Int.t_Int))
 
 /// AEAD decrypt the record `ciphertext`
 val decrypt_record_payload

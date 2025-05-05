@@ -47,6 +47,13 @@ pub(crate) fn error_string(c: u8) -> String {
     format!("{}", c)
 }
 
+#[cfg(not(test))]
+#[hax_lib::ensures(|result| fstar!("not (Core.Result.Result_Ok? result)"))]
+pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
+    Err(err)
+}
+
+#[cfg(test)]
 pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     let bt = backtrace::Backtrace::new();
     Err(err)
@@ -76,8 +83,10 @@ impl U8 {
     }
 }
 
+#[hax_lib::attributes]
 #[allow(dead_code)]
 pub(crate) trait Declassify<T> {
+    #[requires(true)]
     fn declassify(self) -> T;
 }
 
@@ -185,9 +194,11 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl Bytes {
     /// Add a prefix to these bytes and return it.
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
+    #[hax_lib::pv_handwritten]
+    #[hax_lib::ensures(|result| result.len() >= self.len() && result.len() - self.len() == prefix.len())]
     pub(crate) fn prefix(mut self, prefix: &[U8]) -> Self {
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
@@ -210,6 +221,7 @@ impl Bytes {
 
     /// Get a reference to the raw bytes.
     #[allow(dead_code)]
+    #[hax_lib::ensures(|result| fstar!(r#"Seq.length result == Seq.length self._0"#))]
     pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }
@@ -223,7 +235,9 @@ impl Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl From<&[u8]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == x.len())]
     fn from(x: &[u8]) -> Bytes {
         x.to_vec().into()
     }
@@ -236,13 +250,17 @@ impl From<&[U8]> for Bytes {
     }
 }
 
+#[hax_lib::attributes]
 impl<const C: usize> From<[u8; C]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == C)]
     fn from(x: [u8; C]) -> Bytes {
         x.to_vec().into()
     }
 }
 
+#[hax_lib::attributes]
 impl<const C: usize> From<&[u8; C]> for Bytes {
+    #[hax_lib::ensures(|result| result.len() == C)]
     fn from(x: &[u8; C]) -> Bytes {
         x.to_vec().into()
     }
@@ -254,7 +272,7 @@ impl U32 {
         self.0
     }
 }
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn u16_as_be_bytes(val: U16) -> [U8; 2] {
     #[cfg(not(feature = "secret_integers"))]
     let val = val.to_be_bytes();
@@ -285,23 +303,44 @@ pub(crate) fn u32_from_be_bytes(val: [U8; 4]) -> U32 {
     U32(val)
 }
 
+#[hax_lib::ensures(|result| result.len() == x.len())]
 pub(crate) fn bytes(x: &[u8]) -> Bytes {
     x.into()
 }
+
+#[hax_lib::ensures(|result| result.len() == 1)]
 pub(crate) fn bytes1(x: u8) -> Bytes {
     [x].into()
 }
+
+#[hax_lib::ensures(|result| result.len() == 2)]
 pub(crate) fn bytes2(x: u8, y: u8) -> Bytes {
     [x, y].into()
 }
 
-#[cfg_attr(feature = "hax-fstar", attributes)]
+#[hax_lib::attributes]
 impl core::ops::Index<usize> for Bytes {
     type Output = U8;
-    #[cfg_attr(feature = "hax-fstar", requires(x < self.0.len()))]
+    #[requires(x < self.0.len())]
     fn index(&self, x: usize) -> &U8 {
         &self.0[x]
     }
+}
+
+/// This is needed only for hax, so should likely be guarded by a feature flag.
+#[hax_lib::fstar::before(
+    interface,
+    "[@@ FStar.Tactics.Typeclasses.tcinstance]
+let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
+   {
+     super_index = impl_21;
+     update_at = fun s (i:usize{v i < Seq.length s._0}) x -> Bytes (Seq.upd s._0 (v i) x)
+   }"
+)]
+fn _update_at_usize_bytes_test(b: &mut Bytes) {
+    if b.len() > 0 {
+        b[0] = U8(0)
+    };
 }
 
 mod non_hax {
@@ -319,18 +358,20 @@ mod non_hax {
     }
 }
 
-#[cfg_attr(feature = "hax-fstar", attributes)]
+#[hax_lib::attributes]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
-    #[cfg_attr(feature = "hax-fstar", requires(x.start <= self.0.len() && x.end <= self.0.len()))]
+    #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
+    #[ensures(|result| if x.end >= x.start {result.len() == x.end - x.start} else {result.len() == 0})]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
     }
 }
 
+#[hax_lib::attributes]
 impl Bytes {
     /// Create new [`Bytes`].
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
     pub(crate) fn new() -> Bytes {
         Bytes(Vec::new())
     }
@@ -341,12 +382,14 @@ impl Bytes {
     }
 
     /// Generate `len` bytes of `0`.
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
+    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == v len"))]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
 
     /// Get the length of these [`Bytes`].
+    #[hax_lib::ensures(|result| fstar!("v result == Seq.length self._0"))]
     pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
@@ -391,22 +434,29 @@ impl Bytes {
     }
 
     /// Get a slice of the given `range`.
+    #[hax_lib::requires(fstar!(r#"v ${range.start} <= Seq.length self._0 && v ${range.end} <= Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| if range.end >= range.start {result.len() == range.end - range.start} else {result.len() == 0})]
     pub(crate) fn raw_slice(&self, range: Range<usize>) -> &[U8] {
         &self.0[range]
     }
 
     /// Get a new copy of the given `range` as [`Bytes`].
+    #[hax_lib::requires(fstar!(r#"v ${range.start} <= Seq.length self._0 && v ${range.end} <= Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| if range.end >= range.start {result.0.len() == range.end - range.start} else {result.0.len() == 0})]
     pub(crate) fn slice_range(&self, range: Range<usize>) -> Bytes {
         self.0[range].into()
     }
 
     /// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
+    #[hax_lib::requires(fstar!(r#"v $start <= Seq.length self._0 && v $start + v len <= Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| result.0.len() == len)]
     pub(crate) fn slice(&self, start: usize, len: usize) -> Bytes {
         self.0[start..start + len].into()
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[cfg_attr(feature = "hax-pv", pv_handwritten)]
+    #[hax_lib::pv_handwritten]
+    #[ensures(|result| result.len() == self.len() + other.len())]
     pub fn concat(mut self, mut other: Bytes) -> Bytes {
         self.0.append(&mut other.0);
         self
@@ -471,6 +521,10 @@ impl Bytes {
 }
 
 /// Convert the bool `b` into a Result.
+#[hax_lib::ensures(|result| match result {
+                             Result::Ok(()) => b == true,
+                              _ => true
+                    })]
 pub(crate) fn check(b: bool) -> Result<(), TLSError> {
     if b {
         Ok(())
@@ -515,7 +569,7 @@ pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
 // TODO: This function should short-circuit once hax supports returns within loops
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
     eq_slice(&b1.0, &b2.0)
 }
@@ -556,7 +610,7 @@ pub(crate) fn check_eq_with_slice(
 /// Parse function to check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn check_eq(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_slice(b1.as_raw(), b2.as_raw())
 }
@@ -588,7 +642,10 @@ pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
 /// On success, return a new [Bytes] slice such that its first byte encodes the
 /// length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in one byte.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(lenb) => bytes.len() < 256 && lenb.len() >= 1 && lenb.len() - 1 == bytes.len(),
+                                    _ => true})]
 pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 256 {
@@ -606,6 +663,9 @@ pub(crate) fn encode_length_u8(bytes: &[U8]) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first two bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in two bytes.
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(lenb) => bytes.len() < 65536 && lenb.len() >= 2 && lenb.len() - 2 == bytes.len(),
+                                    _ => true})]
 pub(crate) fn encode_length_u16(mut bytes: Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 65536 {
@@ -625,6 +685,9 @@ pub(crate) fn encode_length_u16(mut bytes: Bytes) -> Result<Bytes, TLSError> {
 /// On success, return a new [Bytes] slice such that its first three bytes encode the
 /// big-endian length of `bytes` and the remainder equals `bytes`. Return a [TLSError] if
 /// the length of `bytes` exceeds what can be encoded in three bytes.
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(lenb) => bytes.len() < 16777216 && lenb.len() >= 3 && lenb.len() - 3 == bytes.len(),
+                                    _ => true})]
 pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
     let len = bytes.len();
     if len >= 16777216 {
@@ -646,6 +709,10 @@ pub(crate) fn encode_length_u24(bytes: &Bytes) -> Result<Bytes, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is
 /// empty or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => bytes.len() >= 1 && bytes.len() - 1 >= l && l < 256,
+    _ => true
+})]
 pub(crate) fn length_u8_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.is_empty() {
         Err(parse_failed())
@@ -666,6 +733,10 @@ pub(crate) fn length_u8_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => bytes.len() >= 2 && bytes.len() - 2 >= l && l < 65536,
+    _ => true
+})]
 pub(crate) fn length_u16_encoded_slice(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.len() < 2 {
         Err(parse_failed())
@@ -688,6 +759,10 @@ pub(crate) fn length_u16_encoded_slice(bytes: &[U8]) -> Result<usize, TLSError> 
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Result::Ok(l) => bytes.len() >= 2 && bytes.len() - 2 >= l && l < 65536,
+    _ => true
+})]
 pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     length_u16_encoded_slice(bytes)
 }
@@ -698,6 +773,11 @@ pub(crate) fn length_u16_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
 /// On success, return the encoded length. Return a [TLSError] if `bytes` is less than 3
 /// bytes long or if the encoded length exceeds the length of the remainder of
 /// `bytes`.
+#[inline(always)]
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(l) => bytes.len() >= 3 && bytes.len() - 3 >= l && l < 16777216,
+                                _ => true
+                            })]
 pub(crate) fn length_u24_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     if bytes.len() < 3 {
         Err(parse_failed())
@@ -714,6 +794,9 @@ pub(crate) fn length_u24_encoded(bytes: &[U8]) -> Result<usize, TLSError> {
     }
 }
 
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(_) => bytes.len() >= 1 && bytes.len() <= 256,
+                                    _ => true})]
 pub(crate) fn check_length_encoding_u8_slice(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u8_encoded(bytes)? + 1 != bytes.len() {
         Err(parse_failed())
@@ -726,11 +809,17 @@ pub(crate) fn check_length_encoding_u8_slice(bytes: &[U8]) -> Result<(), TLSErro
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(_) => bytes.len() >= 1 && bytes.len() <= 256,
+                                    _ => true})]
 pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
     check_length_encoding_u8_slice(bytes.as_raw())
 }
 
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+                                    Result::Ok(_) => bytes.len() >= 2 && bytes.len() <= 65537,
+                                    _ => true})]
 pub(crate) fn check_length_encoding_u16_slice(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u16_encoded(bytes)? + 2 != bytes.len() {
         Err(parse_failed())
@@ -744,6 +833,9 @@ pub(crate) fn check_length_encoding_u16_slice(bytes: &[U8]) -> Result<(), TLSErr
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(_) => bytes.len() >= 2 && bytes.len() <= 65537,
+                                _ => true})]
 pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
     check_length_encoding_u16_slice(bytes.as_raw())
 }
@@ -753,6 +845,9 @@ pub(crate) fn check_length_encoding_u16(bytes: &Bytes) -> Result<(), TLSError> {
 ///
 /// Returns `Ok(())` if there are no bytes left, and a [`TLSError`] if there are
 /// more bytes in the `bytes`.
+#[hax_lib::ensures(|result| match result {
+                                Result::Ok(_) => bytes.len() >= 3 && bytes.len() <= 16777218,
+                                _ => true})]
 pub(crate) fn check_length_encoding_u24(bytes: &[U8]) -> Result<(), TLSError> {
     if length_u24_encoded(bytes)? + 3 != bytes.len() {
         Err(parse_failed())

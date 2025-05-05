@@ -285,6 +285,7 @@ fn build_client_hello(
     ))
 }
 
+#[hax_lib::requires(trunc_len <= ch.len())]
 fn compute_psk_binder_zero_rtt(
     algs0: Algorithms,
     ch: HandshakeData,

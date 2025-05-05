@@ -46,14 +46,13 @@ val in_psk_mode (c: t_Client) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_T
 /// client hello record as bytes, and the [`Client`] state as the second element.
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Client__connect
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (server_name: Bertie.Tls13utils.t_Bytes)
       (session_ticket psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
-    : Prims.Pure (iimpl_916461611_ & Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
+      (rng: iimpl_447424039_)
+    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -111,33 +110,6 @@ type t_Server =
       Bertie.Tls13record.t_DuplexCipherState1
     -> t_Server
 
-/// Start a new TLS handshake as server.
-/// Note that Bertie servers only support a single ciphersuite at a time and
-/// do not perform ciphersuite negotiation.
-/// This function takes the
-/// * `ciphersuite` to use for this server
-/// * `db` for the server database containing certificates and keys
-/// * `client_hello` for the initial client hello message
-/// * `entropy` for the randomness required in the handshake
-/// The function returns a [`Result`].
-/// When successful, the function returns a three-tuple with the first element the
-/// server hello record as bytes, the second the server finished record as bytes,
-/// and the new [`Server`] state as the third element.
-/// If an error occurs, it returns a [`TLSError`].
-val impl_Server__accept
-      (#iimpl_916461611_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_916461611_ |}
-      {| i2: Rand_core.t_RngCore iimpl_916461611_ |}
-      (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
-      (db: Bertie.Server.t_ServerDB)
-      (client_hello: Bertie.Tls13utils.t_Bytes)
-      (rng: iimpl_916461611_)
-    : Prims.Pure
-      (iimpl_916461611_ &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 /// Read the next handshake Message.
 /// This function takes the current state and `handshake_bytes` and returns
 /// the next state or a [`TLSError`].
@@ -165,10 +137,36 @@ val impl_Server__write (self: t_Server) (application_data: Bertie.Tls13utils.t_A
 /// The function returns a [`Result`].
 /// When successful, the function returns a tuple with the first element the
 /// application data as bytes option, and the new [`Server`] state as the second element.
-/// If there's no application data, the first element is [`None`].
+/// If there\'s no application data, the first element is [`None`].
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Server__read (self: t_Server) (application_data: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
       (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_AppData & t_Server) u8)
       Prims.l_True
+      (fun _ -> Prims.l_True)
+
+/// Start a new TLS handshake as server.
+/// Note that Bertie servers only support a single ciphersuite at a time and
+/// do not perform ciphersuite negotiation.
+/// This function takes the
+/// * `ciphersuite` to use for this server
+/// * `db` for the server database containing certificates and keys
+/// * `client_hello` for the initial client hello message
+/// * `entropy` for the randomness required in the handshake
+/// The function returns a [`Result`].
+/// When successful, the function returns a three-tuple with the first element the
+/// server hello record as bytes, the second the server finished record as bytes,
+/// and the new [`Server`] state as the third element.
+/// If an error occurs, it returns a [`TLSError`].
+val impl_Server__accept
+      (#iimpl_447424039_: Type0)
+      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
+      (db: Bertie.Server.t_ServerDB)
+      (client_hello: Bertie.Tls13utils.t_Bytes)
+      (rng: iimpl_447424039_)
+    : Prims.Pure
+      (iimpl_447424039_ &
+        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8)
+      (requires (Bertie.Tls13utils.impl_Bytes__len client_hello <: usize) >=. mk_usize 5)
       (fun _ -> Prims.l_True)

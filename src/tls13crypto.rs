@@ -8,6 +8,7 @@ use libcrux_ecdsa::DigestAlgorithm as EcDsaDigestAlgorithm;
 use libcrux_ed25519;
 use libcrux_hkdf::{expand, extract, Algorithm as HkdfAlgorithm};
 use libcrux_hmac::{hmac, Algorithm as HmacAlgorithm};
+
 use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use libcrux_rsa::{
     sign_varlen, verify_varlen, DigestAlgorithm as RsaDigestAlgorithm, VarLenPrivateKey,
@@ -90,6 +91,7 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
+#[hax_lib::attributes]
 impl HashAlgorithm {
     /// Get the libcrux hash algorithm
     fn libcrux_algorithm(&self) -> Result<Sha2Algorithm, TLSError> {
@@ -103,7 +105,7 @@ impl HashAlgorithm {
     /// Hash `data` with the given `algorithm`.
     ///
     /// Returns the digest or an [`TLSError`].
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
+    #[hax_lib::pv_constructor]
     pub(crate) fn hash(&self, data: &Bytes) -> Result<Bytes, TLSError> {
         let hasher = self.libcrux_algorithm()?;
 
@@ -114,6 +116,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hash digest.
+    #[hax_lib::ensures(|result| result <= 64)]
     pub(crate) fn hash_len(&self) -> usize {
         match self {
             HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
@@ -140,7 +143,7 @@ impl HashAlgorithm {
 /// Compute the HMAC tag.
 ///
 /// Returns the tag [`Hmac`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac(
         alg.hmac_algorithm()?,
@@ -154,7 +157,7 @@ pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Resul
 /// Verify a given HMAC `tag`.
 ///
 /// Returns `()` if successful or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn hmac_verify(
     alg: &HashAlgorithm,
     mk: &MacKey,
@@ -185,7 +188,7 @@ fn hkdf_algorithm(alg: &HashAlgorithm) -> Result<HkdfAlgorithm, TLSError> {
 /// HKDF Extract.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hkdf_extract(
     alg: &HashAlgorithm,
     ikm: &Bytes,
@@ -199,7 +202,7 @@ pub(crate) fn hkdf_extract(
 /// HKDF Expand.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hkdf_expand(
     alg: &HashAlgorithm,
     prk: &Bytes,
@@ -321,7 +324,7 @@ pub enum SignatureScheme {
 }
 
 /// Sign the `input` with the provided RSA key.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -367,7 +370,7 @@ pub(crate) fn sign_rsa(
 }
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn sign(
     algorithm: &SignatureScheme,
     sk: &Bytes,
@@ -408,7 +411,7 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
@@ -509,7 +512,7 @@ impl KemScheme {
 }
 
 /// Generate a new KEM key pair.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn kem_keygen(
     alg: KemScheme,
     rng: &mut impl CryptoRng,
@@ -553,7 +556,7 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 }
 
 /// KEM encapsulation
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn kem_encap(
     alg: KemScheme,
     pk: &Bytes,
@@ -589,7 +592,7 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 }
 
 /// KEM decapsulation
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[hax_lib::pv_handwritten]
 pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
     // event!(Level::DEBUG, "KEM Decaps with {alg:?}");
     // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
@@ -624,6 +627,7 @@ pub struct Algorithms {
     pub(crate) zero_rtt: bool,
 }
 
+#[hax_lib::attributes]
 impl Algorithms {
     /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
     pub const fn new(
@@ -711,6 +715,10 @@ impl Algorithms {
     }
 
     /// Check the ciphersuite in `bytes` against this ciphersuite.
+    #[hax_lib::ensures(|result| match result {
+                                    Result::Ok(len) => bytes.len() >= len && len < 65538,
+                                    _ => true
+                                })]
     pub(crate) fn check(&self, bytes: &[U8]) -> Result<usize, TLSError> {
         let len = length_u16_encoded(bytes)?;
         let cs = self.ciphersuite()?;
@@ -720,6 +728,7 @@ impl Algorithms {
     }
 }
 
+#[hax_lib::opaque]
 impl TryFrom<&str> for Algorithms {
     type Error = Error;
 
