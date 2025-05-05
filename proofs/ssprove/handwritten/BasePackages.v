@@ -1,0 +1,156 @@
+From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
+Set Warnings "-notation-overridden,-ambiguous-paths".
+From Crypt Require Import choice_type Package Prelude.
+Import PackageNotation.
+From extructures Require Import ord fset.
+From mathcomp Require Import word_ssrZ word.
+(* From Jasmin Require Import word. *)
+
+From Coq Require Import ZArith.
+From Coq Require Import Strings.String.
+Import List.ListNotations.
+Open Scope list_scope.
+Open Scope Z_scope.
+Open Scope bool_scope.
+
+From Hacspec Require Import ChoiceEquality.
+From Hacspec Require Import LocationUtility.
+From Hacspec Require Import Hacspec_Lib_Comparable.
+From Hacspec Require Import Hacspec_Lib_Pre.
+From Hacspec Require Import Hacspec_Lib.
+
+Open Scope hacspec_scope.
+Import choice.Choice.Exports.
+
+Set Bullet Behavior "Strict Subproofs".
+Set Default Goal Selector "!".
+Set Primitive Projections.
+
+Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
+
+From HB Require Import structures.
+
+From Crypt Require Import jasmin_word.
+
+From Crypt Require Import Schnorr SigmaProtocol.
+
+From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+
+Set Warnings "-notation-overridden,-ambiguous-paths".
+From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
+  fingroup.fingroup solvable.cyclic prime ssrnat ssreflect ssrfun ssrbool ssrnum
+  eqtype choice seq.
+Set Warnings "notation-overridden,ambiguous-paths".
+
+From Mon Require Import SPropBase.
+
+From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+  UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
+  pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
+  SigmaProtocol.
+
+From Coq Require Import Utf8.
+From extructures Require Import ord fset fmap.
+
+From Equations Require Import Equations.
+Require Equations.Prop.DepElim.
+
+Set Equations With UIP.
+
+Set Bullet Behavior "Strict Subproofs".
+Set Default Goal Selector "!".
+Set Primitive Projections.
+
+Local Open Scope ring_scope.
+Import GroupScope GRing.Theory.
+
+Import PackageNotation.
+
+From KeyScheduleTheorem Require Import Types.
+From KeyScheduleTheorem Require Import ExtraTypes.
+From KeyScheduleTheorem Require Import Utility.
+
+From KeyScheduleTheorem Require Import Dependencies.
+
+(*** Base Packages *)
+
+#[global] Notation " 'chSETinp' " :=
+  (chHandle × 'bool × chKey)
+    (in custom pack_type at level 2).
+#[global] Notation " 'chSETout' " :=
+  (chHandle)
+    (in custom pack_type at level 2).
+Definition SET (n : name) (ℓ : nat) (d : nat) := serialize_name n ℓ d 0.
+
+#[global] Notation " 'chGETinp' " :=
+  (chHandle)
+    (in custom pack_type at level 2).
+#[global] Notation " 'chGETout' " :=
+  (chKey × 'bool)
+    (in custom pack_type at level 2).
+Definition GET (n : name) (ℓ : nat) (d : nat) := serialize_name n ℓ d 1.
+
+Notation " 'chHASHinp' " :=
+  (bitvec)
+    (in custom pack_type at level 2).
+Notation " 'chHASHout' " :=
+  (bitvec)
+    (in custom pack_type at level 2).
+(* Definition HASH := 1%nat. *)
+
+Inductive HashFunction :=
+| f_hash
+| f_xtr
+| f_xpd.
+
+Definition HASH (f : HashFunction) : nat :=
+  22%nat + match f with
+         | f_hash => 0
+         | f_xtr => 1
+         | f_xpd => 2
+         end.
+
+Notation " 'chUNQinp' " :=
+  (chHandle × 'bool × chKey)
+    (in custom pack_type at level 2).
+Notation " 'chUNQout' " :=
+  (chHandle)
+    (in custom pack_type at level 2).
+
+Definition UNQ (n : name) (d : nat) : nat := serialize_name n 0 d 2.
+
+Notation " 'chDHGENinp' " :=
+  (chGroup)
+    (in custom pack_type at level 2).
+Notation " 'chDHGENout' " :=
+  (chGroup)
+    (in custom pack_type at level 2).
+Definition DHGEN : nat := 11.
+
+Notation " 'chDHEXPinp' " :=
+  (chGroup × chGroup)
+    (in custom pack_type at level 2).
+Notation " 'chDHEXPout' " :=
+  (chHandle)
+    (in custom pack_type at level 2).
+Definition DHEXP : nat := 12.
+
+(* Definition SET_DH : nat := 13. *)
+
+(* Definition SET_ℓ_f d n ℓ := [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]. *)
+
+Definition SET_ℓ Names d ℓ : Interface :=
+  interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) Names.
+(* SET_ℓ_f d n ℓ *)
+
+Definition SET_n Names d k : Interface :=
+  interface_hierarchy (SET_ℓ Names k) d.
+
+(* Definition GET_ℓ_f d n ℓ := [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]. *)
+
+Definition GET_ℓ Names d ℓ : Interface :=
+  interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) Names.
+(* GET_ℓ_f d n ℓ *)
+
+Definition GET_n Names d k : Interface :=
+  interface_hierarchy (GET_ℓ Names k) d.

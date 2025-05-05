@@ -27,10 +27,12 @@ libcrux-ed25519 = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen
 libcrux-ecdsa = { version = "0.0.3-alpha.1", git = "https://github.com/cryspen/libcrux", features = [
     "rand",
 ] }
-hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
+#hax-lib = { version = "0.2", git = "https://github.com/cryspen/hax" }
+hax-lib = { git = "https://github.com/cryspen/hax" }
 
 [features]
-default = ["api", "std"]
+default = ["api", "std", "defensive"]
+defensive = []
 std = []
 test_utils = []
 secret_integers = []
@@ -80,4 +82,4 @@ default-members = [
 ]
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)', 'cfg(hax)'] }

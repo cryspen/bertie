@@ -1,13 +1,14 @@
 use std::vec;
 
 #[cfg(feature = "hax-pv")]
-use hax_lib::{pv_constructor, pv_handwritten};
+use hax_lib::{proverif, pv_constructor};
 
 use libcrux_chacha20poly1305::{decrypt_detached, encrypt_detached};
 use libcrux_ecdsa::DigestAlgorithm as EcDsaDigestAlgorithm;
 use libcrux_ed25519;
 use libcrux_hkdf::{expand, extract, Algorithm as HkdfAlgorithm};
 use libcrux_hmac::{hmac, Algorithm as HmacAlgorithm};
+
 use libcrux_kem::{Ct, PrivateKey, PublicKey};
 use libcrux_rsa::{
     sign_varlen, verify_varlen, DigestAlgorithm as RsaDigestAlgorithm, VarLenPrivateKey,
@@ -69,27 +70,70 @@ impl AeadKey {
 }
 
 /// An RSA public key.
-#[derive(Debug)]
-pub(crate) struct RsaVerificationKey {
-    pub(crate) modulus: Bytes,
-    pub(crate) exponent: Bytes,
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "hax-pv", hax_lib::opaque)]
+pub struct RsaVerificationKey {
+    pub modulus: Bytes,
+    pub exponent: Bytes,
 }
 
 /// Bertie public verification keys.
-#[derive(Debug)]
-pub(crate) enum PublicVerificationKey {
+#[derive(Debug, Clone)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "type $:{PublicVerificationKey}.
+
+fun $:{PublicVerificationKey}_to_bitstring(
+      $:{PublicVerificationKey}
+    )
+    : bitstring [typeConverter].
+fun $:{PublicVerificationKey}_from_bitstring(bitstring)
+    : $:{PublicVerificationKey} [typeConverter].
+const $:{PublicVerificationKey}_default_value: $:{PublicVerificationKey}.
+letfun $:{PublicVerificationKey}_default() =
+       $:{PublicVerificationKey}_default_value.
+letfun $:{PublicVerificationKey}_err() =
+       let x = construct_fail() in $:{PublicVerificationKey}_default_value.
+fun ${PublicVerificationKey::EcDsa}($:{Bytes}
+    )
+    : $:{PublicVerificationKey} [data].
+
+fun ${PublicVerificationKey::Rsa}(
+      $:{RsaVerificationKey}
+    )
+    : $:{PublicVerificationKey} [data].
+"
+    )
+)]
+pub enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
 }
 
 /// Bertie hash algorithms.
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub enum HashAlgorithm {
     SHA256,
     SHA384,
     SHA512,
 }
 
+
+/// Hash `data` with the given `algorithm`.
+///
+/// Returns the digest or an [`TLSError`].
+#[cfg_attr(feature = "hax-pv", pv_constructor)]
+pub(crate) fn hash(ha: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
+    let hasher = ha.libcrux_algorithm()?;
+
+    let mut digest = vec![0u8; hasher.hash_len()];
+    hasher.hash(&data.declassify(), &mut digest);
+
+    Ok(digest.into())
+}
+
+#[hax_lib::attributes]
 impl HashAlgorithm {
     /// Get the libcrux hash algorithm
     fn libcrux_algorithm(&self) -> Result<Sha2Algorithm, TLSError> {
@@ -100,26 +144,15 @@ impl HashAlgorithm {
         }
     }
 
-    /// Hash `data` with the given `algorithm`.
-    ///
-    /// Returns the digest or an [`TLSError`].
-    #[cfg_attr(feature = "hax-pv", pv_constructor)]
-    pub(crate) fn hash(&self, data: &Bytes) -> Result<Bytes, TLSError> {
-        let hasher = self.libcrux_algorithm()?;
-
-        let mut digest = vec![0u8; hasher.hash_len()];
-        hasher.hash(&data.declassify(), &mut digest);
-
-        Ok(digest.into())
-    }
-
     /// Get the size of the hash digest.
+    #[hax_lib::ensures(|result| result <= 64)]
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn hash_len(&self) -> usize {
         match self {
-            HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
-            HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
-            HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
-        }
+                HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
+                HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
+                HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
+            }
     }
 
     /// Get the libcrux hmac algorithm.
@@ -132,6 +165,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hmac tag.
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("0"))]
     pub(crate) fn hmac_tag_len(&self) -> usize {
         self.hash_len()
     }
@@ -140,7 +174,7 @@ impl HashAlgorithm {
 /// Compute the HMAC tag.
 ///
 /// Returns the tag [`Hmac`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac(
         alg.hmac_algorithm()?,
@@ -154,7 +188,23 @@ pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Resul
 /// Verify a given HMAC `tag`.
 ///
 /// Returns `()` if successful or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
+reduc
+  forall
+        alg : $:{HashAlgorithm},
+         mk : $:{Bytes},
+      input : $:{Bytes};
+        ${hmac_verify}(
+            alg,
+            mk,
+            input,
+            ${hmac_tag}(alg, mk, input)
+         ) = ()."
+    )
+)]
 pub(crate) fn hmac_verify(
     alg: &HashAlgorithm,
     mk: &MacKey,
@@ -185,7 +235,7 @@ fn hkdf_algorithm(alg: &HashAlgorithm) -> Result<HkdfAlgorithm, TLSError> {
 /// HKDF Extract.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hkdf_extract(
     alg: &HashAlgorithm,
     ikm: &Bytes,
@@ -199,7 +249,7 @@ pub(crate) fn hkdf_extract(
 /// HKDF Expand.
 ///
 /// Returns the result as [`Bytes`] or a [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[hax_lib::pv_constructor]
 pub(crate) fn hkdf_expand(
     alg: &HashAlgorithm,
     prk: &Bytes,
@@ -227,6 +277,7 @@ pub enum AeadAlgorithm {
 
 impl AeadAlgorithm {
     /// Get the key length of the AEAD algorithm in bytes.
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn key_len(&self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 32,
@@ -236,6 +287,7 @@ impl AeadAlgorithm {
     }
 
     /// Get the length of the IV for this algorithm.
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn iv_len(self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 12,
@@ -321,7 +373,6 @@ pub enum SignatureScheme {
 }
 
 /// Sign the `input` with the provided RSA key.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -367,7 +418,28 @@ pub(crate) fn sign_rsa(
 }
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::before(
+        "fun extern__sign_inner(
+         $:{SignatureScheme},
+         $:{Bytes}, (* sk *)
+         $:{Bytes}  (* input *)
+     )
+     : $:{Bytes}."
+    )
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "(extern__sign_inner(
+              algorithm,
+              sk,
+              input
+          )
+       )"
+    )
+)]
 pub(crate) fn sign(
     algorithm: &SignatureScheme,
     sk: &Bytes,
@@ -408,7 +480,58 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "
+fun extern__vk_from_sk($:{Bytes}): $:{PublicVerificationKey}.
+
+fun extern__sign_inner_rsa(
+                 $:{Bytes}, (* sk *)
+                 $:{Bytes}  (* input *)
+             )
+             : $:{Bytes}.
+
+fun ${verify}(
+            $:{SignatureScheme}, 
+            $:{PublicVerificationKey},
+            $:{Bytes}, (* input *)
+            $:{Bytes}  (* sig *)
+        )
+    : bitstring
+
+  reduc forall
+                     sk: $:{Bytes},
+                  input: $:{Bytes};
+
+        ${verify}(
+            ${SignatureScheme::RsaPssRsaSha256},
+            extern__vk_from_sk(sk),
+            input,
+            extern__sign_inner_rsa(
+                sk,
+                input
+            )
+        )
+        = ()
+
+  otherwise forall
+                sk                   : $:{Bytes},
+                input                : $:{Bytes};
+
+        ${verify}(
+            ${SignatureScheme::EcdsaSecp256r1Sha256},
+            extern__vk_from_sk(sk),
+            input,
+            extern__sign_inner(
+                ${SignatureScheme::EcdsaSecp256r1Sha256},
+                sk,
+                input
+            )
+        )
+        = ()."
+    )
+)]
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
@@ -509,7 +632,18 @@ impl KemScheme {
 }
 
 /// Generate a new KEM key pair.
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::before("fun extern__kem_pk_from_sk($:{Bytes}): $:{Bytes}.")
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "(new kem_sk: $:{Bytes};
+       let kem_pk = extern__kem_pk_from_sk(kem_sk) in
+       (kem_sk, kem_pk))"
+    )
+)]
 pub(crate) fn kem_keygen(
     alg: KemScheme,
     rng: &mut impl CryptoRng,
@@ -553,7 +687,18 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 }
 
 /// KEM encapsulation
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::before("fun extern__kem_encapsulation($:{Bytes}, $:{Bytes}): $:{Bytes}.")
+)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body(
+        "(new shared_secret: $:{Bytes};
+          let ct = extern__kem_encapsulation(pk, shared_secret) in
+          (shared_secret, ct))"
+    )
+)]
 pub(crate) fn kem_encap(
     alg: KemScheme,
     pk: &Bytes,
@@ -589,7 +734,15 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 }
 
 /// KEM decapsulation
-#[cfg_attr(feature = "hax-pv", pv_handwritten)]
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace(
+        "reduc forall alg: $:{KemScheme}, kem_sk: $:{Bytes}, shared_secret: $:{Bytes};
+     ${kem_decap}(
+     alg, extern__kem_encapsulation(extern__kem_pk_from_sk(kem_sk), shared_secret), kem_sk
+     ) = shared_secret."
+    )
+)]
 pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
     // event!(Level::DEBUG, "KEM Decaps with {alg:?}");
     // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
@@ -624,6 +777,7 @@ pub struct Algorithms {
     pub(crate) zero_rtt: bool,
 }
 
+#[hax_lib::attributes]
 impl Algorithms {
     /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
     pub const fn new(
@@ -676,6 +830,9 @@ impl Algorithms {
 
     /// Returns the TLS ciphersuite for the given algorithm when it is supported, or
     /// a [`TLSError`] otherwise.
+    #[hax_lib::ensures(|result| match result {
+                                    Ok(b) => b.len() == 2,
+                                    Err(_) => true})]
     pub(crate) fn ciphersuite(&self) -> Result<Bytes, TLSError> {
         match (self.hash, self.aead) {
             (HashAlgorithm::SHA256, AeadAlgorithm::Aes128Gcm) => Ok([0x13, 0x01].into()),
@@ -688,6 +845,9 @@ impl Algorithms {
     /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
     /// otherwise.
     #[inline(always)]
+    #[hax_lib::ensures(|result| match result {
+        Ok(b) => b.len() == 2,
+        Err(_) => true})]
     pub(crate) fn supported_group(&self) -> Result<Bytes, TLSError> {
         match self.kem() {
             KemScheme::X25519 => Ok([0x00, 0x1D].into()),
@@ -702,6 +862,9 @@ impl Algorithms {
 
     /// Returns the signature id for the given algorithm when it is supported, or a
     ///  [`TLSError`] otherwise.
+    #[hax_lib::ensures(|result| match result {
+        Ok(b) => b.len() == 2,
+        Err(_) => true})]
     pub(crate) fn signature_algorithm(&self) -> Result<Bytes, TLSError> {
         match self.signature() {
             SignatureScheme::RsaPssRsaSha256 => Ok([0x08, 0x04].into()),
@@ -711,6 +874,10 @@ impl Algorithms {
     }
 
     /// Check the ciphersuite in `bytes` against this ciphersuite.
+    #[hax_lib::ensures(|result| match result {
+                                    Result::Ok(len) => bytes.len() >= len && len < 65538,
+                                    _ => true
+                                })]
     pub(crate) fn check(&self, bytes: &[U8]) -> Result<usize, TLSError> {
         let len = length_u16_encoded(bytes)?;
         let cs = self.ciphersuite()?;
@@ -720,6 +887,7 @@ impl Algorithms {
     }
 }
 
+#[hax_lib::opaque]
 impl TryFrom<&str> for Algorithms {
     type Error = Error;
 

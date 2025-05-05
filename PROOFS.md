@@ -61,24 +61,29 @@ Using hax, we generate a ProVerif model of the TLS 1.3 handshake
 in `proofs/proverif/extraction/lib.pvl`.  This file contains the bulk of the extraction,
 while `analysis.pv` contains the top-level processes are set up and analysis queries.
 
-We provide patches that include changes to the extracted model (described below), which allow us to show
+We can show
 * that the modeled handshake can fully complete for both parties (as a baseline for further analysis)
-* Server authenticity, assuming neither the certificate signing key nor a potential pre-shared key have been compromised
-* Secrecy of the resulting session key under the same assumptions.
+* Server authenticity, assuming the certificate signing key is not
+  compromised 
+* Forward secrecy of the resulting session key under the same assumptions.
 
 The intended flow using the driver is to run
-
+```
 ./hax-driver.py extract-proverif to extract the ProVerif model to proofs/proverif/extraction.
-./hax-driver.py patch-proverif to apply the patches on the extracted model.
-./hax-driver.py typecheck-proverif to run the analysis on the patched model.
+./hax-driver.py typecheck-proverif to run the analysis
+```
 
-The patches are necessary for parts of the model that we cannot currently generate (properly, or at all):
-* a top-level process structure which instantiates Client and Server with ciphersuites and psk-mode configuration,
-* event definitions and analysis queries,
-* cryptographic operations and their semantics
-* tls13formats related code, especially anything that relates to concatenation primitives
+## Security of the Key Schedule in SSProve
 
-Additionally, the patches introduce the following modifications:
-* A mock certificate validation, checking that the name in the certificate agrees with the name of the expected peer from the top-level process. This is because Bertie does not include full certificate validation at this time, but some binding between the name and the certificate is necessary for showing server authentication.
-* A model-side fix for the issue that is fixed on the Rust side in Correct argument order for process_psk_binder_zero_rtt #101 (until that is fixed on the Rust side).
-* The removal of all automatically generated events, since that leads to poor performance from ProVerif and is not necessary at all for the analysis (cf. [ProVerif] Emitting events unnecessarily blows up the extracted model hacspec/hax#581)
+We extract the implementation of the Key Schedule from SSProve.
+We then fix the implementation to only include the parts we need and make sure the translation is actually valid.
+This is done with a patch file to allow easier updates to the implementation.
+
+The proof for security of the key schedule is done on a specification.
+The entry functions of the specification are generalized and then instantiated with the functions in the implementation.
+We show the implemented functions fulfill some properties to be valid in the key schedule proof.
+
+The proof for the specification follows the proof in "Key-schedule Security for the TLS 1.3 Standard."
+We prove the Core Key Schedule Theorem by showing the main lemma D6.
+The other lemmas are a direct consequence of the correct implementation of the cryptographic primitives, which we inherit from libcrux.
+These lemmas are therefore only stated, and the proof is Admitted.
