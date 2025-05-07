@@ -1,6 +1,6 @@
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
-From Crypt Require Import choice_type Package Prelude.
+From SSProve Require Import choice_type Package Prelude.
 Import PackageNotation.
 From extructures Require Import ord fset.
 From mathcomp Require Import word_ssrZ word.
@@ -30,11 +30,11 @@ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 From HB Require Import structures.
 
-From Crypt Require Import jasmin_word.
+From SSProve Require Import jasmin_word.
 
-From Crypt Require Import Schnorr SigmaProtocol.
+From SSProve Require Import Schnorr SigmaProtocol.
 
-From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+From SSProve Require Import OrderEnrichedCategory GenericRulesSimple.
 
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
@@ -42,9 +42,9 @@ From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
   eqtype choice seq.
 Set Warnings "notation-overridden,ambiguous-paths".
 
-From Mon Require Import SPropBase.
+From SSProve Require Import SPropBase.
 
-From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+From SSProve Require Import Axioms ChoiceAsOrd SubDistr Couplings
   UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
   pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
   SigmaProtocol.
@@ -66,59 +66,59 @@ Import GroupScope GRing.Theory.
 
 Import PackageNotation.
 
-Lemma parable_par_l :
-  forall a b c, Parable a c -> Parable b c -> Parable (par a b) c.
-Proof.
-  clear ; intros.
-  unfold Parable.
-  rewrite domm_union.
-  rewrite fdisjointUl.
-  rewrite H H0.
-  reflexivity.
-Qed.
+(* Lemma parable_par_l : *)
+(*   forall a b c, Parable a c -> Parable b c -> Parable (par a b) c. *)
+(* Proof. *)
+(*   clear ; intros. *)
+(*   unfold Parable. *)
+(*   rewrite domm_union. *)
+(*   rewrite fdisjointUl. *)
+(*   rewrite H H0. *)
+(*   reflexivity. *)
+(* Qed. *)
 
-Lemma parable_par_r :
-  forall a b c, Parable c a -> Parable c b -> Parable c (par a b).
-Proof.
-  clear ; intros.
-  unfold Parable.
-  rewrite domm_union.
-  rewrite fdisjointUr.
-  rewrite H H0.
-  reflexivity.
-Qed.
+(* Lemma parable_par_r : *)
+(*   forall a b c, Parable c a -> Parable c b -> Parable c (par a b). *)
+(* Proof. *)
+(*   clear ; intros. *)
+(*   unfold Parable. *)
+(*   rewrite domm_union. *)
+(*   rewrite fdisjointUr. *)
+(*   rewrite H H0. *)
+(*   reflexivity. *)
+(* Qed. *)
 
-Ltac solve_Parable :=
-  match goal with
-  | [ |- context [ Parable (trim _ ?a) (trim _ ?b) ] ] =>
-      apply parable_trim
-      ; try (unfold idents
-             ; rewrite <- !fset1E
-             ; rewrite !imfset1
-             ; now rewrite fdisjoint1s)
-  | Ha : trimmed ?Ea ?a ,
-      Hb : trimmed ?Eb ?b
-    |- context [ Parable ?a ?b ] =>
-      rewrite <- Ha ; rewrite <- Hb ; solve_Parable
-  | Ha : trimmed ?Ea ?a ,
-      Hb : trimmed ?Eb ?b
-    |- context [ Parable ?a (?b ∘ ?c) ] =>
-      rewrite <- Ha ;
-      rewrite <- Hb ;
-      erewrite !link_trim_commut ;
-      solve_Parable
-  | Ha : trimmed ?Ea ?a ,
-      Hb : trimmed ?Eb ?b
-    |- context [ Parable (?b ∘ ?c) ?a ] =>
-      rewrite <- Ha ;
-      rewrite <- Hb ;
-      erewrite !link_trim_commut ;
-      solve_Parable
-  | |- context [ Parable ?a (par ?b ?c) ] =>
-      apply parable_par_r ; solve_Parable
-  | |- context [ Parable (par ?a ?b) ?c ] =>
-      apply parable_par_l ; solve_Parable
-  end.
+(* Ltac solve_Parable := *)
+(*   match goal with *)
+(*   | [ |- context [ Parable (trim _ ?a) (trim _ ?b) ] ] => *)
+(*       apply parable_trim *)
+(*       ; try (unfold idents *)
+(*              ; rewrite <- !fset1E *)
+(*              ; rewrite !imfset1 *)
+(*              ; now rewrite fdisjoint1s) *)
+(*   | Ha : trimmed ?Ea ?a , *)
+(*       Hb : trimmed ?Eb ?b *)
+(*     |- context [ Parable ?a ?b ] => *)
+(*       rewrite <- Ha ; rewrite <- Hb ; solve_Parable *)
+(*   | Ha : trimmed ?Ea ?a , *)
+(*       Hb : trimmed ?Eb ?b *)
+(*     |- context [ Parable ?a (?b ∘ ?c) ] => *)
+(*       rewrite <- Ha ; *)
+(*       rewrite <- Hb ; *)
+(*       erewrite !link_trim_commut ; *)
+(*       solve_Parable *)
+(*   | Ha : trimmed ?Ea ?a , *)
+(*       Hb : trimmed ?Eb ?b *)
+(*     |- context [ Parable (?b ∘ ?c) ?a ] => *)
+(*       rewrite <- Ha ; *)
+(*       rewrite <- Hb ; *)
+(*       erewrite !link_trim_commut ; *)
+(*       solve_Parable *)
+(*   | |- context [ Parable ?a (par ?b ?c) ] => *)
+(*       apply parable_par_r ; solve_Parable *)
+(*   | |- context [ Parable (par ?a ?b) ?c ] => *)
+(*       apply parable_par_l ; solve_Parable *)
+(*   end. *)
 
 From extructures Require Import ord fset fmap.
 
@@ -131,13 +131,13 @@ Ltac trim_is_interface :=
   rewrite filterm0 ;
   reflexivity.
 
-From Crypt Require Import pkg_composition.
+From SSProve Require Import pkg_composition.
 
-Ltac trimmed_package p :=
-  match type of p with
-  | package ?L ?I ?E =>
-      assert (trimmed E p) by now unfold trimmed ; trim_is_interface
-  end.
+(* Ltac trimmed_package p := *)
+(*   match type of p with *)
+(*   | package ?L ?I ?E => *)
+(*       assert (trimmed E p) by now unfold trimmed ; trim_is_interface *)
+(*   end. *)
 
 
 Fixpoint sum_accum (fuel : nat) (index : nat) (f : nat -> nat) (accum : nat) : nat :=

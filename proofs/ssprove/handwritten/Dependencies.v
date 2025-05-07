@@ -1,6 +1,6 @@
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
-From Crypt Require Import choice_type Package Prelude.
+From SSProve Require Import choice_type Package Prelude.
 Import PackageNotation.
 From extructures Require Import ord fset.
 From mathcomp Require Import word_ssrZ word.
@@ -30,11 +30,11 @@ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 From HB Require Import structures.
 
-From Crypt Require Import jasmin_word.
+From SSProve Require Import jasmin_word.
 
-From Crypt Require Import Schnorr SigmaProtocol.
+From SSProve Require Import Schnorr SigmaProtocol.
 
-From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+From SSProve Require Import OrderEnrichedCategory GenericRulesSimple.
 
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
@@ -42,9 +42,9 @@ From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
   eqtype choice seq.
 Set Warnings "notation-overridden,ambiguous-paths".
 
-From Mon Require Import SPropBase.
+From SSProve Require Import SPropBase.
 
-From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+From SSProve Require Import Axioms ChoiceAsOrd SubDistr Couplings
   UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
   pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
   SigmaProtocol.
@@ -72,7 +72,7 @@ From KeyScheduleTheorem Require Import Utility.
 
 Axiom chGroup : choice_type.
 Axiom chGroup_is_finGroup : FinGroup chGroup.
-Axiom gen : chGroup -> code fset0 fset0 chGroup.
+Axiom gen : chGroup -> code emptym emptym chGroup.
 
 Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool.
 Definition chK_table := 'fin #|fin_K_table|.
@@ -100,34 +100,34 @@ Class Dependencies := {
     TLSPrntN: name -> (* code fset0 fset0 *) (chProd chName chName) ;
     TLSPrntN_is_PrntN: forall n, PrntN n == TLSPrntN n ;
 
-    Labels : name -> bool -> code fset0 fset0 chLabel ;
+    Labels : name -> bool -> code emptym emptym chLabel ;
 
     (* O_star : list name ; *)
 
-    xpd : chKey -> (chLabel * bitvec) -> code fset0 fset0 chKey ;
-    xtr : chKey -> chKey -> code fset0 fset0 chKey ;
-    xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle ;
-    xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle ;
-    PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName) ;
+    xpd : chKey -> (chLabel * bitvec) -> code emptym emptym chKey ;
+    xtr : chKey -> chKey -> code emptym emptym chKey ;
+    xtr_angle : name -> chHandle -> chHandle -> code emptym emptym chHandle ;
+    xpd_angle : name -> chLabel -> chHandle -> bitvec -> code emptym emptym chHandle ;
+    PrntIdx : name -> forall (ℓ : bitvec), code emptym [interface] (chProd chName chName) ;
     ord : chGroup → nat ;
     E : nat -> nat ;
 
-    L_L : {fset Location} ;
+    L_L : Locations ;
     L_table : chHandle -> nat ;
-    in_L_table : forall x, ('option chL_table; L_table x) \in L_L ;
+    in_L_table : forall x, fhas L_L (L_table x , 'option chL_table) ;
 
-    L_K : {fset Location} ;
+    L_K : Locations ;
     K_table : chHandle -> nat ;
-    in_K_table : forall x, ('option chK_table; K_table x) \in L_K ;
+    in_K_table : forall x, fhas L_K (K_table x , 'option chK_table) ;
 
-    L_M : {fset Location} ;
+    L_M : Locations ;
     M : chHandle -> nat ;
-    H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M ;
+    H : name → ∀ s : chHandle, fhas L_M ( M s , 'option ('fin #|fin_handle|)) ;
 
     d : nat ;
 
-    DHGEN_function : chGroup -> code fset0 fset0 chGroup ;
-    DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle ;
+    DHGEN_function : chGroup -> code emptym emptym chGroup ;
+    DHEXP_function : chGroup -> chGroup -> code emptym emptym chHandle ;
   }.
 
 Lemma TlsLikeKeySchedule :

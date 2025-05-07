@@ -1,6 +1,6 @@
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
-From Crypt Require Import choice_type Package Prelude.
+From SSProve Require Import choice_type Package Prelude.
 Import PackageNotation.
 From extructures Require Import ord fset.
 From mathcomp Require Import word_ssrZ word.
@@ -30,11 +30,11 @@ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 From HB Require Import structures.
 
-From Crypt Require Import jasmin_word.
+From SSProve Require Import jasmin_word.
 
-From Crypt Require Import Schnorr SigmaProtocol.
+From SSProve Require Import Schnorr SigmaProtocol.
 
-From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+From SSProve Require Import OrderEnrichedCategory GenericRulesSimple.
 
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
@@ -42,9 +42,9 @@ From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
   eqtype choice seq.
 Set Warnings "notation-overridden,ambiguous-paths".
 
-From Mon Require Import SPropBase.
+From SSProve Require Import SPropBase.
 
-From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+From SSProve Require Import Axioms ChoiceAsOrd SubDistr Couplings
   UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
   pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
   SigmaProtocol.
@@ -256,56 +256,55 @@ Notation "'Build_t_Bytes' '[' x ']' '(' '0' ':=' y ')'" := (Build_t_Bytes (t_Byt
 
 Definition t_TagKey : choice_type :=
   (t_TLSnames × t_Bytes).
-Equations f_tag (s : both t_TagKey) : both t_TLSnames :=
-  f_tag s  :=
-    bind_both s (fun x =>
-      solve_lift (ret_both (fst x : t_TLSnames))) : both t_TLSnames.
+Definition f_tag (s : both t_TagKey) : both t_TLSnames :=
+  (* f_tag s  := *)
+    (bind_both s (fun '(x, y) =>
+                           solve_lift (ret_both (x : t_TLSnames))) : both t_TLSnames).
+Definition f_val (s : both t_TagKey) : both t_Bytes :=
+  (* f_val s := *)
+    bind_both s (fun '(x, y) =>
+      solve_lift (ret_both (y : t_Bytes))) : both t_Bytes.
 Fail Next Obligation.
-Equations f_val (s : both t_TagKey) : both t_Bytes :=
-  f_val s  :=
-    bind_both s (fun x =>
-      solve_lift (ret_both (snd x : t_Bytes))) : both t_Bytes.
-Fail Next Obligation.
-Equations Build_t_TagKey {f_tag : both t_TLSnames} {f_val : both t_Bytes} : both (t_TagKey) :=
-  Build_t_TagKey  :=
-    bind_both f_val (fun f_val =>
-      bind_both f_tag (fun f_tag =>
-        solve_lift (ret_both ((f_tag,f_val) : (t_TagKey))))) : both (t_TagKey).
-Fail Next Obligation.
-Notation "'Build_t_TagKey' '[' x ']' '(' 'f_tag' ':=' y ')'" := (Build_t_TagKey (f_tag := y) (f_val := f_val x)).
-Notation "'Build_t_TagKey' '[' x ']' '(' 'f_val' ':=' y ')'" := (Build_t_TagKey (f_tag := f_tag x) (f_val := y)).
+(* Definition Build_t_TagKey {f_tag : both t_TLSnames} {f_val : both t_Bytes} : both (t_TagKey) := *)
+(*   (* Build_t_TagKey  := *) *)
+(*     bind_both f_val (fun f_val => *)
+(*       bind_both f_tag (fun f_tag => *)
+(*         solve_lift (ret_both ((f_tag : t_TLSnames,f_val : t_Bytes) : (t_TagKey))))) : both (t_TagKey). *)
+(* Fail Next Obligation. *)
+(* Notation "'Build_t_TagKey' '[' x ']' '(' 'f_tag' ':=' y ')'" := (Build_t_TagKey (f_tag := y) (f_val := f_val x)). *)
+(* Notation "'Build_t_TagKey' '[' x ']' '(' 'f_val' ':=' y ')'" := (Build_t_TagKey (f_tag := f_tag x) (f_val := y)). *)
 
 Definition t_Handle : choice_type :=
   (t_TLSnames × t_Bytes × t_HashAlgorithm × int8).
-Equations f_name (s : both t_Handle) : both t_TLSnames :=
-  f_name s  :=
-    bind_both s (fun x =>
-      solve_lift (ret_both (fst (fst (fst x)) : t_TLSnames))) : both t_TLSnames.
+Definition f_name (s : both t_Handle) : both t_TLSnames :=
+  (* f_name s  := *)
+    bind_both s (fun '(x,y,z,w) =>
+      solve_lift (ret_both (x : t_TLSnames))) : both t_TLSnames.
 Fail Next Obligation.
 Equations f_key (s : both t_Handle) : both t_Bytes :=
   f_key s  :=
-    bind_both s (fun x =>
-      solve_lift (ret_both (snd (fst (fst x)) : t_Bytes))) : both t_Bytes.
+    bind_both s (fun '(x,y,z,w) =>
+      solve_lift (ret_both (y : t_Bytes))) : both t_Bytes.
 Fail Next Obligation.
 Equations f_alg (s : both t_Handle) : both t_HashAlgorithm :=
   f_alg s  :=
-    bind_both s (fun x =>
-      solve_lift (ret_both (snd (fst x) : t_HashAlgorithm))) : both t_HashAlgorithm.
+    bind_both s (fun '(x,y,z,w) =>
+      solve_lift (ret_both (z : t_HashAlgorithm))) : both t_HashAlgorithm.
 Fail Next Obligation.
 Equations f_level (s : both t_Handle) : both int8 :=
   f_level s  :=
     bind_both s (fun x =>
       solve_lift (ret_both (snd x : int8))) : both int8.
 Fail Next Obligation.
-Equations Build_t_Handle {L0 : {fset Location}} {L1 : {fset Location}} {L2 : {fset Location}} {L3 : {fset Location}} {I0 : Interface} {I1 : Interface} {I2 : Interface} {I3 : Interface} {f_name : both t_TLSnames} {f_key : both t_Bytes} {f_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) :=
-  Build_t_Handle  :=
-    bind_both f_level (fun f_level =>
-      bind_both f_alg (fun f_alg =>
-        bind_both f_key (fun f_key =>
-          bind_both f_name (fun f_name =>
-            solve_lift (ret_both ((f_name,f_key,f_alg,f_level) : (t_Handle))))))) : both (t_Handle).
-Fail Next Obligation.
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_key := f_key x) (f_alg := f_alg x) (f_level := f_level x)).
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_key' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := y) (f_alg := f_alg x) (f_level := f_level x)).
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := y) (f_level := f_level x)).
-Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := f_alg x) (f_level := y)).
+(* Equations Build_t_Handle {L0 : Locations} {L1 : Locations} {L2 : Locations} {L3 : Locations} {I0 : Interface} {I1 : Interface} {I2 : Interface} {I3 : Interface} {f_name : both t_TLSnames} {f_key : both t_Bytes} {f_alg : both t_HashAlgorithm} {f_level : both int8} : both (t_Handle) := *)
+(*   Build_t_Handle  := *)
+(*     bind_both f_level (fun f_level => *)
+(*       bind_both f_alg (fun f_alg => *)
+(*         bind_both f_key (fun f_key => *)
+(*           bind_both f_name (fun f_name => *)
+(*             solve_lift (ret_both ((f_name,f_key,f_alg,f_level) : (t_Handle))))))) : both (t_Handle). *)
+(* Fail Next Obligation. *)
+(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_name' ':=' y ')'" := (Build_t_Handle (f_name := y) (f_key := f_key x) (f_alg := f_alg x) (f_level := f_level x)). *)
+(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_key' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := y) (f_alg := f_alg x) (f_level := f_level x)). *)
+(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_alg' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := y) (f_level := f_level x)). *)
+(* Notation "'Build_t_Handle' '[' x ']' '(' 'f_level' ':=' y ')'" := (Build_t_Handle (f_name := f_name x) (f_key := f_key x) (f_alg := f_alg x) (f_level := y)). *)

@@ -1,6 +1,6 @@
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
-From Crypt Require Import choice_type Package Prelude.
+From SSProve Require Import choice_type Package Prelude.
 Import PackageNotation.
 From extructures Require Import ord fset.
 From mathcomp Require Import word_ssrZ word.
@@ -30,11 +30,11 @@ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 From HB Require Import structures.
 
-From Crypt Require Import jasmin_word.
+From SSProve Require Import jasmin_word.
 
-From Crypt Require Import Schnorr SigmaProtocol.
+From SSProve Require Import Schnorr SigmaProtocol.
 
-From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+From SSProve Require Import OrderEnrichedCategory GenericRulesSimple.
 
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
@@ -42,9 +42,9 @@ From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
   eqtype choice seq.
 Set Warnings "notation-overridden,ambiguous-paths".
 
-From Mon Require Import SPropBase.
+From SSProve Require Import SPropBase.
 
-From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+From SSProve Require Import Axioms ChoiceAsOrd SubDistr Couplings
   UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
   pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
   SigmaProtocol.
@@ -140,9 +140,12 @@ Section KeyPackages.
 
     unfold set_at.
     ssprove_valid ; try apply (in_L_table _).
-    apply prog_valid.
+    - apply prog_valid.
+    - apply valid_putr.
+      + apply in_L_table.
+      + apply valid_ret.
 
-    Unshelve.
+        Unshelve.
     1: apply DepInstance.
     1:{
       apply pos_prod ; [ | apply pos_key ].
@@ -204,12 +207,18 @@ Section KeyPackages.
     unfold set_at.
 
     ssprove_valid ; try apply (in_K_table _).
-    simpl.
-    unfold SET.
-    unfold GET.
-    rewrite notin_cons. rewrite Bool.andb_true_r.
-    apply /eqP.
-    now apply serialize_name_notin_different_index.
+    1:{
+      apply valid_getr ; [ apply in_K_table | intros [] ; ssprove_valid ].
+      - apply valid_ret.
+      - apply valid_bind ; intros ; ssprove_valid.
+    }
+    1:{
+      apply valid_getr ; [ apply in_K_table | intros [] ; ssprove_valid ].
+      - apply valid_ret.
+      - apply valid_bind ; intros ; ssprove_valid.
+        apply valid_putr ; [ apply in_K_table | ssprove_valid ].
+        apply valid_ret.
+    }
 
     Unshelve.
     apply 'unit.
@@ -229,10 +238,15 @@ Section KeyPackages.
     destruct Names.
     - exact ({package emptym #with valid_empty_package L_L [interface]}).
     - rewrite (interface_foreach_trivial [interface] (n :: Names)) ; [ | easy ].
-      refine (parallel_package d (n :: Names) (fun a => L_package _ _ (P a)) _ _ H).
+      refine (parallel_package d (n :: Names) (fun a => L_package _ _ (P a)) _ _ _ H).
       + intros.
-        unfold idents.
         solve_imfset_disjoint.
+        simpl.
+        apply fseparate_set1.
+        * solve_imfset_disjoint.
+        * apply fseparatem0.
+      + intros.
+        apply fseparate0m.
       + intros.
         apply trimmed_package_cons.
         apply trimmed_empty_package.
@@ -253,8 +267,9 @@ Section KeyPackages.
 
     apply trimmed_parallel_raw.
     - intros.
-      unfold idents.
-      solve_imfset_disjoint.
+      apply fseparate_set1.
+      * solve_imfset_disjoint.
+      * apply fseparatem0.
     - apply H.
     - apply trimmed_pairs_map.
       intros.
@@ -275,13 +290,11 @@ Section KeyPackages.
     package
       (L_K)
       (interface_foreach (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout]) Names)
-      (SET_n (Names) d k
-         :|: GET_n (Names) d k
-      ).
+      (unionm (SET_n (Names) d k) (GET_n (Names) d k)).
   Proof.
     intros.
     rewrite interface_hierarchy_foreachU.
-    
+
     rewrite <- function2_fset_cat.
     refine (combined _ d L_K
               (λ n : name, [interface #val #[UNQ n k] : chUNQinp → chUNQout ])

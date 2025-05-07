@@ -1,6 +1,6 @@
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
-From Crypt Require Import choice_type Package Prelude.
+From SSProve Require Import choice_type Package Prelude.
 Import PackageNotation.
 From extructures Require Import ord fset.
 From mathcomp Require Import word_ssrZ word.
@@ -30,11 +30,11 @@ Obligation Tactic := (* try timeout 8 *) solve_ssprove_obligations.
 
 From HB Require Import structures.
 
-From Crypt Require Import jasmin_word.
+From SSProve Require Import jasmin_word.
 
-From Crypt Require Import Schnorr SigmaProtocol.
+From SSProve Require Import Schnorr SigmaProtocol.
 
-From Relational Require Import OrderEnrichedCategory GenericRulesSimple.
+From SSProve Require Import OrderEnrichedCategory GenericRulesSimple.
 
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
@@ -42,9 +42,9 @@ From mathcomp Require Import all_ssreflect all_algebra reals distr realsum
   eqtype choice seq.
 Set Warnings "notation-overridden,ambiguous-paths".
 
-From Mon Require Import SPropBase.
+From SSProve Require Import SPropBase.
 
-From Crypt Require Import Axioms ChoiceAsOrd SubDistr Couplings
+From SSProve Require Import Axioms ChoiceAsOrd SubDistr Couplings
   UniformDistrLemmas FreeProbProg Theta_dens RulesStateProb UniformStateProb
   pkg_core_definition choice_type pkg_composition pkg_rhl Package Prelude
   SigmaProtocol.
@@ -634,7 +634,114 @@ Section CoreTheorem.
                                                              end) Q H_uniq_Q)
                  )
               A = 0)%R.
-      1: admit.
+      {
+        intros.
+        induction Q.
+        - set (pack (KeysAndHash d k H_lt
+          (λ (ℓ0 : nat) (name : ExtraTypes.name),
+             if (name \in N_star) || (name == PSK)
+             then if (ℓ + (name \in [::]) <=? ℓ0)%N then false else true
+             else false) (λ name : ExtraTypes.name, match name with
+                                                    | ESALT => R
+                                                    | _ => D
+                                                    end) _ H_uniq_Q)).
+
+          unfold KeysAndHash in r.
+          Set Printing Coercions.
+          unfold pack in r.
+
+          set (Ks _ _ _ _ _ _) in r.
+          set (Ls _ _ _ _) in r.
+
+          exfalso.
+          clear.
+          eassert (forall d k H f H_uniq, pack (Ks d k H [::] f H_uniq) = @emptym Datatypes_nat__canonical__Ord_Ord typed_raw_function).
+          {
+            intros.
+            unfold Ks.
+            unfold eq_rect.
+            unfold eq_rect_r.
+            unfold eq_rect.
+            destruct function2_fset_cat.
+            unfold combined.
+            unfold ℓ_packages.
+            unfold ℓ_raw_packages.
+            unfold parallel_package.
+            unfold List.map.
+            unfold parallel_raw.
+            unfold pack.
+
+            assert (forall n d H_le, map_with_in_num_upper n d (H_le := H_le) (λ (v : nat) (_ : is_true (v <= n)%N), emptym) = emptym).
+            {
+              clear.
+              induction d ; intros.
+              - easy.
+              - simpl.
+                rewrite IHd.
+                reflexivity.
+            }
+            specialize (H0 d d (leqnn d)).
+            set (map_with_in_num_upper _ _ _) in H0 |- *.
+            Set Printing Coercions.
+            unfold interface_hierarchy_foreach.
+            unfold interface_foreach.
+
+            unfold eq_rect_r.
+            unfold eq_rect.
+            unfold Logic.eq_sym.
+            clear.
+
+            unfold interface_hierarchy_trivial.
+            unfold eq_ind_r.
+            unfold eq_ind.
+
+            unfold nat_ind.
+            unfold pack.
+
+            hnf.
+            cbv.
+
+            cbn.
+            
+            destruct Logic.eq_sym.
+            unfold nat_ind.
+            
+
+            simpl.
+            set (match _ in (_ = a) return (a = SET_n [::] d k :|: GET_n [::] d k)
+    with
+    | erefl => erefl
+                 end).
+            f_equal.
+            
+            
+            destruct e.
+            
+            
+            destruct interface_hierarchy_trivial.
+            destruct Logic.eq_sym.
+
+            setoid_rewrite H0.
+
+            subst H0.
+
+            rewrite H0.
+                
+
+            unfold map_with_in_num_upper.
+            destruct Logic.eq_sym.
+            
+          unfold Ks in r.
+          simpl in r.
+          
+          unfold KeysAndHash at 3.
+          unfold Ks.
+          unfold interface_foreach.
+          unfold eq_rect.
+          destruct function2_fset_cat.
+        simpl.
+        admit.
+      }
 
       eassert (
           forall (A : seq ExtraTypes.name) (B : seq ExtraTypes.name) P
