@@ -112,15 +112,15 @@ Class Dependencies := {
     ord : chGroup → nat ;
     E : nat -> nat ;
 
-    L_L : Locations ;
+    L_L : nat -> Locations ;
     L_table : chHandle -> nat ;
     in_L_table : forall x, fhas L_L (L_table x , 'option chL_table) ;
 
-    L_K : Locations ;
+    L_K : nat -> Locations ;
     K_table : chHandle -> nat ;
     in_K_table : forall x, fhas L_K (K_table x , 'option chK_table) ;
 
-    L_M : Locations ;
+    L_M : nat -> Locations ;
     M : chHandle -> nat ;
     H : name → ∀ s : chHandle, fhas L_M ( M s , 'option ('fin #|fin_handle|)) ;
 

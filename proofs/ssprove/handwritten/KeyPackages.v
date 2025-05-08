@@ -109,13 +109,13 @@ Section KeyPackages.
   Definition L_package d (n : name) (P : ZAF) :
     package
       (* (fset_Log_table Log_table) *)
-      L_L
+      (* L_L *)
       [interface]
       [interface
          #val #[ UNQ n d ] : chUNQinp → chUNQout
       ].
   Proof.
-    refine [package
+    refine [package L_L ;
       #def #[ UNQ n d (* n ℓ *) ] ('(h,hon,k) : chUNQinp) : chUNQout {
          (exists_h_star (fun h_star =>
            temp ← get_or_fail (L_table h_star) fin_L_table ;;
@@ -163,7 +163,6 @@ Section KeyPackages.
 
   Definition K_package d (n : name) (ℓ : nat) (* (d : nat) *) (_ : (ℓ <= d)%nat) (b : bool) :
     package
-      L_K
       [interface
          #val #[ UNQ n d ] : chUNQinp → chUNQout
       ]
@@ -173,7 +172,7 @@ Section KeyPackages.
       ].
   Proof.
     intros.
-    refine [package
+    refine [package L_K ;
       #def #[ SET n ℓ d ] ('(h,hon,k_star) : chSETinp) : chSETout {
         #import {sig #[ UNQ n d ] : chUNQinp → chUNQout }
         as unq_fn ;;
@@ -228,7 +227,6 @@ Section KeyPackages.
   Definition Ls d (Names : list name) (P : name -> ZAF) :
     uniq Names ->
     package
-      (L_L)
       [interface]
       (interface_foreach (fun n => [interface
          #val #[ UNQ n d ] : chUNQinp → chUNQout
@@ -236,7 +234,7 @@ Section KeyPackages.
   Proof.
     intros.
     destruct Names.
-    - exact ({package emptym #with valid_empty_package L_L [interface]}).
+    - exact ({package L_L #with emptym} (valid_empty_package L_L [interface])).
     - rewrite (interface_foreach_trivial [interface] (n :: Names)) ; [ | easy ].
       refine (parallel_package d (n :: Names) (fun a => L_package _ _ (P a)) _ _ _ H).
       + intros.
@@ -248,34 +246,36 @@ Section KeyPackages.
       + intros.
         apply fseparate0m.
       + intros.
+        simpl.
+        
         apply trimmed_package_cons.
         apply trimmed_empty_package.
   Defined.
 
-  Lemma trimmed_Ls d (Names : _) P :
-    forall (H : uniq Names),
-      trimmed (interface_foreach (fun n =>[interface
-                                          #val #[ UNQ n d ] : chUNQinp → chUNQout
-                 ]) Names) (Ls d Names P H).
-  Proof.
-    intros.
-    unfold Ls.
-    destruct Names ; [ intros ; apply trimmed_empty_package | ].
-    rewrite trimmed_eq_rect_r.
-    unfold pack.
-    set (s :: Names) in *. replace (s :: _) with l by reflexivity.
+  (* Lemma trimmed_Ls d (Names : _) P : *)
+  (*   forall (H : uniq Names), *)
+  (*     trimmed (interface_foreach (fun n =>[interface *)
+  (*                                         #val #[ UNQ n d ] : chUNQinp → chUNQout *)
+  (*                ]) Names) (Ls d Names P H). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   unfold Ls. *)
+  (*   destruct Names ; [ intros ; apply trimmed_empty_package | ]. *)
+  (*   rewrite trimmed_eq_rect_r. *)
+  (*   unfold pack. *)
+  (*   set (s :: Names) in *. replace (s :: _) with l by reflexivity. *)
 
-    apply trimmed_parallel_raw.
-    - intros.
-      apply fseparate_set1.
-      * solve_imfset_disjoint.
-      * apply fseparatem0.
-    - apply H.
-    - apply trimmed_pairs_map.
-      intros.
-      apply trimmed_package_cons.
-      apply trimmed_empty_package.
-  Qed.
+  (*   apply trimmed_parallel_raw. *)
+  (*   - intros. *)
+  (*     apply fseparate_set1. *)
+  (*     * solve_imfset_disjoint. *)
+  (*     * apply fseparatem0. *)
+  (*   - apply H. *)
+  (*   - apply trimmed_pairs_map. *)
+  (*     intros. *)
+  (*     apply trimmed_package_cons. *)
+  (*     apply trimmed_empty_package. *)
+  (* Qed. *)
 
   Lemma function_fset_cons :
     forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
@@ -321,26 +321,26 @@ Section KeyPackages.
   Defined.
   Fail Next Obligation.
 
-  Lemma trimmed_Ks d k H_lt (Names : _) b :
-    forall (H : uniq Names),
-      trimmed (interface_hierarchy_foreach
-                 (λ (n : name) (ℓ : nat),
-                   [interface
-                      #val #[SET n ℓ k] : chSETinp → chSETout ;
-                    #val #[GET n ℓ k] : chGETinp → chGETout ]) Names d) (Ks d k H_lt Names b H).
-  Proof.
-    intros.
-    unfold Ks.
-    unfold combined.
+  (* Lemma trimmed_Ks d k H_lt (Names : _) b : *)
+  (*   forall (H : uniq Names), *)
+  (*     trimmed (interface_hierarchy_foreach *)
+  (*                (λ (n : name) (ℓ : nat), *)
+  (*                  [interface *)
+  (*                     #val #[SET n ℓ k] : chSETinp → chSETout ; *)
+  (*                   #val #[GET n ℓ k] : chGETinp → chGETout ]) Names d) (Ks d k H_lt Names b H). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   unfold Ks. *)
+  (*   unfold combined. *)
 
-    rewrite trimmed_eq_rect.
-    destruct (function2_fset_cat _ _).
-    unfold eq_rect.
-    unfold eq_rect_r.
-    unfold eq_rect.
-    destruct Logic.eq_sym.
-    apply (trimmed_ℓ_packages).
-  Qed.
+  (*   rewrite trimmed_eq_rect. *)
+  (*   destruct (function2_fset_cat _ _). *)
+  (*   unfold eq_rect. *)
+  (*   unfold eq_rect_r. *)
+  (*   unfold eq_rect. *)
+  (*   destruct Logic.eq_sym. *)
+  (*   apply (trimmed_ℓ_packages). *)
+  (* Qed. *)
 
   (* Fig 15 *)
   Definition Nk_package (d k : nat) (_ : (d <= k)%nat) :

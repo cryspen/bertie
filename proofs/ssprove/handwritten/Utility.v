@@ -1536,26 +1536,26 @@ Proof.
       }
 Defined.
 
-(* Lemma interface_foreach_trivial : forall {A} i L (* d *), *)
-(*     L <> [] -> *)
-(*     i = (interface_foreach (λ (n : A), i) L ). *)
-(* Proof. *)
-(*   intros. *)
-(*   destruct L ; [ easy | ]. *)
-(*   clear H. *)
-(*   generalize dependent a. *)
-(*   induction L ; intros. *)
-(*   { *)
-(*     rewrite interface_foreach_cons. *)
-(*     simpl. *)
-(*     now rewrite unionm0. *)
-(*   } *)
-(*   { *)
-(*     rewrite interface_foreach_cons. *)
-(*     rewrite <- IHL. *)
-(*     now rewrite unionmI. *)
-(*   } *)
-(* Qed. *)
+Lemma interface_foreach_trivial : forall {A} {B : ordType} {C} i L (* d *),
+    L <> [] ->
+    i = (interface_foreach (B := B) (C := C) (λ (n : A), i) L ).
+Proof.
+  intros.
+  destruct L ; [ easy | ].
+  clear H.
+  generalize dependent a.
+  induction L ; intros.
+  {
+    rewrite interface_foreach_cons.
+    simpl.
+    now rewrite unionm0.
+  }
+  {
+    rewrite interface_foreach_cons.
+    rewrite <- IHL.
+    now rewrite unionmI.
+  }
+Qed.
 
 (* Lemma interface_hierarchy_empty : forall d, *)
 (*     (interface_hierarchy (λ (n : nat), [interface]) d ) = [interface]. *)
@@ -1566,20 +1566,18 @@ Defined.
 (*   - simpl. rewrite unionm0. rewrite IHd. reflexivity. *)
 (* Qed. *)
 
-(* Lemma interface_hierarchy_trivial : forall i d, *)
-(*     i = (interface_hierarchy (λ (_ : nat), i) d ). *)
-(* Proof. *)
-(*   intros. *)
-(*   induction d. *)
-(*   { *)
-(*     reflexivity. *)
-(*   } *)
-(*   { *)
-(*     simpl. *)
-(*     rewrite <- IHd. *)
-(*     now rewrite unionmI. *)
-(*   } *)
-(* Defined. *)
+Lemma interface_hierarchy_trivial : forall {B : ordType} {C} i d,
+    i = (interface_hierarchy (B := B) (C := C) (λ (_ : nat), i) d ).
+Proof.
+  intros.
+  induction d.
+  { reflexivity. }
+  {
+    simpl.
+    rewrite <- IHd.
+    now rewrite unionmI.
+  }
+Defined.
 
 (* Lemma interface_hierarchy_foreach_trivial : forall {A} i L d, *)
 (*     L <> [] -> *)
@@ -1591,32 +1589,36 @@ Defined.
 (*   now apply interface_foreach_trivial. *)
 (* Defined. *)
 
-(* Definition combined (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (n : nat), (n <= d)%nat -> forall (a : A), package L (f a) (g a n)) *)
-(*     (H : forall n, (n <= d)%nat -> ∀ x y : A, x ≠ y → fseparate (g x n) (g y n)) *)
-(*     (H0 : forall n ℓ, (ℓ < n)%nat -> (n <= d)%nat -> ∀ x y : A, fseparate (g x ℓ) (g y n)) *)
-(*     (Hf : forall x y : A, x ≠ y → fseparate (f x) (f y)) *)
-(*     (H1 : forall n (H_le : (n <= d)%nat), ∀ a : A, trimmed (g a n) (i n H_le a)) *)
-(*     (H3 : uniq Names) : *)
-(*   package L *)
-(*     (interface_foreach f Names) *)
-(*     (interface_hierarchy_foreach g Names d). *)
-(* Proof. *)
-(*   rewrite (interface_hierarchy_trivial (interface_foreach f (Names)) d). *)
-(*   refine (ℓ_packages *)
-(*            d *)
-(*            (fun n H_le => *)
-(*               parallel_package d (Names) (i n H_le) (H n H_le) (Hf) (H1 n H_le) H3 *)
-(*            ) *)
-(*            (fun n H_le => *)
-(*               trimmed_parallel_raw *)
-(*                 (H n H_le) *)
-(*                 H3 *)
-(*                 (trimmed_pairs_map _ _ _ (H1 n H_le))) *)
-(*            (fun n ℓ i0 i1 => foreach_disjoint_foreach _ _ (Names) (H0 n ℓ i0 i1)) *)
-(*            (fun n ℓ => _) *)
-(*         ). *)
-(*   intros. *)
-(* Defined. *)
+Definition combined (A : eqType) (d : nat) (f : A -> _) g Names (i : forall (n : nat), (n <= d)%nat -> forall (a : A), package (f a) (g a n))
+    (H : forall n, (n <= d)%nat -> ∀ x y : A, x ≠ y → fseparate (g x n) (g y n))
+    (H0 : forall n ℓ, (ℓ < n)%nat -> (n <= d)%nat -> ∀ x y : A, fseparate (g x ℓ) (g y n))
+    (Hf : forall x y : A, x ≠ y → fseparate (f x) (f y))
+    (* (H1 : forall n (H_le : (n <= d)%nat), ∀ a : A, trimmed (g a n) (i n H_le a)) *)
+    (H3 : uniq Names) :
+  package
+    (interface_foreach f Names)
+    (interface_hierarchy_foreach g Names d).
+Proof.
+  rewrite (interface_hierarchy_trivial (interface_foreach f (Names)) d).
+  refine (ℓ_packages
+           d
+           (fun n H_le =>
+              parallel_package d (Names) (i n H_le) (H n H_le) (Hf) (* (H1 n H_le) *) _ H3
+           )
+           (* (fun n H_le => *)
+           (*    trimmed_parallel_raw *)
+           (*      (H n H_le) *)
+           (*      H3 *)
+           (*      (trimmed_pairs_map _ _ _ (H1 n H_le))) *)
+           (fun n ℓ i0 i1 => foreach_disjoint_foreach _ _ (Names) (H0 n ℓ i0 i1))
+           (fun n ℓ => _)
+           _
+         ).
+  1:{
+    intros. simpl. 
+  }
+  intros.
+Defined.
 
 (* Definition parallel_package_with_in_rel_hierarchy {A : eqType} {L} {g f} Names l  (d : nat) (u : forall ℓ (H_le : (ℓ <= d)%nat) a (H : a \in Names), package L (g a ℓ) (f a ℓ)) H_in : *)
 (*   (∀ ℓ n, ∀ x y : A, (x ≠ y \/ ℓ ≠ n) → idents (f x ℓ) :#: idents (f y n)) -> *)
