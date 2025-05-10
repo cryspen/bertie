@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -72,7 +74,7 @@ From KeyScheduleTheorem Require Import Utility.
 
 From KeyScheduleTheorem Require Import Dependencies.
 
-(*** Base Packages *)
+(** * Base Packages *)
 
 #[global] Notation " 'chSETinp' " :=
   (chHandle × 'bool × chKey)
@@ -96,7 +98,6 @@ Notation " 'chHASHinp' " :=
 Notation " 'chHASHout' " :=
   (bitvec)
     (in custom pack_type at level 2).
-(* Definition HASH := 1%nat. *)
 
 Inductive HashFunction :=
 | f_hash
@@ -135,22 +136,14 @@ Notation " 'chDHEXPout' " :=
     (in custom pack_type at level 2).
 Definition DHEXP : nat := 12.
 
-(* Definition SET_DH : nat := 13. *)
-
-(* Definition SET_ℓ_f d n ℓ := [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]. *)
-
 Definition SET_ℓ Names d ℓ : Interface :=
   interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) Names.
-(* SET_ℓ_f d n ℓ *)
 
 Definition SET_n Names d k : Interface :=
   interface_hierarchy (SET_ℓ Names k) d.
 
-(* Definition GET_ℓ_f d n ℓ := [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]. *)
-
 Definition GET_ℓ Names d ℓ : Interface :=
   interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) Names.
-(* GET_ℓ_f d n ℓ *)
 
 Definition GET_n Names d k : Interface :=
   interface_hierarchy (GET_ℓ Names k) d.

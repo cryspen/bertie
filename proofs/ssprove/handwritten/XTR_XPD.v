@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -74,24 +76,18 @@ From KeyScheduleTheorem Require Import Dependencies.
 
 From KeyScheduleTheorem Require Import BasePackages.
 
-(* (* Not needed? *) *)
-From KeyScheduleTheorem Require Import KeyPackages.
-
-(* (** Extra imports *) *)
-(* From SMTCoq Require Import SMTCoq. *)
-
-(*** XTR / XPD *)
+(** * XTR / XPD *)
 
 Section XTR_XPD.
 
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-  (* p. 5,6 *)
+  (** p. 5,6 *)
   (* Context {xtr_angle : name -> chHandle -> chHandle -> code fset0 fset0 chHandle}. *)
   (* Context {xtr : chKey -> chKey -> code fset0 fset0 chKey}. *)
 
-  (* Xtr *)
+  (** * Xtr *)
 
   Notation " 'chXTRinp' " :=
     (chHandle × chHandle)
@@ -119,10 +115,10 @@ Section XTR_XPD.
                 #import {sig #[ SET n ℓ d ] : chSETinp → chSETout }
                 as set_fn ;;
                 '(n1,n2) ← ret (PrntN n : (chProd chName chName)) ;;
-                assertD (n1 == fst (PrntN n)) (fun _ => 
+                assertD (n1 == fst (PrntN n)) (fun _ =>
                 #import {sig #[ GET (nfto n1) ℓ d ] : chGETinp → chGETout }
                 as get_fn1 ;;
-                assertD (n2 == snd (PrntN n)) (fun _ => 
+                assertD (n2 == snd (PrntN n)) (fun _ =>
                 #import {sig #[ GET (nfto n2) ℓ d ] : chGETinp → chGETout }
                 as get_fn2 ;;
                 (if Datatypes.andb (name_eq (nfto (alg2 h1)) BOT) (name_eq (nfto (alg2 h2)) BOT)
@@ -178,7 +174,6 @@ Section XTR_XPD.
            [interface
               #val #[GET (nfto (fst (PrntN n))) ℓ d] : chXTRout → chGETout ;
               #val #[GET (nfto (snd (PrntN n))) ℓ d] : chXTRout → chGETout]) XTR_names
-
       ).
   Proof.
     intros.
@@ -192,21 +187,6 @@ Section XTR_XPD.
     reflexivity.
   Qed.
 
-  (* Definition GET_XTR_ℓ d ℓ := *)
-  (*   interface_foreach (fun n => [interface *)
-  (*                             #val #[ GET (nfto (fst (PrntN n))) ℓ d ] : chGETinp → chGETout ; *)
-  (*                             #val #[ GET (nfto (snd (PrntN n))) ℓ d ] : chGETinp → chGETout]) *)
-  (*     XTR_names. *)
-
-  (* Definition GET_XTR d : Interface := *)
-  (*   interface_hierarchy (GET_XTR_ℓ d) d. *)
-
-  (* Definition SET_XTR_ℓ d ℓ := *)
-  (*   interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) XTR_names. *)
-
-  (* Definition SET_XTR d : Interface := *)
-  (*   interface_hierarchy (SET_XTR_ℓ d) d. *)
-
   Definition XTR_n_ℓ_f d n ℓ := [interface #val #[ XTR n ℓ d ] : chXTRinp → chXTRout].
 
   Definition XTR_n d k :=
@@ -215,6 +195,7 @@ Section XTR_XPD.
   Definition XTR_n_ℓ d ℓ :=
     interface_foreach (fun n => XTR_n_ℓ_f d n ℓ) XTR_names.
 
+  (* begin hide *)
   Lemma trimmed_Xtr : forall ℓ n d b,
       trimmed
         (XTR_n_ℓ_f d n ℓ)
@@ -225,6 +206,7 @@ Section XTR_XPD.
     unfold XTR_n_ℓ_f.
     trim_is_interface.
   Qed.
+  (* end hide *)
 
   Definition xtr_level_raw (ℓ : nat) (d : nat) (b : name -> bool) :=
     parallel_raw (List.map (fun n => pack (Xtr n ℓ d (b n))) XTR_names).
@@ -260,22 +242,17 @@ Section XTR_XPD.
       unfold idents.
       solve_imfset_disjoint.
     - reflexivity.
-    -
-      unfold XTR.
+    - unfold XTR.
       unfold XTR_names.
       unfold map.
       unfold trimmed_pairs.
       hnf.
-
       repeat split ;  apply trimmed_Xtr.
-    -
-      setoid_rewrite <- fset_cat.
-
-      set (fun x => fset _).
+    - set (fun x => fset _).
       simpl in f.
       subst f.
-
       unfold XTR_names, valid_pairs, List.map.
+      setoid_rewrite <- fset_cat.
       repeat split  ; match goal with
                      | |- context [ Xtr ?n _ _ ] => apply (pack_valid (@Xtr _ ℓ d (b n)))
                       end.
@@ -284,6 +261,7 @@ Section XTR_XPD.
   Definition xtr_level d ℓ b (H : (ℓ <= d)%N) :=
     {package (xtr_level_raw ℓ d b) #with (valid_xtr_level d ℓ b H)}.
 
+  (* begin hide *)
   Lemma trimmed_xtr_level d ℓ b (H : (ℓ <= d)%N) :
     trimmed
       (interface_foreach (fun n => [interface #val #[XTR n ℓ d] : chXTRinp → chXTRout]) XTR_names)
@@ -294,6 +272,7 @@ Section XTR_XPD.
     - reflexivity.
     - repeat split ; apply trimmed_Xtr.
   Qed.
+  (* end hide *)
 
   Definition XTR_packages (d k : nat) (b : name -> bool) (H_lt : (d <= k)%nat) :
     package fset0 (GET_n XTR_parent_names d k :|: SET_n XTR_names d k) (XTR_n d k).
@@ -309,10 +288,13 @@ Section XTR_XPD.
       intros.
       simpl.
       unfold idents, XTR ; solve_imfset_disjoint.
+      + unfold serialize_name ; destruct n, ℓ ; Lia.lia.
+      + unfold serialize_name ; destruct n, ℓ ; Lia.lia.
+      + unfold serialize_name ; destruct n, ℓ ; Lia.lia.
     }
   Defined.
 
-  (* Xpd *)
+  (** * Xpd *)
 
   Notation " 'chXPDinp' " :=
     (chHandle × 'bool × bitvec)
@@ -321,7 +303,6 @@ Section XTR_XPD.
     (chHandle)
       (in custom pack_type at level 2).
   Definition XPD (n : name) (ℓ : nat) (d : nat) : nat := serialize_name n ℓ d 2.
-
 
   Definition Xpd
     (n : name) (ℓ : nat) (d : nat)
@@ -408,7 +389,6 @@ Section XTR_XPD.
       (interface_foreach (λ (n : name),
            [interface
               #val #[GET (nfto (fst (PrntN n))) ℓ d] : chXTRout → chGETout]) XPR_sub_PSK
-
       ).
   Proof.
     intros.
@@ -475,19 +455,7 @@ Section XTR_XPD.
   Definition XPD_n_ℓ d ℓ :=
     interface_hierarchy_foreach (XPD_n_ℓ_f d) XPR ℓ.
 
-  (* Definition GET_XPD_ℓ d ℓ : Interface := *)
-  (*   interface_foreach (fun n => [interface #val #[ GET (nfto (fst (PrntN n))) ℓ d ] : chGETinp → chGETout]) (XPR). *)
-
-  (* Definition GET_XPD d : Interface := *)
-  (*   interface_hierarchy (GET_XPD_ℓ d) d. *)
-
-  (* Definition SET_XPD_ℓ d ℓ : Interface := *)
-  (*   interface_foreach (fun n => [interface #val #[ SET n (ℓ + name_eq n PSK)%nat d ] : chSETinp → chSETout]) (XPR). *)
-
-  (* Definition SET_XPD d : Interface := *)
-  (*   interface_hierarchy (SET_XPD_ℓ d) d.-1 :|: *)
-  (*   interface_foreach (fun n => [interface #val #[ SET n d d ] : chSETinp → chSETout]) (XPR_sub_PSK). *)
-
+  (* begin hide *)
   Lemma trimmed_Xpd : forall n ℓ d,
       trimmed
         (XPD_n_ℓ_f d n ℓ)
@@ -498,6 +466,7 @@ Section XTR_XPD.
     unfold XPD_n_ℓ_f.
     trim_is_interface.
   Qed.
+  (* end hide *)
 
   Definition xpd_level_sub_psk_raw (ℓ : nat) (d : nat) : raw_package :=
     parallel_raw (List.map (fun n => pack (Xpd n ℓ d)) XPR_sub_PSK).
@@ -554,6 +523,7 @@ Section XTR_XPD.
   Definition xpd_level_sub_psk ℓ d H :=
     {package (xpd_level_sub_psk_raw ℓ d) #with (valid_xpd_level_sub_psk ℓ d H)}.
 
+  (* begin hide *)
   Lemma trimmed_xpd_level_sub_psk ℓ d (H : (ℓ <= d)%nat) :
     trimmed
       (interface_foreach (fun n => [interface #val #[XPD n ℓ d] : chXPDinp → chXPDout]) XPR_sub_PSK)
@@ -565,15 +535,7 @@ Section XTR_XPD.
     - reflexivity.
     - repeat split ; apply trimmed_Xpd.
   Qed.
-
-  (* Definition xpd_level_psk ℓ d (H : (ℓ.+1 <= d)%nat) : package fset0 (GET_ℓ [RM] ℓ d :|: SET_ℓ [PSK] ℓ.+1 d :|: [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout]) *)
-  (*     (interface_foreach (fun n => [interface #val #[XPD n ℓ d] : chXPDinp → chXPDout]) [PSK]). *)
-  (*   refine {package Xpd PSK ℓ d #with _}. *)
-  (*   - unfold interface_foreach. *)
-  (*     epose (pack_valid (Xpd PSK ℓ d)). *)
-  (*     unfold GET_ℓ. *)
-  (*     simpl. *)
-  (*     apply v. *)
+  (* end hide *)
 
   Lemma reindex_interface_hierarchy_PSK :
     forall d,
@@ -595,6 +557,8 @@ Section XTR_XPD.
       rewrite  IHd.
       reflexivity.
   Qed.
+
+  (** * Utility *)
 
   Lemma function_fset_cons_l :
     forall {A : eqType} {T} x xs K, (fun (n : A) => fset (x n :: xs n) :|: K) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n) :|: K).
@@ -622,8 +586,7 @@ Section XTR_XPD.
     forall d k,
     interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n (ℓ + name_eq n PSK) k ] : chSETinp → chSETout]) XPR d =
       interface_hierarchy (fun ℓ => [interface #val #[ SET PSK (ℓ.+1) k ] : chSETinp → chSETout]) d
-        :|: SET_n XPR_sub_PSK d k
-  .
+        :|: SET_n XPR_sub_PSK d k.
   Proof.
     intros.
 
@@ -642,7 +605,6 @@ Section XTR_XPD.
       rewrite <- fsetUA.
       rewrite <- fsetUA.
       rewrite <- IHd.
-      
       simpl (_ + _)%nat.
       symmetry.
       rewrite fsetUC.
@@ -651,7 +613,7 @@ Section XTR_XPD.
       rewrite fsetUC.
       rewrite (fsetUC _ [interface #val #[SET PSK d.+2 k] : chUNQinp → chXPDout ]).
       rewrite <- !fsetUA.
-      f_equal ; [ easy | ].
+      f_equal ; [ now rewrite addn1 | ].
       rewrite fsetUC.
       unfold interface_hierarchy_foreach.
       unfold interface_hierarchy at 2 ; fold interface_hierarchy.
@@ -664,17 +626,16 @@ Section XTR_XPD.
 
   Lemma XPD_interface_rewrite :
     forall d k,
-    (interface_hierarchy (GET_ℓ XPR_parents k) d :|: (interface_hierarchy (fun ℓ => [interface #val #[ SET PSK (ℓ.+1) k ] : chSETinp → chSETout]) d :|: SET_n XPR_sub_PSK d k) ) :|:
-      [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout] =
-    interface_hierarchy
-       (λ n : nat,
-          [interface #val #[GET (nfto (PrntN PSK).1) n k] : chXPDout → chGETout ]
-          :|: [interface #val #[SET PSK (n + name_eq PSK PSK) k] : chUNQinp → chXPDout ]
-          :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) d
-     :|: interface_hierarchy
-           (λ n : nat,
-              GET_ℓ XPR_sub_PSK_parents k n :|: SET_ℓ XPR_sub_PSK k n
-                :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) d.
+      (interface_hierarchy (GET_ℓ XPR_parents k) d
+         :|: (interface_hierarchy (fun ℓ => [interface #val #[ SET PSK (ℓ.+1) k ] : chSETinp → chSETout]) d
+                :|: SET_n XPR_sub_PSK d k) )
+        :|: [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout] =
+        interface_hierarchy
+          (λ n : nat,
+              [interface #val #[GET (nfto (PrntN PSK).1) n k] : chXPDout → chGETout ]
+                :|: [interface #val #[SET PSK (n + name_eq PSK PSK) k] : chUNQinp → chXPDout ]
+                :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) d
+          :|: interface_hierarchy (λ n : nat, GET_ℓ XPR_sub_PSK_parents k n :|: SET_ℓ XPR_sub_PSK k n :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) d.
   Proof.
     intros.
     match goal with | |- context [ _ = ?rhs ] => set (RHS := rhs) end.
@@ -682,7 +643,7 @@ Section XTR_XPD.
     unfold SET_n. rewrite <- set_ℓ_XPR_split. (* unfold SET_ℓ. *)
 
     fold (interface_hierarchy_foreach (λ n ℓ, [interface #val #[GET (nfto (PrntN n).1) ℓ k] : chXPDout → chGETout ]) XPR d).
-    
+
     rewrite interface_hierarchy_foreachU.
     rewrite interface_hierarchy_foreach_cons.
 
@@ -732,6 +693,7 @@ Section XTR_XPD.
         intros.
         unfold idents.
         solve_imfset_disjoint.
+        unfold XPD ; unfold serialize_name ; destruct n, ℓ ; Lia.lia.
       }
     }
     2:{
@@ -746,12 +708,17 @@ Section XTR_XPD.
         intros.
         unfold idents.
         solve_imfset_disjoint.
+        unfold XPD ; unfold serialize_name ; destruct m, n0.
+        all: Lia.lia.
       }
     }
     {
+      (* *)
       rewrite <- fsetUid.
       eapply valid_par.
-      3: apply pack_valid.
+      3:{
+        apply pack_valid.
+      }
       2:{
         rewrite <- function_fset_cat_l.
         rewrite <- function_fset_cat.
@@ -773,7 +740,7 @@ Section XTR_XPD.
     }
   Defined.
 
-  (** ****************** *)
+  (** * Diffie Hellman (DH) *)
 
   Definition SET_DH d k : Interface :=
     interface_hierarchy (fun ℓ => [interface #val #[ SET DH ℓ k ] : chSETinp → chSETout]) d.
@@ -793,7 +760,6 @@ Section XTR_XPD.
      #val #[DHEXP] : chDHEXPinp → chXPDout ].
 
   Definition DH_package k :
-    (* (G : {fset finGroupType}) *)
     package
       fset0
       (SET_DH 0 k)
@@ -812,6 +778,7 @@ Section XTR_XPD.
     all: apply DepInstance.
   Defined.
   Fail Next Obligation.
+  (* begin hide *)
 
   Lemma trimmed_dh k : trimmed DH_interface (pack (DH_package k)).
   Proof.
@@ -841,71 +808,73 @@ Section XTR_XPD.
     intros. unfold trimmed. now rewrite trim_idemp.
   Qed.
 
-  Lemma trimmed_xpd_package : forall (d k : nat) (H_lt : (d < k)%nat),
-    trimmed (XPD_n d k) (XPD_packages d k H_lt).
-  Proof.
-    intros.
-    simpl.
-    unfold XPD_packages.
-    unfold eq_rect_r.
-    unfold eq_rect.
-    destruct (Logic.eq_sym _).
-    destruct (Logic.eq_sym _).
-    unfold pack.
-    unfold XPD_n.
-    rewrite interface_hierarchy_foreach_cons.
-    apply trimmed_par.
-    {
-      apply idents_interface_hierachy3.
-      intros.
-      rewrite fdisjointC.
-      apply idents_interface_hierachy3.
-      intros.
-      unfold idents ; unfold XPD_n_ℓ_f.
-      solve_imfset_disjoint.
-    }
-    {
-      apply trimmed_ℓ_packages.
-    }
-    {
-      apply trimmed_ℓ_packages.
-    }
-  Qed.
+  (* Lemma trimmed_xpd_package : forall (d k : nat) (H_lt : (d < k)%nat), *)
+  (*   trimmed (XPD_n d k) (XPD_packages d k H_lt). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   simpl. *)
+  (*   unfold XPD_packages. *)
+  (*   unfold eq_rect_r. *)
+  (*   unfold eq_rect. *)
+  (*   destruct (Logic.eq_sym _). *)
+  (*   destruct (Logic.eq_sym _). *)
+  (*   unfold pack. *)
+  (*   unfold XPD_n. *)
+  (*   rewrite interface_hierarchy_foreach_cons. *)
+  (*   apply trimmed_par. *)
+  (*   { *)
+  (*     apply idents_interface_hierachy3. *)
+  (*     intros. *)
+  (*     rewrite fdisjointC. *)
+  (*     apply idents_interface_hierachy3. *)
+  (*     intros. *)
+  (*     unfold idents ; unfold XPD_n_ℓ_f. *)
+  (*     solve_imfset_disjoint. *)
+  (*   } *)
+  (*   { *)
+  (*     apply trimmed_ℓ_packages. *)
+  (*   } *)
+  (*   { *)
+  (*     apply trimmed_ℓ_packages. *)
+  (*   } *)
+  (* Qed. *)
 
-  Lemma trimmed_xtr_package : forall (d k : nat) b H_lt,
-    trimmed (XTR_n d k) (XTR_packages d k b H_lt).
-  Proof.
-    intros.
-    simpl.
-    unfold XTR_packages.
-    unfold eq_rect_r.
-    destruct (Logic.eq_sym _).
-    erewrite <- (ℓ_raw_package_trimmed d (fun ℓ H => [eta xtr_level] k ℓ b (leq_trans H H_lt))).
-    2:{
-      intros ℓ ?.
-      apply (trimmed_xtr_level k ℓ).
-    }
-    2:{
-      intros n ℓ ? ?.
-      unfold idents, XTR ; solve_imfset_disjoint.
-    }
-    apply trimmed_trim.
-  Qed.
+  (* Lemma trimmed_xtr_package : forall (d k : nat) b H_lt, *)
+  (*   trimmed (XTR_n d k) (XTR_packages d k b H_lt). *)
+  (* Proof. *)
+  (*   intros. *)
+  (*   simpl. *)
+  (*   unfold XTR_packages. *)
+  (*   unfold eq_rect_r. *)
+  (*   destruct (Logic.eq_sym _). *)
+  (*   erewrite <- (ℓ_raw_package_trimmed d (fun ℓ H => [eta xtr_level] k ℓ b (leq_trans H H_lt))). *)
+  (*   2:{ *)
+  (*     intros ℓ ?. *)
+  (*     apply (trimmed_xtr_level k ℓ). *)
+  (*   } *)
+  (*   2:{ *)
+  (*     intros n ℓ ? ?. *)
+  (*     unfold idents, XTR ; solve_imfset_disjoint. *)
+  (*   } *)
+  (*   apply trimmed_trim. *)
+  (* Qed. *)
 
-  Notation " 'chUNQinp' " :=
-    (chHandle × 'bool × chKey)
-      (in custom pack_type at level 2).
-  Notation " 'chUNQout' " :=
-    (chHandle)
-      (in custom pack_type at level 2).
+  (* (* end hide *) *)
 
-  Definition UNQ_XPD d : Interface :=
-    interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) (XPR).
+  (* Notation " 'chUNQinp' " := *)
+  (*   (chHandle × 'bool × chKey) *)
+  (*     (in custom pack_type at level 2). *)
+  (* Notation " 'chUNQout' " := *)
+  (*   (chHandle) *)
+  (*     (in custom pack_type at level 2). *)
 
-  Definition UNQ_XTR d : Interface :=
-    interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) (XTR_names).
+  (* Definition UNQ_XPD d : Interface := *)
+  (*   interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) (XPR). *)
 
-  Definition UNQ_DH d : Interface :=
-    interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) ([DH]).
+  (* Definition UNQ_XTR d : Interface := *)
+  (*   interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) (XTR_names). *)
+
+  (* Definition UNQ_DH d : Interface := *)
+  (*   interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) ([DH]). *)
 
 End XTR_XPD.

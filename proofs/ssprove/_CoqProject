@@ -3,29 +3,29 @@
 
 # Translation
 
-./fextraction/Fixes.v
-./fextraction/Bertie_Tls13utils.v
-./fextraction/Bertie_Tls13crypto.v
-./fextraction/Bertie_Tls13formats.v
-./fextraction/Bertie_Tls13keyscheduler_Key_schedule.v
+fextraction/Fixes.v
+fextraction/Bertie_Tls13utils.v
+fextraction/Bertie_Tls13crypto.v
+fextraction/Bertie_Tls13formats.v
+fextraction/Bertie_Tls13keyscheduler_Key_schedule.v
 
 # PROOF
 
-./handwritten/ssp_helper.v
+handwritten/ssp_helper.v
 
-./handwritten/Types.v
-./handwritten/ExtraTypes.v
-./handwritten/Utility.v
+handwritten/Types.v
+handwritten/ExtraTypes.v
+handwritten/Utility.v
 
-./handwritten/Dependencies.v
+handwritten/Dependencies.v
 
-./handwritten/BasePackages.v
-./handwritten/KeyPackages.v
-./handwritten/XTR_XPD.v
+handwritten/BasePackages.v
+handwritten/KeyPackages.v
+handwritten/XTR_XPD.v
 
-./handwritten/Core.v
-./handwritten/KeySchedulePackages.v
+handwritten/Core.v
+handwritten/KeySchedulePackages.v
 
-./handwritten/CoreTheorem.v
+handwritten/CoreTheorem.v
 
-./handwritten/BertieResult.v
+handwritten/BertieResult.v

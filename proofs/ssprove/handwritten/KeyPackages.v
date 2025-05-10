@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -74,9 +76,7 @@ From KeyScheduleTheorem Require Import Dependencies.
 
 From KeyScheduleTheorem Require Import BasePackages.
 
-(*** Helper *)
-
-(*** Key packages *)
+(** * Key packages *)
 
 Section KeyPackages.
 
@@ -98,17 +98,16 @@ Section KeyPackages.
   Definition GET_O_star_ℓ d ℓ : Interface :=
     interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (O_star).
 
-  (* Fig 13-14. K key and log *)
+  (** Fig 13-14. K key and log *)
 
   Axiom exists_h_star : (chHandle -> raw_code 'unit) -> code L_L [interface] 'unit.
   Inductive ZAF := | Z | A | F | D | R.
 
   Axiom level : chHandle -> nat.
 
-  (* Fig 13 *)
+  (** Fig 13 *)
   Definition L_package d (n : name) (P : ZAF) :
     package
-      (* (fset_Log_table Log_table) *)
       L_L
       [interface]
       [interface
@@ -116,7 +115,7 @@ Section KeyPackages.
       ].
   Proof.
     refine [package
-      #def #[ UNQ n d (* n ℓ *) ] ('(h,hon,k) : chUNQinp) : chUNQout {
+      #def #[ UNQ n d ] ('(h,hon,k) : chUNQinp) : chUNQout {
          (exists_h_star (fun h_star =>
            temp ← get_or_fail (L_table h_star) fin_L_table ;;
            let '(h',hon',k) := (fto (fst (fst (otf temp))) , snd (fst (otf temp)) , snd (otf temp)) : _ in
@@ -153,12 +152,8 @@ Section KeyPackages.
   Defined.
   Fail Next Obligation.
 
-  (* Fig 14 *)
-
-  (* Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool. *)
-  (* Definition chK_table := chFin (mkpos #|fin_K_table|). *)
-
-  Definition K_package d (n : name) (ℓ : nat) (* (d : nat) *) (_ : (ℓ <= d)%nat) (b : bool) :
+  (** Fig 14 *)
+  Definition K_package d (n : name) (ℓ : nat) (_ : (ℓ <= d)%nat) (b : bool) :
     package
       L_K
       [interface
@@ -174,7 +169,6 @@ Section KeyPackages.
       #def #[ SET n ℓ d ] ('(h,hon,k_star) : chSETinp) : chSETout {
         #import {sig #[ UNQ n d ] : chUNQinp → chUNQout }
         as unq_fn ;;
-        (* #import {sig #[ GET ] : chGETinp → chGETout } *)
         get_or_case_fn (H := _) (K_table h) fin_K_table chHandle (
             k ← ret (untag k_star) ;;
             k ←
@@ -237,6 +231,7 @@ Section KeyPackages.
         apply trimmed_package_cons.
         apply trimmed_empty_package.
   Defined.
+  (* begin hide *)
 
   Lemma trimmed_Ls d (Names : _) P :
     forall (H : uniq Names),
@@ -261,6 +256,7 @@ Section KeyPackages.
       apply trimmed_package_cons.
       apply trimmed_empty_package.
   Qed.
+  (* end hide *)
 
   Lemma function_fset_cons :
     forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
@@ -275,13 +271,11 @@ Section KeyPackages.
     package
       (L_K)
       (interface_foreach (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout]) Names)
-      (SET_n (Names) d k
-         :|: GET_n (Names) d k
-      ).
+      (SET_n (Names) d k :|: GET_n (Names) d k).
   Proof.
     intros.
     rewrite interface_hierarchy_foreachU.
-    
+
     rewrite <- function2_fset_cat.
     refine (combined _ d L_K
               (λ n : name, [interface #val #[UNQ n k] : chUNQinp → chUNQout ])
@@ -301,12 +295,15 @@ Section KeyPackages.
       rewrite fset_cons.
       unfold idents.
       solve_imfset_disjoint.
+      + unfold SET. unfold serialize_name. destruct x , y ; Lia.lia.
+      + unfold GET. unfold serialize_name. destruct x , y ; Lia.lia.
     - intros.
       apply trimmed_package_cons.
       apply trimmed_package_cons.
       apply trimmed_empty_package.
   Defined.
   Fail Next Obligation.
+  (* begin hide *)
 
   Lemma trimmed_Ks d k H_lt (Names : _) b :
     forall (H : uniq Names),
@@ -328,19 +325,17 @@ Section KeyPackages.
     destruct Logic.eq_sym.
     apply (trimmed_ℓ_packages).
   Qed.
+  (* end hide *)
 
-  (* Fig 15 *)
+  (** Fig 15 *)
   Definition Nk_package (d k : nat) (_ : (d <= k)%nat) :
     package
       L_K
       [interface
          #val #[ UNQ DH k ] : chUNQinp → chUNQout
       ]
-      (SET_n [DH] d k :|: GET_n [DH] d k)
-    (* [interface *)
-    (*    #val #[ SET DH ℓ k ] : chSETinp → chSETout ; *)
-    (*    #val #[ GET DH ℓ k ] : chGETinp → chGETout *)
-(* ] *).
+      (SET_n [DH] d k :|: GET_n [DH] d k).
+  Proof.
     epose ℓ_packages.
     unfold SET_n.
     unfold GET_n.
@@ -383,6 +378,8 @@ Section KeyPackages.
       unfold interface_foreach.
       unfold idents.
       solve_imfset_disjoint.
+      + unfold SET. unfold serialize_name. destruct k ; Lia.lia.
+      + unfold GET. unfold serialize_name. destruct k ; Lia.lia.
     }
 
     Unshelve.
@@ -395,7 +392,7 @@ Section KeyPackages.
     rewrite <- fset_cons.
     subst f.
 
-    
+
     unfold get_or_fn.
     unfold get_or_case_fn.
     unfold get_or_fail.
@@ -414,9 +411,6 @@ Section KeyPackages.
   Notation " 'chKout' " :=
     (chHandle)
       (in custom pack_type at level 2).
-  (* Definition K (n : chName) (ℓ : nat) := 10%nat. *)
-
-  (**** *)
 
   Definition K_psk_1_0 d := K_package d PSK 0 (ltac:(Lia.lia)) true.
   Obligation Tactic := (* try timeout 8 *) idtac.
@@ -437,6 +431,8 @@ Section KeyPackages.
     rewrite fset_cons ; rewrite imfsetU ; rewrite <- fset1E.
     rewrite fset_cons ; rewrite imfsetU ; rewrite <- fset1E.
     solve_imfset_disjoint.
+    + unfold SET. unfold serialize_name. destruct n ; Lia.lia.
+    + unfold GET. unfold serialize_name. destruct n ; Lia.lia.
   Qed.
   Next Obligation.
     intros.
