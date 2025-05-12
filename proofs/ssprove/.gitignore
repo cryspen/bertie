@@ -12,6 +12,8 @@ CoqMakefile
 CoqMakefile.conf
 Makefile.coq
 Makefile.coq.conf
+Makefile
+Makefile.conf
 *.a
 *.cma
 *.cmi
