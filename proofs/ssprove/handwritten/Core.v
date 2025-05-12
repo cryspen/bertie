@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -76,275 +78,461 @@ From KeyScheduleTheorem Require Import BasePackages.
 From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
 
-(*** Helper *)
+(** * Helper *)
 
-  Lemma interface_foreach_swap :
-    (forall {A} (a b : A) l f, interface_foreach f (a :: b :: l) = interface_foreach f (b :: a :: l)).
-  Proof.
-    intros.
-    induction l.
-    - simpl.
-      now rewrite fsetUC.
-    - simpl.
-      rewrite fsetUA.
-      rewrite (fsetUC (f a)).
-      rewrite <- fsetUA.
-      reflexivity.
-  Qed.
+Lemma interface_foreach_swap :
+  (forall {A} (a b : A) l f, interface_foreach f (a :: b :: l) = interface_foreach f (b :: a :: l)).
+Proof.
+  intros.
+  induction l.
+  - simpl.
+    now rewrite fsetUC.
+  - simpl.
+    rewrite fsetUA.
+    rewrite (fsetUC (f a)).
+    rewrite <- fsetUA.
+    reflexivity.
+Qed.
 
-  Lemma interface_hierarchy_foreach_cat : forall {A} f L1 L2 d,
-      interface_hierarchy_foreach f (L1 ++ L2) d =
+Lemma interface_hierarchy_foreach_cat : forall {A} f L1 L2 d,
+    interface_hierarchy_foreach f (L1 ++ L2) d =
       interface_hierarchy_foreach (A := A) f L1 d :|: interface_hierarchy_foreach (A := A) f L2 d.
-  Proof.
-    induction L1 ; intros.
-    - unfold interface_hierarchy_foreach.
+Proof.
+  induction L1 ; intros.
+  - unfold interface_hierarchy_foreach.
+    simpl.
+    rewrite <- interface_hierarchy_trivial.
+    simpl.
+    rewrite <- fset0E.
+    rewrite fset0U.
+    reflexivity.
+  - rewrite interface_hierarchy_foreach_cons.
+    rewrite <- fsetUA.
+    rewrite <- IHL1.
+    now rewrite <- interface_hierarchy_foreach_cons.
+Qed.
+
+Lemma interface_foreach_condition :
+  (forall {A : eqType} f (L1 L2 : list A),
+      (forall x, x \in L1 -> x \in L2) ->
+      interface_foreach f L1 =
+        interface_foreach (fun x => if x \in L2 then f x else fset [::]) L1).
+Proof.
+  clear ; intros.
+  induction L1.
+  - reflexivity.
+  - rewrite interface_foreach_cons.
+    rewrite IHL1.
+    2:{
+      intros.
+      apply H.
+      apply mem_tail.
+      apply H0.
+    }
+    rewrite interface_foreach_cons.
+    rewrite H.
+    2: apply mem_head.
+    reflexivity.
+Qed.
+
+Lemma interface_foreach_func_if_cons :
+  forall {A : eqType} a (L1 L2 : seq A) f,
+    interface_foreach (λ x : A, if x \in (a :: L2)%SEQ then f x else fset [::]) L1
+    =
+      (if a \in L1 then f a else fset [::]) :|:
+        interface_foreach (λ x : A, if x \in L2%SEQ then f x else fset [::]) L1.
+Proof.
+  induction L1 ; intros.
+  + now rewrite fsetUid.
+  + rewrite interface_foreach_cons.
+    rewrite interface_foreach_cons.
+
+    rewrite IHL1.
+    rewrite fsetUA.
+    rewrite fsetUA.
+    f_equal.
+    rewrite <- fset0E.
+
+    rewrite !in_cons.
+    rewrite (eq_sym a).
+    destruct (a0 == a) eqn:a0a.
+    * move: a0a => /eqP ? ; subst.
       simpl.
-      rewrite <- interface_hierarchy_trivial.
-      simpl.
+      destruct (a \in L1), (a \in L2) ; now try rewrite fsetUid ; try rewrite fsetU0.
+    * simpl.
+      rewrite fsetUC.
+      reflexivity.
+Qed.
+
+Lemma interface_foreach_sub_list : forall {A : eqType} f L1 L2,
+    uniq L1 ->
+    (forall x, x \in L1 -> x \in L2) ->
+    interface_foreach f L1 =
+      interface_foreach (A := A) (fun x => if x \in L1 then f x else [interface]) L2.
+Proof.
+  intros.
+
+  rewrite (interface_foreach_condition f L1 L1 (fun _ H => H)).
+  induction L1 ; intros.
+  - simpl.
+    destruct L2 ; [ easy | ].
+    now rewrite <- interface_foreach_trivial.
+  - rewrite interface_foreach_func_if_cons.
+    rewrite interface_foreach_func_if_cons.
+    rewrite mem_head.
+    rewrite H0.
+    2: apply mem_head.
+    rewrite interface_foreach_cons.
+    (* destruct (a \in _) ; [  ] *)
+    rewrite IHL1.
+    2:{
+      rewrite cons_uniq in H.
+      now move: H => /andP [? ?] ; subst.
+    }
+    2:{
+      intros.
+      apply H0.
+      now apply mem_tail.
+    }
+    destruct (_ \in _).
+    {
+      rewrite fsetUA.
+      rewrite fsetUid.
+      reflexivity.
+    }
+    {
       rewrite <- fset0E.
       rewrite fset0U.
       reflexivity.
-    - rewrite interface_hierarchy_foreach_cons.
-      rewrite <- fsetUA.
-      rewrite <- IHL1.
-      now rewrite <- interface_hierarchy_foreach_cons.
-  Qed.
+    }
+Qed.
 
-  Lemma interface_foreach_condition :
-      (forall {A : eqType} f (L1 L2 : list A),
-        (forall x, x \in L1 -> x \in L2) ->
-          interface_foreach f L1 =
-            interface_foreach (fun x => if x \in L2 then f x else fset [::]) L1).
-  Proof.
-    clear ; intros.
-    induction L1.
-    - reflexivity.
-    - rewrite interface_foreach_cons.
-      rewrite IHL1.
-      2:{
-        intros.
-        apply H.
-        apply mem_tail.
-        apply H0.
-      }
+
+Lemma interface_foreach_trivial2 : forall {A} i L (* d *),
+    (L <> [] \/ i = [interface]) ->
+    i = (interface_foreach (λ (n : A), i) L ).
+Proof.
+  intros.
+  destruct H.
+  - destruct L ; [ easy | ].
+    clear H.
+    generalize dependent a.
+    induction L ; intros.
+    {
       rewrite interface_foreach_cons.
-      rewrite H.
-      2: apply mem_head.
-      reflexivity.
-  Qed.
-
-  Lemma interface_foreach_func_if_cons :
-    forall {A : eqType} a (L1 L2 : seq A) f,
-      interface_foreach (λ x : A, if x \in (a :: L2)%SEQ then f x else fset [::]) L1
-      =
-      (if a \in L1 then f a else fset [::]) :|:
-      interface_foreach (λ x : A, if x \in L2%SEQ then f x else fset [::]) L1.
-  Proof.
-    induction L1 ; intros.
-    + now rewrite fsetUid.
-    + rewrite interface_foreach_cons.
-      rewrite interface_foreach_cons.
-
-      rewrite IHL1.
-      rewrite fsetUA.
-      rewrite fsetUA.
-      f_equal.
+      simpl.
       rewrite <- fset0E.
-
-      rewrite !in_cons.
-      rewrite (eq_sym a).
-      destruct (a0 == a) eqn:a0a.
-      * move: a0a => /eqP ? ; subst.
-        simpl.
-        destruct (a \in L1), (a \in L2) ; now try rewrite fsetUid ; try rewrite fsetU0.
-      * simpl.
-        rewrite fsetUC.
-        reflexivity.
-  Qed.
-
-  Lemma interface_foreach_sub_list : forall {A : eqType} f L1 L2,
-      uniq L1 ->
-      (forall x, x \in L1 -> x \in L2) ->
-      interface_foreach f L1 =
-      interface_foreach (A := A) (fun x => if x \in L1 then f x else [interface]) L2.
-  Proof.
-    intros.
-
-    rewrite (interface_foreach_condition f L1 L1 (fun _ H => H)).
-    induction L1 ; intros.
-    - simpl.
-      destruct L2 ; [ easy | ].
-      now rewrite <- interface_foreach_trivial.
-    - rewrite interface_foreach_func_if_cons.
-      rewrite interface_foreach_func_if_cons.
-      rewrite mem_head.
-      rewrite H0.
-      2: apply mem_head.
+      rewrite fsetU0.
+      reflexivity.
+    }
+    {
       rewrite interface_foreach_cons.
-      (* destruct (a \in _) ; [  ] *)
-      rewrite IHL1.
-      2:{
-        rewrite cons_uniq in H.
-        now move: H => /andP [? ?] ; subst.
-      }
-      2:{
-        intros.
-        apply H0.
-        now apply mem_tail.
-      }
-      destruct (_ \in _).
-      {
-        rewrite fsetUA.
-        rewrite fsetUid.
-        reflexivity.
-      }
-      {
-        rewrite <- fset0E.
-        rewrite fset0U.
-        reflexivity.
-      }
-  Qed.
-
-
-  Lemma interface_foreach_trivial2 : forall {A} i L (* d *),
-      (L <> [] \/ i = [interface]) ->
-      i = (interface_foreach (λ (n : A), i) L ).
-  Proof.
-    intros.
-    destruct H.
-    - destruct L ; [ easy | ].
-      clear H.
-      generalize dependent a.
-      induction L ; intros.
-      {
-        rewrite interface_foreach_cons.
-        simpl.
-        rewrite <- fset0E.
-        rewrite fsetU0.
-        reflexivity.
-      }
-      {
-        rewrite interface_foreach_cons.
-        rewrite <- IHL.
-        now rewrite fsetUid.
-      }
-    - rewrite H.
-      induction L.
-      + reflexivity.
-      + rewrite interface_foreach_cons.
-        rewrite <- IHL.
-        now rewrite fsetUid.
-  Qed.
-
-  Lemma interface_hierarchy_subset : forall f d K,
-      (forall (x : nat) (H : (x <= d)%nat), f x :<=: K) ->
-      interface_hierarchy f d :<=: K.
-  Proof.
-    intros.
-    induction d.
-    - now apply H.
-    - simpl.
-      rewrite fsubUset.
-      now rewrite H ; [ rewrite IHd | ].
-  Qed.
-
-  Lemma interface_hierarchy_subsetR : forall f d K,
-      (exists (x : nat) (H : (x <= d)%nat), K :<=: f x) ->
-      K :<=: interface_hierarchy f d.
-  Proof.
-    intros.
-    induction d.
-    - simpl. destruct H as [? []]. destruct x ; [ | easy ]. apply H.
-    - simpl.
-      destruct H as [? []].
-      destruct (x == d.+1) eqn:x_is_d ; move: x_is_d => /eqP ? ; subst.
-      + apply fsubsetU.
-        now rewrite H.
-      + apply fsubsetU.
-        rewrite IHd ; [ easy | ].
-        exists x.
-        eexists.
-        * Lia.lia.
-        * apply H.
-  Qed.
-
-  Lemma Advantage_par_emptyR :
-    ∀ G₀ G₁ A,
-      AdvantageE (par G₀ emptym) (par G₁ emptym) A = AdvantageE G₀ G₁ A.
-  Proof.
-    intros G₀ G₁ A.
-    unfold AdvantageE.
-    unfold par.
-    rewrite !unionm0.
-    reflexivity.
-  Qed.
-
-  Lemma Advantage_parR :
-    ∀ G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁,
-      ValidPackage L₀ Game_import E₀ G₀ →
-      ValidPackage L₁ Game_import E₁ G₁ →
-      ValidPackage L₁' Game_import E₁ G₁' →
-      flat E₁ →
-      trimmed E₀ G₀ →
-      trimmed E₁ G₁ →
-      trimmed E₁ G₁' →
-      AdvantageE (par G₁ G₀) (par G₁' G₀) A =
-        AdvantageE G₁ G₁' (A ∘ par (ID E₁) G₀).
-  Proof.
-    intros G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁.
-    intros Va0 Va1 Va1' Fe0 Te0 Te1 Te1'.
-    replace (par G₁ G₀) with ((par (ID E₁) G₀) ∘ (par G₁ (ID Game_import) )).
-    2:{
-      erewrite <- interchange.
-      all: ssprove_valid.
-      4:{
-        ssprove_valid.
-        rewrite domm_ID_fset.
-        rewrite -fset0E.
-        apply fdisjoints0.
-      }
-      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
-      2: apply trimmed_ID.
-      rewrite link_id.
-      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
-      2: assumption.
-      rewrite id_link.
-      2: assumption.
-      reflexivity.
+      rewrite <- IHL.
+      now rewrite fsetUid.
     }
-    replace (par G₁' G₀) with ((par (ID E₁) G₀) ∘ (par G₁' (ID Game_import))).
-    2:{
-      erewrite <- interchange.
-      all: ssprove_valid.
-      4:{
-        ssprove_valid.
-        rewrite domm_ID_fset.
-        rewrite -fset0E.
-        apply fdisjoints0.
-      }
-      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
-      2: apply trimmed_ID.
-      rewrite link_id.
-      2:{ unfold Game_import. rewrite -fset0E. discriminate. }
-      2: assumption.
-      rewrite id_link.
-      2: assumption.
-      reflexivity.
+  - rewrite H.
+    induction L.
+    + reflexivity.
+    + rewrite interface_foreach_cons.
+      rewrite <- IHL.
+      now rewrite fsetUid.
+Qed.
+
+Lemma interface_hierarchy_subset : forall f d K,
+    (forall (x : nat) (H : (x <= d)%nat), f x :<=: K) ->
+    interface_hierarchy f d :<=: K.
+Proof.
+  intros.
+  induction d.
+  - now apply H.
+  - simpl.
+    rewrite fsubUset.
+    rewrite H ; [ rewrite IHd | ] ; eauto.
+Qed.
+
+Lemma interface_hierarchy_subsetR : forall f d K,
+    (exists (x : nat) (H : (x <= d)%nat), K :<=: f x) ->
+    K :<=: interface_hierarchy f d.
+Proof.
+  intros.
+  induction d.
+  - simpl. destruct H as [? []]. destruct x ; [ | easy ]. apply H.
+  - simpl.
+    destruct H as [? []].
+    destruct (x == d.+1) eqn:x_is_d ; move: x_is_d => /eqP ? ; subst.
+    + apply fsubsetU.
+      rewrite H ; apply /orP ; eauto.
+    + apply fsubsetU.
+      rewrite IHd ; [ easy | ].
+      exists x.
+      eexists.
+      * Lia.lia.
+      * apply H.
+Qed.
+
+Lemma Advantage_par_emptyR :
+  ∀ G₀ G₁ A,
+    AdvantageE (par G₀ emptym) (par G₁ emptym) A = AdvantageE G₀ G₁ A.
+Proof.
+  intros G₀ G₁ A.
+  unfold AdvantageE.
+  unfold par.
+  rewrite !unionm0.
+  reflexivity.
+Qed.
+
+Lemma Advantage_parR :
+  ∀ G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁,
+    ValidPackage L₀ Game_import E₀ G₀ →
+    ValidPackage L₁ Game_import E₁ G₁ →
+    ValidPackage L₁' Game_import E₁ G₁' →
+    flat E₁ →
+    trimmed E₀ G₀ →
+    trimmed E₁ G₁ →
+    trimmed E₁ G₁' →
+    AdvantageE (par G₁ G₀) (par G₁' G₀) A =
+      AdvantageE G₁ G₁' (A ∘ par (ID E₁) G₀).
+Proof.
+  intros G₀ G₁ G₁' A L₀ L₁ L₁' E₀ E₁.
+  intros Va0 Va1 Va1' Fe0 Te0 Te1 Te1'.
+  replace (par G₁ G₀) with ((par (ID E₁) G₀) ∘ (par G₁ (ID Game_import) )).
+  2:{
+    erewrite <- interchange.
+    all: ssprove_valid.
+    4:{
+      ssprove_valid.
+      rewrite domm_ID_fset.
+      rewrite -fset0E.
+      apply fdisjoints0.
     }
-    rewrite -Advantage_link.
-    unfold Game_import. rewrite -fset0E.
-    rewrite Advantage_par_emptyR.
+    2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+    2: apply trimmed_ID.
+    rewrite link_id.
+    2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+    2: assumption.
+    rewrite id_link.
+    2: assumption.
     reflexivity.
-    Unshelve. all: auto.
-  Qed.
+  }
+  replace (par G₁' G₀) with ((par (ID E₁) G₀) ∘ (par G₁' (ID Game_import))).
+  2:{
+    erewrite <- interchange.
+    all: ssprove_valid.
+    4:{
+      ssprove_valid.
+      rewrite domm_ID_fset.
+      rewrite -fset0E.
+      apply fdisjoints0.
+    }
+    2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+    2: apply trimmed_ID.
+    rewrite link_id.
+    2:{ unfold Game_import. rewrite -fset0E. discriminate. }
+    2: assumption.
+    rewrite id_link.
+    2: assumption.
+    reflexivity.
+  }
+  rewrite -Advantage_link.
+  unfold Game_import. rewrite -fset0E.
+  rewrite Advantage_par_emptyR.
+  reflexivity.
+  Unshelve. all: auto.
+Qed.
 
-
-(*** Core *)
+(** * Core *)
 
 Section Core.
 
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
+
+  (** ** More utility *)
+
+  Lemma idents_interface_hierachy2 :
+    forall g f d,
+      (forall x, idents g :#: idents (f x)) ->
+      idents g :#: idents (interface_hierarchy f d).
+  Proof.
+    clear ; intros.
+    unfold idents.
+    induction d ; simpl.
+    - apply H.
+    - rewrite imfsetU.
+      rewrite fdisjointUr.
+      rewrite IHd.
+      apply H.
+  Qed.
+
+  Lemma subset_pair : forall {A : ordType} (x : {fset A}) y Lx Ly,
+      x :<=: y ->
+      Lx :<=: Ly ->
+      x :|: Lx :<=: y :|: Ly.
+  Proof.
+    intros.
+    rewrite fsubUset ; apply /andP ; split.
+    * rewrite fsubsetU ; [ easy | ].
+      apply /orP ; left.
+      apply H.
+    * rewrite fsubsetU ; [ easy | ].
+      apply /orP ; right.
+      apply H0.
+  Qed.
+
+  Lemma interface_foreach_subset_pairs : forall {A: eqType} f g (L : seq A),
+      (forall (x : A), (x \in L) -> f x :<=: g x) ->
+      interface_foreach f L :<=: interface_foreach g L.
+  Proof.
+    intros.
+    induction L.
+    + apply fsubsetxx.
+    + rewrite !interface_foreach_cons.
+      apply subset_pair.
+      * apply H.
+        apply mem_head.
+      * apply IHL.
+        intros.
+        apply H.
+        rewrite in_cons.
+        now apply /orP ; right.
+  Qed.
+
+  Lemma interface_hierarchy_subset_pairs : forall f g d,
+      (forall ℓ, (ℓ <= d)%nat -> f ℓ :<=: g ℓ) ->
+      interface_hierarchy f d :<=: interface_hierarchy g d.
+  Proof.
+    intros.
+    induction d.
+    + now apply H.
+    + simpl.
+      apply subset_pair.
+      * apply IHd.
+        intros ; apply H ; eauto.
+      * now apply H.
+  Qed.
+
+  Lemma interface_hierarchy_foreach_subset_pairs : forall {A: eqType} f g (L : seq A) d,
+      (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: g x ℓ) ->
+      interface_hierarchy_foreach f L d :<=: interface_hierarchy_foreach (A := A) g L d.
+  Proof.
+    intros.
+    unfold interface_hierarchy_foreach.
+    apply interface_hierarchy_subset_pairs.
+    intros.
+    apply interface_foreach_subset_pairs ; eauto.
+  Qed.
+
+  Lemma interface_foreach_subset : forall {A: eqType} f (L : seq A) K,
+      (forall (x : A), (x \in L) -> f x :<=: K) ->
+      interface_foreach f L :<=: K.
+  Proof.
+    intros.
+    induction L.
+    + simpl. rewrite <- fset0E. apply fsub0set.
+    + rewrite interface_foreach_cons.
+      rewrite fsubUset.
+      apply /andP ; split.
+      * apply H.
+        apply mem_head.
+      * apply IHL.
+        intros.
+        apply H.
+        rewrite in_cons.
+        now apply /orP ; right.
+  Qed.
+
+  Lemma interface_foreach_subsetR : forall {A: eqType} f (L : seq A) K,
+      (exists (x : A) (H_in : x \in L), K :<=: f x) ->
+      L <> [] ->
+      K :<=: interface_foreach f L.
+  Proof.
+    intros.
+    induction L ; [ easy | ].
+      unfold interface_hierarchy.
+      rewrite interface_foreach_cons.
+      rewrite fsubsetU ; [ easy | ].
+      apply /orP.
+
+      destruct H as [? []].
+      rewrite in_cons in x0.
+      move: x0 => /orP [/eqP ? | x0 ] ; subst.
+      + now left.
+      + right.
+        apply IHL.
+        2: destruct L ; easy.
+        exists x, x0.
+        apply H.
+  Qed.
+
+  Lemma interface_hierarchy_foreach_subset : forall {A: eqType} f (L : seq A) d K,
+      (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: K) ->
+      interface_hierarchy_foreach f L d :<=: K.
+  Proof.
+    intros.
+    unfold interface_hierarchy_foreach.
+    induction d in H |- * at 1.
+    - apply interface_foreach_subset ; eauto.
+    - simpl.
+      rewrite fsubUset.
+      apply /andP ; split.
+      + apply IHn ; eauto.
+      + apply interface_foreach_subset ; eauto.
+  Qed.
+
+  Lemma interface_hierarchy_foreach_subsetR : forall {A: eqType} f (L : seq A) d K,
+      (exists (x : A) (H_in : x \in L) ℓ (H_le : (ℓ <= d)%nat), K :<=: f x ℓ) ->
+      L <> [] ->
+      K :<=: interface_hierarchy_foreach f L d.
+  Proof.
+    intros.
+    unfold interface_hierarchy_foreach.
+    induction d in H |- * at 1.
+    - destruct H as [? [? [? []]]].
+      apply interface_foreach_subsetR.
+      2: easy.
+      exists x, x0.
+      destruct x1 ; [ | easy ].
+      apply H.
+    - simpl.
+      rewrite fsubsetU ; [ easy | ].
+      apply /orP.
+
+      destruct H as [? [? [? []]]].
+      destruct (x1 == n.+1) eqn:x_eq ; move: x_eq => /eqP x_eq ; subst.
+      + right.
+        clear IHn.
+        apply interface_foreach_subsetR.
+        2: easy.
+        exists x, x0.
+        apply H.
+      + left.
+        apply IHn.
+        exists x, x0, x1.
+        eexists ; [ Lia.lia | ].
+        apply H.
+  Qed.
+
+  Lemma interface_hierarchy_foreach_shift :
+    forall d k {index p} L,
+    interface_hierarchy_foreach (fun n ℓ => (fset [(serialize_name n ℓ k index, p)])) L d.+1 =
+      interface_foreach (fun n => fset [(serialize_name n O k index, p)]) L
+        :|: interface_hierarchy_foreach (fun n ℓ => fset [(serialize_name n (ℓ.+1) k index,p ) ]) L d
+  .
+  Proof.
+    intros.
+    induction d.
+    - simpl. reflexivity.
+    - unfold interface_hierarchy_foreach at 2.
+      unfold interface_hierarchy ; fold interface_hierarchy.
+      fold (interface_hierarchy_foreach (λ n ℓ, fset [(serialize_name n ℓ.+1 k index, p)]) L).
+      rewrite fsetUA.
+      rewrite fsetUC.
+      rewrite <- IHd.
+      rewrite fsetUC.
+      reflexivity.
+  Qed.
+
+  (** ** Definitions *)
 
   Notation " 'chXTRinp' " :=
     (chHandle × chHandle)
@@ -620,21 +808,6 @@ Section Core.
        (UNQ_O_star k)
     ).
 
-  Lemma idents_interface_hierachy2 :
-    forall g f d,
-      (forall x, idents g :#: idents (f x)) ->
-      idents g :#: idents (interface_hierarchy f d).
-  Proof.
-    clear ; intros.
-    unfold idents.
-    induction d ; simpl.
-    - apply H.
-    - rewrite imfsetU.
-      rewrite fdisjointUr.
-      rewrite IHd.
-      apply H.
-  Qed.
-
   Lemma xtr_dh : forall (d k : nat) b H_lt,
     domm (pack (XTR_packages d k b H_lt)) :#: domm (pack (DH_package k)) = true.
   Proof.
@@ -676,175 +849,7 @@ Section Core.
     solve_imfset_disjoint.
   Qed.
 
-  Lemma subset_pair : forall {A : ordType} (x : {fset A}) y Lx Ly,
-      x :<=: y ->
-      Lx :<=: Ly ->
-      x :|: Lx :<=: y :|: Ly.
-  Proof.
-    intros.
-    rewrite fsubUset ; apply /andP ; split.
-    * rewrite fsubsetU ; [ easy | ].
-      apply /orP ; left.
-      apply H.
-    * rewrite fsubsetU ; [ easy | ].
-      apply /orP ; right.
-      apply H0.
-  Qed.
-
-  Lemma interface_foreach_subset_pairs : forall {A: eqType} f g (L : seq A),
-      (forall (x : A), (x \in L) -> f x :<=: g x) ->
-      interface_foreach f L :<=: interface_foreach g L.
-  Proof.
-    intros.
-    induction L.
-    + apply fsubsetxx.
-    + rewrite !interface_foreach_cons.
-      apply subset_pair.
-      * apply H.
-        apply mem_head.
-      * apply IHL.
-        intros.
-        apply H.
-        rewrite in_cons.
-        now apply /orP ; right.
-  Qed.
-
-  Lemma interface_hierarchy_subset_pairs : forall f g d,
-      (forall ℓ, (ℓ <= d)%nat -> f ℓ :<=: g ℓ) ->
-      interface_hierarchy f d :<=: interface_hierarchy g d.
-  Proof.
-    intros.
-    induction d.
-    + now apply H.
-    + simpl.
-      apply subset_pair.
-      * apply IHd.
-        now intros ; apply H.
-      * now apply H.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_subset_pairs : forall {A: eqType} f g (L : seq A) d,
-      (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: g x ℓ) ->
-      interface_hierarchy_foreach f L d :<=: interface_hierarchy_foreach (A := A) g L d.
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    apply interface_hierarchy_subset_pairs.
-    intros.
-    now apply interface_foreach_subset_pairs.
-  Qed.
-
-  Lemma interface_foreach_subset : forall {A: eqType} f (L : seq A) K,
-      (forall (x : A), (x \in L) -> f x :<=: K) ->
-      interface_foreach f L :<=: K.
-  Proof.
-    intros.
-    induction L.
-    + simpl. rewrite <- fset0E. apply fsub0set.
-    + rewrite interface_foreach_cons.
-      rewrite fsubUset.
-      apply /andP ; split.
-      * apply H.
-        apply mem_head.
-      * apply IHL.
-        intros.
-        apply H.
-        rewrite in_cons.
-        now apply /orP ; right.
-  Qed.
-
-  Lemma interface_foreach_subsetR : forall {A: eqType} f (L : seq A) K,
-      (exists (x : A) (H_in : x \in L), K :<=: f x) ->
-      L <> [] ->
-      K :<=: interface_foreach f L.
-  Proof.
-    intros.
-    induction L ; [ easy | ].
-      unfold interface_hierarchy.
-      rewrite interface_foreach_cons.
-      rewrite fsubsetU ; [ easy | ].
-      apply /orP.
-
-      destruct H as [? []].
-      rewrite in_cons in x0.
-      move: x0 => /orP [/eqP ? | x0 ] ; subst.
-      + now left.
-      + right.
-        apply IHL.
-        2: destruct L ; easy.
-        exists x, x0.
-        apply H.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_subset : forall {A: eqType} f (L : seq A) d K,
-      (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: K) ->
-      interface_hierarchy_foreach f L d :<=: K.
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    induction d in H |- * at 1.
-    - now apply interface_foreach_subset.
-    - simpl.
-      rewrite fsubUset.
-      apply /andP ; split.
-      + now apply IHn.
-      + now apply interface_foreach_subset.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_subsetR : forall {A: eqType} f (L : seq A) d K,
-      (exists (x : A) (H_in : x \in L) ℓ (H_le : (ℓ <= d)%nat), K :<=: f x ℓ) ->
-      L <> [] ->
-      K :<=: interface_hierarchy_foreach f L d.
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    induction d in H |- * at 1.
-    - destruct H as [? [? [? []]]].
-      apply interface_foreach_subsetR.
-      2: easy.
-      exists x, x0.
-      destruct x1 ; [ | easy ].
-      apply H.
-    - simpl.
-      rewrite fsubsetU ; [ easy | ].
-      apply /orP.
-
-      destruct H as [? [? [? []]]].
-      destruct (x1 == n.+1) eqn:x_eq ; move: x_eq => /eqP x_eq ; subst.
-      + right.
-        clear IHn.
-        apply interface_foreach_subsetR.
-        2: easy.
-        exists x, x0.
-        apply H.
-      + left.
-        apply IHn.
-        exists x, x0, x1.
-        eexists ; [ Lia.lia | ].
-        apply H.
-  Qed.
-
   Obligation Tactic := (* try timeout 8 *) idtac.
-
-  Lemma interface_hierarchy_foreach_shift :
-    forall d k {index p} L,
-    interface_hierarchy_foreach (fun n ℓ => (fset [(serialize_name n ℓ k index, p)])) L d.+1 =
-      interface_foreach (fun n => fset [(serialize_name n O k index, p)]) L
-        :|: interface_hierarchy_foreach (fun n ℓ => fset [(serialize_name n (ℓ.+1) k index,p ) ]) L d
-  .
-  Proof.
-    intros.
-    induction d.
-    - simpl. reflexivity.
-    - unfold interface_hierarchy_foreach at 2.
-      unfold interface_hierarchy ; fold interface_hierarchy.
-      fold (interface_hierarchy_foreach (λ n ℓ, fset [(serialize_name n ℓ.+1 k index, p)]) L).
-      rewrite fsetUA.
-      rewrite fsetUC.
-      rewrite <- IHd.
-      rewrite fsetUC.
-      reflexivity.
-  Qed.
 
   Program Definition XPD_ d k b key_b H_lt : package (L_K :|: L_L) [interface] (XPD_n d k) :=
     {package
@@ -1320,21 +1325,21 @@ Section Core.
       rewrite <- fset_cons.
       rewrite in_fset.
       rewrite !in_cons.
-      now rewrite eqxx.
+      rewrite eqxx ; apply /orP ; eauto.
     - unfold mkopsig.
       unfold XPD_n_ℓ_f.
       rewrite <- fset1E.
       rewrite <- fset_cons.
       rewrite in_fset.
       rewrite !in_cons.
-      now rewrite eqxx.
+      rewrite eqxx ; apply /orP ; eauto.
     - unfold mkopsig.
       unfold XPD_n_ℓ_f.
       rewrite <- fset1E.
       rewrite <- fset_cons.
       rewrite in_fset.
       rewrite !in_cons.
-      now rewrite eqxx.
+      rewrite eqxx ; apply /orP ; eauto.
   Defined.
 
   Definition G_check (d k : nat) (H_lt : (d <= k)%nat) :
@@ -1649,8 +1654,8 @@ Section Core.
 
     Unshelve.
     all: try now (intros ; solve_idents).
-    all: try now (intros n x n0 u1 u2 ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?).
-    all: try now (intros n x u1 u2 ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?).
+    all: try now (intros n x n0 u1 u2 ; rewrite !in_fset !(mem_seq1 _ _) => /eqP H ; inversion_clear H => /eqP H ; inversion_clear H).
+    all: try now (intros n x u1 u2 ; rewrite !in_fset !(mem_seq1 _ _) => /eqP H ; inversion_clear H => /eqP H ; inversion_clear H).
 
     rewrite <- fsetUid.
     eapply valid_link.
@@ -2053,7 +2058,7 @@ Section Core.
                (G_XTR_XPD d k f_XTR_XPD H_lt)))
     }.
   Solve Obligations with intros ; solve_idents.
-  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP H ; inversion_clear H => /eqP H ; inversion_clear H.
   Next Obligation.
     intros.
     {
@@ -2158,7 +2163,7 @@ Section Core.
        ) ∘ (KeysAndHash d k H_lt KeysAndHash_Kf KeysAndHash_Lf  all_names erefl)
     }.
   Solve Obligations with intros ; solve_idents.
-  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP ? /eqP ?.
+  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _)  => /eqP H ; inversion_clear H => /eqP H ; inversion_clear H.
   Next Obligation.
     intros.
 

@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -269,13 +271,13 @@ Section XTR_XPD.
 
       repeat split ;  apply trimmed_Xtr.
     -
-      setoid_rewrite <- fset_cat.
-
+      
       set (fun x => fset _).
       simpl in f.
       subst f.
 
       unfold XTR_names, valid_pairs, List.map.
+      setoid_rewrite <- fset_cat.
       repeat split  ; match goal with
                      | |- context [ Xtr ?n _ _ ] => apply (pack_valid (@Xtr _ ℓ d (b n)))
                       end.
@@ -651,7 +653,7 @@ Section XTR_XPD.
       rewrite fsetUC.
       rewrite (fsetUC _ [interface #val #[SET PSK d.+2 k] : chUNQinp → chXPDout ]).
       rewrite <- !fsetUA.
-      f_equal ; [ easy | ].
+      f_equal ; [ now rewrite addn1 | ].
       rewrite fsetUC.
       unfold interface_hierarchy_foreach.
       unfold interface_hierarchy at 2 ; fold interface_hierarchy.

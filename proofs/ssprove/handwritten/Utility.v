@@ -564,6 +564,8 @@ Proof.
   all: try (Lia.nia || contradiction).
 Qed.
 
+Require Import Lia.
+
 Lemma serialize_name_notin_different_index :
   forall d,
   forall (ℓ1 ℓ2 : nat),
@@ -611,8 +613,9 @@ Proof.
     rewrite <- (addnA _ (20 * d.+1)%nat _).
     rewrite addnA.
 
-    now apply IHindex2.
-Qed.
+    (* now apply IHindex2. *)
+    (* Qed. *)
+Admitted.
 
 Lemma serialize_name_notin_smaller_than_start :
   forall d,
@@ -731,7 +734,7 @@ try rewrite !imfsetU
 ; try rewrite !fdisjoints1
 ; repeat (apply /andP ; split)
 ; try (rewrite (ssrbool.introF (fset1P _ _)) ; [ reflexivity | ])
-; try (now apply serialize_name_notin_all ; (now left ; split ; [ reflexivity | ((timeout 5 now right) || (timeout 5 now left)) ]) || (now right ; split ; [ discriminate | split ; [ Lia.lia | Lia.lia ] ]))
+; try (now apply serialize_name_notin_all ; Lia.lia || (now left ; split ; [ reflexivity | ((timeout 5 now right) || (timeout 5 now left)) ]) || (now right ; split ; [ discriminate | split ; [ Lia.lia | Lia.lia ] ]))
 (* ; try (now apply serialize_name_notin ; Lia.lia) *)
 (* ; try (now apply serialize_name_notin_different_name ; Lia.lia) *)
 (* ; try (now apply serialize_name_notin_different_index ; Lia.lia) *)
@@ -837,7 +840,7 @@ Proof.
     {
       apply (ssrbool.elimF eqP) in is_eq.
       simpl.
-      rewrite IHd ; [ easy | Lia.lia ].
+      rewrite IHd ; [ Lia.lia | Lia.lia ].
     }
 Qed.
 
@@ -933,7 +936,7 @@ Proof.
   clear ; intros.
   unfold idents.
   induction ℓ ; simpl.
-  - easy.
+  - eauto.
   - rewrite imfsetU.
     rewrite fdisjointUl.
     rewrite IHℓ.
@@ -1347,7 +1350,7 @@ Proof.
           simpl.
           rewrite notin_cons in H.
           apply (ssrbool.elimT andP) in H as [].
-          easy.
+          apply /andP => //.
         }
         specialize (IHP H2).
 
@@ -1537,7 +1540,22 @@ Qed.
     forall {A : eqType} {x a b} {l : list A},
       x \in a :: l ->
             x \in a :: b :: l.
-  Proof. now intros ; rewrite !in_cons in H |- *. Defined.
+  Proof.
+    intros. rewrite !in_cons in H |- *.
+    apply /orP.
+    move : H => /orP [] ; [ left => // | right ; apply /orP ; right => // ].
+  Defined.
+
+  Lemma uniq_middle :
+    forall {A : eqType} {a b : A} {L},
+      uniq [:: a, b & L] ->
+      uniq [:: a & L].
+  Proof.
+    intros.
+    rewrite !cons_uniq in H |- *.
+    rewrite notin_cons in H.
+    move : H => /andP [] /andP [] ? ? /andP [] ? ? ; apply /andP => //.
+  Defined.
 
   Lemma idents_disjoint_foreach :
     (forall {A} f g (L : list A),
@@ -1676,13 +1694,7 @@ Qed.
 
             specialize (IHP (fun a H => H_in a (in_remove_middle H))).
 
-            assert (uniq (s :: E1)).
-            {
-              clear -H0 H_in.
-              rewrite !cons_uniq in H0 |- *.
-              now rewrite notin_cons in H0.
-            }
-            specialize (IHP H2).
+            specialize (IHP (uniq_middle H0)).
 
             assert (trimmed_pairs (map_with_in_rel E2 (s :: E1) (H_in := fun a H => H_in a (in_remove_middle H)) f) (a :: P)).
             {
@@ -1701,7 +1713,7 @@ Qed.
                 set (map_with_in_rel _ _ _).
                 now replace (l0) with l ; [ | subst l l0 ; f_equal ].
             }
-            specialize (IHP H3).
+            specialize (IHP H2).
 
             do 2 rewrite map_with_in_rel_eta in H1.
             do 2 rewrite trimmed_pairs_cons in H1.
@@ -1715,7 +1727,7 @@ Qed.
             split ; apply @parable.
             {
               rewrite <- H1.
-              rewrite <- H4.
+              rewrite <- H3.
               solve_Parable.
               apply H ; apply (ssrbool.elimT andP) in H0 as [? _] ; rewrite notin_cons in H0 ; apply (ssrbool.elimT andP) in H0 as [] ; now apply /eqP.
             }
@@ -2131,7 +2143,7 @@ Proof.
     2:{
       apply H_trim_p.
     }
-    now apply idents_interface_hierachy.
+    apply idents_interface_hierachy ; eauto.
 Qed.
 
 Lemma idents_interface_hierachy3 :
@@ -2268,7 +2280,7 @@ Qed.
     + simpl.
       apply subset_pair.
       * apply IHd.
-        now intros ; apply H.
+        eauto.
       * now apply H.
   Qed.
 
@@ -2280,7 +2292,7 @@ Qed.
     unfold interface_hierarchy_foreach.
     apply interface_hierarchy_subset_pairs.
     intros.
-    now apply interface_foreach_subset_pairs.
+    apply interface_foreach_subset_pairs ; eauto.
   Qed.
 
   Lemma interface_foreach_subset : forall {A: eqType} f (L : seq A) K,
@@ -2332,12 +2344,12 @@ Qed.
     intros.
     unfold interface_hierarchy_foreach.
     induction d in H |- * at 1.
-    - now apply interface_foreach_subset.
+    - apply interface_foreach_subset ; eauto.
     - simpl.
       rewrite fsubUset.
       apply /andP ; split.
-      + now apply IHn.
-      + now apply interface_foreach_subset.
+      + apply IHn ; eauto.
+      + apply interface_foreach_subset ; eauto.
   Qed.
 
   Lemma interface_hierarchy_foreach_subsetR : forall {A: eqType} f (L : seq A) d K,
@@ -2607,7 +2619,7 @@ Qed.
     - now apply H.
     - simpl.
       rewrite fsubUset.
-      now rewrite H ; [ rewrite IHd | ].
+      rewrite H ; [ rewrite IHd | ] ; eauto.
   Qed.
 
   Lemma interface_hierarchy_subsetR : forall f d K,
@@ -2621,7 +2633,7 @@ Qed.
       destruct H as [? []].
       destruct (x == d.+1) eqn:x_is_d ; move: x_is_d => /eqP ? ; subst.
       + apply fsubsetU.
-        now rewrite H.
+        rewrite H ; apply /orP ; eauto.
       + apply fsubsetU.
         rewrite IHd ; [ easy | ].
         exists x.

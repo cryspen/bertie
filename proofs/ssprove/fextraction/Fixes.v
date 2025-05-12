@@ -38,6 +38,9 @@ Axiom string_from_int : both int8 -> both t_String.
 Definition impl__u32__from_be_bytes val := bind_both val uint32_from_be_bytes.
 Definition impl__u32__to_be_bytes val := bind_both val uint32_to_be_bytes.
 
+(* Definition Pre_uint16_to_be_bytes : int16 -> (nseq_ int8 2) := @Hacspec_Lib_Pre.to_be_bytes jasmin_wsize.U16. *)
+(* Definition uint16_to_be_bytes (n : int16) : both ((nseq_ int8 2)) := ret_both (Pre_uint16_to_be_bytes n). *)
+
 Definition impl__u16__to_be_bytes val := bind_both val uint16_to_be_bytes.
 
 (* Definition len {A l} (x : array_or_seq A l) : both uint_size := ret_both l. *)

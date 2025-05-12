@@ -1,0 +1,47 @@
+digraph interval_deps {
+	node [URL="https://SSProve.github.io/ssprove/\N.html",
+		colorscheme=pastel19,
+		shape=box,
+		style="rounded,filled"
+	];
+	"fextraction.Fixes"	[fillcolor=3,
+		shape=doubleoctagon];
+	"fextraction.Bertie_Tls13utils"	[fillcolor=3];
+	"fextraction.Bertie_Tls13utils" -> "fextraction.Fixes";
+	"fextraction.Bertie_Tls13crypto"	[fillcolor=3];
+	"fextraction.Bertie_Tls13crypto" -> "fextraction.Bertie_Tls13utils";
+	"fextraction.Bertie_Tls13formats"	[fillcolor=3,
+		shape=doubleoctagon];
+	"fextraction.Bertie_Tls13keyscheduler_Key_schedule"	[fillcolor=3];
+	"fextraction.Bertie_Tls13keyscheduler_Key_schedule" -> "fextraction.Bertie_Tls13crypto";
+	"fextraction.Bertie_Tls13keyscheduler_Key_schedule" -> "fextraction.Bertie_Tls13formats";
+	"handwritten.ssp_helper"	[fillcolor=2,
+		shape=doubleoctagon];
+	"handwritten.Types"	[fillcolor=2,
+		shape=doubleoctagon];
+	"handwritten.ExtraTypes"	[fillcolor=2];
+	"handwritten.ExtraTypes" -> "handwritten.Types";
+	"handwritten.Utility"	[fillcolor=2];
+	"handwritten.Utility" -> "handwritten.ssp_helper";
+	"handwritten.Utility" -> "handwritten.ExtraTypes";
+	"handwritten.Dependencies"	[fillcolor=2];
+	"handwritten.Dependencies" -> "handwritten.Utility";
+	"handwritten.BasePackages"	[fillcolor=2];
+	"handwritten.BasePackages" -> "handwritten.Dependencies";
+	"handwritten.KeyPackages"	[fillcolor=2];
+	"handwritten.KeyPackages" -> "handwritten.BasePackages";
+	"handwritten.XTR_XPD"	[fillcolor=2];
+	"handwritten.XTR_XPD" -> "handwritten.BasePackages";
+	"handwritten.Core"	[fillcolor=2];
+	"handwritten.Core" -> "handwritten.KeyPackages";
+	"handwritten.Core" -> "handwritten.XTR_XPD";
+	"handwritten.KeySchedulePackages"	[fillcolor=2,
+		penwidth=3];
+	"handwritten.KeySchedulePackages" -> "handwritten.Core";
+	"handwritten.CoreTheorem"	[fillcolor=2];
+	"handwritten.CoreTheorem" -> "handwritten.Core";
+	"handwritten.BertieResult"	[fillcolor=2,
+		penwidth=3];
+	"handwritten.BertieResult" -> "fextraction.Bertie_Tls13keyscheduler_Key_schedule";
+	"handwritten.BertieResult" -> "handwritten.CoreTheorem";
+}

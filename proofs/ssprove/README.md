@@ -17,3 +17,5 @@ you might have to (re)generate the makefile to make it run
 coq_makefile -f _CoqProject -o Makefile
 ```
 
+# Versions
+We are using `hax:main`, `ssprove:jasmin-coq.8.18.0`

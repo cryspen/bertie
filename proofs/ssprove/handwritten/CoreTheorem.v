@@ -81,9 +81,9 @@ From KeyScheduleTheorem Require Import XTR_XPD.
 From KeyScheduleTheorem Require Import Core.
 (* From KeyScheduleTheorem Require Import MapPackage. *)
 
-(*** Helper *)
+(** * Helper *)
 
-(*** Core theorem *)
+(** * Core theorem *)
 
 Section CoreTheorem.
 
@@ -279,6 +279,7 @@ Section CoreTheorem.
   Axiom Ai : raw_package -> bool -> raw_package.
   Axiom R_sodh : package fset0 [interface] [interface].
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1683>D2</a># *)
   Lemma d2 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -291,6 +292,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1684>D4</a># *)
   Lemma d3 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -305,17 +307,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
-  (* Lemma d4 : *)
-  (*   forall (d k : nat) H_lt, *)
-  (*   (* forall (Score : Simulator d k), *) *)
-  (*   forall (LA : {fset Location}) (A : raw_package), *)
-  (*     ValidPackage LA (KS_interface d k) A_export A → *)
-  (*     (AdvantageE (G_core_R_esalt d k H_lt) (G_core d k true H_lt) A *)
-  (*      >= maxR (fun i => AdvantageE (G_core_Hash d k H_lt) (G_core_D d k H_lt) (Ai A i)))%R. *)
-  (* Proof. *)
-  (*   intros. *)
-  (* Admitted. *)
-
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1685>D4</a># *)
   Lemma d4 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -327,6 +319,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1686>D5</a># *)
   Lemma d5 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -338,6 +331,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
+  (** Idealization order *)
   Fixpoint idealization_loop (fuel : nat) (ioc : list name) {struct fuel} : list (list name) :=
     match fuel with
     | O => []
@@ -495,8 +489,6 @@ Section CoreTheorem.
     all: fail.
   Admitted. (* Time Qed. *)
 
-  (* Show Match name. *)
-
   Lemma d10_helper : forall j,
     (j.+1 <= List.length IdealizationOrderPreCompute)%nat ->
     forall x,
@@ -509,6 +501,7 @@ Section CoreTheorem.
     discriminate.
   Qed.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1896>D10</a># *)
   Lemma d10 : forall i j,
       (i < j)%nat ->
       (j <= List.length IdealizationOrderPreCompute)%nat ->
@@ -521,7 +514,7 @@ Section CoreTheorem.
     - destruct i ; [ | discriminate ].
       apply H1.
     - destruct (i == j) eqn:i_is_j.
-      2: now apply d10_helper, IHj.
+      2: apply d10_helper, IHj ; eauto ; Lia.lia.
       {
         clear H IHj.
         move /eqP: i_is_j => i_is_j.
@@ -530,6 +523,7 @@ Section CoreTheorem.
       }
   Qed.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1898>D11</a># *)
   Lemma d11 :
     forall d k H_lt ℓ c A,
       ((c == O)%nat || (PSK \notin nth [] IdealizationOrderPreCompute c.-1)) ->
@@ -542,10 +536,9 @@ Section CoreTheorem.
         Advantage (Gxtr d k H_lt ES ℓ) (A ∘ R_xtr ES ℓ erefl))%R.
   Proof.
     intros.
-
-
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1899>D12</a># *)
   Lemma d12 :
     forall d k H_lt ℓ c A,
       ((c == O)%nat || (ESALT \notin nth [] IdealizationOrderPreCompute c.-1)) ->
@@ -560,6 +553,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1900>D13</a># *)
   Lemma d13 :
     forall d k H_lt ℓ c A,
       ((c == O)%nat || (HSALT \notin nth [] IdealizationOrderPreCompute c.-1)) ->
@@ -574,6 +568,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1901>D14</a># *)
   Lemma d14 :
     forall d k H_lt ℓ c A n (_ : ChldrOp (nfto (fst (PrntN n))) = xpd_op) (H_in_xpr : n \in XPR) (* (H_notin : n \notin [PSK; ESALT]) *),
       ((nfto (fst (PrntN n))) \notin nth [] IdealizationOrderPreCompute c.-1) ->
@@ -739,8 +734,9 @@ Section CoreTheorem.
       try timeout 5 rewrite advantage_reflexivity.
   Admitted.
 
-  (* d6: Hybrid lemma *)
-  (* Dependends on idealization order *)
+  (** * #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1687>D6</a>#: Hybrid lemma
+      Dependends on idealization order
+   *)
   Lemma d6 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -904,7 +900,7 @@ Section CoreTheorem.
 
           repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
 
-          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by eauto ; hnf).
 
           unfold PrntOp.
           rewrite !nfto_name_to_chName_cancel.
@@ -920,7 +916,7 @@ Section CoreTheorem.
 
           repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
 
-          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by eauto ; hnf).
 
           unfold PrntOp.
           rewrite !nfto_name_to_chName_cancel.
@@ -932,7 +928,6 @@ Section CoreTheorem.
           easy.
         }
         {
-          apply /orP.
           rewrite nfto_name_to_chName_cancel.
           easy.
         }
@@ -944,21 +939,18 @@ Section CoreTheorem.
 
           repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
 
-          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by eauto ; hnf).
 
           unfold PrntOp.
           rewrite !nfto_name_to_chName_cancel.
           reflexivity.
         }
         2:{
-          simpl.
           rewrite nfto_name_to_chName_cancel.
           easy.
         }
         {
-          apply /orP.
           rewrite nfto_name_to_chName_cancel.
-          simpl.
           easy.
         }
       }
@@ -969,21 +961,18 @@ Section CoreTheorem.
 
           repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
 
-          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by eauto ; hnf).
 
           unfold PrntOp.
           rewrite !nfto_name_to_chName_cancel.
           reflexivity.
         }
         2:{
-          simpl.
           rewrite nfto_name_to_chName_cancel.
           easy.
         }
         {
-          apply /orP.
           rewrite nfto_name_to_chName_cancel.
-          simpl.
           easy.
         }
       }
@@ -994,21 +983,18 @@ Section CoreTheorem.
 
           repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with false by easy).
 
-          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by easy ; hnf).
+          (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (( _ == _) || (_ == _)) ; replace (_ == _) with true by eauto ; hnf).
 
           unfold PrntOp.
           rewrite !nfto_name_to_chName_cancel.
           reflexivity.
         }
         2:{
-          simpl.
           rewrite nfto_name_to_chName_cancel.
           easy.
         }
         {
-          apply /orP.
           rewrite nfto_name_to_chName_cancel.
-          simpl.
           easy.
         }
       }
@@ -1115,6 +1101,7 @@ Section CoreTheorem.
       easy.
   Qed.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##equation.1689>Equation 20</a># : lhs *)
   Lemma equation20_lhs :
     forall (d k : nat) H_lt,
       (d > 0)%nat ->
@@ -1267,6 +1254,7 @@ Section CoreTheorem.
     (* apply L_package_esalt_D_to_R. *)
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##equation.1689>Equation 20</a># : rhs *)
   Lemma equation20_rhs :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -1323,6 +1311,7 @@ Section CoreTheorem.
     (* apply L_package_esalt_D_to_R. *)
   Admitted.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##equation.1689>Equation 20</a># : full *)
   Lemma equation20_eq :
     forall (d k : nat) H_lt,
       (d > 0)%nat ->
@@ -1362,7 +1351,7 @@ Section CoreTheorem.
     apply H0.
   Qed.
 
-
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1688>D7</a># *)
   Lemma d7 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -1382,6 +1371,7 @@ Section CoreTheorem.
       (forall ℓ, (ℓ <= u)%nat -> f ℓ <= g ℓ)%R ->
       (sumR l u H_range f <= sumR l u H_range g)%R.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1679>D1</a># : Core theorem *)
   Lemma core_theorem :
     forall (d k : nat) H_lt (H_gt : (0 < d)%nat),
     (* forall (Score : Simulator d k), *)

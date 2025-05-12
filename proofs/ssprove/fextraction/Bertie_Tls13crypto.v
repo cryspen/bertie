@@ -22,9 +22,9 @@ From Hacspec Require Import Hacspec_Lib.
 Open Scope hacspec_scope.
 Import choice.Choice.Exports.
 
-From RecordUpdate Require Import RecordUpdate.
+(* From RecordUpdate Require Import RecordUpdate. *)
 
-Import RecordSetNotations.
+(* Import RecordSetNotations. *)
 
 Require Import Fixes.
 

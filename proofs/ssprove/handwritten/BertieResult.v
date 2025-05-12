@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -72,27 +74,9 @@ From KeyScheduleTheorem Require Import Utility.
 
 From KeyScheduleTheorem Require Import Dependencies.
 
-(* From KeyScheduleTheorem Require Import ssp_helper. *)
-
-(* From KeyScheduleTheorem Require Import BasePackages. *)
-(* From KeyScheduleTheorem Require Import KeyPackages. *)
-(* From KeyScheduleTheorem Require Import XTR_XPD. *)
-
-(* From KeyScheduleTheorem Require Import Core. *)
-(* From KeyScheduleTheorem Require Import MapPackage. *)
-
 From KeyScheduleTheorem Require Import CoreTheorem.
 
-
 From BertieExtraction Require Import Bertie_Tls13keyscheduler_Key_schedule.
-
-(* ./extraction/Fixes.v *)
-(* ./extraction/Bertie_Tls13utils.v *)
-(* ./extraction/Bertie_Tls13formats_Handshake_data.v *)
-(* ./extraction/Bertie_Tls13crypto.v *)
-(* ./extraction/Bertie_Tls13formats.v *)
-(* ./extraction/Bertie_Tls13keyscheduler_Key_schedule.v *)
-
 
 Definition name_to_t_TLSname (n : name) {H_not_bot : n <> BOT} : both t_TLSnames :=
   match n return (n <> BOT) -> _ with
@@ -194,12 +178,6 @@ Fixpoint t_Bytes_to_nat (x : t_Bytes) : nat :=
    | (y :: ys) => t_Bytes_to_nat ys * 256 + Z.to_nat (toword y)
    end%nat).
 
-(* Theorem pow_eq : Nat.pow 2 96 = N.pow 2 96. *)
-(* Proof. *)
-(*   refine Nnat.Nat2N.inj_pow. *)
-
-(* Definition label_pow := 2. *)
-
 (* Do not compute type.. Nat.pow 2 96 is a large number *)
 Definition t_Bytes_to_chLabel (x : t_Bytes) : chLabel.
   apply fto.
@@ -241,22 +219,25 @@ Obligation Tactic := (* try timeout 8 *) idtac.
 Program Fixpoint bitvec_to_bitstring (x : bitvec) {measure x} : chList int8 :=
   match x with
   | O => []
-  | _ =>
-      bitvec_to_bitstring (x / 8)%nat ++ [wrepr _ (Z.of_nat (x mod 8)%nat)]
+  | _ => bitvec_to_bitstring (x / 8)%nat ++ [wrepr _ (Z.of_nat (x mod 8)%nat)]
   end.
 Next Obligation.
   intros.
   subst.
   destruct x.
   - Lia.lia.
-  - apply Nat.div_lt ; easy.
+  - apply Nat.div_lt ; Lia.lia.
 Qed.
 Next Obligation.
   intros.
   easy.
 Qed.
 Final Obligation.
-Admitted.
+  cbn.
+  apply measure_wf.
+  apply Wf_nat.lt_wf.
+Qed.
+Fail Next Obligation.
 
 Section BertieKeySchedule.
   Definition Bertie_PrntN : name -> (* code fset0 fset0 *) (chProd chName chName) :=
@@ -265,7 +246,7 @@ Section BertieKeySchedule.
        | BOT => fun _ => (* {code ret *) (name_to_chName BOT , name_to_chName BOT) (* } *)
        | n0 => fun H =>
                 is_pure (
-                    letb x := (@f_prnt_n _ _ _ t_TLSkeyscheduler_t_KeySchedule (name_to_t_TLSname (H_not_bot := ltac:(easy)) n)) in
+                    letb x := (@f_prnt_n _ _ _ t_TLSkeyscheduler_t_KeySchedule (name_to_t_TLSname (H_not_bot := ltac:(move => * ; subst; discriminate)) n)) in
                       bind_both x (fun x =>
                       prod_b (
                           (ret_both (name_to_chName (t_TLSname_option_pair_to_name (fst x)))) ,
@@ -407,8 +388,7 @@ Section BertieKeySchedule.
 
   (* (name : both t_TLSnames) (left : both t_Handle) (right : both t_Handle) *)
 
-  Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle.
-  Admitted.
+  Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle. Admitted.
   Definition Bertie_PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName). Admitted.
   Definition Bertie_ord : chGroup → nat. Admitted.
   Definition Bertie_E : nat -> nat. Admitted.

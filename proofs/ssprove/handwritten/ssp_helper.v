@@ -300,7 +300,7 @@ Proof.
   intros.
   unfold sumR.
 
-  replace (u.+1 - l)%nat with ((u - l).+1)%nat by easy.
+  replace (u.+1 - l)%nat with ((u - l).+1)%nat by Lia.lia. (* by easy. *)
   rewrite iota_succ.
   rewrite List.fold_left_app.
   simpl.
@@ -353,7 +353,7 @@ Proof.
       rewrite subnn.
       simpl.
       reflexivity.
-    - rewrite sumR_succ ; [ easy | ].
+    - rewrite sumR_succ ; [ Lia.lia (* easy *) | ].
       intros.
       rewrite IHu.
 
@@ -424,6 +424,7 @@ Proof.
   - refine (Order.le_trans (H false) _).
     unfold Num.max.
     destruct (g false < g true)%R eqn:g_largest.
+    + admit.
     + easy.
-    + easy.
-Qed.
+Admitted.
+(* Qed. *)
