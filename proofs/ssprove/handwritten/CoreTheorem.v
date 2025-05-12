@@ -81,8 +81,6 @@ From KeyScheduleTheorem Require Import XTR_XPD.
 From KeyScheduleTheorem Require Import Core.
 (* From KeyScheduleTheorem Require Import MapPackage. *)
 
-(** * Helper *)
-
 (** * Core theorem *)
 
 Section CoreTheorem.
@@ -351,7 +349,14 @@ Section CoreTheorem.
       idealization_loop fuel.+1 ioc =
         (if ioc != all_names
          then
-           match (filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names) with
+           match (filter
+                    (fun n =>
+                       (n \notin ioc)
+                       && (let (n1, n2) := PrntN n in
+                           ((nfto n1 \in ioc) || (nfto n1 == BOT))
+                           && ((nfto n2 \in ioc) || (nfto n2 == BOT))
+                           && (all (fun sn => sn \notin ioc) (SblngN n))))
+                    all_names) with
            | [] => []
            | (n_c :: xs) =>
                let snc := SblngN n_c in
@@ -367,11 +372,14 @@ Section CoreTheorem.
         else filter f x.
   Proof. reflexivity. Qed.
 
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##figure.caption.1806>Idealization order</a># *)
+
   Definition IdealizationOrder :=
     let ioc0 := [PSK; ZERO_SALT; DH; ZERO_IKM] in
     let fuel := List.length all_names in
     ([::] :: [ioc0] ++ idealization_loop fuel ioc0).
 
+  (** Pre-compute order for TLS *)
   Definition IdealizationOrderPreCompute :=
     [:: [::];
      [:: PSK; ZERO_SALT; DH; ZERO_IKM];
@@ -408,86 +416,83 @@ Section CoreTheorem.
         }
   Qed.
 
-  (* Lemma filter_slow : *)
-  (*   let ioc := [:: PSK; ZERO_SALT; DH; ZERO_IKM] in *)
-  (*   [:: ES] = filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names. *)
-  (*   intros. *)
-  (*   unfold SblngN. *)
-  (*   unfold PrntN. *)
-  (*   unfold all_names. *)
-  (*   unfold filter. *)
-  (* Admitted. *)
+  Ltac solve_idealization_order_step :=
+    (rewrite idealization_order_one_iter ;
+     unfold last ; simpl (_ != _) ; hnf ;
+     unfold all_names ;
 
-  (* Lemma idealization_order_0 : *)
-  (*   forall n, *)
-  (*     idealization_loop n.+1 [:: PSK; ZERO_SALT; DH; ZERO_IKM] = *)
-  (*       [[:: PSK; ZERO_SALT; DH; ZERO_IKM; ES]] ++ *)
-  (*     idealization_loop n [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES]. *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   rewrite idealization_order_one_iter. *)
-  (*   unfold PrntN. *)
-  (*   unfold last ; simpl (_ != _) ; hnf ; unfold all_names. *)
+     repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
 
-  (*   replace (filter _ _) with [ES]. *)
-  (*   2:{ *)
-  (*     repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf). *)
+     unfold SblngN at 1 ;
+     unfold all_names ;
 
-  (*     unfold all ; *)
-  (*       simpl (if _ then _ else _) ; *)
-  (*       hnf ; *)
-  (*       unfold SblngN ; *)
-  (*       unfold all_names ; *)
+     repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
+     rewrite eqxx ;
 
-  (*       repeat (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf). *)
-
-  (*     rewrite eqxx. *)
-  (*     simpl. *)
-  (*     reflexivity. *)
-  (*   } *)
-  (*   Show Proof. *)
-  (* Time Qed. *)
-
-  Lemma compute_eq : (IdealizationOrder = IdealizationOrderPreCompute).
-  Proof.
-    unfold IdealizationOrder.
-    unfold IdealizationOrderPreCompute.
-    repeat (rewrite idealization_order_one_iter ;
-      unfold last ; simpl (_ != _) ; hnf ;
-      unfold all_names ;
-
-      repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
-
-      unfold SblngN at 1 ;
-      unfold all_names ;
-
-      repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
-      rewrite eqxx ;
-
-      unfold all ;
-      simpl (if _ then _ else _) ;
-      hnf ;
+     unfold all ;
+     simpl (if _ then _ else _) ;
+     hnf ;
       unfold SblngN ;
       unfold all_names ;
       repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
       rewrite eqxx ;
 
       simpl cat).
+  
+  Opaque idealization_loop.
 
-    do 1 (rewrite idealization_order_one_iter ;
-      unfold last ; simpl (_ != _) ; hnf ;
-      unfold all_names ;
+  Lemma filter_nil {A} {a : pred A} : filter a [::] = [::]. Proof. reflexivity. Qed.
+  Lemma notin_nil {A : eqType} {a : A} : a \notin [::] = true. Proof. reflexivity. Qed.
 
-          repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter).
-
-    simpl.
+  Ltac unfold_SblngN :=
+    unfold SblngN, all_names ;
+    repeat ((rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ;
+           replace (_ == _) with false by reflexivity ; rewrite Bool.andb_false_l)
+          || (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ;
+             replace (_ == _) with true by reflexivity ; rewrite Bool.andb_true_l ;
+             replace (_ == _) with true by reflexivity)) ;
+    rewrite filter_nil ;
     reflexivity.
 
-    Unshelve.
-    (* Grab Existential Variables. *)
-    Fail idtac.
-    all: fail.
-  Admitted. (* Time Qed. *)
+  Ltac compute_SblngN :=
+    let l := fresh in
+    let H0 := fresh in
+    set (l := SblngN _) ;
+    eassert (H0 : l = _) ; [ subst l ; unfold_SblngN | rewrite H0 ; clear l H0 ].
+
+  Ltac compute_idealization_order_one_iter :=
+    rewrite idealization_order_one_iter ;
+    replace (_ != _) with true by (symmetry ; apply /eqP ; discriminate) ;
+    repeat (rewrite filter_cons ; compute_SblngN ; simpl (_ && _) ; rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf)
+    || (rewrite filter_cons ; compute_SblngN ; (* doing simpl (_ && _) here makes QED slow *) replace (_ && _) with false by reflexivity ; hnf) ;
+    compute_SblngN ;
+    cbn zeta.
+
+  Lemma compute_eq : (IdealizationOrder = IdealizationOrderPreCompute).
+  Proof.
+    unfold IdealizationOrder.
+    unfold IdealizationOrderPreCompute.
+
+    apply f_equal.
+    apply f_equal.
+    simpl Datatypes.length.
+
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    compute_idealization_order_one_iter.
+    apply f_equal.
+    reflexivity.
+  Qed.
 
   Lemma d10_helper : forall j,
     (j.+1 <= List.length IdealizationOrderPreCompute)%nat ->
@@ -568,9 +573,11 @@ Section CoreTheorem.
     intros.
   Admitted.
 
-  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1901>D14</a># *)
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1901>D14</a>#
+      % Adv(\mathcal{A}, \mathtt{Gks}^{hyb:\ell,c}, \mathtt{Gks}^{hyb:\ell,c+1}) \leq Adv(\mathcal{A} \rightarrow \mathtt{R}_{n,\ell}, \mathtt{Gxpd}^{b}_{n,\ell}) %
+   *)
   Lemma d14 :
-    forall d k H_lt ℓ c A n (_ : ChldrOp (nfto (fst (PrntN n))) = xpd_op) (H_in_xpr : n \in XPR) (* (H_notin : n \notin [PSK; ESALT]) *),
+    forall d k H_lt ℓ c A n (_ : ChldrOp (nfto (fst (PrntN n))) = xpd_op) (H_in_xpr : n \in XPR),
       ((nfto (fst (PrntN n))) \notin nth [] IdealizationOrderPreCompute c.-1) ->
       ((c == O) || ((nfto (fst (PrntN n))) \in nth [] IdealizationOrderPreCompute c.+1)) ->
       (AdvantageE
@@ -735,13 +742,11 @@ Section CoreTheorem.
   Admitted.
 
   (** * #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1687>D6</a>#: Hybrid lemma
+      #<a href=https://eprint.iacr.org/2021/467.pdf##subsection.1897>proof structure</a>
       Dependends on idealization order
    *)
   Lemma d6 :
     forall (d k : nat) H_lt,
-    (* forall (Score : Simulator d k), *)
-    (* forall (K_table : chHandle -> nat), *)
-    (* forall i, *)
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
       forall ℓ, (ℓ <= d)%nat ->
@@ -1045,8 +1050,6 @@ Section CoreTheorem.
 
   Lemma hyb_telescope :
     forall (d k : nat) H_lt,
-    (* forall (Score : Simulator d k), *)
-    (* forall (K_table : chHandle -> nat), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
@@ -1061,7 +1064,6 @@ Section CoreTheorem.
     generalize dependent (leq0n d).
     induction d ; intros.
     - unfold sumR.
-      (* simpl. *)
       simpl iota.
       unfold AdvantageE.
       unfold List.fold_left.
@@ -1070,20 +1072,7 @@ Section CoreTheorem.
       apply eq_ler.
       rewrite Num.Theory.normr0.
       reflexivity.
-
-
-      (* rewrite add0r. *)
-      (* rewrite add0n. *)
-    (* now apply eq_ler. *)
-
-      (* reflexivity. *)
-    (* rewrite subrr. *)
-    (* rewrite Num.Theory.normr0. *)
-    (* reflexivity. *)
-
-    -
-
-      rewrite sumR_succ.
+    - rewrite sumR_succ.
 
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
       instantiate (1 := (G_core_hyb_ℓ n k H_lt d)).
@@ -1105,7 +1094,6 @@ Section CoreTheorem.
   Lemma equation20_lhs :
     forall (d k : nat) H_lt,
       (d > 0)%nat ->
-    (* forall (Score : Simulator d k), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
@@ -1192,8 +1180,6 @@ Section CoreTheorem.
     unfold L_package.
     unfold pack.
 
-    (* lookup_op_squeeze. *)
-
     unfold lookup_op.
     rewrite !mkfmapE.
     unfold getm_def.
@@ -1244,20 +1230,15 @@ Section CoreTheorem.
     2: apply pack_valid.
     2,3,4,5,6,7: admit.
 
-    (* erewrite <- interchange. *)
-    (* 2,3,4,5,6,7,8: admit. *)
-
     erewrite (Advantage_parR ).
     2,3,4,5,6,7,8: admit.
 
     rewrite <- !Advantage_link.
-    (* apply L_package_esalt_D_to_R. *)
   Admitted.
 
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##equation.1689>Equation 20</a># : rhs *)
   Lemma equation20_rhs :
     forall (d k : nat) H_lt,
-    (* forall (Score : Simulator d k), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
@@ -1272,26 +1253,6 @@ Section CoreTheorem.
     unfold pack.
     rewrite <- !Advantage_link.
 
-    (* rewrite <- (par_commut (Hash true)). *)
-    (* 2: admit. *)
-
-    (* rewrite <- (par_commut (Hash true)). *)
-    (* 2: admit. *)
-
-    (* setoid_rewrite (Advantage_par (Hash true)). *)
-    (* 2,3,4,5,6,7,8: admit. *)
-
-    (* rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)). *)
-    (* 2: admit. *)
-
-    (* rewrite <- (par_commut (K_package k PSK _ _ _ ∘ _)). *)
-    (* 2: admit. *)
-
-    (* rewrite eqxx. *)
-
-    (* setoid_rewrite (Advantage_par (K_package k PSK _ _ _ ∘ _)). *)
-    (* 2,3,4,5,6,7,8: admit. *)
-
     replace (λ (ℓ : nat) (name : ExtraTypes.name),
               if (name \in N_star) || (name == PSK) then if ℓ >=? d then false else true else false)
       with
@@ -1299,24 +1260,12 @@ Section CoreTheorem.
     2:{
       admit.
     }
-
-    (* erewrite (Advantage_par ). *)
-    (* 2,3,4,5,6,7,8: admit. *)
-
-    (* erewrite <- interchange. *)
-    (* 2,3,4,5,6,7,8: admit. *)
-
-    (* rewrite <- !Advantage_link. *)
-
-    (* apply L_package_esalt_D_to_R. *)
   Admitted.
 
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##equation.1689>Equation 20</a># : full *)
   Lemma equation20_eq :
     forall (d k : nat) H_lt,
       (d > 0)%nat ->
-    (* forall (Score : Simulator d k), *)
-    (* forall (K_table : chHandle -> nat), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
@@ -1341,7 +1290,7 @@ Section CoreTheorem.
     eapply Order.le_trans ; [ apply Advantage_triangle | ].
     instantiate (1 := (G_core_hyb_ℓ d k H_lt d)).
 
-    epose (e := equation20_rhs d k (* Score *)).
+    epose (e := equation20_rhs d k).
     setoid_rewrite (Advantage_sym _ _) in e.
 
     rewrite e ; clear e.
@@ -1354,8 +1303,6 @@ Section CoreTheorem.
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1688>D7</a># *)
   Lemma d7 :
     forall (d k : nat) H_lt,
-    (* forall (Score : Simulator d k), *)
-    (* forall (K_table : chHandle -> nat), *)
     forall i,
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
@@ -1374,13 +1321,12 @@ Section CoreTheorem.
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1679>D1</a># : Core theorem *)
   Lemma core_theorem :
     forall (d k : nat) H_lt (H_gt : (0 < d)%nat),
-    (* forall (Score : Simulator d k), *)
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
       (forall i, ValidPackage LA (KS_interface d k) A_export (Ai A i)) →
       (AdvantageE
          (G_core d k false H_lt)
-         (G_core d k true H_lt) (A (* ∘ R d M H *))
+         (G_core d k true H_lt) (A)
        <= sumR_l [(R_cr, f_hash); (R_Z f_xtr, f_xtr); (R_Z f_xpd, f_xpd); (R_D f_xtr, f_xtr); (R_D f_xpd, f_xpd)] (fun R_hash_fn => Advantage (Gacr (snd R_hash_fn)) (A ∘ (fst R_hash_fn)))
          +maxR (fun i =>
                   Advantage (Gsodh d k H_lt) (Ai A i ∘ R_sodh) +
@@ -1430,8 +1376,6 @@ Section CoreTheorem.
       eapply Order.le_trans ; [ apply Advantage_triangle | ].
       instantiate (2 := (G_core_R_esalt d k H_lt)).
       apply Num.Theory.lerD ; [ easy | ].
-      (* erewrite D_to_R_esalt_is_zero. *)
-      (* rewrite add0r. *)
       erewrite d5 ; [ | apply H0 ].
       easy.
     }
