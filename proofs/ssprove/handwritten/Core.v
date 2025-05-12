@@ -1774,7 +1774,7 @@ Section Core.
                :|: SET_ℓ [PSK] k 0
                :|: XTR_n d k
                :|: GET_n O_star d k) :=
-    G_core_package_construction d k H_lt (fun _ => false) (fun _ _ => false) (fun _ => Z)
+    G_core_package_construction d k H_lt (fun _ => false) (fun _ _ => false) (fun _ => Z).
 
   Definition G_core_D (d k : nat) (H_lt : (d < k)%nat) :
     package (L_K :|: L_L)
