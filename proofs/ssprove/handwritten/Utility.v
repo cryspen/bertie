@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,12 +66,13 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import ssp_helper.
 
-(*** Utility *)
+(** * Utility *)
 
 Definition get_or_case_fn (n : nat) (T : finType) (A : choiceType) `{Positive #|T|}
   (fn : raw_code A)
@@ -84,7 +86,8 @@ Definition get_or_case_fn (n : nat) (T : finType) (A : choiceType) `{Positive #|
       fnSucc x
   end.
 
-Definition get_or_fn (n : nat) (T : finType) `{Positive #|T|} (fn : raw_code ('fin #|T|)) : raw_code ('fin #|T|) :=
+Definition get_or_fn (n : nat) (T : finType) `{Positive #|T|} (fn : raw_code ('fin #|T|))
+  : raw_code ('fin #|T|) :=
   k ← get (chOption ('fin #| T |) ; n ) ;;
   match k with
   | None =>
@@ -185,80 +188,91 @@ Proof.
   destruct idP, a ; (reflexivity || Lia.lia).
 Qed.
 
-Axiom len : chKey -> chNat (* TODO: should be key *).
-Definition alg : chKey -> chHash := (fun x => fto (fst (otf x))). (* TODO: should be key *)
-Axiom alg2 : chHandle -> chName (* TODO: should be key *).
-Definition tag : chHash -> chName -> chKey (* TODO: should be key *) :=
+(* TODO: should be key *)
+Axiom len : chKey -> chNat.
+(* TODO: chName should be key *)
+Definition alg : chKey -> chHash :=
+  (fun x => fto (fst (otf x))).
+Axiom alg2 : chHandle -> chName.
+(* TODO: chName should be key *)
+Definition tag : chHash -> chName -> chKey :=
   fun x y => fto (pair (otf x) (otf y)).
 
-(*** Helper definitions *)
+(** * Helper definitions *)
 
-
-Fixpoint map_with_in {A: eqType} {B} (l : list A) (f : forall (x : A), (x \in l) -> B) : list B :=
+Fixpoint map_with_in {A: eqType} {B} (l : list A) (f : forall (x : A), (x \in l) -> B)
+  : list B :=
   match l as k return (k = l -> _) with
   | [] => fun _ => []
   | ( x :: xs ) =>
       fun H =>
-        f x (eq_ind (x :: xs) (fun l => x \in l) (mem_head x xs) _ H)
-          :: map_with_in xs (fun y H0 => f y (eq_ind (x :: xs)%SEQ
-                                            (λ l0 : seq A, (∀ x0 : A, x0 \in l0 → B) → (y \in l0) = true)
-                                            (λ f0 : ∀ x0 : A, x0 \in (x :: xs)%SEQ → B,
-                                               (eq_ind_r (Logic.eq^~ true) ([eta introTF (c:=true) orP] (or_intror H0)) (in_cons (T:=A) x xs y)))
-                                            l H f))
+        f x (eq_ind
+               (x :: xs)
+               (fun l => x \in l)
+               (mem_head x xs)
+               _ H)
+          :: map_with_in xs
+            (fun y H0 =>
+               f y (eq_ind
+                      (x :: xs)%SEQ
+                      (λ l0 : seq A,
+                          (∀ x0 : A, x0 \in l0 → B)
+                          → (y \in l0) = true)
+                      (λ f0 : ∀ x0 : A, x0 \in (x :: xs)%SEQ → B,
+                         (eq_ind_r
+                            (Logic.eq^~ true)
+                            ([eta introTF (c:=true) orP] (or_intror H0))
+                            (in_cons (T:=A) x xs y)))
+                      l H f))
   end erefl.
 
-Fixpoint map_with_in_rel  {A : eqType} {B} (l : list A) (l' : list A) {H_in : forall a, a \in l' -> a \in l} (f : forall (x : A), (x \in l) -> B) {struct l'} : list B :=
+Fixpoint map_with_in_rel {A : eqType} {B} (l : list A) (l' : list A)
+  {H_in : forall a, a \in l' -> a \in l} (f : forall (x : A), (x \in l) -> B) {struct l'}
+  : list B :=
   match l' as k return (forall a, a \in k -> a \in l)%nat -> _ with
   | [] => fun H => [::]
   | (x :: xs) =>
-      fun H => (f x (H x (mem_head x xs))) :: (map_with_in_rel l xs (H_in := fun a H0 => H a (eq_ind_r [eta is_true] ([eta introTF (c:=true) orP] (or_intror H0)) (in_cons (T:=A) x xs a))) f)
+      fun H =>
+        (f x (H x (mem_head x xs)))
+          :: (map_with_in_rel l xs
+               (H_in := fun a H0 =>
+                          H a (eq_ind_r
+                                 [eta is_true]
+                                 ([eta introTF (c:=true) orP] (or_intror H0))
+                                 (in_cons (T:=A) x xs a)))
+               f)
   end H_in.
 
-Fixpoint map_with_in_num (d : nat) (f : forall (x : nat), (x <= d)%nat -> raw_package) {struct d} : raw_package
+Fixpoint map_with_in_num
+  (d : nat) (f : forall (x : nat), (x <= d)%nat -> raw_package)
+  {struct d} : raw_package
   :=
   match d as k return (k <= d)%nat -> _ with
   | O => fun H => f O H
   | S n =>
-      fun H => par (map_with_in_num n (fun y Hf => f y (leq_trans Hf (leq_trans (leqnSn n) H)))) (f (S n) H)
+      fun H =>
+        par
+          (map_with_in_num n
+             (fun y Hf => f y (leq_trans Hf (leq_trans (leqnSn n) H))))
+          (f (S n) H)
   end (leqnn d).
 
-Fixpoint map_with_in_num_upper (d : nat) (i : nat) {H_le : (i <= d)%nat} (f : forall (x : nat), (x <= d)%nat -> raw_package) {struct i} : raw_package :=
+Fixpoint map_with_in_num_upper
+  (d : nat) (i : nat) {H_le : (i <= d)%nat}
+  (f : forall (x : nat), (x <= d)%nat -> raw_package)
+  {struct i} : raw_package :=
   match i as k return (k <= d)%nat -> _ with
   | O => fun H => f O H
   | S n =>
-      fun H => par (map_with_in_num_upper d n (H_le := (leq_trans (leqnSn n) H)) f) (f (S n) H)
+      fun H => par
+              (map_with_in_num_upper d n (H_le := (leq_trans (leqnSn n) H)) f)
+              (f (S n) H)
   end H_le.
 
-Definition ℓ_raw_packages (d : nat) (p : forall (n : nat), (n <= d)%nat ->  raw_package) : raw_package :=
+Definition ℓ_raw_packages (d : nat)
+  (p : forall (n : nat), (n <= d)%nat ->  raw_package)
+  : raw_package :=
   map_with_in_num_upper d d (H_le := leqnn d) p.
-
-(* Fixpoint ℓ_raw_packages_inner *)
-(*   (u : nat) (d : nat) (H : (u >= d)%nat) *)
-(*   (p : forall (n : nat), (u >= n)%nat -> raw_package) *)
-(*   {struct d}: *)
-(*   raw_package. *)
-(* Proof. *)
-(*   destruct d as [ | k]. *)
-(*   - apply emptym. *)
-(*   - refine (par _ _). *)
-(*     + refine (p k _). *)
-(*       apply (leq_trans (leqnSn _) H). *)
-(*     + refine (ℓ_raw_packages_inner u k _ p). *)
-(*       apply (leq_trans (leqnSn _) H). *)
-(* Defined. *)
-
-  (* := *)
-  (* match d as k with *)
-  (* | O => fun _ => emptym *)
-  (* | S d' => *)
-  (*     par (p d' _) (@ℓ_raw_packages_inner u d' p) *)
-  (*                (* (eq_ind_r (λ d : nat, (d' <= d)%N) (leqnSn d') H) *) *)
-  (* end _. *)
-
-(* Definition ℓ_raw_packages *)
-(*   (d : nat) *)
-(*   (p : forall (n : nat), (d >= n)%nat -> raw_package) : *)
-(*   raw_package := (ℓ_raw_packages_inner d (leqnn _) p). *)
 
 Lemma trim_fset0 : forall p, trim (fset [::]) p = p -> p = emptym.
 Proof.
@@ -294,8 +308,6 @@ Theorem trimmed_par :
     trimmed (E1 :|: E2) (par p1 p2).
 Proof.
   intros.
-  (* rewrite <- H_trim_p1. *)
-  (* rewrite <- H_trim_p2. *)
 
   unfold trimmed.
 
@@ -443,9 +455,16 @@ Fixpoint interface_foreach {A : Type} (f : A -> Interface) (l : list A) :=
 
 Definition mem_tail : forall {A : eqType} a (l : list A), forall {x}, x \in l -> x \in a :: l :=
   fun A a l x H =>
-    (eq_ind_r [eta is_true] ([eta introTF (c:=true) orP] (or_intror H)) (in_cons (T:=A) a l x)).
+    (eq_ind_r
+       [eta is_true]
+       ([eta introTF (c:=true) orP] (or_intror H))
+       (in_cons (T:=A) a l x)).
 
-Fixpoint interface_foreach_in_rel {A : eqType} (l : list A) (l' : list A) {H_in : forall a, a \in l' -> a \in l} (f : forall (a : A), (a \in l) -> Interface) {struct l'} : Interface :=
+Fixpoint interface_foreach_in_rel
+  {A : eqType} (l : list A) (l' : list A)
+  {H_in : forall a, a \in l' -> a \in l}
+  (f : forall (a : A), (a \in l) -> Interface)
+  {struct l'} : Interface :=
   (match l' as k return (forall a, a \in k -> a \in l) -> _ with
          | [] => fun _ => [interface]
          | (x :: xs) =>
@@ -454,7 +473,9 @@ Fixpoint interface_foreach_in_rel {A : eqType} (l : list A) (l' : list A) {H_in 
                | [] => f x (H_in x (mem_head x xs))
                | (y :: ys) =>
                    f x (H_in x (mem_head x xs))
-                     :|: interface_foreach_in_rel l xs (H_in := fun a H => H_in a (mem_tail x xs H)) f
+                     :|: interface_foreach_in_rel l xs
+                           (H_in := fun a H => H_in a (mem_tail x xs H))
+                           f
                end
           end H_in).
 
@@ -463,18 +484,10 @@ Fixpoint interface_hierarchy (f : nat -> Interface) (ℓ : nat) : Interface :=
   | O => f O
   | S n => interface_hierarchy f n :|: f (S n)
   end.
-  (* interface_foreach f (iota O (S ℓ)). *)
 
-Definition interface_hierarchy_foreach {A : Type} (f : A -> nat -> Interface) (l : list A) :=
+Definition interface_hierarchy_foreach
+  {A : Type} (f : A -> nat -> Interface) (l : list A) :=
   interface_hierarchy (fun ℓ => interface_foreach (fun n => f n ℓ) l).
-
-(* Theorem trim_interface_hierarchy *)
-(*   {L I} *)
-(*   {f : nat -> Interface} *)
-(*   (p : forall (n : nat), package L I (f n)) *)
-(*   (H : forall d, Parable (p d) (ℓ_raw_packages p d)) *)
-(*   (d : nat) *)
-(*   : trimmed (interface_hierarchy f d) (ℓ_packages f p H d). *)
 
 (* Taken from OVN implementation *)
 Ltac solve_Parable :=
@@ -613,9 +626,8 @@ Proof.
     rewrite <- (addnA _ (20 * d.+1)%nat _).
     rewrite addnA.
 
-    (* now apply IHindex2. *)
-    (* Qed. *)
-Admitted.
+    apply IHindex2 ; eauto.
+Qed.
 
 Lemma serialize_name_notin_smaller_than_start :
   forall d,
@@ -670,7 +682,8 @@ Qed.
 HB.instance Definition _ : Equality.axioms_ name :=
   {|
     Equality.eqtype_hasDecEq_mixin :=
-      {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+      {| hasDecEq.eq_op := name_eq;
+         hasDecEq.eqP := name_equality |}
   |}.
 
 Lemma serialize_name_notin_all :
@@ -678,8 +691,9 @@ Lemma serialize_name_notin_all :
   forall (ℓ1 ℓ2 : nat),
   forall (n1 n2 : name),
   forall (index1 index2 : nat),
-    (index1 = index2) /\ ((ℓ1 <> ℓ2)%N \/ (n1 <> n2)%N) \/ ((index1 <> index2)%nat /\ (ℓ1 <= d)%N /\ (ℓ2 <= d)%N) ->
-     serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
+    (index1 = index2) /\ ((ℓ1 <> ℓ2)%N \/ (n1 <> n2)%N)
+    \/ ((index1 <> index2)%nat /\ (ℓ1 <= d)%N /\ (ℓ2 <= d)%N) ->
+    serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
 Proof.
   intros.
   destruct H as [[? [ | ]] | ] ; subst.
@@ -688,64 +702,21 @@ Proof.
   + now apply serialize_name_notin_different_index.
 Qed.
 
-Lemma serialize_name_notin_all_iff :
-  forall d,
-  forall (ℓ1 ℓ2 : nat),
-  forall (n1 n2 : name),
-  forall (index1 index2 : nat),
-    (index1 = index2) /\ ((ℓ1 <> ℓ2)%N \/ (n1 <> n2)%N) \/ ((index1 <> index2)%nat /\ (ℓ1 <= d)%N /\ (ℓ2 <= d)%N) <->
-     serialize_name n1 ℓ1 d index1 <> serialize_name n2 ℓ2 d index2.
-Proof.
-  intros.
-  split ; intros.
-  - destruct H as [[? [ | ]] | ] ; subst.
-    + now apply serialize_name_notin.
-    + now apply serialize_name_notin_different_name.
-    + now apply serialize_name_notin_different_index.
-  - destruct (index1 == index2) eqn:index_eq ; move: index_eq => /eqP index_eq ; subst.
-    + left ; split ; [ reflexivity | ].
-      destruct (ℓ1 == ℓ2) eqn:l_eq ; move: l_eq => /eqP l_eq ; subst.
-      * right.
-        destruct (n1 == n2) eqn:n_eq ; move: n_eq => /eqP n_eq ; subst.
-        -- contradiction.
-        -- assumption.
-      * left.
-        assumption.
-    + right ; split ; [ assumption | ].
-
-      admit.
-Admitted.
-
 Ltac solve_imfset_disjoint :=
-  (* try rewrite !imfsetU *)
-  (* ; try rewrite !fdisjointUr *)
-  (* ; repeat (apply /andP ; split) *)
-  (* ; try rewrite !fdisjointUl *)
-  (* ; try rewrite  <- !fset1E *)
-  (* ; try rewrite !imfset1 *)
-  (* ; try rewrite !fdisjoints1 *)
-  (* ; try unfold "\notin" ; rewrite !ifF ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; try Lia.lia.. ]. *)
-
-try rewrite !imfsetU
-; try rewrite !fdisjointUr
-; try rewrite !fdisjointUl
-; try rewrite  <- !fset1E
-; try rewrite !imfset1
-; try rewrite !fdisjoints1
-; repeat (apply /andP ; split)
-; try (rewrite (ssrbool.introF (fset1P _ _)) ; [ reflexivity | ])
-; try (now apply serialize_name_notin_all ; Lia.lia || (now left ; split ; [ reflexivity | ((timeout 5 now right) || (timeout 5 now left)) ]) || (now right ; split ; [ discriminate | split ; [ Lia.lia | Lia.lia ] ]))
-(* ; try (now apply serialize_name_notin ; Lia.lia) *)
-(* ; try (now apply serialize_name_notin_different_name ; Lia.lia) *)
-(* ; try (now apply serialize_name_notin_different_index ; Lia.lia) *)
-; try (now apply serialize_name_notin_smaller_than_start ; try Lia.lia)
-; try (now symmetry ; apply serialize_name_notin_smaller_than_start ; try Lia.lia)
-(* ; try (idtac ; [ reflexivity | unfold "\in"; simpl; unfold "\in"; simpl ; Lia.lia.. ]) *)
-(* ; setoid_rewrite Bool.orb_false_r *)
-(* ; simpl *)
-(* ; Lia.lia *)
-.
-
+  try rewrite !imfsetU
+  ; try rewrite !fdisjointUr
+  ; try rewrite !fdisjointUl
+  ; try rewrite  <- !fset1E
+  ; try rewrite !imfset1
+  ; try rewrite !fdisjoints1
+  ; repeat (apply /andP ; split)
+  ; try (rewrite (ssrbool.introF (fset1P _ _)) ; [ reflexivity | ])
+  ; try (now apply serialize_name_notin_all ; Lia.lia
+      || (now left ; split ; [ reflexivity
+                             | ((timeout 5 now right) || (timeout 5 now left)) ])
+      || (now right ; split ; [ discriminate | split ; Lia.lia ]))
+  ; try (now apply serialize_name_notin_smaller_than_start ; try Lia.lia)
+  ; try (now symmetry ; apply serialize_name_notin_smaller_than_start ; try Lia.lia).
 
 Ltac solve_trimmed :=
   match goal with
@@ -761,10 +732,16 @@ Ltac solve_trimmed :=
       ]
   | |- context [ trimmed (?IA :|: ?IBC) (par ?a (par ?b ?c)) ] =>
       let H := fresh in
-      assert (H : trimmed IBC (par b c)) by solve_trimmed ; rewrite <- H ; clear H ; solve_trimmed
+      assert (H : trimmed IBC (par b c)) by solve_trimmed
+      ; rewrite <- H
+      ; clear H
+      ; solve_trimmed
   | |- context [ trimmed (?IAB :|: ?IB) (par (par ?a ?b) ?c) ] =>
       let H := fresh in
-      assert (H : trimmed IAB (par a b)) by solve_trimmed ; rewrite <- H ; clear H ; solve_trimmed
+      assert (H : trimmed IAB (par a b)) by solve_trimmed
+      ; rewrite <- H
+      ; clear H
+      ; solve_trimmed
   end.
 
 Ltac trim_is_interface :=
@@ -985,11 +962,13 @@ Fixpoint all_idents_disjoint {A} f I :=
   match I with
   | [] | [_] => True
   | (x :: xs) =>
-      idents (f x) :#: idents (interface_foreach (A := A) f xs) /\ all_idents_disjoint f xs
+      idents (f x) :#: idents (interface_foreach (A := A) f xs)
+      /\ all_idents_disjoint f xs
   end.
 
 Lemma interface_foreach_cons : forall {A} f n E,
-    interface_foreach f (n :: E) = f n :|: interface_foreach (A := A) f E.
+    interface_foreach f (n :: E)
+    = f n :|: interface_foreach (A := A) f E.
 Proof.
   induction E.
   - simpl.
@@ -1004,7 +983,8 @@ Proof.
 Qed.
 
 Lemma interface_foreach_cat : forall {A} f E1 E2,
-    interface_foreach f (E1 ++ E2) = interface_foreach (A := A) f E1 :|: interface_foreach (A := A) f E2.
+    interface_foreach f (E1 ++ E2)
+    = interface_foreach (A := A) f E1 :|: interface_foreach (A := A) f E2.
 Proof.
   induction E1; intros.
   - simpl.
@@ -1114,7 +1094,8 @@ Qed.
 
 Lemma foreach_imfset :
   (forall {A} g f (L : list A),
-      g @: (interface_foreach f L) = interface_foreach (fun n => g @: f n) L).
+      g @: (interface_foreach f L)
+      = interface_foreach (fun n => g @: f n) L).
 Proof.
   intros.
   induction L.
@@ -1259,7 +1240,8 @@ Proof.
 Qed.
 
 Lemma interface_foreach_idents_cons : forall {A} f n E,
-    idents (interface_foreach f (n :: E)) = (idents (f n)) :|: idents (interface_foreach (A := A) f E).
+    idents (interface_foreach f (n :: E))
+    = (idents (f n)) :|: idents (interface_foreach (A := A) f E).
 Proof.
   intros.
   rewrite interface_foreach_cons.
@@ -1267,7 +1249,11 @@ Proof.
 Qed.
 
 Lemma interface_foreach_in_rel_cons : forall {A : eqType} l (a : A) l' H_in f,
-    interface_foreach_in_rel l (a :: l') (H_in := H_in) f = f a (H_in a (mem_head _ _)) :|: (interface_foreach_in_rel l l' (H_in := fun a H => H_in a (mem_tail _ _ H)) f).
+    interface_foreach_in_rel l (a :: l') (H_in := H_in) f
+    = f a (H_in a (mem_head _ _))
+        :|: (interface_foreach_in_rel l l'
+               (H_in := fun a H => H_in a (mem_tail _ _ H))
+               f).
 Proof.
   intros.
   induction l'.
@@ -1283,7 +1269,10 @@ Theorem valid_parable :
     (∀ x y, x ≠ y → idents (f x) :#: idents (f y)) -> uniq E ->
     trimmed_pairs (List.map f E) P ->
     valid_pairs L (List.map g I) (List.map f E) P ->
-    valid_package L (interface_foreach (A := N) g I) (interface_foreach (A := N) f E) (parallel_raw P).
+    valid_package L
+      (interface_foreach (A := N) g I)
+      (interface_foreach (A := N) f E)
+      (parallel_raw P).
 Proof.
   intros.
   simpl in *.
@@ -1383,42 +1372,50 @@ Qed.
 
   Lemma trimmed_eq_rect_r :
     forall L I1 I2 E (m : package L I1 E) (f : I2 = I1),
-      trimmed E (eq_rect_r (fun I => package L I E) m f) = trimmed E m.
+      trimmed E (eq_rect_r (fun I => package L I E) m f)
+      = trimmed E m.
   Proof. now destruct f. Qed.
 
   Lemma trimmed_eq_rect_r2 :
     forall L I E1 E2 (m : package L I E1) (f : E2 = E1),
-      trimmed E1 (eq_rect_r [eta package L I] m f) = trimmed E2 m.
+      trimmed E1 (eq_rect_r [eta package L I] m f)
+      = trimmed E2 m.
   Proof. now destruct f. Qed.
 
   Lemma trimmed_eq_rect :
     forall L I E1 E2 (m : package L I E1) g H,
-      trimmed E2 (eq_rect E1 (fun E => package L I E) m g H) = trimmed E2 m.
+      trimmed E2 (eq_rect E1 (fun E => package L I E) m g H)
+      = trimmed E2 m.
   Proof. now destruct H. Qed.
 
   Lemma trimmed_eq_rect2 :
     forall L I E1 E2 (m : package L I E1) g H,
-      trimmed E2 (eq_rect E1 [eta package L I] m g H) = trimmed E2 m.
+      trimmed E2 (eq_rect E1 [eta package L I] m g H)
+      = trimmed E2 m.
   Proof. now destruct H. Qed.
 
   Lemma trimmed_pairs_cons :
     forall a b c d,
-      trimmed_pairs (a :: b) (c :: d) <-> (trimmed a c /\ trimmed_pairs b d).
+      trimmed_pairs (a :: b) (c :: d)
+      <-> (trimmed a c /\ trimmed_pairs b d).
   Proof. now intros ? [] ? []. Qed.
 
   Lemma valid_pairs_cons :
     forall L a b c d e f,
-      valid_pairs L (a :: b) (c :: d) (e :: f) <-> (valid_package L a c e /\ valid_pairs L b d f).
+      valid_pairs L (a :: b) (c :: d) (e :: f)
+      <-> (valid_package L a c e /\ valid_pairs L b d f).
   Proof. now intros ? ? [] ? [] ? []. Qed.
 
-  Lemma map_eta : forall {A B} (f : A -> B) a l, List.map f (a :: l) = f a :: List.map f l.
+  Lemma map_eta : forall {A B} (f : A -> B) a l,
+      List.map f (a :: l) = f a :: List.map f l.
   Proof. reflexivity. Qed.
 
-  Lemma map_with_in_eta : forall {A : eqType} {B} a l (f : forall (x : A), (x \in a :: l) -> B),
+  Lemma map_with_in_eta :
+    forall {A : eqType} {B} a l (f : forall (x : A), (x \in a :: l) -> B),
       map_with_in (a :: l) f
       = f a (mem_head (T:=A) a l)
           :: map_with_in l
-          (λ (y : A) (H0 : y \in l), f y (mem_tail a l H0)).
+              (λ (y : A) (H0 : y \in l), f y (mem_tail a l H0)).
   Proof. reflexivity. Qed.
 
   Lemma map_with_in_rel_eta : forall {A : eqType} {B} l a l' H_in (f : forall (x : A), (x \in l) -> B),
@@ -1521,7 +1518,8 @@ Qed.
   Qed.
 
   Definition parallel_package
-    {A : eqType} (d : nat) {L} {f : A -> _} {g} Names (i : forall (a : A), package L (f a) (g a))
+    {A : eqType} (d : nat) {L} {f : A -> _} {g} Names
+    (i : forall (a : A), package L (f a) (g a))
     (H : ∀ x y : A, x ≠ y → idents (g x) :#: idents (g y))
     (H1 : ∀ a : A, trimmed (g a) (i a))
     (H3 : uniq Names) :
@@ -1621,10 +1619,14 @@ Qed.
 
   Theorem valid_parable_map_with_in_rel :
     forall {N : eqType} (P : list raw_package) L I E2 E1 H_in f g,
-      (∀ (x y : N) Hx Hy, x ≠ y → idents (f x Hx) :#: idents (f y Hy)) -> uniq E1 ->
+      (∀ (x y : N) Hx Hy, x ≠ y → idents (f x Hx) :#: idents (f y Hy)) ->
+      uniq E1 ->
       trimmed_pairs (map_with_in_rel E2 E1 (H_in := H_in) f) P ->
       valid_pairs L (List.map g I) (map_with_in_rel E2 E1 (H_in := H_in) f) P ->
-      valid_package L (interface_foreach (A := N) g I) (interface_foreach_in_rel E2 E1 (H_in := H_in) f) (parallel_raw P).
+      valid_package L
+        (interface_foreach (A := N) g I)
+        (interface_foreach_in_rel E2 E1 (H_in := H_in) f)
+        (parallel_raw P).
   Proof.
     intros.
     simpl in *.
@@ -1741,7 +1743,8 @@ Qed.
   Qed.
 
   Definition parallel_package_with_in_rel
-    {A : eqType} (d : nat) {L} Names {f : A -> _} {g : forall (a : A), (a \in Names) -> _} (i : forall (a : A) (H : a \in Names), package L (f a) (g a H))
+    {A : eqType} (d : nat) {L} Names {f : A -> _} {g : forall (a : A), (a \in Names) -> _}
+    (i : forall (a : A) (H : a \in Names), package L (f a) (g a H))
     (H : ∀ (x y : A) Hx Hy, x ≠ y → idents (g x Hx) :#: idents (g y Hy))
     (H1 : ∀ (a : A) (H : a \in Names), trimmed (g a H) (i a H))
     (H3 : uniq Names) :
@@ -1862,11 +1865,16 @@ Proof.
     (* + apply H3. *)
 Qed.
 
-Theorem valid_forall_map_with_in_rel : forall {A : eqType} {L} Names l (d : nat) {g f} ℓ (H_le : (ℓ <= d)%nat) (u : forall a (H : a \in Names), raw_package) H_in,
-    (∀ (x y : A), x ≠ y → idents (f x) :#: idents (f y)) -> uniq l ->
+Theorem valid_forall_map_with_in_rel :
+  forall {A : eqType} {L} Names l (d : nat) {g f} ℓ
+    (H_le : (ℓ <= d)%nat) (u : forall a (H : a \in Names), raw_package) H_in,
+    (∀ (x y : A), x ≠ y → idents (f x) :#: idents (f y)) ->
+    uniq l ->
     (trimmed_pairs (List.map f l) (map_with_in_rel Names l (H_in := H_in) u)) ->
-    (valid_pairs L (List.map g l) (List.map (f) l)
-                 (map_with_in_rel Names l (H_in := H_in) u)) ->
+    (valid_pairs L
+       (List.map g l)
+       (List.map (f) l)
+       (map_with_in_rel Names l (H_in := H_in) u)) ->
   ValidPackage L
     (interface_foreach g l)
     (interface_foreach f l)
@@ -1896,9 +1904,14 @@ Proof.
 Qed.
 
 Lemma forall_valid_from_packages :
-  forall {A : eqType} {L} {g f} Names l (ℓ : nat) (u : forall a (H : a \in Names), package L (g a ℓ) (f a)) H_in,
-  valid_pairs L (List.map (g^~ ℓ) l) (List.map f l)
-    (map_with_in_rel Names l (H_in := H_in) (λ (a : A) (H3 : (a \in Names) = true), pack (u a H3))).
+  forall {A : eqType} {L} {g f} Names l (ℓ : nat)
+    (u : forall a (H : a \in Names), package L (g a ℓ) (f a)) H_in,
+    valid_pairs L
+      (List.map (g^~ ℓ) l)
+      (List.map f l)
+      (map_with_in_rel Names l
+         (H_in := H_in)
+         (λ (a : A) (H3 : (a \in Names) = true), pack (u a H3))).
 Proof.
   intros.
   induction l.
@@ -1917,7 +1930,10 @@ Theorem map_with_in_num_upper_trimmed :
     {f : nat -> Interface}
     (p : forall (ℓ : nat) , (ℓ <= d)%N → raw_package (* L I (f ℓ) *))
     (H_trim_p : forall ℓ (H_le : (ℓ <= d)%N), trimmed (f ℓ) (p ℓ H_le))
-    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n)),
+    (Hdisj : ∀ (n ℓ : nat) ,
+        (n > ℓ)%nat ->
+        (d >= n)%nat ->
+        idents (f ℓ) :#: idents (f n)),
     forall k (K_le : (k <= d)%nat),
     trimmed (interface_hierarchy f k) (map_with_in_num_upper d k (H_le := K_le) p).
 Proof.
@@ -1950,7 +1966,10 @@ Theorem ℓ_raw_package_trimmed :
     {f : nat -> Interface}
     (p : forall (ℓ : nat) , (ℓ <= d)%N → raw_package (* L I (f ℓ) *))
     (H_trim_p : forall ℓ (H_le : (ℓ <= d)%N), trimmed (f ℓ) (p ℓ H_le))
-    (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n)),
+    (Hdisj : ∀ (n ℓ : nat) ,
+        (n > ℓ)%nat ->
+        (d >= n)%nat ->
+        idents (f ℓ) :#: idents (f n)),
     trimmed (interface_hierarchy f d) (ℓ_raw_packages d p).
 Proof.
   intros.
@@ -1964,7 +1983,10 @@ Definition ℓ_packages {L}
   {f : nat -> Interface}
   (p : forall (n : nat), (d >= n)%nat → package L (g n) (f n))
   (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
-  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n))
+  (Hdisj : ∀ (n ℓ : nat) ,
+      (n > ℓ)%nat ->
+      (d >= n)%nat ->
+      idents (f ℓ) :#: idents (f n))
   : package L (interface_hierarchy g d) (interface_hierarchy f d).
 Proof.
   refine {package ℓ_raw_packages d p}.
@@ -2062,11 +2084,17 @@ Proof.
   now apply interface_foreach_trivial.
 Defined.
 
-Definition combined (A : eqType) (d : nat) L (f : A -> _) g Names (i : forall (n : nat), (n <= d)%nat -> forall (a : A), package L (f a) (g a n))
-    (H : forall n, (n <= d)%nat -> ∀ x y : A, x ≠ y → idents (g x n) :#: idents (g y n))
-    (H0 : forall n ℓ, (ℓ < n)%nat -> (n <= d)%nat -> ∀ x y : A, idents (g x ℓ) :#: idents (g y n))
-    (H1 : forall n (H_le : (n <= d)%nat), ∀ a : A, trimmed (g a n) (i n H_le a))
-    (H3 : uniq Names) :
+Definition combined
+  (A : eqType) (d : nat) L (f : A -> _) g Names
+  (i : forall (n : nat), (n <= d)%nat -> forall (a : A), package L (f a) (g a n))
+  (H : forall n, (n <= d)%nat -> ∀ x y : A, x ≠ y → idents (g x n) :#: idents (g y n))
+  (H0 : forall n ℓ,
+      (ℓ < n)%nat ->
+      (n <= d)%nat ->
+      ∀ x y : A,
+        idents (g x ℓ) :#: idents (g y n))
+  (H1 : forall n (H_le : (n <= d)%nat), ∀ a : A, trimmed (g a n) (i n H_le a))
+  (H3 : uniq Names) :
   package L
     (interface_foreach f Names)
     (interface_hierarchy_foreach g Names d).
@@ -2086,31 +2114,53 @@ Proof.
         ).
 Defined.
 
-Definition parallel_package_with_in_rel_hierarchy {A : eqType} {L} {g f} Names l  (d : nat) (u : forall ℓ (H_le : (ℓ <= d)%nat) a (H : a \in Names), package L (g a ℓ) (f a ℓ)) H_in :
+Definition parallel_package_with_in_rel_hierarchy
+  {A : eqType} {L} {g f} Names l  (d : nat)
+  (u : forall ℓ (H_le : (ℓ <= d)%nat) a (H : a \in Names),
+      package L (g a ℓ) (f a ℓ))
+  H_in :
   (∀ ℓ n, ∀ x y : A, (x ≠ y \/ ℓ ≠ n) → idents (f x ℓ) :#: idents (f y n)) ->
   uniq l ->
-  (forall ℓ H_le, trimmed_pairs (List.map (f^~ℓ) l) (map_with_in_rel Names l (H_in := H_in) (fun a H => pack (u ℓ H_le a H)))) ->
+  (forall ℓ H_le,
+      trimmed_pairs
+        (List.map (f^~ℓ) l)
+        (map_with_in_rel Names l (H_in := H_in) (fun a H => pack (u ℓ H_le a H)))) ->
   forall ℓ H_le,
   package L (interface_foreach (g^~ ℓ) l) (interface_foreach (f^~ ℓ) l) :=
   (fun H H0 H1 ℓ H_le =>
-     {package (parallel_raw (map_with_in_rel Names l (H_in := H_in) (fun a H => pack (u ℓ H_le a H))))
-            #with
-           valid_forall_map_with_in_rel
-           (f := (f^~ℓ))
-           Names l d _ H_le (u _ _) H_in (fun _ _ H_neq => H _ _ _ _ (or_introl H_neq)) H0 (H1 _ _)
-           (forall_valid_from_packages Names l _ (u ℓ H_le) H_in)}).
+     {package (parallel_raw
+                 (map_with_in_rel Names l
+                    (H_in := H_in)
+                    (fun a H => pack (u ℓ H_le a H))))
+        #with
+       valid_forall_map_with_in_rel
+       (f := (f^~ℓ))
+       Names l d _ H_le (u _ _) H_in
+       (fun _ _ H_neq => H _ _ _ _ (or_introl H_neq))
+       H0 (H1 _ _)
+       (forall_valid_from_packages Names l _ (u ℓ H_le) H_in)}).
 
-Definition ℓ_parallel {A : eqType} {L} {g f} Names l  (d : nat) (u : forall ℓ (H_le : (ℓ <= d)%nat) a (H : a \in Names), package L (g a ℓ) (f a ℓ)) H_in :
+Definition ℓ_parallel
+  {A : eqType} {L} {g f} Names l  (d : nat)
+  (u : forall ℓ (H_le : (ℓ <= d)%nat) a (H : a \in Names), package L (g a ℓ) (f a ℓ))
+  H_in :
   (∀ ℓ n, ∀ x y : A, (x ≠ y \/ ℓ ≠ n) → idents (f x ℓ) :#: idents (f y n)) ->
   uniq l ->
-  (forall ℓ H_le, trimmed_pairs (List.map (f^~ℓ) l) (map_with_in_rel Names l (H_in := H_in) (fun a H => pack (u ℓ H_le a H)))) ->
+  (forall ℓ H_le,
+      trimmed_pairs
+        (List.map (f^~ℓ) l)
+        (map_with_in_rel Names l (H_in := H_in) (fun a H => pack (u ℓ H_le a H)))) ->
   package L
     (interface_hierarchy_foreach g l d)
     (interface_hierarchy_foreach f l d) :=
   (fun H H0 H1 =>
      ℓ_packages d
-       (λ ℓ H_le, parallel_package_with_in_rel_hierarchy Names l d u H_in H H0 H1 ℓ H_le)
-       (fun a H_le => trimmed_parallel_raw (fun _ _ H_neq => H _ _ _ _ (or_introl H_neq)) H0 (H1 _ _))
+       (λ ℓ H_le,
+         parallel_package_with_in_rel_hierarchy Names l d u H_in H H0 H1 ℓ H_le)
+       (fun a H_le =>
+          trimmed_parallel_raw
+            (fun _ _ H_neq => H _ _ _ _ (or_introl H_neq))
+            H0 (H1 _ _))
        (fun n ℓ H_le H_ge =>
           idents_foreach_disjoint_foreach _ _ _
             (fun _ _ =>
@@ -2119,7 +2169,17 @@ Definition ℓ_parallel {A : eqType} {L} {g f} Names l  (d : nat) (u : forall �
                     ((eq_ind_r
                         (λ ℓ0 : nat, (ℓ0 < n)%N → False)
                         (λ H_le0 : (n < n)%N,
-                            (eq_ind_r (λ b : bool, b → False) (λ H_le1 : false, False_ind False (eq_ind false (λ e : bool, if e then False else True) I true H_le1)) (ltnn n)) H_le0) (y:=ℓ))^~ H_le)
+                            (eq_ind_r
+                               (λ b : bool, b → False)
+                               (λ H_le1 : false,
+                                   False_ind False
+                                     (eq_ind
+                                        false
+                                        (λ e : bool, if e then False else True)
+                                        I true H_le1))
+                               (ltnn n))
+                              H_le0)
+                        (y:=ℓ))^~ H_le)
          )))).
 
 Definition trimmed_ℓ_packages {L}
@@ -2128,7 +2188,10 @@ Definition trimmed_ℓ_packages {L}
   {f : nat -> Interface}
   (p : forall (n : nat), (d >= n)%nat → package L (g n) (f n))
   (H_trim_p : forall n, forall (H_ge : (d >= n)%nat), trimmed (f n) (p n H_ge))
-  (Hdisj : ∀ (n ℓ : nat) , (n > ℓ)%nat -> (d >= n)%nat -> idents (f ℓ) :#: idents (f n))
+  (Hdisj : ∀ (n ℓ : nat) ,
+      (n > ℓ)%nat ->
+      (d >= n)%nat ->
+      idents (f ℓ) :#: idents (f n))
   : trimmed (interface_hierarchy f d) (ℓ_packages d p H_trim_p Hdisj).
 Proof.
   induction d ; intros.
@@ -2148,7 +2211,9 @@ Qed.
 
 Lemma idents_interface_hierachy3 :
   forall g f d,
-    (forall x, (x <= d)%nat -> idents g :#: idents (f x)) ->
+    (forall x,
+        (x <= d)%nat ->
+        idents g :#: idents (f x)) ->
     idents g :#: idents (interface_hierarchy f d).
 Proof.
   clear ; intros.
@@ -2198,8 +2263,12 @@ Qed.
   Definition idents_foreach_disjoint_foreach_in :
     forall x y k index T1 T2 (Lf Lg : list name),
       (forall x, x \in Lf -> x \notin Lg) ->
-      idents (interface_foreach (fun a => fset [(serialize_name a x k index, T1)]) Lf)
-        :#: idents (interface_foreach (fun a => fset [(serialize_name a y k index, T2)]) Lg).
+      idents (interface_foreach
+                (fun a => fset [(serialize_name a x k index, T1)])
+                Lf)
+      :#: idents (interface_foreach
+                    (fun a => fset [(serialize_name a y k index, T2)])
+                    Lg).
   Proof.
     clear ; intros.
     rewrite fdisjointC.
@@ -2219,10 +2288,15 @@ Qed.
 
   Lemma interface_hierarchy_foreach_shift :
     forall d k {index p} L,
-    interface_hierarchy_foreach (fun n ℓ => (fset [(serialize_name n ℓ k index, p)])) L d.+1 =
-      interface_foreach (fun n => fset [(serialize_name n O k index, p)]) L
-        :|: interface_hierarchy_foreach (fun n ℓ => fset [(serialize_name n (ℓ.+1) k index,p ) ]) L d
-  .
+      interface_hierarchy_foreach
+        (fun n ℓ => (fset [(serialize_name n ℓ k index, p)]))
+        L d.+1
+      = interface_foreach
+          (fun n => fset [(serialize_name n O k index, p)])
+          L
+          :|: interface_hierarchy_foreach
+            (fun n ℓ => fset [(serialize_name n (ℓ.+1) k index,p ) ])
+            L d.
   Proof.
     intros.
     induction d.
@@ -2252,7 +2326,8 @@ Qed.
       apply H0.
   Qed.
 
-  Lemma interface_foreach_subset_pairs : forall {A: eqType} f g (L : seq A),
+  Lemma interface_foreach_subset_pairs :
+    forall {A: eqType} f g (L : seq A),
       (forall (x : A), (x \in L) -> f x :<=: g x) ->
       interface_foreach f L :<=: interface_foreach g L.
   Proof.
@@ -2270,7 +2345,8 @@ Qed.
         now apply /orP ; right.
   Qed.
 
-  Lemma interface_hierarchy_subset_pairs : forall f g d,
+  Lemma interface_hierarchy_subset_pairs :
+    forall f g d,
       (forall ℓ, (ℓ <= d)%nat -> f ℓ :<=: g ℓ) ->
       interface_hierarchy f d :<=: interface_hierarchy g d.
   Proof.
@@ -2284,7 +2360,8 @@ Qed.
       * now apply H.
   Qed.
 
-  Lemma interface_hierarchy_foreach_subset_pairs : forall {A: eqType} f g (L : seq A) d,
+  Lemma interface_hierarchy_foreach_subset_pairs :
+    forall {A: eqType} f g (L : seq A) d,
       (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: g x ℓ) ->
       interface_hierarchy_foreach f L d :<=: interface_hierarchy_foreach (A := A) g L d.
   Proof.
@@ -2295,7 +2372,8 @@ Qed.
     apply interface_foreach_subset_pairs ; eauto.
   Qed.
 
-  Lemma interface_foreach_subset : forall {A: eqType} f (L : seq A) K,
+  Lemma interface_foreach_subset :
+    forall {A: eqType} f (L : seq A) K,
       (forall (x : A), (x \in L) -> f x :<=: K) ->
       interface_foreach f L :<=: K.
   Proof.
@@ -2314,7 +2392,8 @@ Qed.
         now apply /orP ; right.
   Qed.
 
-  Lemma interface_foreach_subsetR : forall {A: eqType} f (L : seq A) K,
+  Lemma interface_foreach_subsetR :
+    forall {A: eqType} f (L : seq A) K,
       (exists (x : A) (H_in : x \in L), K :<=: f x) ->
       L <> [] ->
       K :<=: interface_foreach f L.
@@ -2337,7 +2416,8 @@ Qed.
         apply H.
   Qed.
 
-  Lemma interface_hierarchy_foreach_subset : forall {A: eqType} f (L : seq A) d K,
+  Lemma interface_hierarchy_foreach_subset :
+    forall {A: eqType} f (L : seq A) d K,
       (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: K) ->
       interface_hierarchy_foreach f L d :<=: K.
   Proof.
@@ -2352,7 +2432,8 @@ Qed.
       + apply interface_foreach_subset ; eauto.
   Qed.
 
-  Lemma interface_hierarchy_foreach_subsetR : forall {A: eqType} f (L : seq A) d K,
+  Lemma interface_hierarchy_foreach_subsetR :
+    forall {A: eqType} f (L : seq A) d K,
       (exists (x : A) (H_in : x \in L) ℓ (H_le : (ℓ <= d)%nat), K :<=: f x ℓ) ->
       L <> [] ->
       K :<=: interface_hierarchy_foreach f L d.
@@ -2415,8 +2496,10 @@ Qed.
     (uniq L) ->
     (forall n x, flat (f x n)) ->
     (forall n ℓ, (ℓ < n)%nat -> (n <= d)%nat -> ∀ x y, idents (f x ℓ) :#: idents (f y n)) ->
-    package fset0 (interface_hierarchy_foreach f L d) (interface_hierarchy_foreach f L d).
-
+    package fset0
+      (interface_hierarchy_foreach f L d)
+      (interface_hierarchy_foreach f L d).
+  Proof.
     intros.
     refine (ℓ_packages d (fun x _ => parallel_ID d L (f^~ x) _ _ _) _ _).
     - intros.
@@ -2441,7 +2524,9 @@ Qed.
   Defined.
 
   Lemma interface_foreach_swap :
-    (forall {A} (a b : A) l f, interface_foreach f (a :: b :: l) = interface_foreach f (b :: a :: l)).
+    forall {A} (a b : A) l f,
+      interface_foreach f (a :: b :: l)
+      = interface_foreach f (b :: a :: l).
   Proof.
     intros.
     induction l.
@@ -2454,9 +2539,11 @@ Qed.
       reflexivity.
   Qed.
 
-  Lemma interface_hierarchy_foreach_cons : (forall {A} f a L (d : nat),
+  Lemma interface_hierarchy_foreach_cons :
+    forall {A} f a L (d : nat),
     interface_hierarchy_foreach f (a :: L) d
-    = interface_hierarchy (f a) d :|: interface_hierarchy_foreach (A := A) f L d).
+    = interface_hierarchy (f a) d
+        :|: interface_hierarchy_foreach (A := A) f L d.
   Proof.
     intros.
     unfold interface_hierarchy_foreach.
@@ -2467,8 +2554,9 @@ Qed.
   Qed.
 
   Lemma interface_hierarchy_foreach_cat : forall {A} f L1 L2 d,
-      interface_hierarchy_foreach f (L1 ++ L2) d =
-      interface_hierarchy_foreach (A := A) f L1 d :|: interface_hierarchy_foreach (A := A) f L2 d.
+      interface_hierarchy_foreach f (L1 ++ L2) d
+      = interface_hierarchy_foreach (A := A) f L1 d
+          :|: interface_hierarchy_foreach (A := A) f L2 d.
   Proof.
     induction L1 ; intros.
     - unfold interface_hierarchy_foreach.
@@ -2488,7 +2576,9 @@ Qed.
       (forall {A : eqType} f (L1 L2 : list A),
         (forall x, x \in L1 -> x \in L2) ->
           interface_foreach f L1 =
-            interface_foreach (fun x => if x \in L2 then f x else fset [::]) L1).
+            interface_foreach
+              (fun x => if x \in L2 then f x else fset [::])
+              L1).
   Proof.
     clear ; intros.
     induction L1.
@@ -2647,7 +2737,13 @@ Qed.
     intros. unfold trimmed. now rewrite trim_idemp.
   Qed.
 
-  Ltac solve_direct_in := rewrite !fsubUset ; repeat (apply /andP ; split) ; repeat (apply fsubsetxx || (apply fsubsetU ; apply /orP ; ((right ; apply fsubsetxx) || left))).
+  Ltac solve_direct_in :=
+    rewrite !fsubUset
+    ; repeat (apply /andP ; split)
+    ; repeat (apply fsubsetxx
+              || (apply fsubsetU
+                  ; apply /orP ;
+                  ((right ; apply fsubsetxx) || left))).
 
 
 Ltac solve_idents :=
@@ -2669,7 +2765,9 @@ Ltac solve_idents :=
         apply idents_interface_hierachy3 ; intros
     | |- context [ idents (interface_hierarchy ?f ?d) :#: ?K ] =>
         rewrite fdisjointC ; apply idents_interface_hierachy3 ; intros
-    | |- context [ idents (interface_foreach ?f ?L) :#: idents (interface_foreach ?g ?K) ] =>
+    | |- context [ idents (interface_foreach ?f ?L)
+                     :#:
+                   idents (interface_foreach ?g ?K) ] =>
         apply idents_foreach_disjoint_foreach_in
         ; let H := fresh in
           intros ? H
@@ -2722,15 +2820,21 @@ Ltac solve_trimmed2 :=
   Qed.
 
   Lemma function_fset_cons_l :
-    forall {A : eqType} {T} x xs K, (fun (n : A) => fset (x n :: xs n) :|: K) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n) :|: K).
+    forall {A : eqType} {T} x xs K,
+      (fun (n : A) => fset (x n :: xs n) :|: K)
+      = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n) :|: K).
   Proof. now intros ; setoid_rewrite <- (fset_cat). Qed.
 
   Lemma function_fset_cat_l :
-    forall {A : eqType} {T} ys xs K, (fun (n : A) => fset (ys n ++ xs n) :|: K) = (fun (n : A) => fset (T := T) (ys n) :|: fset (xs n) :|: K).
+    forall {A : eqType} {T} ys xs K,
+      (fun (n : A) => fset (ys n ++ xs n) :|: K)
+      = (fun (n : A) => fset (T := T) (ys n) :|: fset (xs n) :|: K).
   Proof. now intros ; setoid_rewrite <- (fset_cat). Qed.
 
   Lemma function_fset_cat_middle :
-    forall {A : eqType} {T} ys xs L R, (fun (n : A) => L :|: fset (ys n ++ xs n) :|: R) = (fun (n : A) => L :|: fset (T := T) (ys n) :|: fset (xs n) :|: R).
+    forall {A : eqType} {T} ys xs L R,
+      (fun (n : A) => L :|: fset (ys n ++ xs n) :|: R)
+      = (fun (n : A) => L :|: fset (T := T) (ys n) :|: fset (xs n) :|: R).
   Proof.
     intros.
     setoid_rewrite fsetUC.
@@ -2740,15 +2844,21 @@ Ltac solve_trimmed2 :=
   Qed.
 
   Lemma function_fset_cat :
-    forall {A : eqType} {T} ys xs, (fun (n : A) => fset (ys n ++ xs n)) = (fun (n : A) => fset (T := T) (ys n) :|: fset (xs n)).
+    forall {A : eqType} {T} ys xs,
+      (fun (n : A) => fset (ys n ++ xs n))
+      = (fun (n : A) => fset (T := T) (ys n) :|: fset (xs n)).
   Proof. now setoid_rewrite <- (fset_cat). Qed.
 
   Lemma function_fset_cons :
-    forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
+    forall {A : eqType} {T} x xs,
+      (fun (n : A) => fset (x n :: xs n))
+      = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
   Proof. now setoid_rewrite <- (fset_cat). Qed.
 
   Lemma function2_fset_cat :
-    forall {A B : eqType} {T} x xs, (fun (a : A) (b : B) => fset (x a b :: xs a b)) = (fun (a : A) (b : B) => fset (T := T) ([x a b]) :|: fset (xs a b)).
+    forall {A B : eqType} {T} x xs,
+      (fun (a : A) (b : B) => fset (x a b :: xs a b))
+      = (fun (a : A) (b : B) => fset (T := T) ([x a b]) :|: fset (xs a b)).
   Proof. now setoid_rewrite <- (fset_cat). Qed.
 
   Lemma advantage_reflexivity :
@@ -2760,5 +2870,3 @@ Ltac solve_trimmed2 :=
     rewrite Num.Theory.normr0.
     reflexivity.
   Qed.
-
-

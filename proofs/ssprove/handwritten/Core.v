@@ -157,191 +157,6 @@ Section Core.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
-  (** ** More utility *)
-
-  Lemma idents_interface_hierachy2 :
-    forall g f d,
-      (forall x, idents g :#: idents (f x)) ->
-      idents g :#: idents (interface_hierarchy f d).
-  Proof.
-    clear ; intros.
-    unfold idents.
-    induction d ; simpl.
-    - apply H.
-    - rewrite imfsetU.
-      rewrite fdisjointUr.
-      rewrite IHd.
-      apply H.
-  Qed.
-
-  Lemma subset_pair : forall {A : ordType} (x : {fset A}) y Lx Ly,
-      x :<=: y ->
-      Lx :<=: Ly ->
-      x :|: Lx :<=: y :|: Ly.
-  Proof.
-    intros.
-    rewrite fsubUset ; apply /andP ; split.
-    * rewrite fsubsetU ; [ easy | ].
-      apply /orP ; left.
-      apply H.
-    * rewrite fsubsetU ; [ easy | ].
-      apply /orP ; right.
-      apply H0.
-  Qed.
-
-  Lemma interface_foreach_subset_pairs : forall {A: eqType} f g (L : seq A),
-      (forall (x : A), (x \in L) -> f x :<=: g x) ->
-      interface_foreach f L :<=: interface_foreach g L.
-  Proof.
-    intros.
-    induction L.
-    + apply fsubsetxx.
-    + rewrite !interface_foreach_cons.
-      apply subset_pair.
-      * apply H.
-        apply mem_head.
-      * apply IHL.
-        intros.
-        apply H.
-        rewrite in_cons.
-        now apply /orP ; right.
-  Qed.
-
-  Lemma interface_hierarchy_subset_pairs : forall f g d,
-      (forall ℓ, (ℓ <= d)%nat -> f ℓ :<=: g ℓ) ->
-      interface_hierarchy f d :<=: interface_hierarchy g d.
-  Proof.
-    intros.
-    induction d.
-    + now apply H.
-    + simpl.
-      apply subset_pair.
-      * apply IHd.
-        intros ; apply H ; eauto.
-      * now apply H.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_subset_pairs : forall {A: eqType} f g (L : seq A) d,
-      (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: g x ℓ) ->
-      interface_hierarchy_foreach f L d :<=: interface_hierarchy_foreach (A := A) g L d.
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    apply interface_hierarchy_subset_pairs.
-    intros.
-    apply interface_foreach_subset_pairs ; eauto.
-  Qed.
-
-  Lemma interface_foreach_subset : forall {A: eqType} f (L : seq A) K,
-      (forall (x : A), (x \in L) -> f x :<=: K) ->
-      interface_foreach f L :<=: K.
-  Proof.
-    intros.
-    induction L.
-    + simpl. rewrite <- fset0E. apply fsub0set.
-    + rewrite interface_foreach_cons.
-      rewrite fsubUset.
-      apply /andP ; split.
-      * apply H.
-        apply mem_head.
-      * apply IHL.
-        intros.
-        apply H.
-        rewrite in_cons.
-        now apply /orP ; right.
-  Qed.
-
-  Lemma interface_foreach_subsetR : forall {A: eqType} f (L : seq A) K,
-      (exists (x : A) (H_in : x \in L), K :<=: f x) ->
-      L <> [] ->
-      K :<=: interface_foreach f L.
-  Proof.
-    intros.
-    induction L ; [ easy | ].
-      unfold interface_hierarchy.
-      rewrite interface_foreach_cons.
-      rewrite fsubsetU ; [ easy | ].
-      apply /orP.
-
-      destruct H as [? []].
-      rewrite in_cons in x0.
-      move: x0 => /orP [/eqP ? | x0 ] ; subst.
-      + now left.
-      + right.
-        apply IHL.
-        2: destruct L ; easy.
-        exists x, x0.
-        apply H.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_subset : forall {A: eqType} f (L : seq A) d K,
-      (forall (x : A), (x \in L) -> forall ℓ, (ℓ <= d)%nat -> f x ℓ :<=: K) ->
-      interface_hierarchy_foreach f L d :<=: K.
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    induction d in H |- * at 1.
-    - apply interface_foreach_subset ; eauto.
-    - simpl.
-      rewrite fsubUset.
-      apply /andP ; split.
-      + apply IHn ; eauto.
-      + apply interface_foreach_subset ; eauto.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_subsetR : forall {A: eqType} f (L : seq A) d K,
-      (exists (x : A) (H_in : x \in L) ℓ (H_le : (ℓ <= d)%nat), K :<=: f x ℓ) ->
-      L <> [] ->
-      K :<=: interface_hierarchy_foreach f L d.
-  Proof.
-    intros.
-    unfold interface_hierarchy_foreach.
-    induction d in H |- * at 1.
-    - destruct H as [? [? [? []]]].
-      apply interface_foreach_subsetR.
-      2: easy.
-      exists x, x0.
-      destruct x1 ; [ | easy ].
-      apply H.
-    - simpl.
-      rewrite fsubsetU ; [ easy | ].
-      apply /orP.
-
-      destruct H as [? [? [? []]]].
-      destruct (x1 == n.+1) eqn:x_eq ; move: x_eq => /eqP x_eq ; subst.
-      + right.
-        clear IHn.
-        apply interface_foreach_subsetR.
-        2: easy.
-        exists x, x0.
-        apply H.
-      + left.
-        apply IHn.
-        exists x, x0, x1.
-        eexists ; [ Lia.lia | ].
-        apply H.
-  Qed.
-
-  Lemma interface_hierarchy_foreach_shift :
-    forall d k {index p} L,
-    interface_hierarchy_foreach (fun n ℓ => (fset [(serialize_name n ℓ k index, p)])) L d.+1 =
-      interface_foreach (fun n => fset [(serialize_name n O k index, p)]) L
-        :|: interface_hierarchy_foreach (fun n ℓ => fset [(serialize_name n (ℓ.+1) k index,p ) ]) L d
-  .
-  Proof.
-    intros.
-    induction d.
-    - simpl. reflexivity.
-    - unfold interface_hierarchy_foreach at 2.
-      unfold interface_hierarchy ; fold interface_hierarchy.
-      fold (interface_hierarchy_foreach (λ n ℓ, fset [(serialize_name n ℓ.+1 k index, p)]) L).
-      rewrite fsetUA.
-      rewrite fsetUC.
-      rewrite <- IHd.
-      rewrite fsetUC.
-      reflexivity.
-  Qed.
-
   (** ** Definitions *)
 
   Notation " 'chXTRinp' " :=
@@ -372,8 +187,14 @@ Section Core.
     (forall n x y, x ≠ y → idents (f x n) :#: idents (f y n)) ->
     (uniq L) ->
     (forall n x, flat (f x n)) ->
-    (forall n ℓ, (ℓ < n)%nat -> (n <= d)%nat -> ∀ x y, idents (f x ℓ) :#: idents (f y n)) ->
-    package fset0 (interface_hierarchy_foreach f L d) (interface_hierarchy_foreach f L d).
+    (forall n ℓ,
+        (ℓ < n)%nat ->
+        (n <= d)%nat ->
+        ∀ x y, idents (f x ℓ) :#: idents (f y n)) ->
+    package
+      fset0
+      (interface_hierarchy_foreach f L d)
+      (interface_hierarchy_foreach f L d).
   Proof.
     intros.
     refine (ℓ_packages d (fun x _ => parallel_ID d L (f^~ x) _ _ _) _ _).
@@ -400,9 +221,12 @@ Section Core.
 
   Lemma reindex_interface_hierarchy_PSK2 :
     forall d k,
-      (interface_hierarchy (λ n : nat, [interface #val #[SET PSK n k] : chUNQinp → chXTRout ]) d.+1)
+      (interface_hierarchy
+         (λ n : nat, [interface #val #[SET PSK n k] : chUNQinp → chXTRout ])
+         d.+1)
       =
-        ([interface #val #[SET PSK 0 k] : chUNQinp → chXTRout ] :|: interface_hierarchy
+        ([interface #val #[SET PSK 0 k] : chUNQinp → chXTRout ]
+           :|: interface_hierarchy
            (λ n : nat, [interface #val #[SET PSK (n.+1) k] : chUNQinp → chXTRout ])
            d).
   Proof.
@@ -417,8 +241,13 @@ Section Core.
       reflexivity.
   Qed.
 
-  Axiom Hash : bool -> package fset0 [interface] [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout].
-  Lemma trimmed_hash (b : bool) : (trimmed ([interface #val #[ HASH  f_hash ] : chHASHinp → chHASHout]) (Hash b)). Admitted.
+  Axiom Hash :
+    bool -> package fset0
+             [interface]
+             [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout].
+  Lemma trimmed_hash (b : bool) :
+    (trimmed ([interface #val #[ HASH  f_hash ] : chHASHinp → chHASHout]) (Hash b)).
+  Admitted.
 
   Definition Simulator d k :=
     (package
@@ -475,11 +304,13 @@ Section Core.
 
   Obligation Tactic := (* try timeout 8 *) idtac.
 
-  Program Definition XPD_ d k b key_b H_lt : package (L_K :|: L_L) [interface] (XPD_n d k) :=
+  Program Definition XPD_ d k b key_b H_lt
+    : package (L_K :|: L_L) [interface] (XPD_n d k) :=
     {package
        XPD_packages d k H_lt ∘
        (par
-          (Ks d.+1 k (H_lt) (undup (XPR ++ XPR_parents)) key_b erefl ∘ Ls k (undup (XPR ++ XPR_parents)) (fun _ => F) erefl)
+          (Ks d.+1 k (H_lt) (undup (XPR ++ XPR_parents)) key_b erefl
+             ∘ Ls k (undup (XPR ++ XPR_parents)) (fun _ => F) erefl)
           (Hash b))
        #with _
     }.
@@ -582,7 +413,9 @@ Section Core.
     solve_imfset_disjoint.
   Qed.
 
-  Definition XTR_ (d k : nat) (b : name -> bool) (key_b : nat -> name -> bool) (H_lt : (d <= k)%nat) : package (L_K :|: L_L) (fset [::]) (XTR_n d k).
+  Definition XTR_ (d k : nat) (b : name -> bool)
+    (key_b : nat -> name -> bool) (H_lt : (d <= k)%nat)
+    : package (L_K :|: L_L) (fset [::]) (XTR_n d k).
   Proof.
     refine {package XTR_packages d k b H_lt ∘
        (Ks d k H_lt (undup (XTR_parent_names ++ XTR_names)) key_b erefl ∘ Ls k (undup (XTR_parent_names ++ XTR_names)) (fun _ => Z) erefl)
@@ -645,18 +478,28 @@ Section Core.
     {package
        (par
           (XPD_ d k b_hash key_b H_lt)
-          (par (DH_package k ∘ (Ks d k (ltnW H_lt) [DH] key_b erefl ∘ Ls k [DH] (fun _ => F) erefl))
-             (XTR_packages d k b (ltnW H_lt) ∘ (Ks d k (ltnW H_lt) (undup (XTR_names ++ XTR_parent_names)) key_b erefl ∘ Ls k (undup (XTR_names ++ XTR_parent_names)) (fun _ => Z) erefl))))
-       ∘ (Ks d k (ltnW H_lt) O_star key_b erefl ∘ Ls k O_star (fun _ => Z) (erefl))}.
+          (par
+             (DH_package k
+                ∘ (Ks d k (ltnW H_lt) [DH] key_b erefl
+                     ∘ Ls k [DH] (fun _ => F) erefl))
+             (XTR_packages d k b (ltnW H_lt)
+                ∘ (Ks d k (ltnW H_lt)
+                     (undup (XTR_names ++ XTR_parent_names))
+                     key_b erefl
+                     ∘ Ls k
+                     (undup (XTR_names ++ XTR_parent_names))
+                     (fun _ => Z) erefl))))
+       ∘ (Ks d k (ltnW H_lt) O_star key_b erefl
+            ∘ Ls k O_star (fun _ => Z) (erefl))}.
   Final Obligation.
     intros.
     rewrite <- fsetUid.
     eapply valid_link.
     2: eapply valid_link ; apply pack_valid.
-
+    (* *)
     rewrite <- trimmed_dh.
     rewrite <- trimmed_xtr_package.
-
+    (* *)
     eapply valid_par_upto.
     2: apply pack_valid.
     2:{
@@ -671,11 +514,11 @@ Section Core.
           apply fsubsetU.
           apply /orP.
           left.
-
+          (* *)
           unfold SET_DH, SET_n.
           apply interface_hierarchy_subsetR.
           exists O, (leq0n d).
-
+          (* *)
           apply fsubsetxx.
         }
       }
@@ -692,7 +535,7 @@ Section Core.
             apply interface_hierarchy_subset_pairs.
             intros.
             unfold SET_ℓ.
-
+            (* *)
             apply interface_foreach_subset.
             intros.
             apply interface_foreach_subsetR.
@@ -709,7 +552,7 @@ Section Core.
             apply interface_hierarchy_subset_pairs.
             intros.
             unfold SET_ℓ.
-
+            (* *)
             apply interface_foreach_subset.
             intros.
             apply interface_foreach_subsetR.
@@ -728,7 +571,7 @@ Section Core.
         rewrite !link_trim_commut.
         solve_Parable.
         rewrite fdisjointC.
-
+        (* *)
         unfold XTR_n.
         unfold DH_interface.
         rewrite fdisjointC.
@@ -746,7 +589,7 @@ Section Core.
       rewrite <- trimmed_xpd_package.
       rewrite !link_trim_commut.
       solve_Parable.
-
+      (* *)
       {
         unfold XPD_n_ℓ.
         rewrite fdisjointC.
@@ -770,7 +613,7 @@ Section Core.
         intros.
         unfold idents, XPD_n_ℓ_f, XTR_n_ℓ_f.
         solve_imfset_disjoint.
-
+        (* *)
         rewrite !in_cons in H1.
         rewrite !in_cons in H2.
         repeat move: H1 => /orP [/eqP ? | H1 ] ; subst ; repeat move: H2 => /orP [/eqP ? | H2 ] ; subst ; now apply serialize_name_notin_different_name.
@@ -797,8 +640,9 @@ Section Core.
 
   Axiom level : chHandle -> nat.
 
-  (** [∀ n ∈ O]: the path from psk to n contains an [n' ∈ S.] *)
-  (** If there exists a path from [dh] to an [n ∈ O], then it contains an [n' ∈ S]. *)
+  (** [∀ n ∈ O]: the path from psk to n contains an [n' ∈ S.]
+      If there exists a path from [dh] to an [n ∈ O], then it contains an [n' ∈ S].
+   *)
   Definition seperation_points := [BIND].
   Definition early := [BIND].
 
@@ -853,7 +697,8 @@ Section Core.
 
   Lemma check_valid d (n : name) (ℓ : nat) :
     ValidPackage f_parameter_cursor_loc
-    (XPD_n_ℓ_f d n ℓ :|: [interface #val #[GET BINDER ℓ d] : chXPDout → chGETout ]) 
+      (XPD_n_ℓ_f d n ℓ
+         :|: [interface #val #[GET BINDER ℓ d] : chXPDout → chGETout ])
     (XPD_n_ℓ_f d n ℓ) (check_raw d n ℓ).
   Proof.
     unfold check_raw.
@@ -883,8 +728,9 @@ Section Core.
 
   Definition check d (n : name) (ℓ : nat) :
     package fset0
-            (XPD_n_ℓ_f d n ℓ :|: [interface #val #[ GET BINDER ℓ d ] : chGETinp → chGETout])
-            (XPD_n_ℓ_f d n ℓ) :=
+      (XPD_n_ℓ_f d n ℓ
+         :|: [interface #val #[ GET BINDER ℓ d ] : chGETinp → chGETout])
+      (XPD_n_ℓ_f d n ℓ) :=
     {package check_raw d n ℓ #with check_valid d n ℓ}.
 
   Definition G_check (d k : nat) (H_lt : (d <= k)%nat) :
@@ -970,7 +816,13 @@ Section Core.
 
   Definition I_star : seq name := [:: RM; ES; BIND; HS; AS; ESALT; HSALT].
 
-  Ltac solve_direct_in := rewrite !fsubUset ; repeat (apply /andP ; split) ; repeat (apply fsubsetxx || (apply fsubsetU ; apply /orP ; ((right ; apply fsubsetxx) || left))).
+  Ltac solve_direct_in :=
+    rewrite !fsubUset
+    ; repeat (apply /andP ; split)
+    ; repeat (apply fsubsetxx
+              || (apply fsubsetU
+                  ; apply /orP
+                  ; ((right ; apply fsubsetxx) || left))).
 
   Definition G_XTR_XPD (d k : nat) (b : name -> bool) (H_lt : (d < k)%nat) :
     package fset0
@@ -979,7 +831,12 @@ Section Core.
           :|: GET_n [ZERO_SALT] d k
           :|: GET_n [ZERO_IKM] d k
           :|: GET_n I_star d k)
-         :|: (SET_n I_star d k :|: SET_n O_star d k :|: interface_hierarchy (fun ℓ => [interface #val #[ SET PSK ℓ.+1 k ] : chSETinp → chSETout]) d)
+         :|:
+         (SET_n I_star d k
+            :|: SET_n O_star d k
+            :|: interface_hierarchy (fun ℓ =>
+                  [interface #val #[ SET PSK ℓ.+1 k ] : chSETinp → chSETout])
+                  d)
          :|: [interface #val #[ HASH f_hash ] : chHASHinp → chHASHout]
       )
       (XPD_n d k :|: XTR_n d k).
@@ -1053,25 +910,33 @@ Section Core.
       | |- context [ idents ?a :#: idents (?b :|: ?c) ] =>
           unfold idents at 2
           ; rewrite (imfsetU _ b c)
-          ; fold (idents b) ; fold (idents c)
+          ; fold (idents b)
+          ; fold (idents c)
           ; rewrite fdisjointUr
           ; apply /andP ; split
       | |- context [ idents (?a :|: ?b) :#: idents ?c ] =>
           unfold idents at 1
           ; rewrite (imfsetU _ a b)
-          ; fold (idents a) ; fold (idents b)
+          ; fold (idents a)
+          ; fold (idents b)
           ; rewrite fdisjointUl
           ; apply /andP ; split
-      | |- context [ idents (fset (?a :: ?b :: _)) ] => rewrite (fset_cons a)
+      | |- context [ idents (fset (?a :: ?b :: _)) ] =>
+          rewrite (fset_cons a)
       | |- context [ ?K :#: idents (interface_hierarchy ?f ?d) ] =>
           apply idents_interface_hierachy3 ; intros
       | |- context [ idents (interface_hierarchy ?f ?d) :#: ?K ] =>
-          rewrite fdisjointC ; apply idents_interface_hierachy3 ; intros
-      | |- context [ idents (interface_foreach ?f ?L) :#: idents (interface_foreach ?g ?K) ] =>
+          rewrite fdisjointC
+          ; apply idents_interface_hierachy3
+          ; intros
+      | |- context [ idents (interface_foreach ?f ?L)
+                       :#:
+                     idents (interface_foreach ?g ?K) ] =>
           apply idents_foreach_disjoint_foreach_in
           ; let H := fresh in
             intros ? H
-            ; now repeat (move: H => /orP [ /eqP ? | H ]) ; subst
+            ; now repeat (move: H => /orP [ /eqP ? | H ])
+            ; subst
       | |- context [ idents ?K :#: idents (interface_foreach ?f ?L) ] =>
           let H := fresh in
           apply idents_disjoint_foreach_in
@@ -1080,7 +945,9 @@ Section Core.
       (* ; repeat (move: H => /orP [ /eqP ? | H ]) ; subst *)
       | |- context [ idents (interface_foreach ?f ?L) :#: ?K ] =>
           rewrite fdisjointC
-      end ; unfold idents ; solve_imfset_disjoint.
+      end
+    ; unfold idents
+    ; solve_imfset_disjoint.
 
   Ltac solve_trimmed2 :=
     repeat match goal with
@@ -1358,7 +1225,7 @@ Section Core.
     }
 
     Unshelve.
-    (** Parable *)
+    (* Parable *)
     all: unfold G_dh, DH_package, combined_ID, parallel_ID, parallel_package.
     all: unfold G_XTR_XPD, XPD_packages, XTR_packages, G_check, Ks.
     all: unfold XTR_n_ℓ_f, XPD_n_ℓ_f.
@@ -1382,10 +1249,8 @@ Section Core.
     all: repeat destruct Logic.eq_sym.
 
     all: try now solve_Parable2.
-  Time Defined. (* 36.626 *)
+  (* Time *) Defined. (* 36.626 *)
   Fail Next Obligation.
-
-  Obligation Tactic := (* try timeout 8 *) idtac.
 
   Notation " 'chXTRinp' " :=
     (chHandle × chHandle)
@@ -1394,12 +1259,26 @@ Section Core.
     (chHandle)
       (in custom pack_type at level 2).
 
-  Program Definition KeysAndHash (d k : nat) (H_lt : (d < k)%nat) f_ks f_ls Names (Names_uniq : uniq Names)
+  Obligation Tactic := (* try timeout 8 *) idtac.
+
+  Program Definition KeysAndHash
+    (d k : nat) (H_lt : (d < k)%nat) f_ks f_ls Names
+    (Names_uniq : uniq Names)
     : package
         (L_K :|: L_L)
         [interface]
-        ((SET_n Names d k :|: SET_ℓ [PSK] k d.+1 :|: GET_n Names d k) :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) :=
-    {package (par (par (Ks d k (ltnW H_lt) Names f_ks Names_uniq ∘ Ls k Names f_ls Names_uniq) (K_package k PSK d.+1 H_lt false ∘ L_package k PSK Z)) (Hash true))}.
+        ((SET_n Names d k
+            :|: SET_ℓ [PSK] k d.+1
+            :|: GET_n Names d k)
+           :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]) :=
+    {package
+       (par
+          (par
+             (Ks d k (ltnW H_lt) Names f_ks Names_uniq
+                ∘ Ls k Names f_ls Names_uniq)
+             (K_package k PSK d.+1 H_lt false
+                ∘ L_package k PSK Z))
+          (Hash true))}.
   Next Obligation.
     intros.
     eapply valid_par_upto.
@@ -1448,19 +1327,28 @@ Section Core.
   Fail Next Obligation.
 
   Lemma subset_all (d k : nat) (H_lt : (d < k)%nat) :
-    interface_hierarchy_foreach
-    (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
-  :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
-       :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
-       :|: (SET_n I_star d k :|: SET_n O_star d k
-            :|: interface_hierarchy
-                  (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
-       :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ])
-  :|: (SET_ℓ [:: DH] k 0
-       :|: interface_foreach (λ n : name, [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
-             [:: PSK])
-  :<=: SET_n all_names d k :|: SET_ℓ [:: PSK] k d.+1 :|: GET_n all_names d k
-  :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ].
+    interface_hierarchy_foreach (λ (n : name) (ℓ : nat),
+        [interface #val #[GET n ℓ k] : chXTRout → chGETout ])
+        O_star d
+        :|: (GET_n [:: DH] d k
+               :|: GET_n [:: PSK] d k
+               :|: GET_n [:: ZERO_SALT] d k
+               :|: GET_n [:: ZERO_IKM] d k
+               :|: GET_n I_star d k
+               :|: (SET_n I_star d k
+                      :|: SET_n O_star d k
+                      :|: interface_hierarchy (λ ℓ : nat,
+                            [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ])
+                            d)
+               :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ])
+        :|: (SET_ℓ [:: DH] k 0
+               :|: interface_foreach (λ n : name,
+                     [interface #val #[SET n 0 k] : chUNQinp → chXTRout ])
+                     [:: PSK])
+        :<=: SET_n all_names d k
+          :|: SET_ℓ [:: PSK] k d.+1
+          :|: GET_n all_names d k
+          :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ].
   Proof.
     replace (interface_hierarchy_foreach _ _ _ :|: _ :|: _) with
       (interface_hierarchy_foreach
@@ -1562,26 +1450,49 @@ Section Core.
   Qed.
 
   Program Definition G_check_XTR_XPD (d k : nat) (H_lt : (d < k)%nat) f_XTR_XPD :
-    package fset0 (interface_hierarchy_foreach
-    (λ (n : name) (ℓ : nat), [interface #val #[GET n ℓ k] : chXTRout → chGETout ]) O_star d
-  :|: (GET_n [:: DH] d k :|: GET_n [:: PSK] d k :|: GET_n [:: ZERO_SALT] d k
-       :|: GET_n [:: ZERO_IKM] d k :|: GET_n I_star d k
-       :|: (SET_n I_star d k :|: SET_n O_star d k
-            :|: interface_hierarchy
-                  (λ ℓ : nat, [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ]) d)
-       :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ])) (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k) :=
+    package
+      fset0
+      (interface_hierarchy_foreach (λ (n : name) (ℓ : nat),
+           [interface #val #[GET n ℓ k] : chXTRout → chGETout ])
+           O_star d
+           :|: (GET_n [:: DH] d k
+                  :|: GET_n [:: PSK] d k
+                  :|: GET_n [:: ZERO_SALT] d k
+                  :|: GET_n [:: ZERO_IKM] d k
+                  :|: GET_n I_star d k
+                  :|: (SET_n I_star d k
+                         :|: SET_n O_star d k
+                         :|: interface_hierarchy (λ ℓ : nat,
+                               [interface #val #[SET PSK ℓ.+1 k] : chUNQinp → chXTRout ])
+                               d)
+                  :|: [interface #val #[HASH f_hash] : chHASHout → chHASHout ]))
+      (XPD_n d k :|: XTR_n d k :|: GET_n O_star d k) :=
     {package
        (par
           (G_check d k (ltnW H_lt))
           (par
-             (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout]) _ erefl _ _)
-             (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _))
+             (combined_ID d XTR_names
+                (fun n ℓ =>
+                   [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout])
+                _ erefl _ _)
+             (combined_ID d O_star
+                (fun n ℓ =>
+                   [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                _ erefl _ _))
           ∘ (par
-               (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _)
+               (combined_ID d O_star
+                  (fun n ℓ =>
+                     [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+                  _ erefl _ _)
                (G_XTR_XPD d k f_XTR_XPD H_lt)))
     }.
   Solve Obligations with intros ; solve_idents.
-  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _) => /eqP H ; inversion_clear H => /eqP H ; inversion_clear H.
+  Solve Obligations with
+    intros
+    ; now intros ? ? ?
+    ; rewrite !in_fset !(mem_seq1 _ _) => /eqP H
+    ; inversion_clear H => /eqP H
+    ; inversion_clear H.
   Next Obligation.
     intros.
     {
@@ -1668,25 +1579,37 @@ Section Core.
     }
   Qed.
 
-  Program Definition G_core_package_construction (d k : nat) (H_lt : (d < k)%nat) G_check_XTR_XPD_f KeysAndHash_Kf KeysAndHash_Lf :
-    package (L_K :|: L_L)
-            [interface]
-            (XPD_n d k
-               :|: DH_interface
-               :|: SET_ℓ [PSK] k 0
-               :|: XTR_n d k
-               :|: GET_n O_star d k) :=
+  Program Definition G_core_package_construction
+    (d k : nat) (H_lt : (d < k)%nat)
+    G_check_XTR_XPD_f
+    KeysAndHash_Kf
+    KeysAndHash_Lf
+    : package
+        (L_K :|: L_L)
+        [interface]
+        (XPD_n d k
+           :|: DH_interface
+           :|: SET_ℓ [PSK] k 0
+           :|: XTR_n d k
+           :|: GET_n O_star d k) :=
     {package
        (par
           (G_check_XTR_XPD d k H_lt G_check_XTR_XPD_f)
           (par
              (G_dh d k (ltnW H_lt))
-             (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _)
+             (parallel_ID k [:: PSK]
+                (fun n =>
+                   [interface #val #[ SET n 0 k ] : chSETinp → chSETout])
+                _ erefl _)
           )
-       ) ∘ (KeysAndHash d k H_lt KeysAndHash_Kf KeysAndHash_Lf  all_names erefl)
+       ) ∘ (KeysAndHash d k H_lt KeysAndHash_Kf KeysAndHash_Lf all_names erefl)
     }.
   Solve Obligations with intros ; solve_idents.
-  Solve Obligations with intros ; now intros ? ? ? ; rewrite !in_fset !(mem_seq1 _ _)  => /eqP H ; inversion_clear H => /eqP H ; inversion_clear H.
+  Solve Obligations with intros
+    ; now intros ? ? ?
+    ; rewrite !in_fset !(mem_seq1 _ _)  => /eqP H
+    ; inversion_clear H => /eqP H
+    ; inversion_clear H.
   Next Obligation.
     intros.
 
@@ -1762,7 +1685,7 @@ Section Core.
       destruct Logic.eq_sym.
       solve_Parable2.
     }
-  Time Qed.
+  (* Time *) Qed.
   Fail Next Obligation.
 
   (** Page 70 *)
@@ -1774,7 +1697,10 @@ Section Core.
                :|: SET_ℓ [PSK] k 0
                :|: XTR_n d k
                :|: GET_n O_star d k) :=
-    G_core_package_construction d k H_lt (fun _ => false) (fun _ _ => false) (fun _ => Z).
+    G_core_package_construction d k H_lt
+      (fun _ => false)
+      (fun _ _ => false)
+      (fun _ => Z).
 
   Definition G_core_D (d k : nat) (H_lt : (d < k)%nat) :
     package (L_K :|: L_L)
@@ -1784,7 +1710,10 @@ Section Core.
                :|: SET_ℓ [PSK] k 0
                :|: XTR_n d k
                :|: GET_n O_star d k) :=
-    G_core_package_construction d k H_lt (fun _ => false) (fun _ _ => false) (fun _ => D).
+    G_core_package_construction d k H_lt
+      (fun _ => false)
+      (fun _ _ => false)
+      (fun _ => D).
 
   Definition G_core_R_esalt (d k : nat) (H_lt : (d < k)%nat) :
     package (L_K :|: L_L)
@@ -1794,7 +1723,10 @@ Section Core.
                :|: SET_ℓ [PSK] k 0
                :|: XTR_n d k
                :|: GET_n O_star d k) :=
-    G_core_package_construction d k H_lt (fun _ => false) (fun _ _ => false) (fun name => match name with | ESALT => R | _ => D end).
+    G_core_package_construction d k H_lt
+      (fun _ => false)
+      (fun _ _ => false)
+      (fun name => match name with | ESALT => R | _ => D end).
 
   Definition G_core_SODH (d k : nat) (H_lt : (d < k)%nat) :
     package (L_K :|: L_L)
@@ -1804,9 +1736,15 @@ Section Core.
                :|: SET_ℓ [PSK] k 0
                :|: XTR_n d k
                :|: GET_n O_star d k) :=
-    G_core_package_construction d k H_lt (fun name => match name with HS => true | _ => false end) (fun _ _ => false) (fun name => match name with | ESALT => R | _ => D end).
+    G_core_package_construction d k H_lt
+      (fun name => match name with HS => true | _ => false end)
+      (fun _ _ => false)
+      (fun name => match name with | ESALT => R | _ => D end).
 
-  Definition N_star := [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM; ZERO_SALT; ESALT; ZERO_IKM].
+  Definition N_star :=
+    [ES; EEM; CET; BIND; BINDER; HS; SHT; CHT; HSALT; AS; RM;
+     CAT; SAT; EAM; ZERO_SALT; ESALT; ZERO_IKM].
+
   Lemma N_star_correct :
     (forall x, (x \in all_names /\ x \notin [PSK; DH]) <-> x \in N_star).
   Proof.
@@ -1838,7 +1776,9 @@ Section Core.
       (fun name => match name with | ESALT => R | _ => D end).
 
   (** Idealization order (hybridazation argument for a given level) *)
-  Definition G_core_hyb_pred_ℓ_c (d k : nat) (H_lt : (d < k)%nat) (i : nat) (C : list name) :
+
+  Definition G_core_hyb_pred_ℓ_c
+    (d k : nat) (H_lt : (d < k)%nat) (i : nat) (C : list name) :
     package (L_K :|: L_L)
             [interface]
             (XPD_n d k

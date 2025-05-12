@@ -204,54 +204,51 @@ Section CoreTheorem.
          :|: DH_interface
          :|: SET_ℓ [PSK] k 0
          :|: XTR_n d k
-         :|: GET_n O_star d k) :=
-    fun n_in_xpr => {package
-       (par
-          (G_check_XTR_XPD _ _ _ _)
-          (par
-             (G_dh d k (ltnW H_lt))
-             (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _)
-          )
-       ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name =>
-                if (name \in XTR_names)
-                then
-                  if (ℓ_i.+1 <=? ℓ)%nat then false else true
-                else false)
-              (fun name => match name with | ESALT => R | _ => D end) all_names erefl)
-      }.
-  Next Obligation.
-    cbn.
-    
+         :|: GET_n O_star d k). (* := *)
+    (* fun n_in_xpr => {package *)
+    (*    (par *)
+    (*       (G_check_XTR_XPD _ _ _ _) *)
+    (*       (par *)
+    (*          (G_dh d k (ltnW H_lt)) *)
+    (*          (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _) *)
+    (*       ) *)
+    (*    ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name => *)
+    (*             if (name \in XTR_names) *)
+    (*             then *)
+    (*               if (ℓ_i.+1 <=? ℓ)%nat then false else true *)
+    (*             else false) *)
+    (*           (fun name => match name with | ESALT => R | _ => D end) all_names erefl) *)
+    (*   }. *)
   Proof.
-    intros.
+    (* intros. *)
 
-    (* epose (G_check_XTR_XPD := *)
-    (*         {package *)
-    (*            (par *)
-    (*               (G_check d k (ltnW H_lt)) *)
-    (*               (par *)
-    (*                  (combined_ID d XTR_names (XTR_n_ℓ_f k) _ erefl _ _) *)
-    (*                  (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _)) *)
-    (*               ∘ (par *)
-    (*                    (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _) *)
-    (*                    (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt))) *)
-    (*       }). *)
+    (* (* epose (G_check_XTR_XPD := *) *)
+    (* (*         {package *) *)
+    (* (*            (par *) *)
+    (* (*               (G_check d k (ltnW H_lt)) *) *)
+    (* (*               (par *) *)
+    (* (*                  (combined_ID d XTR_names (XTR_n_ℓ_f k) _ erefl _ _) *) *)
+    (* (*                  (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _)) *) *)
+    (* (*               ∘ (par *) *)
+    (* (*                    (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _) *) *)
+    (* (*                    (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt))) *) *)
+    (* (*       }). *) *)
 
-    refine {package
-       (par
-          (G_check_XTR_XPD _ _ _ _)
-          (par
-             (G_dh d k (ltnW H_lt))
-             (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _)
-          )
-       ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name =>
-                if (name \in XTR_names)
-                then
-                  if (ℓ_i.+1 <=? ℓ)%nat then false else true
-                else false)
-              (fun name => match name with | ESALT => R | _ => D end) all_names erefl)
-      }.
-    ssprove_valid.
+    (* refine {package *)
+    (*    (par *)
+    (*       (G_check_XTR_XPD _ _ _ _) *)
+    (*       (par *)
+    (*          (G_dh d k (ltnW H_lt)) *)
+    (*          (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _) *)
+    (*       ) *)
+    (*    ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name => *)
+    (*             if (name \in XTR_names) *)
+    (*             then *)
+    (*               if (ℓ_i.+1 <=? ℓ)%nat then false else true *)
+    (*             else false) *)
+    (*           (fun name => match name with | ESALT => R | _ => D end) all_names erefl) *)
+    (*   }. *)
+    (* ssprove_valid. *)
   Admitted.
 
   Definition R_pi (L : list name) :
