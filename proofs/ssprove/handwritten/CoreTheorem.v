@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -79,7 +81,6 @@ From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
 
 From KeyScheduleTheorem Require Import Core.
-(* From KeyScheduleTheorem Require Import MapPackage. *)
 
 (** * Core theorem *)
 
@@ -88,6 +89,54 @@ Section CoreTheorem.
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
+  (** ** Set and operation from paper *)
+  Definition SblngN (n : name) : list name :=
+    filter (fun n' =>
+              (nfto (fst (PrntN n)) == nfto (fst (PrntN n')))
+              && (nfto (snd (PrntN n)) == nfto (snd (PrntN n'))))
+      all_names.
+
+  Definition ChldrN (n : name) : list name :=
+    filter
+      (fun n' =>
+         (n == nfto (fst (PrntN n')))
+         || (n == nfto (snd (PrntN n'))))
+      all_names.
+
+  Inductive POp :=
+  | base_op
+  | xtr_op
+  | xpd_op
+  | out_op.
+
+  Definition PrntOp (n : name) : POp :=
+    match (nfto (fst (PrntN n)), nfto (snd (PrntN n))) with
+    | (BOT, BOT) => base_op
+    | (_, BOT) => xpd_op
+    | _ => xtr_op
+    end.
+
+  Definition ChldrOp (n : name) : POp :=
+    match ChldrN n with
+    | [] => out_op
+    | (x :: _) => PrntOp x
+    end.
+
+  HB.instance Definition _ : Equality.axioms_ name :=
+    {|
+      Equality.eqtype_hasDecEq_mixin :=
+        {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
+    |}.
+
+  Definition n1 n := nfto (fst (PrntN n)).
+  Definition CN n := ChldrN (n1 n).
+  Definition E n := n1 n :: CN n.
+  Definition eN_star n := filter (fun x => x \notin E n) (N_star).
+  Definition eI_star n := filter (fun x => x \notin E n) (I_star).
+  Definition eO_star n := filter (fun x => x \notin E n) (O_star).
+  Definition eXPN n := filter (fun x => x \notin CN n) (XTR_names).
+
+  (** ** Definitions of reductions *)
 
   Definition Gacr (f : HashFunction) (b : bool) :
     package fset0
@@ -138,93 +187,72 @@ Section CoreTheorem.
   Proof.
   Admitted.
 
-  Definition SblngN (n : name) : list name :=
-    filter (fun n' =>
-              (nfto (fst (PrntN n)) == nfto (fst (PrntN n')))
-           && (nfto (snd (PrntN n)) == nfto (snd (PrntN n')))) all_names.
-
-  Definition ChldrN (n : name) : list name :=
-    filter (fun n' => (n == nfto (fst (PrntN n'))) || (n == nfto (snd (PrntN n')))) all_names.
-
-  Inductive POp :=
-  | base_op
-  | xtr_op
-  | xpd_op
-  | out_op.
-  Definition PrntOp (n : name) : POp :=
-    match (nfto (fst (PrntN n)), nfto (snd (PrntN n))) with
-    | (BOT, BOT) => base_op
-    | (_, BOT) => xpd_op
-    | _ => xtr_op
-    end.
-
-  Definition ChldrOp (n : name) : POp :=
-    match ChldrN n with
-    | [] => out_op
-    | (x :: _) => PrntOp x
-    end.
-
-  HB.instance Definition _ : Equality.axioms_ name :=
-    {|
-      Equality.eqtype_hasDecEq_mixin :=
-        {| hasDecEq.eq_op := name_eq; hasDecEq.eqP := name_equality |}
-    |}.
-
-  Definition n1 n := nfto (fst (PrntN n)).
-  Definition CN n := ChldrN (n1 n).
-  Definition E n := n1 n :: CN n.
-  Definition eN_star n := filter (fun x => x \notin E n) (N_star).
-  Definition eI_star n := filter (fun x => x \notin E n) (I_star).
-  Definition eO_star n := filter (fun x => x \notin E n) (O_star).
-  Definition eXPN n := filter (fun x => x \notin CN n) (XTR_names).
-
   (* R_{n,ℓ}, n \ in XPN \ (PSK,ESALT) (Fig. 34 p. 79) *)
-  Definition R_xpd d k (H_lt : (d < k)%nat) (n : name) (ℓ : nat) :
+  Program Definition R_xpd d k (H_lt : (d < k)%nat) (n : name) (ℓ : nat) :
     n \in XPR ->
     (* n \notin [PSK; ESALT] -> *)
     package (L_K :|: L_L)
-      ([interface #val #[HASH f_hash] : chHASHout → chHASHout ] :|: (interface_foreach (fun n => XPD_n_ℓ_f k n ℓ) (CN n)) :|: GET_ℓ (CN n) k ℓ :|: SET_ℓ [(n1 n)] k ℓ)
-      (((interface_hierarchy_foreach (XPD_n_ℓ_f k) XPR (ℓ.-1)) :|: (interface_hierarchy_foreach (fun n ℓ_off => XPD_n_ℓ_f k n (ℓ.+1 + ℓ_off)) XPR (d - (ℓ.+1))))
+      ([interface #val #[HASH f_hash] : chHASHout → chHASHout ]
+         :|: (interface_foreach (fun n => XPD_n_ℓ_f k n ℓ) (CN n))
+         :|: GET_ℓ (CN n) k ℓ
+         :|: SET_ℓ [(n1 n)] k ℓ)
+      (((interface_hierarchy_foreach (XPD_n_ℓ_f k) XPR (ℓ.-1))
+          :|: (interface_hierarchy_foreach
+                 (fun n ℓ_off => XPD_n_ℓ_f k n (ℓ.+1 + ℓ_off))
+                 XPR
+                 (d - (ℓ.+1))))
          :|: DH_interface
          :|: SET_ℓ [PSK] k 0
          :|: XTR_n d k
-         :|: GET_n O_star d k).
+         :|: GET_n O_star d k) :=
+    fun n_in_xpr => {package
+       (par
+          (G_check_XTR_XPD _ _ _ _)
+          (par
+             (G_dh d k (ltnW H_lt))
+             (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _)
+          )
+       ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name =>
+                if (name \in XTR_names)
+                then
+                  if (ℓ_i.+1 <=? ℓ)%nat then false else true
+                else false)
+              (fun name => match name with | ESALT => R | _ => D end) all_names erefl)
+      }.
+  Next Obligation.
+    cbn.
+    
   Proof.
-    (* intros. *)
+    intros.
 
     (* epose (G_check_XTR_XPD := *)
     (*         {package *)
     (*            (par *)
     (*               (G_check d k (ltnW H_lt)) *)
     (*               (par *)
-    (*                  (combined_ID d XTR_names (fun n ℓ => [interface #val #[ XTR n ℓ k ] : chXTRinp → chXTRout]) _ erefl _ _) *)
+    (*                  (combined_ID d XTR_names (XTR_n_ℓ_f k) _ erefl _ _) *)
     (*                  (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _)) *)
     (*               ∘ (par *)
     (*                    (combined_ID d O_star (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) _ erefl _ _) *)
     (*                    (G_XTR_XPD d k (fun name => match name with HS => true | _ => false end) H_lt))) *)
     (*       }). *)
 
-    (* epose {package *)
-    (*    (par *)
-    (*       (G_check_XTR_XPD) *)
-    (*       (par *)
-    (*          (G_dh d k (ltnW H_lt)) *)
-    (*          (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _) *)
-    (*       ) *)
-    (*    ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name => *)
-    (*             if (name \in XTR_names) *)
-    (*             then *)
-    (*               if (ℓ_i.+1 <=? ℓ)%nat then false else true *)
-    (*             else false) *)
-    (*           (fun name => match name with | ESALT => R | _ => D end) all_names erefl) *)
-    (*   }. *)
+    refine {package
+       (par
+          (G_check_XTR_XPD _ _ _ _)
+          (par
+             (G_dh d k (ltnW H_lt))
+             (parallel_ID k [:: PSK] (fun n => [interface #val #[ SET n 0 k ] : chSETinp → chSETout]) _ erefl _)
+          )
+       ) ∘ (KeysAndHash d k H_lt (fun ℓ_i name =>
+                if (name \in XTR_names)
+                then
+                  if (ℓ_i.+1 <=? ℓ)%nat then false else true
+                else false)
+              (fun name => match name with | ESALT => R | _ => D end) all_names erefl)
+      }.
+    ssprove_valid.
   Admitted.
-
-  (* Definition R_xpd (n : name) (ℓ : nat) : *)
-  (*   n \in XPR -> *)
-  (*   package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface]. *)
-  (* Proof. *)
-  (* Admitted. *)
 
   Definition R_pi (L : list name) :
     package fset0 [interface] (* [#val #[ HASH_ f ] : chHASHinp → chHASHout] *) [interface].
@@ -248,7 +276,7 @@ Section CoreTheorem.
          (* #val #[ SODH ] : 'unit → 'unit *)
       ].
 
-  (* Fig. 24(a), p. 40 *)
+  (** Fig. 24(a), p. 40 *)
   Definition Gxpd :
     forall (d k : nat),
       (d < k)%nat ->
@@ -259,7 +287,9 @@ Section CoreTheorem.
          :|: SET_ℓ [n1 n] k ℓ
          :|: interface_foreach (fun n => XPD_n_ℓ_f k n ℓ) (CN n)
          :|: GET_ℓ (CN n) k ℓ
-         :|: interface_foreach (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout]) (CN n)
+         :|: interface_foreach
+               (fun n => [interface #val #[ UNQ n k ] : chUNQinp → chUNQout])
+               (CN n)
       ).
   Proof.
   Admitted.
@@ -277,6 +307,8 @@ Section CoreTheorem.
   Axiom Ai : raw_package -> bool -> raw_package.
   Axiom R_sodh : package fset0 [interface] [interface].
 
+  (** ** D2-D7 and Core Theorem *)
+
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1683>D2</a># *)
   Lemma d2 :
     forall (d k : nat) H_lt,
@@ -290,7 +322,7 @@ Section CoreTheorem.
     intros.
   Admitted.
 
-  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1684>D4</a># *)
+  (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1684>D3</a># *)
   Lemma d3 :
     forall (d k : nat) H_lt,
     (* forall (Score : Simulator d k), *)
@@ -312,7 +344,10 @@ Section CoreTheorem.
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
       (AdvantageE (G_core_R_esalt d k H_lt) (G_core d k true H_lt) A
-       <= maxR (fun i => AdvantageE (G_core_D d k H_lt) (G_core d k true H_lt) (Ai A i)))%R.
+       <= maxR (fun i => AdvantageE
+                       (G_core_D d k H_lt)
+                       (G_core d k true H_lt)
+                       (Ai A i)))%R.
   Proof.
     intros.
   Admitted.
@@ -330,13 +365,23 @@ Section CoreTheorem.
   Admitted.
 
   (** Idealization order *)
-  Fixpoint idealization_loop (fuel : nat) (ioc : list name) {struct fuel} : list (list name) :=
+  Fixpoint idealization_loop (fuel : nat) (ioc : list name) {struct fuel}
+    : list (list name) :=
     match fuel with
     | O => []
     | S fuel =>
         if ioc != all_names
         then
-          match (filter (fun n => (n \notin ioc) && (let (n1, n2) := PrntN n in ((nfto n1 \in ioc) || (nfto n1 == BOT)) && ((nfto n2 \in ioc) || (nfto n2 == BOT)) && (all (fun sn => sn \notin ioc) (SblngN n)))) all_names) with
+          match
+            filter
+              (fun n =>
+                 (n \notin ioc)
+                 && (let (n1, n2) := PrntN n in
+                     ((nfto n1 \in ioc) || (nfto n1 == BOT))
+                     && ((nfto n2 \in ioc) || (nfto n2 == BOT))
+                     && (all (fun sn => sn \notin ioc) (SblngN n))))
+              all_names
+          with
           | [] => []
           | (n_c :: xs) =>
               [ioc ++ SblngN n_c] ++ idealization_loop fuel (ioc ++ SblngN n_c)
@@ -344,6 +389,7 @@ Section CoreTheorem.
         else []
     end.
 
+    (* begin details *)
   Lemma idealization_order_one_iter :
     forall fuel ioc,
       idealization_loop fuel.+1 ioc =
@@ -371,6 +417,7 @@ Section CoreTheorem.
         then a :: filter f x
         else filter f x.
   Proof. reflexivity. Qed.
+(* end details *)
 
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##figure.caption.1806>Idealization order</a># *)
 
@@ -383,76 +430,33 @@ Section CoreTheorem.
   Definition IdealizationOrderPreCompute :=
     [:: [::];
      [:: PSK; ZERO_SALT; DH; ZERO_IKM];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT; AS];
-       [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM]].
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT; AS];
+     [:: PSK; ZERO_SALT; DH; ZERO_IKM; ES; EEM; CET; BIND; ESALT; BINDER; HS; SHT; CHT; HSALT; AS; RM; CAT; SAT; EAM]].
 
-  Definition smpl_PrntN (n : name) : name * name :=
-    let (a,b) :=
-      match n with
-      | ES => (ZERO_SALT, PSK)
-      | EEM | CET | ESALT | BIND => (ES, BOT)
-      | BINDER => (BIND, BOT)
-      | HS => (ESALT, DH)
-      | SHT | CHT | HSALT => (HS, BOT)
-      | AS => (HSALT, ZERO_IKM)
-      | CAT | SAT | RM | EAM => (AS, BOT)
-      | PSK => (RM, BOT)
-      | _ => (BOT, BOT)
-      end
-    in (a,b).
+  (* begin details *)
+  Lemma filter_nil {A} {a : pred A} : filter a [::] = [::].
+  Proof. reflexivity. Qed.
 
-  Lemma PrntN_project_to_smpl_PrntN
-    : (forall n, nfto (PrntN n).1 = (smpl_PrntN n).1 /\ nfto (PrntN n).2 = (smpl_PrntN n).2).
-        {
-          intros.
-          unfold PrntN.
-          destruct n.
-          all: now rewrite !nfto_name_to_chName_cancel.
-        }
-  Qed.
-
-  Ltac solve_idealization_order_step :=
-    (rewrite idealization_order_one_iter ;
-     unfold last ; simpl (_ != _) ; hnf ;
-     unfold all_names ;
-
-     repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
-
-     unfold SblngN at 1 ;
-     unfold all_names ;
-
-     repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
-     rewrite eqxx ;
-
-     unfold all ;
-     simpl (if _ then _ else _) ;
-     hnf ;
-      unfold SblngN ;
-      unfold all_names ;
-      repeat (rewrite filter_cons ; simpl (_ && _) ; try rewrite !nfto_name_to_chName_cancel ; simpl (_ && _) ; hnf) ; unfold filter ;
-      rewrite eqxx ;
-
-      simpl cat).
-  
-  Opaque idealization_loop.
-
-  Lemma filter_nil {A} {a : pred A} : filter a [::] = [::]. Proof. reflexivity. Qed.
-  Lemma notin_nil {A : eqType} {a : A} : a \notin [::] = true. Proof. reflexivity. Qed.
+  Lemma notin_nil {A : eqType} {a : A} : a \notin [::] = true.
+  Proof. reflexivity. Qed.
 
   Ltac unfold_SblngN :=
-    unfold SblngN, all_names ;
-    repeat ((rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ;
-           replace (_ == _) with false by reflexivity ; rewrite Bool.andb_false_l)
-          || (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel ;
-             replace (_ == _) with true by reflexivity ; rewrite Bool.andb_true_l ;
-             replace (_ == _) with true by reflexivity)) ;
-    rewrite filter_nil ;
-    reflexivity.
+    unfold SblngN, all_names
+    ; repeat ((rewrite filter_cons
+               ; rewrite !nfto_name_to_chName_cancel
+               ; replace (_ == _) with false by reflexivity
+               ; rewrite Bool.andb_false_l)
+              || (rewrite filter_cons ; rewrite !nfto_name_to_chName_cancel
+                 ; replace (_ == _) with true by reflexivity
+                 ; rewrite Bool.andb_true_l
+                 ; replace (_ == _) with true by reflexivity))
+    ; rewrite filter_nil
+    ; reflexivity.
 
   Ltac compute_SblngN :=
     let l := fresh in
@@ -467,6 +471,7 @@ Section CoreTheorem.
     || (rewrite filter_cons ; compute_SblngN ; (* doing simpl (_ && _) here makes QED slow *) replace (_ && _) with false by reflexivity ; hnf) ;
     compute_SblngN ;
     cbn zeta.
+  (* end details *)
 
   Lemma compute_eq : (IdealizationOrder = IdealizationOrderPreCompute).
   Proof.
@@ -577,9 +582,11 @@ Section CoreTheorem.
       % Adv(\mathcal{A}, \mathtt{Gks}^{hyb:\ell,c}, \mathtt{Gks}^{hyb:\ell,c+1}) \leq Adv(\mathcal{A} \rightarrow \mathtt{R}_{n,\ell}, \mathtt{Gxpd}^{b}_{n,\ell}) %
    *)
   Lemma d14 :
-    forall d k H_lt ℓ c A n (_ : ChldrOp (nfto (fst (PrntN n))) = xpd_op) (H_in_xpr : n \in XPR),
+    forall d k H_lt ℓ c A n (_ : ChldrOp (nfto (fst (PrntN n))) = xpd_op)
+      (H_in_xpr : n \in XPR),
       ((nfto (fst (PrntN n))) \notin nth [] IdealizationOrderPreCompute c.-1) ->
-      ((c == O) || ((nfto (fst (PrntN n))) \in nth [] IdealizationOrderPreCompute c.+1)) ->
+      ((c == O)
+       || ((nfto (fst (PrntN n))) \in nth [] IdealizationOrderPreCompute c.+1)) ->
       (AdvantageE
         (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute c))
         (G_core_hyb_pred_ℓ_c d k H_lt ℓ (nth [] IdealizationOrderPreCompute c.+1))
@@ -754,7 +761,10 @@ Section CoreTheorem.
        <= Advantage (Gxtr d k H_lt ES ℓ) (A ∘ R_xtr ES ℓ erefl) +
          Advantage (Gxtr d k H_lt HS ℓ) (A ∘ R_xtr HS ℓ erefl) +
          Advantage (Gxtr d k H_lt AS ℓ) (A ∘ R_xtr AS ℓ erefl) +
-           sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (A ∘ R_xpd d k H_lt n ℓ H_in))%R
+           sumR_l_in_rel XPR XPR (fun _ H => H)
+             (fun n H_in => Advantage
+                           (Gxpd d k H_lt n ℓ)
+                           (A ∘ R_xpd d k H_lt n ℓ H_in))%R
       )%R.
   Proof.
     intros.
@@ -1054,7 +1064,11 @@ Section CoreTheorem.
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
       (AdvantageE (G_core_hyb_ℓ d k H_lt 0) (G_core_hyb_ℓ d k H_lt d) (Ai A i)
-       <= sumR 0 d (leq0n d) (fun ℓ => AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt (ℓ+1)) (Ai A i))
+       <= sumR 0 d (leq0n d)
+           (fun ℓ => AdvantageE
+                    (G_core_hyb_ℓ d k H_lt ℓ)
+                    (G_core_hyb_ℓ d k H_lt (ℓ+1))
+                    (Ai A i))
       )%R.
   Proof.
     intros.
@@ -1125,26 +1139,8 @@ Section CoreTheorem.
       (Ls k all_names
          (λ name : ExtraTypes.name,
              match name as name' return (name' = name → ZAF) with
-             | BOT => λ _ : BOT = name, D
-             | ES => λ _ : ES = name, D
-             | EEM => λ _ : EEM = name, D
-             | CET => λ _ : CET = name, D
-             | BIND => λ _ : BIND = name, D
-             | BINDER => λ _ : BINDER = name, D
-             | HS => λ _ : HS = name, D
-             | SHT => λ _ : SHT = name, D
-             | CHT => λ _ : CHT = name, D
-             | HSALT => λ _ : HSALT = name, D
-             | AS => λ _ : AS = name, D
-             | RM => λ _ : RM = name, D
-             | CAT => λ _ : CAT = name, D
-             | SAT => λ _ : SAT = name, D
-             | EAM => λ _ : EAM = name, D
-             | PSK => λ _ : PSK = name, D
-             | ZERO_SALT => λ _ : ZERO_SALT = name, D
              | ESALT => λ _ : ESALT = name, R
-             | DH => λ _ : DH = name, D
-             | ZERO_IKM => λ _ : ZERO_IKM = name, D
+             | _ => λ _ : _ = name, D
              end erefl) erefl) A = 0%R.
   Proof.
     intros.
@@ -1271,7 +1267,11 @@ Section CoreTheorem.
       ValidPackage LA (KS_interface d k) A_export A →
       (AdvantageE (G_core_SODH d k H_lt) (G_core d k true H_lt) (Ai A i)
        <= AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i)
-         +sumR 0 d (leq0n d) (fun ℓ => AdvantageE (G_core_hyb_ℓ d k H_lt ℓ) (G_core_hyb_ℓ d k H_lt (ℓ + 1)) (Ai A i))
+         +sumR 0 d (leq0n d)
+            (fun ℓ => AdvantageE
+                     (G_core_hyb_ℓ d k H_lt ℓ)
+                     (G_core_hyb_ℓ d k H_lt (ℓ + 1))
+                     (Ai A i))
       )%R.
   Proof.
     intros.
@@ -1307,16 +1307,22 @@ Section CoreTheorem.
     forall (LA : {fset Location}) (A : raw_package),
       ValidPackage LA (KS_interface d k) A_export A →
       (AdvantageE (G_core_ki d k H_lt) (G_core d k true H_lt) (Ai A i)
-       <= Advantage (λ x : bool, Gpi d k H_lt [:: ESALT] R x) (Ai A i ∘ R_pi [:: ESALT]) +
-   Advantage (λ x : bool, Gpi d k H_lt O_star R x) (Ai A i ∘ R_pi O_star)
+       <= Advantage
+           (λ x : bool, Gpi d k H_lt [:: ESALT] R x)
+           (Ai A i ∘ R_pi [:: ESALT]) +
+         Advantage
+           (λ x : bool, Gpi d k H_lt O_star R x)
+           (Ai A i ∘ R_pi O_star)
       )%R.
   Proof.
     intros.
   Admitted.
 
+  (* begin details *)
   Axiom sumR_leq : forall l u H_range f g,
       (forall ℓ, (ℓ <= u)%nat -> f ℓ <= g ℓ)%R ->
       (sumR l u H_range f <= sumR l u H_range g)%R.
+  (* end details *)
 
   (** #<a href=https://eprint.iacr.org/2021/467.pdf##lemma.1679>D1</a># : Core theorem *)
   Lemma core_theorem :
@@ -1327,16 +1333,26 @@ Section CoreTheorem.
       (AdvantageE
          (G_core d k false H_lt)
          (G_core d k true H_lt) (A)
-       <= sumR_l [(R_cr, f_hash); (R_Z f_xtr, f_xtr); (R_Z f_xpd, f_xpd); (R_D f_xtr, f_xtr); (R_D f_xpd, f_xpd)] (fun R_hash_fn => Advantage (Gacr (snd R_hash_fn)) (A ∘ (fst R_hash_fn)))
-         +maxR (fun i =>
-                  Advantage (Gsodh d k H_lt) (Ai A i ∘ R_sodh) +
-                    Advantage (Gpi d k H_lt [ESALT] R) (Ai A i ∘ R_pi [ESALT]) +
-                    Advantage (Gpi d k H_lt O_star R) (Ai A i ∘ R_pi O_star) +
-                    sumR 0 d (leq0n d) (fun ℓ =>
-                                          Advantage (Gxtr d k H_lt ES ℓ) (Ai A i ∘ R_xtr ES ℓ erefl) +
-                                          Advantage (Gxtr d k H_lt HS ℓ) (Ai A i ∘ R_xtr HS ℓ erefl) +
-                                          Advantage (Gxtr d k H_lt AS ℓ) (Ai A i ∘ R_xtr AS ℓ erefl) +
-                                            sumR_l_in_rel XPR XPR (fun _ H => H) (fun n H_in => Advantage (Gxpd d k H_lt n ℓ) (Ai A i ∘ R_xpd d k H_lt n ℓ H_in))%R)
+       <= sumR_l
+           [(R_cr, f_hash);
+            (R_Z f_xtr, f_xtr);
+            (R_Z f_xpd, f_xpd);
+            (R_D f_xtr, f_xtr);
+            (R_D f_xpd, f_xpd)]
+           (fun R_hash_fn =>
+             Advantage (Gacr (snd R_hash_fn)) (A ∘ (fst R_hash_fn))) +
+             maxR (fun i =>
+               Advantage (Gsodh d k H_lt) (Ai A i ∘ R_sodh) +
+               Advantage (Gpi d k H_lt [ESALT] R) (Ai A i ∘ R_pi [ESALT]) +
+               Advantage (Gpi d k H_lt O_star R) (Ai A i ∘ R_pi O_star) +
+               sumR 0 d (leq0n d) (fun ℓ =>
+                 Advantage (Gxtr d k H_lt ES ℓ) (Ai A i ∘ R_xtr ES ℓ erefl) +
+                 Advantage (Gxtr d k H_lt HS ℓ) (Ai A i ∘ R_xtr HS ℓ erefl) +
+                 Advantage (Gxtr d k H_lt AS ℓ) (Ai A i ∘ R_xtr AS ℓ erefl) +
+                 sumR_l_in_rel XPR XPR (fun _ H => H)
+                   (fun n H_in => Advantage
+                                 (Gxpd d k H_lt n ℓ)
+                                 (Ai A i ∘ R_xpd d k H_lt n ℓ H_in))%R)
       ))%R.
   Proof.
     intros.
