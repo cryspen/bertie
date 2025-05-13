@@ -76,7 +76,6 @@ From KeyScheduleTheorem Require Import ssp_helper.
 (* This file contains some useful functions, that does not fit anywhere else: *)
 (* - `trim_fset0`                                                             *)
 (* - `trimmed_par`                                                            *)
-(* - `mem_tail`                                                               *)
 (* - `fold_left_to_fsetU`                                                     *)
 (* - `fold_left_to_par`                                                       *)
 (* - `trimmed_eq_rect_r`                                                      *)
@@ -261,13 +260,6 @@ Proof.
   setoid_rewrite H_trim_p2.
   reflexivity.
 Qed.
-
-Definition mem_tail : forall {A : eqType} a (l : list A), forall {x}, x \in l -> x \in a :: l :=
-  fun A a l x H =>
-    (eq_ind_r
-       [eta is_true]
-       ([eta introTF (c:=true) orP] (or_intror H))
-       (in_cons (T:=A) a l x)).
 
 Lemma fold_left_to_fsetU :
   forall (T : ordType) B (f : B -> {fset T}) L (v : {fset T}),

@@ -67,7 +67,10 @@ Import GroupScope GRing.Theory.
 Import PackageNotation.
 
 Lemma parable_par_l :
-  forall a b c, Parable a c -> Parable b c -> Parable (par a b) c.
+  forall a b c,
+    Parable a c ->
+    Parable b c ->
+    Parable (par a b) c.
 Proof.
   clear ; intros.
   unfold Parable.
@@ -78,7 +81,10 @@ Proof.
 Qed.
 
 Lemma parable_par_r :
-  forall a b c, Parable c a -> Parable c b -> Parable c (par a b).
+  forall a b c,
+    Parable c a ->
+    Parable c b ->
+    Parable c (par a b).
 Proof.
   clear ; intros.
   unfold Parable.
@@ -160,27 +166,30 @@ Definition mem_tail : forall {A : eqType} a (l : list A), forall {x}, x \in l ->
 Definition sumR : forall (l u : nat), (l <= u)%nat -> (nat -> R) -> R :=
   (fun l u H f => (List.fold_left (fun y x => y + f x) (iota l (u - l)) 0)%R).
 
-Fixpoint sumR_H_fuel start fuel (f : forall (ℓ : nat), (start <= ℓ)%nat -> (ℓ <= start + fuel)%nat -> R) {struct fuel} : R :=
-  match fuel as k return (k <= fuel)%nat -> _ with
-  | O => fun _ => 0
-  | S n =>
-      fun H =>
-        let Ht := (eq_ind_r (λ ℓ, (ℓ <= start + fuel)%N) (eq_ind_r [eta is_true] (leq_trans (n:=n.+1) (m:=n) (p:=fuel) (leqnSn n) H) (leq_add2l start n fuel)) (natrDE start n)) in
-        f (start + n) (leq_addr _ _) Ht + sumR_H_fuel start n (fun ℓ Hstart Hend => f ℓ Hstart (leq_trans Hend Ht))
-  end (leqnn fuel).
+Definition sumR_H_fuel start fuel (f : forall (ℓ : nat), (start <= ℓ)%nat -> (ℓ <= start + fuel)%nat -> R) (* {struct fuel} *) : R.
+  assert (((start + fuel.-1)%R <= start + fuel)%N).
+  {
+    rewrite leq_add2l. apply leq_pred. (* apply leqnSn. *)
+  }
+  generalize dependent start.
+  generalize dependent fuel.
+  induction fuel ; intros.
+  - refine 0.
+  - refine ((f (start + fuel) (leq_addr _ _) H) + IHfuel start (fun ℓ Hstart Hend => f ℓ Hstart (leq_trans Hend H)) _).
+    + rewrite leq_add2l. apply leq_pred.
+Defined.
 
-(* Fixpoint map_with_in {A: eqType} {B} (l : list A) (f : forall (x : A), (x \in l) -> B) : list B := *)
-(*   match l as k return (k = l -> _) with *)
-(*   | [] => fun _ => [] *)
-(*   | ( x :: xs ) => *)
-(*       fun H => *)
-(*         f x (eq_ind (x :: xs) (fun l => x \in l) (mem_head x xs) _ H) *)
-(*           :: map_with_in xs (fun y H0 => f y (eq_ind (x :: xs)%SEQ *)
-(*                                             (λ l0 : seq A, (∀ x0 : A, x0 \in l0 → B) → (y \in l0) = true) *)
-(*                                             (λ f0 : ∀ x0 : A, x0 \in (x :: xs)%SEQ → B, *)
-(*                                                (eq_ind_r (Logic.eq^~ true) ([eta introTF (c:=true) orP] (or_intror H0)) (in_cons (T:=A) x xs y))) *)
-(*                                             l H f)) *)
-(*   end erefl. *)
+  (* match fuel as k return (k <= fuel)%nat -> _ with *)
+  (* | O => fun _ => 0 *)
+  (* | S n => *)
+  (*     fun H => *)
+  (*       let Ht := *)
+  (*         (eq_ind_r *)
+  (*            (λ ℓ, (ℓ <= start + fuel)%N) *)
+  (*            (eq_ind_r [eta is_true] (leq_trans (n:=n.+1) (m:=n) (p:=fuel) (leqnSn n) H) (leq_add2l start n fuel)) *)
+  (*            (natrDE start n)) in *)
+  (*       f (start + n) (leq_addr _ _) Ht + sumR_H_fuel start n (fun ℓ Hstart Hend => f ℓ Hstart (leq_trans Hend Ht)) *)
+  (* end (leqnn fuel). *)
 
 (* Definition sumR_H *)
 (*   (l u : nat) (H_ul : (u >= l)%nat) *)
@@ -338,8 +347,6 @@ Proof.
   intros.
   induction u.
   {
-    destruct l ; [ | easy ].
-    unfold sumR_H, sumR ; simpl.
     reflexivity.
   }
   {
@@ -347,11 +354,8 @@ Proof.
     - unfold sumR, sumR_H.
       unfold eq_rect_r, eq_rect.
       destruct subnKC.
-      simpl.
       rewrite subnn.
-      simpl.
       rewrite subnn.
-      simpl.
       reflexivity.
     - rewrite sumR_succ ; [ Lia.lia (* easy *) | ].
       intros.
@@ -380,11 +384,13 @@ Proof.
     simpl.
     easy.
   - unfold sumR_H.
-    unfold eq_rect_r.
-    unfold eq_rect.
-
-    set (u.+1).
-
+    destruct l.
+    + simpl.
+      unfold eq_rect_r.
+      unfold eq_rect.
+      unfold sumR_H_fuel.
+      simpl.
+    
 Admitted.
 (*     destruct subnKC. *)
 (*     simpl. *)
@@ -424,7 +430,6 @@ Proof.
   - refine (Order.le_trans (H false) _).
     unfold Num.max.
     destruct (g false < g true)%R eqn:g_largest.
-    + admit.
+    + eauto.
     + easy.
-Admitted.
-(* Qed. *)
+Qed.

@@ -72,6 +72,8 @@ From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
 
+From KeyScheduleTheorem Require Import ssp_helper.
+
 From KeyScheduleTheorem Require Import Dependencies.
 
 From KeyScheduleTheorem Require Import BasePackages.
