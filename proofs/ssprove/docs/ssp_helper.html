@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>ssp_helper</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library ssp_helper</h1>
+
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">word_ssrZ</span> <span class="id" title="var">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Strings.String</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">List.ListNotations</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Schnorr</span> <span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Axioms</span> <span class="id" title="var">ChoiceAsOrd</span> <span class="id" title="var">SubDistr</span> <span class="id" title="var">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">UniformDistrLemmas</span> <span class="id" title="var">FreeProbProg</span> <span class="id" title="var">Theta_dens</span> <span class="id" title="var">RulesStateProb</span> <span class="id" title="var">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">pkg_core_definition</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">pkg_composition</span> <span class="id" title="var">pkg_rhl</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utf8</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span> <span class="id" title="var">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">GroupScope</span> <span class="id" title="var">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">parable_par_l</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>, <span class="id" title="var">Parable</span> <span class="id" title="var">a</span> <span class="id" title="var">c</span> → <span class="id" title="var">Parable</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> → <span class="id" title="var">Parable</span> (<span class="id" title="var">par</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) <span class="id" title="var">c</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">parable_par_r</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span>, <span class="id" title="var">Parable</span> <span class="id" title="var">c</span> <span class="id" title="var">a</span> → <span class="id" title="var">Parable</span> <span class="id" title="var">c</span> <span class="id" title="var">b</span> → <span class="id" title="var">Parable</span> <span class="id" title="var">c</span> (<span class="id" title="var">par</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_Parable</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [ |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> (<span class="id" title="var">trim</span> <span class="id" title="var">_</span> ?<span class="id" title="var">a</span>) (<span class="id" title="var">trim</span> <span class="id" title="var">_</span> ?<span class="id" title="var">b</span>) ] ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">parable_trim</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">try</span> (<span class="id" title="tactic">unfold</span> <span class="id" title="var">idents</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> &lt;- !<span class="id" title="var">fset1E</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> !<span class="id" title="var">imfset1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="var">now</span> <span class="id" title="tactic">rewrite</span> <span class="id" title="var">fdisjoint1s</span>)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Ha</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Ea</span> ?<span class="id" title="var">a</span> ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hb</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Eb</span> ?<span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> ?<span class="id" title="var">a</span> ?<span class="id" title="var">b</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Ha</span> ; <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Hb</span> ; <span class="id" title="var">solve_Parable</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Ha</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Ea</span> ?<span class="id" title="var">a</span> ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hb</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Eb</span> ?<span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> ?<span class="id" title="var">a</span> (?<span class="id" title="var">b</span> ∘ ?<span class="id" title="var">c</span>) ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Ha</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Hb</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">erewrite</span> !<span class="id" title="var">link_trim_commut</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">solve_Parable</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Ha</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Ea</span> ?<span class="id" title="var">a</span> ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hb</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Eb</span> ?<span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> (?<span class="id" title="var">b</span> ∘ ?<span class="id" title="var">c</span>) ?<span class="id" title="var">a</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Ha</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Hb</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">erewrite</span> !<span class="id" title="var">link_trim_commut</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">solve_Parable</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> ?<span class="id" title="var">a</span> (<span class="id" title="var">par</span> ?<span class="id" title="var">b</span> ?<span class="id" title="var">c</span>) ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">parable_par_r</span> ; <span class="id" title="var">solve_Parable</span><br/>
+&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> (<span class="id" title="var">par</span> ?<span class="id" title="var">a</span> ?<span class="id" title="var">b</span>) ?<span class="id" title="var">c</span> ] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">parable_par_l</span> ; <span class="id" title="var">solve_Parable</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span> <span class="id" title="var">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">trim_is_interface</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">setoid_rewrite</span> <span class="id" title="var">filterm_set</span> ; <span class="id" title="tactic">simpl</span> ; <span class="id" title="tactic">fold</span> <span class="id" title="var">chElement</span> ;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">fset1E</span> ;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">in_fset1</span> ;<br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">eqxx</span> ;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">filterm0</span> ;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">pkg_composition</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">trimmed_package</span> <span class="id" title="var">p</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">package</span> ?<span class="id" title="var">L</span> ?<span class="id" title="var">I</span> ?<span class="id" title="var">E</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">trimmed</span> <span class="id" title="var">E</span> <span class="id" title="var">p</span>) <span class="id" title="tactic">by</span> <span class="id" title="var">now</span> <span class="id" title="tactic">unfold</span> <span class="id" title="var">trimmed</span> ; <span class="id" title="var">trim_is_interface</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sum_accum</span> (<span class="id" title="var">fuel</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">index</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">nat</span>) (<span class="id" title="var">accum</span> : <span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">fuel</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">O</span> ⇒ <span class="id" title="var">accum</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">n'</span> ⇒ <span class="id" title="var">sum_accum</span> <span class="id" title="var">n'</span> (<span class="id" title="var">index</span> + 1%<span class="id" title="var">nat</span>) <span class="id" title="var">f</span> (<span class="id" title="var">accum</span> + <span class="id" title="var">f</span> <span class="id" title="var">index</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">mem_tail</span> : <span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} <span class="id" title="var">a</span> (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>), <span class="id" title="keyword">∀</span> {<span class="id" title="var">x</span>}, <span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span> → <span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">a</span> :: <span class="id" title="var">l</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">A</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span> <span class="id" title="var">H</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">eq_ind_r</span> [<span class="id" title="var">eta</span> <span class="id" title="var">is_true</span>] ([<span class="id" title="var">eta</span> <span class="id" title="var">introTF</span> (<span class="id" title="var">c</span>:=<span class="id" title="var">true</span>) <span class="id" title="var">orP</span>] (<span class="id" title="var">or_intror</span> <span class="id" title="var">H</span>)) (<span class="id" title="var">in_cons</span> (<span class="id" title="var">T</span>:=<span class="id" title="var">A</span>) <span class="id" title="var">a</span> <span class="id" title="var">l</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">sumR</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">l</span> <span class="id" title="var">u</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">l</span> ≤ <span class="id" title="var">u</span>)%<span class="id" title="var">nat</span> → (<span class="id" title="var">nat</span> → <span class="id" title="var">R</span>) → <span class="id" title="var">R</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H</span> <span class="id" title="var">f</span> ⇒ (<span class="id" title="var">List.fold_left</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">y</span> + <span class="id" title="var">f</span> <span class="id" title="var">x</span>) (<span class="id" title="keyword">iota</span> <span class="id" title="var">l</span> (<span class="id" title="var">u</span> - <span class="id" title="var">l</span>)) 0)%<span class="id" title="var">R</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sumR_H_fuel</span> <span class="id" title="var">start</span> <span class="id" title="var">fuel</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">start</span> ≤ <span class="id" title="var">ℓ</span>)%<span class="id" title="var">nat</span> → (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">start</span> + <span class="id" title="var">fuel</span>)%<span class="id" title="var">nat</span> → <span class="id" title="var">R</span>) {<span class="id" title="keyword">struct</span> <span class="id" title="var">fuel</span>} : <span class="id" title="var">R</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">fuel</span> <span class="id" title="keyword">as</span> <span class="id" title="var">k</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">k</span> ≤ <span class="id" title="var">fuel</span>)%<span class="id" title="var">nat</span> → <span class="id" title="var">_</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">O</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ 0<br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">Ht</span> := (<span class="id" title="var">eq_ind_r</span> (<span class="id" title="var">λ</span> <span class="id" title="var">ℓ</span>, (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">start</span> + <span class="id" title="var">fuel</span>)%<span class="id" title="var">N</span>) (<span class="id" title="var">eq_ind_r</span> [<span class="id" title="var">eta</span> <span class="id" title="var">is_true</span>] (<span class="id" title="var">leq_trans</span> (<span class="id" title="var">n</span>:=<span class="id" title="var">n</span>.+1) (<span class="id" title="var">m</span>:=<span class="id" title="var">n</span>) (<span class="id" title="var">p</span>:=<span class="id" title="var">fuel</span>) (<span class="id" title="var">leqnSn</span> <span class="id" title="var">n</span>) <span class="id" title="var">H</span>) (<span class="id" title="var">leq_add2l</span> <span class="id" title="var">start</span> <span class="id" title="var">n</span> <span class="id" title="var">fuel</span>)) (<span class="id" title="var">natrDE</span> <span class="id" title="var">start</span> <span class="id" title="var">n</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">f</span> (<span class="id" title="var">start</span> + <span class="id" title="var">n</span>) (<span class="id" title="var">leq_addr</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) <span class="id" title="var">Ht</span> + <span class="id" title="var">sumR_H_fuel</span> <span class="id" title="var">start</span> <span class="id" title="var">n</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">Hstart</span> <span class="id" title="var">Hend</span> ⇒ <span class="id" title="var">f</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">Hstart</span> (<span class="id" title="var">leq_trans</span> <span class="id" title="var">Hend</span> <span class="id" title="var">Ht</span>))<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">leqnn</span> <span class="id" title="var">fuel</span>).<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">sumR_H</span><br/>
+&nbsp;&nbsp;(<span class="id" title="var">l</span> <span class="id" title="var">u</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">H_ul</span> : (<span class="id" title="var">u</span> ≥ <span class="id" title="var">l</span>)%<span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">u</span>)%<span class="id" title="var">nat</span> → <span class="id" title="var">R</span>) : <span class="id" title="var">R</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">iota_succ</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">f</span>, (<span class="id" title="keyword">iota</span> <span class="id" title="var">l</span> <span class="id" title="var">f</span>.+1) = <span class="id" title="keyword">iota</span> <span class="id" title="var">l</span> <span class="id" title="var">f</span> ++ [(<span class="id" title="var">l</span>+<span class="id" title="var">f</span>)].<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">sumR_succ</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">H_Sul</span> <span class="id" title="var">f</span>, <span class="id" title="var">sumR</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span>.+1 <span class="id" title="var">H_Sul</span> <span class="id" title="var">f</span> = <span class="id" title="var">f</span> <span class="id" title="var">u</span> + <span class="id" title="var">sumR</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">f</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">sumR_H_succ</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">H_Sul</span> <span class="id" title="var">f</span>, <span class="id" title="var">sumR_H</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span>.+1 <span class="id" title="var">H_Sul</span> <span class="id" title="var">f</span> = <span class="id" title="var">f</span> <span class="id" title="var">u</span> (<span class="id" title="var">leqnSn</span> <span class="id" title="var">u</span>) + <span class="id" title="var">sumR_H</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">H_le</span> ⇒ <span class="id" title="var">f</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">leq_trans</span> <span class="id" title="var">H_le</span> (<span class="id" title="var">leqnSn</span> <span class="id" title="var">u</span>))).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">inequality</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">l0</span> <span class="id" title="var">d</span>, (<span class="id" title="var">l</span> ≤ <span class="id" title="var">l0</span> + (<span class="id" title="var">d</span> - <span class="id" title="var">l0</span>))%<span class="id" title="var">N</span> → (<span class="id" title="var">l</span> ≤ <span class="id" title="var">l0</span> + (<span class="id" title="var">d</span>.+1 - <span class="id" title="var">l0</span>))%<span class="id" title="var">N</span>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">sumR_to_H</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">f</span>, <span class="id" title="var">sumR</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">f</span> = <span class="id" title="var">sumR_H</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">f</span> <span class="id" title="var">n</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">sumR_le</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span>, (<span class="id" title="keyword">∀</span> <span class="id" title="var">v</span> <span class="id" title="var">Hf</span> <span class="id" title="var">Hg</span>, (<span class="id" title="var">f</span> <span class="id" title="var">v</span> <span class="id" title="var">Hf</span> ≤ <span class="id" title="var">g</span> <span class="id" title="var">v</span> <span class="id" title="var">Hg</span>))%<span class="id" title="var">R</span> → (<span class="id" title="var">sumR_H</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">f</span>  ≤ <span class="id" title="var">sumR_H</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_ul</span> <span class="id" title="var">g</span>)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sumR_l</span> {<span class="id" title="var">T</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">T</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">T</span> → <span class="id" title="var">R</span>) : <span class="id" title="var">R</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] ⇒ 0%<span class="id" title="var">R</span><br/>
+&nbsp;&nbsp;| (<span class="id" title="var">x</span> :: <span class="id" title="var">xs</span>) ⇒ <span class="id" title="var">f</span> <span class="id" title="var">x</span> + <span class="id" title="var">sumR_l</span> <span class="id" title="var">xs</span> <span class="id" title="var">f</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sumR_l_in_rel</span> {<span class="id" title="var">T</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">T</span>) (<span class="id" title="var">l'</span> : <span class="id" title="var">list</span> <span class="id" title="var">T</span>) (<span class="id" title="var">H_in</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l'</span> → <span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>) (<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">a</span> : <span class="id" title="var">T</span>), (<span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>)  → <span class="id" title="var">R</span>) : <span class="id" title="var">R</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l'</span> <span class="id" title="keyword">return</span> (<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l'</span> → <span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>) → <span class="id" title="var">_</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ 0%<span class="id" title="var">R</span><br/>
+&nbsp;&nbsp;| (<span class="id" title="var">x</span> :: <span class="id" title="var">xs</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">H_in</span> ⇒ <span class="id" title="var">f</span> <span class="id" title="var">x</span> (<span class="id" title="var">H_in</span> <span class="id" title="var">x</span> (<span class="id" title="var">mem_head</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span>)) + <span class="id" title="var">sumR_l_in_rel</span> <span class="id" title="var">l</span> <span class="id" title="var">xs</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">H_in</span> <span class="id" title="var">a</span> (<span class="id" title="var">mem_tail</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span> <span class="id" title="var">H</span>)) <span class="id" title="var">f</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="var">H_in</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">maxR</span> (<span class="id" title="var">f</span> : <span class="id" title="var">bool</span> → <span class="id" title="var">R</span>) : <span class="id" title="var">R</span> := <span class="id" title="var">Order.max</span> (<span class="id" title="var">f</span> <span class="id" title="var">false</span>) (<span class="id" title="var">f</span> <span class="id" title="var">true</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">max_leq</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span>, (<span class="id" title="keyword">∀</span> <span class="id" title="var">b</span>, <span class="id" title="var">f</span> <span class="id" title="var">b</span> ≤ <span class="id" title="var">g</span> <span class="id" title="var">b</span>)%<span class="id" title="var">R</span> → (<span class="id" title="var">maxR</span> <span class="id" title="var">f</span> ≤ <span class="id" title="var">maxR</span> <span class="id" title="var">g</span>)%<span class="id" title="var">R</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

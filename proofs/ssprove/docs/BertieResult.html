@@ -1,0 +1,427 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>BertieResult</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library BertieResult</h1>
+
+<div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">word_ssrZ</span> <span class="id" title="var">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Strings.String</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">List.ListNotations</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Schnorr</span> <span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Axioms</span> <span class="id" title="var">ChoiceAsOrd</span> <span class="id" title="var">SubDistr</span> <span class="id" title="var">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">UniformDistrLemmas</span> <span class="id" title="var">FreeProbProg</span> <span class="id" title="var">Theta_dens</span> <span class="id" title="var">RulesStateProb</span> <span class="id" title="var">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">pkg_core_definition</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">pkg_composition</span> <span class="id" title="var">pkg_rhl</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utf8</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span> <span class="id" title="var">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">GroupScope</span> <span class="id" title="var">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ExtraTypes</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utility</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Dependencies</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">CoreTheorem</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">BertieExtraction</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Bertie_Tls13keyscheduler_Key_schedule</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">name_to_t_TLSname</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) {<span class="id" title="var">H_not_bot</span> : <span class="id" title="var">n</span> ≠ <span class="id" title="var">BOT</span>} : <span class="id" title="var">both</span> <span class="id" title="var">t_TLSnames</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">n</span> ≠ <span class="id" title="var">BOT</span>) → <span class="id" title="var">_</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">BOT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">False_rect</span> <span class="id" title="var">_</span> (<span class="id" title="var">H</span> <span class="id" title="var">erefl</span>)<br/>
+<br/>
+&nbsp;&nbsp;| <span class="id" title="var">ES</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_ES</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">EEM</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_EEM</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">CET</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_CET</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">BIND</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_Bind</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">BINDER</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_Binder</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">HS</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_HS</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">SHT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_SHT</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">CHT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_CHT</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">HSALT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_HSalt</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">AS</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_AS</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">RM</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_RM</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">CAT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_CAT</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">SAT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_SAT</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">EAM</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_EAM</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">PSK</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_PSK</span><br/>
+<br/>
+&nbsp;&nbsp;| <span class="id" title="var">ZERO_SALT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_ZeroSalt</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">ESALT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_ESalt</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">DH</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_DH</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">ZERO_IKM</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">TLSnames_ZeroIKM</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="var">H_not_bot</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">t_TLSname_option_pair_to_name</span><br/>
+&nbsp;&nbsp;(<span class="id" title="var">n</span> : <span class="id" title="var">chOption</span> <span class="id" title="var">t_TLSnames</span>) : <span class="id" title="var">name</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">None</span> ⇒ <span class="id" title="var">BOT</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">a</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">a</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_ES_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ES</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_EEM_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">EEM</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_CET_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">CET</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_Bind_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">BIND</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_Binder_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">BINDER</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_HS_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">HS</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_SHT_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">SHT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_CHT_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">CHT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_HSalt_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">HSALT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_AS_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AS</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_RM_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">RM</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_CAT_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">CAT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_SAT_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">SAT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_EAM_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">EAM</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_PSK_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">PSK</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_ZeroSalt_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ZERO_SALT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_ESalt_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ESALT</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_DH_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DH</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">TLSnames_ZeroIKM_case</span>  ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ZERO_IKM</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">chHash_to_t_HashAlgorithm</span> (<span class="id" title="var">x</span> : <span class="id" title="var">chHash</span>) : <span class="id" title="var">both</span> <span class="id" title="var">t_HashAlgorithm</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> (<span class="id" title="var">nat_of_ord</span> (<span class="id" title="var">otf</span> <span class="id" title="var">x</span>)) <span class="id" title="keyword">as</span> <span class="id" title="var">k</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">k</span> &lt; 3)%<span class="id" title="var">nat</span> → <span class="id" title="var">_</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">HashAlgorithm_SHA256</span><br/>
+&nbsp;&nbsp;| 1 ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">HashAlgorithm_SHA384</span><br/>
+&nbsp;&nbsp;| 2 ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">HashAlgorithm_SHA512</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">n</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">False_rect</span> <span class="id" title="var">_</span> (<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">easy</span>))<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>%<span class="id" title="var">nat</span> (<span class="id" title="var">ltn_ord</span> (<span class="id" title="var">otf</span> <span class="id" title="var">x</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">t_HashAlgorithm_to_chHash</span> (<span class="id" title="var">x</span> : <span class="id" title="var">t_HashAlgorithm</span>) : <span class="id" title="var">chHash</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">HashAlgorithm_SHA256_case</span> ⇒ <span class="id" title="var">fto</span> (<span class="id" title="var">inord</span> 0)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">HashAlgorithm_SHA384_case</span> ⇒ <span class="id" title="var">fto</span> (<span class="id" title="var">inord</span> 1)<br/>
+&nbsp;&nbsp;| <span class="id" title="var">HashAlgorithm_SHA512_case</span> ⇒ <span class="id" title="var">fto</span> (<span class="id" title="var">inord</span> 2)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">chLabel_to_label</span> (<span class="id" title="var">l</span> : <span class="id" title="var">chLabel</span>) :  (<span class="id" title="var">chList</span> <span class="id" title="var">int8</span>) :=<br/>
+&nbsp;&nbsp; (<span class="id" title="var">List.map</span> (<span class="id" title="keyword">fun</span> (<span class="id" title="var">x</span> : <span class="id" title="var">nat</span>) ⇒  (((<span class="id" title="var">otf</span> <span class="id" title="var">l</span> / <span class="id" title="var">Nat.pow</span> 2 (<span class="id" title="var">x</span> × 8)) <span class="id" title="var">mod</span> 8)%<span class="id" title="var">nat</span> : <span class="id" title="var">int8</span>)) (<span class="id" title="keyword">iota</span> 0 12)).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <span class="id" title="var">repr</span> := (<span class="id" title="keyword">fun</span> <span class="id" title="var">WS</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">wrepr</span> <span class="id" title="var">WS</span> <span class="id" title="var">x</span> : <span class="id" title="var">int</span> <span class="id" title="var">WS</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">t_Bytes_to_nat</span> (<span class="id" title="var">x</span> : <span class="id" title="var">t_Bytes</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| [] ⇒ 0<br/>
+&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">y</span> :: <span class="id" title="var">ys</span>) ⇒ <span class="id" title="var">t_Bytes_to_nat</span> <span class="id" title="var">ys</span> × 256 + <span class="id" title="var">Z.to_nat</span> (<span class="id" title="var">toword</span> <span class="id" title="var">y</span>)<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>%<span class="id" title="var">nat</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">t_Bytes_to_chLabel</span> (<span class="id" title="var">x</span> : <span class="id" title="var">t_Bytes</span>) : <span class="id" title="var">chLabel</span>.<br/>
+<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">t_Bytes_to_chLabel_correct</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <span class="id" title="var">chLabel_to_label</span> (<span class="id" title="var">t_Bytes_to_chLabel</span> <span class="id" title="var">x</span>) = <span class="id" title="var">x</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">chKey_to_t_TagKey</span> (<span class="id" title="var">x</span> : <span class="id" title="var">chKey</span>) `{<span class="id" title="var">H_not_bot</span> : <span class="id" title="var">nfto</span> (<span class="id" title="var">fto</span> (<span class="id" title="var">otf</span> <span class="id" title="var">x</span>).2) ≠ <span class="id" title="var">BOT</span>} (<span class="id" title="var">bytes</span> : <span class="id" title="var">both</span> <span class="id" title="var">t_Bytes</span>) : <span class="id" title="var">both</span> <span class="id" title="var">t_TagKey</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">prod_b</span> (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">chHash_to_t_HashAlgorithm</span> (<span class="id" title="var">fto</span> (<span class="id" title="var">otf</span> <span class="id" title="var">x</span>).1),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">name_to_t_TLSname</span> (<span class="id" title="var">H_not_bot</span> := <span class="id" title="var">H_not_bot</span>) (<span class="id" title="var">nfto</span> (<span class="id" title="var">fto</span> (<span class="id" title="var">otf</span> <span class="id" title="var">x</span>).2)),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">bytes</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">t_TagKey_to_chKey</span> (<span class="id" title="var">x</span> : <span class="id" title="var">t_TagKey</span>) : <span class="id" title="var">chKey</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="var">fto</span> (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">otf</span> (<span class="id" title="var">t_HashAlgorithm_to_chHash</span> <span class="id" title="var">x</span>.1.1) ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">otf</span> (<span class="id" title="var">name_to_chName</span> (<span class="id" title="var">t_TLSname_option_pair_to_name</span> (<span class="id" title="var">Some</span> <span class="id" title="var">x</span>.1.2)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;)).<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="tactic">idtac</span>.<br/>
+<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">bitvec_to_bitstring</span> (<span class="id" title="var">x</span> : <span class="id" title="var">bitvec</span>) {<span class="id" title="keyword">measure</span> <span class="id" title="var">x</span>} : <span class="id" title="var">chList</span> <span class="id" title="var">int8</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">O</span> ⇒ []<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">bitvec_to_bitstring</span> (<span class="id" title="var">x</span> / 8)%<span class="id" title="var">nat</span> ++ [<span class="id" title="var">wrepr</span> <span class="id" title="var">_</span> (<span class="id" title="var">Z.of_nat</span> (<span class="id" title="var">x</span> <span class="id" title="var">mod</span> 8)%<span class="id" title="var">nat</span>)]<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">BertieKeySchedule</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_PrntN</span> : <span class="id" title="var">name</span> →  (<span class="id" title="var">chProd</span> <span class="id" title="var">chName</span> <span class="id" title="var">chName</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">as</span> <span class="id" title="var">k</span> <span class="id" title="keyword">return</span> <span class="id" title="var">n</span> = <span class="id" title="var">k</span> → <span class="id" title="var">_</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BOT</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒  (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span> , <span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">n0</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">is_pure</span> (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">letb</span> <span class="id" title="var">x</span> := (@<span class="id" title="var">f_prnt_n</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">t_TLSkeyscheduler_t_KeySchedule</span> (<span class="id" title="var">name_to_t_TLSname</span> (<span class="id" title="var">H_not_bot</span> := <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">move</span> ⇒ × ; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">discriminate</span>)) <span class="id" title="var">n</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">bind_both</span> <span class="id" title="var">x</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">prod_b</span> (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ret_both</span> (<span class="id" title="var">name_to_chName</span> (<span class="id" title="var">t_TLSname_option_pair_to_name</span> (<span class="id" title="var">fst</span> <span class="id" title="var">x</span>)))) ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ret_both</span> (<span class="id" title="var">name_to_chName</span> (<span class="id" title="var">t_TLSname_option_pair_to_name</span> (<span class="id" title="var">snd</span> <span class="id" title="var">x</span>)))))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="var">erefl</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Bertie_PrntN_correct</span> : ∀ <span class="id" title="var">n</span> : <span class="id" title="var">name</span>, <span class="id" title="var">PrntN</span> <span class="id" title="var">n</span> == <span class="id" title="var">Bertie_PrntN</span> <span class="id" title="var">n</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">Bertie_Labels</span> : <span class="id" title="var">name</span> → <span class="id" title="var">bool</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chLabel</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">b</span> ⇒ {<span class="id" title="var">code</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">is_state</span> (<span class="id" title="var">letb</span> <span class="id" title="var">r</span> := <span class="id" title="var">f_labels</span> (<span class="id" title="var">name_to_t_TLSname</span> <span class="id" title="var">n</span> (<span class="id" title="var">H_not_bot</span> := <span class="id" title="var">_</span>)) (<span class="id" title="var">ret_both</span> (<span class="id" title="var">b</span> : '<span class="id" title="var">bool</span>)) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">matchb</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Result_Ok_case</span> <span class="id" title="var">v</span> ⇒ <span class="id" title="var">ret_both</span> (<span class="id" title="var">t_Bytes_to_chLabel</span> <span class="id" title="var">v</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Result_Err_case</span> <span class="id" title="var">v</span> ⇒ <span class="id" title="var">ret_both</span> (<span class="id" title="var">t_Bytes_to_chLabel</span> [])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ChoiceEquality.is_valid_code</span> (<span class="id" title="var">both_prog_valid</span> <span class="id" title="var">_</span>))}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_O_star</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">BINDER</span>; <span class="id" title="var">SHT</span>; <span class="id" title="var">CHT</span>; <span class="id" title="var">HSALT</span>; <span class="id" title="var">RM</span>; <span class="id" title="var">CAT</span>; <span class="id" title="var">SAT</span>; <span class="id" title="var">EAM</span>; <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">Bertie_xpd</span> : <span class="id" title="var">chKey</span> → (<span class="id" title="var">chLabel</span> × <span class="id" title="var">bitvec</span>) → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chKey</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> (<span class="id" title="var">H</span> : <span class="id" title="var">chKey</span>) (<span class="id" title="var">H0</span> : <span class="id" title="var">chLabel</span> -× <span class="id" title="var">bitvec</span>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H1</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">n</span> := <span class="id" title="var">nfto</span> (<span class="id" title="var">fto</span> (<span class="id" title="var">otf</span> <span class="id" title="var">H</span>).2) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">as</span> <span class="id" title="var">n0</span> <span class="id" title="keyword">return</span> ({<span class="id" title="var">n0</span> = <span class="id" title="var">BOT</span>} + {<span class="id" title="var">n0</span> ≠ <span class="id" title="var">BOT</span>}) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BOT</span> ⇒ <span class="id" title="tactic">left</span> <span class="id" title="var">erefl</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">name</span> ⇒ <span class="id" title="tactic">right</span> (<span class="id" title="keyword">fun</span> (<span class="id" title="var">H2</span> : <span class="id" title="var">name</span> = <span class="id" title="var">BOT</span>) ⇒ <span class="id" title="var">False_ind</span> <span class="id" title="var">False</span> <span class="id" title="keyword">ltac</span>:(<span class="id" title="tactic">discriminate</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">H1</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">left</span> <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">code</span> <span class="id" title="var">ret</span> (<span class="id" title="var">fto</span> ((<span class="id" title="var">otf</span> <span class="id" title="var">H</span>).1, <span class="id" title="var">otf</span> (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>))) }<br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">right</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">s</span> := <span class="id" title="var">H0</span>.1 <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">b</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xpd</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chKey_to_t_TagKey</span> (<span class="id" title="var">H_not_bot</span> := <span class="id" title="var">n</span>) <span class="id" title="var">H</span> (<span class="id" title="var">ret_both</span> (<span class="id" title="var">chLabel_to_label</span> <span class="id" title="var">H0</span>.1) ))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ret_both</span> (<span class="id" title="var">chLabel_to_label</span> <span class="id" title="var">H0</span>.1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ret_both</span> (<span class="id" title="var">bitvec_to_bitstring</span> <span class="id" title="var">H0</span>.2))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">code</span> <span class="id" title="var">x</span> ← <span class="id" title="var">is_state</span> <span class="id" title="var">b</span> ;;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ret</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">fto</span> ((<span class="id" title="var">otf</span> <span class="id" title="var">H</span>).1,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">X1</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">match</span> <span class="id" title="var">x</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Result_Ok_case</span> <span class="id" title="var">s0</span> ⇒ <span class="id" title="var">Some</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">fst</span> <span class="id" title="var">s0</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Result_Err_case</span> <span class="id" title="var">_</span> ⇒ <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">otf</span> (<span class="id" title="var">name_to_chName</span> (<span class="id" title="var">t_TLSname_option_pair_to_name</span> <span class="id" title="var">X1</span>)))) }<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_xtr</span> : <span class="id" title="var">chKey</span> → <span class="id" title="var">chKey</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chKey</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">chHandle_to_t_Handle</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">h</span> : <span class="id" title="var">chHandle</span>), <span class="id" title="var">nfto</span> (<span class="id" title="var">fto</span> (<span class="id" title="var">otf</span> <span class="id" title="var">h</span>).1) ≠ <span class="id" title="var">BOT</span> → <span class="id" title="var">t_Handle</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">t_Handle_to_chHandle</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">h</span> : <span class="id" title="var">t_Handle</span>), <span class="id" title="var">chHandle</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_xtr_angle</span> : <span class="id" title="var">name</span> → <span class="id" title="var">chHandle</span> → <span class="id" title="var">chHandle</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chHandle</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_xpd_angle</span> : <span class="id" title="var">name</span> → <span class="id" title="var">chLabel</span> → <span class="id" title="var">chHandle</span> → <span class="id" title="var">bitvec</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chHandle</span>. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_PrntIdx</span> : <span class="id" title="var">name</span> → <span class="id" title="keyword">∀</span> (<span class="id" title="var">ℓ</span> : <span class="id" title="var">bitvec</span>), <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>] (<span class="id" title="var">chProd</span> <span class="id" title="var">chName</span> <span class="id" title="var">chName</span>). <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_ord</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">nat</span>. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_E</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">nat</span>. <br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_L_K</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_K_table</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span>. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_in_K_table</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, ('<span class="id" title="var">option</span> <span class="id" title="var">chK_table</span>; <span class="id" title="var">Bertie_K_table</span> <span class="id" title="var">x</span>) \<span class="id" title="tactic">in</span> <span class="id" title="var">Bertie_L_K</span>. <br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_L_L</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_L_table</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span>. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_in_L_table</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, ('<span class="id" title="var">option</span> <span class="id" title="var">chL_table</span>; <span class="id" title="var">Bertie_L_table</span> <span class="id" title="var">x</span>) \<span class="id" title="tactic">in</span> <span class="id" title="var">Bertie_L_L</span>. <br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_L_M</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_M</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span>. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_H</span> : <span class="id" title="var">name</span> → ∀ <span class="id" title="var">s</span> : <span class="id" title="var">chHandle</span>, ('<span class="id" title="var">option</span> ('<span class="id" title="var">fin</span> #|<span class="id" title="var">fin_handle</span>|); <span class="id" title="var">Bertie_M</span> <span class="id" title="var">s</span>) \<span class="id" title="tactic">in</span> <span class="id" title="var">Bertie_L_M</span>. <br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_DHGEN_function</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chGroup</span>. <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Bertie_DHEXP_function</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">chGroup</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chHandle</span>. <br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">BertieKeySchedule</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Instance</span> <span class="id" title="var">BertieKeySchedule</span> (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>) : <span class="id" title="var">Dependencies</span> :=<br/>
+&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TLSPrntN</span> := <span class="id" title="var">Bertie_PrntN</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TLSPrntN_is_PrntN</span> := <span class="id" title="var">Bertie_PrntN_correct</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Labels</span> := <span class="id" title="var">Bertie_Labels</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xpd</span> := <span class="id" title="var">Bertie_xpd</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xtr</span> := <span class="id" title="var">Bertie_xtr</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xtr_angle</span> := <span class="id" title="var">Bertie_xtr_angle</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xpd_angle</span> := <span class="id" title="var">Bertie_xpd_angle</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">PrntIdx</span> := <span class="id" title="var">Bertie_PrntIdx</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ord</span> := <span class="id" title="var">Bertie_ord</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">E</span> := <span class="id" title="var">Bertie_E</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_L</span> := <span class="id" title="var">Bertie_L_L</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_table</span> := <span class="id" title="var">Bertie_L_table</span>  ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_L_table</span> := <span class="id" title="var">Bertie_in_L_table</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_K</span> := <span class="id" title="var">Bertie_L_K</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">K_table</span> := <span class="id" title="var">Bertie_K_table</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_K_table</span> := <span class="id" title="var">Bertie_in_K_table</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_M</span> := <span class="id" title="var">Bertie_L_M</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">M</span> := <span class="id" title="var">Bertie_M</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">H</span> := <span class="id" title="var">Bertie_H</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">d</span> := <span class="id" title="var">d</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DHGEN_function</span> := <span class="id" title="var">Bertie_DHGEN_function</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DHEXP_function</span> := <span class="id" title="var">Bertie_DHEXP_function</span> ;<br/>
+&nbsp;&nbsp;}.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">BertieKeyScheduleCoreTheorem</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">core_theorem</span> (<span class="id" title="var">DepInstance</span> := <span class="id" title="var">BertieKeySchedule</span> <span class="id" title="var">d</span>) <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

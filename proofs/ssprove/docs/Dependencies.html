@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>Dependencies</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Dependencies</h1>
+
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">word_ssrZ</span> <span class="id" title="var">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Strings.String</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">List.ListNotations</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Schnorr</span> <span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Axioms</span> <span class="id" title="var">ChoiceAsOrd</span> <span class="id" title="var">SubDistr</span> <span class="id" title="var">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">UniformDistrLemmas</span> <span class="id" title="var">FreeProbProg</span> <span class="id" title="var">Theta_dens</span> <span class="id" title="var">RulesStateProb</span> <span class="id" title="var">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">pkg_core_definition</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">pkg_composition</span> <span class="id" title="var">pkg_rhl</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utf8</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span> <span class="id" title="var">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">GroupScope</span> <span class="id" title="var">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ExtraTypes</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utility</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Axiom</span> <span class="id" title="var">chGroup</span> : <span class="id" title="var">choice_type</span>.<br/>
+<span class="id" title="keyword">Axiom</span> <span class="id" title="var">chGroup_is_finGroup</span> : <span class="id" title="var">FinGroup</span> <span class="id" title="var">chGroup</span>.<br/>
+<span class="id" title="keyword">Axiom</span> <span class="id" title="var">gen</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chGroup</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fin_K_table</span> : <span class="id" title="var">finType</span> := <span class="id" title="var">Casts.prod_finType</span> <span class="id" title="var">fin_key</span> '<span class="id" title="var">bool</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">chK_table</span> := '<span class="id" title="var">fin</span> #|<span class="id" title="var">fin_K_table</span>|.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fin_L_table</span> : <span class="id" title="var">finType</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">Casts.prod_finType</span> (<span class="id" title="var">Casts.prod_finType</span> <span class="id" title="var">fin_handle</span> '<span class="id" title="var">bool</span>) <span class="id" title="var">fin_key</span>.<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">chL_table</span> := '<span class="id" title="var">fin</span> #|<span class="id" title="var">fin_L_table</span>|.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">PrntN</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) : <span class="id" title="var">chProd</span> <span class="id" title="var">chName</span> <span class="id" title="var">chName</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">a</span>,<span class="id" title="var">b</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">ES</span> ⇒ (<span class="id" title="var">ZERO_SALT</span>, <span class="id" title="var">PSK</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">EEM</span> | <span class="id" title="var">CET</span> | <span class="id" title="var">ESALT</span> | <span class="id" title="var">BIND</span> ⇒ (<span class="id" title="var">ES</span>, <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BINDER</span> ⇒ (<span class="id" title="var">BIND</span>, <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">HS</span> ⇒ (<span class="id" title="var">ESALT</span>, <span class="id" title="var">DH</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">SHT</span> | <span class="id" title="var">CHT</span> | <span class="id" title="var">HSALT</span> ⇒ (<span class="id" title="var">HS</span>, <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">AS</span> ⇒ (<span class="id" title="var">HSALT</span>, <span class="id" title="var">ZERO_IKM</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CAT</span> | <span class="id" title="var">SAT</span> | <span class="id" title="var">RM</span> | <span class="id" title="var">EAM</span> ⇒ (<span class="id" title="var">AS</span>, <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PSK</span> ⇒ (<span class="id" title="var">RM</span>, <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ (<span class="id" title="var">BOT</span>, <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="tactic">in</span> (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">a</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">b</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Class</span> <span class="id" title="var">Dependencies</span> := {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TLSPrntN</span>: <span class="id" title="var">name</span> →  (<span class="id" title="var">chProd</span> <span class="id" title="var">chName</span> <span class="id" title="var">chName</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">TLSPrntN_is_PrntN</span>: <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span>, <span class="id" title="var">PrntN</span> <span class="id" title="var">n</span> == <span class="id" title="var">TLSPrntN</span> <span class="id" title="var">n</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Labels</span> : <span class="id" title="var">name</span> → <span class="id" title="var">bool</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chLabel</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xpd</span> : <span class="id" title="var">chKey</span> → (<span class="id" title="var">chLabel</span> × <span class="id" title="var">bitvec</span>) → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chKey</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xtr</span> : <span class="id" title="var">chKey</span> → <span class="id" title="var">chKey</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chKey</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xtr_angle</span> : <span class="id" title="var">name</span> → <span class="id" title="var">chHandle</span> → <span class="id" title="var">chHandle</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chHandle</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">xpd_angle</span> : <span class="id" title="var">name</span> → <span class="id" title="var">chLabel</span> → <span class="id" title="var">chHandle</span> → <span class="id" title="var">bitvec</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chHandle</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">PrntIdx</span> : <span class="id" title="var">name</span> → <span class="id" title="keyword">∀</span> (<span class="id" title="var">ℓ</span> : <span class="id" title="var">bitvec</span>), <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>] (<span class="id" title="var">chProd</span> <span class="id" title="var">chName</span> <span class="id" title="var">chName</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ord</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">nat</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">E</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">nat</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_L</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>} ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_table</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_L_table</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, ('<span class="id" title="var">option</span> <span class="id" title="var">chL_table</span>; <span class="id" title="var">L_table</span> <span class="id" title="var">x</span>) \<span class="id" title="tactic">in</span> <span class="id" title="var">L_L</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_K</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>} ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">K_table</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_K_table</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, ('<span class="id" title="var">option</span> <span class="id" title="var">chK_table</span>; <span class="id" title="var">K_table</span> <span class="id" title="var">x</span>) \<span class="id" title="tactic">in</span> <span class="id" title="var">L_K</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L_M</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>} ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">M</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">H</span> : <span class="id" title="var">name</span> → ∀ <span class="id" title="var">s</span> : <span class="id" title="var">chHandle</span>, ('<span class="id" title="var">option</span> ('<span class="id" title="var">fin</span> #|<span class="id" title="var">fin_handle</span>|); <span class="id" title="var">M</span> <span class="id" title="var">s</span>) \<span class="id" title="tactic">in</span> <span class="id" title="var">L_M</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">d</span> : <span class="id" title="var">nat</span> ;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DHGEN_function</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chGroup</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DHEXP_function</span> : <span class="id" title="var">chGroup</span> → <span class="id" title="var">chGroup</span> → <span class="id" title="var">code</span> <span class="id" title="var">fset0</span> <span class="id" title="var">fset0</span> <span class="id" title="var">chHandle</span> ;<br/>
+&nbsp;&nbsp;}.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">TlsLikeKeySchedule</span> :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">ZERO_SALT</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">PSK</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">ES</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">ESALT</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">DH</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">HS</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">HSALT</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">ZERO_IKM</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">AS</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;∧ (<span class="id" title="var">RM</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span>)<br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;∧ <span class="id" title="var">PrntN</span> <span class="id" title="var">ZERO_SALT</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;∧ <span class="id" title="var">PrntN</span> <span class="id" title="var">DH</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;∧ <span class="id" title="var">PrntN</span> <span class="id" title="var">ZERO_IKM</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>)<br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;∧ <span class="id" title="var">PrntN</span> <span class="id" title="var">ES</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">ZERO_SALT</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">PSK</span>)<br/>
+&nbsp;&nbsp;∧ <span class="id" title="var">PrntN</span> <span class="id" title="var">HS</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">ESALT</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">DH</span>)<br/>
+&nbsp;&nbsp;∧ <span class="id" title="var">PrntN</span> <span class="id" title="var">AS</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">HSALT</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">ZERO_IKM</span>)<br/>
+&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;∧ <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> \<span class="id" title="var">notin</span> [:: <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">AS</span>] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">all_names</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">∃</span> <span class="id" title="var">n1</span>, ((<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span> = (<span class="id" title="var">name_to_chName</span> <span class="id" title="var">n1</span>, <span class="id" title="var">name_to_chName</span> <span class="id" title="var">BOT</span>)) ∧ (<span class="id" title="var">n1</span> != <span class="id" title="var">BOT</span>)).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">chFinGroup</span> : <span class="id" title="var">finGroupType</span> :=<br/>
+&nbsp;&nbsp;{| <span class="id" title="var">FinGroup.sort</span> := <span class="id" title="var">chGroup</span>; <span class="id" title="var">FinGroup.class</span> := <span class="id" title="var">chGroup_is_finGroup</span> |}.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

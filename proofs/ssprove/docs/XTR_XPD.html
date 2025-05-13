@@ -1,0 +1,509 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>XTR_XPD</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library XTR_XPD</h1>
+
+<div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">word_ssrZ</span> <span class="id" title="var">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Strings.String</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">List.ListNotations</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Schnorr</span> <span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Axioms</span> <span class="id" title="var">ChoiceAsOrd</span> <span class="id" title="var">SubDistr</span> <span class="id" title="var">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">UniformDistrLemmas</span> <span class="id" title="var">FreeProbProg</span> <span class="id" title="var">Theta_dens</span> <span class="id" title="var">RulesStateProb</span> <span class="id" title="var">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">pkg_core_definition</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">pkg_composition</span> <span class="id" title="var">pkg_rhl</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utf8</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span> <span class="id" title="var">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">GroupScope</span> <span class="id" title="var">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ExtraTypes</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utility</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Dependencies</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">BasePackages</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab14"></a><h1 class="section">XTR / XPD</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">XTR_XPD</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">DepInstance</span> : <span class="id" title="var">Dependencies</span>}.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Existing Instance</span> <span class="id" title="var">DepInstance</span>.<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; 'chXTRinp' " :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span> × <span class="id" title="var">chHandle</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; 'chXTRout' " :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span>  : <span class="id" title="var">nat</span>) (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">serialize_name</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> 2.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Xtr</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">bool</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">XTR</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chXTRinp</span> → <span class="id" title="var">chXTRout</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR_names</span> := [<span class="id" title="var">ES</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">AS</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR_parent_names</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">PSK</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">HSALT</span>; <span class="id" title="var">ZERO_IKM</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">XTR_parent_names_correct</span> : <span class="id" title="var">XTR_parent_names</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">undup</span> (<span class="id" title="var">List.fold_left</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">y</span> <span class="id" title="var">x</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> ++ [<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">x</span>)); <span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">x</span>))])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XTR_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[]).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xtr_parents_is_f_xtr_names</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XTR_parent_names</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">λ</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXTRout</span> → <span class="id" title="var">chGETout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXTRout</span> → <span class="id" title="var">chGETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XTR_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR_n_ℓ_f</span> <span class="id" title="var">d</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">XTR</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chXTRinp</span> → <span class="id" title="var">chXTRout</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="var">XTR_n_ℓ_f</span> <span class="id" title="var">k</span>) <span class="id" title="var">XTR_names</span> <span class="id" title="var">d</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR_n_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ <span class="id" title="var">XTR_n_ℓ_f</span> <span class="id" title="var">d</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>) <span class="id" title="var">XTR_names</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_Xtr</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> <span class="id" title="var">b</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">XTR_n_ℓ_f</span> <span class="id" title="var">d</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Xtr</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">b</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">xtr_level_raw</span> (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">name</span> → <span class="id" title="var">bool</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">parallel_raw</span> (<span class="id" title="var">List.map</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ <span class="id" title="var">pack</span> (<span class="id" title="var">Xtr</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> (<span class="id" title="var">b</span> <span class="id" title="var">n</span>))) <span class="id" title="var">XTR_names</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">valid_xtr_level</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">b</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">N</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">f_parameter_cursor_loc</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XTR_parent_names</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> :|: <span class="id" title="var">SET_ℓ</span> <span class="id" title="var">XTR_names</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">XTR</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXTRinp</span> → <span class="id" title="var">chXTRout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XTR_names</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">xtr_level_raw</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">b</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">xtr_level</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">b</span> (<span class="id" title="var">H</span> : (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">N</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">package</span> (<span class="id" title="var">xtr_level_raw</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="keyword">with</span> (<span class="id" title="var">valid_xtr_level</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">b</span> <span class="id" title="var">H</span>)}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_xtr_level</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">b</span> (<span class="id" title="var">H</span> : (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">N</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">XTR</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXTRinp</span> → <span class="id" title="var">chXTRout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XTR_names</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">xtr_level</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">b</span> <span class="id" title="var">H</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XTR_packages</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">name</span> → <span class="id" title="var">bool</span>) (<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> ≤ <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">package</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">GET_n</span> <span class="id" title="var">XTR_parent_names</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> :|: <span class="id" title="var">SET_n</span> <span class="id" title="var">XTR_names</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">XTR_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>).<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; 'chXPDinp' " :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span> × '<span class="id" title="var">bool</span> × <span class="id" title="var">bitvec</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; 'chXPDout' " :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPD</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">serialize_name</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> 2.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Xpd</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">package</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> (<span class="id" title="var">ℓ</span> + <span class="id" title="var">name_eq</span> <span class="id" title="var">n</span> <span class="id" title="var">PSK</span>)%<span class="id" title="var">nat</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span> ] : <span class="id" title="var">chHASHinp</span> → <span class="id" title="var">chHASHout</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">XPD</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chXPDinp</span> → <span class="id" title="var">chXPDout</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPR_sub_PSK</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">ESALT</span>] ++<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">BINDER</span>; <span class="id" title="var">SHT</span>; <span class="id" title="var">CHT</span>; <span class="id" title="var">HSALT</span>; <span class="id" title="var">RM</span>; <span class="id" title="var">CAT</span>; <span class="id" title="var">SAT</span>; <span class="id" title="var">EAM</span>] ++ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[] .<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPR_sub_PSK_parents</span> := [<span class="id" title="var">ES</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">AS</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">XPR_sub_PSK_parent_correct</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR_sub_PSK_parents</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">undup</span> (<span class="id" title="var">List.map</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">x</span>))) <span class="id" title="var">XPR_sub_PSK</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xpr_sub_psk_parents_is_f_xpr_sub_psk</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XPR_sub_PSK_parents</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">λ</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXTRout</span> → <span class="id" title="var">chGETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR_sub_PSK</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xpr_sub_psk_parents_is_f_xpr_sub_psk_set</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">SET_ℓ</span> <span class="id" title="var">XPR_sub_PSK</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">n</span> : <span class="id" title="var">name</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">n</span> (<span class="id" title="var">ℓ</span> + <span class="id" title="var">name_eq</span> <span class="id" title="var">n</span> <span class="id" title="var">PSK</span>) <span class="id" title="var">d</span>] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chXPDout</span> ])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR_sub_PSK</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPR</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">PSK</span> :: <span class="id" title="var">XPR_sub_PSK</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPR_parents</span> := [<span class="id" title="var">RM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">AS</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">XPR_parent_correct</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR_parents</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">undup</span> (<span class="id" title="var">List.map</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">x</span>))) <span class="id" title="var">XPR</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">xpr_parents_is_f_xpr</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XPR_parents</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">λ</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXTRout</span> → <span class="id" title="var">chGETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">d</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">XPD</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chXPDinp</span> → <span class="id" title="var">chXPDout</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPD_n</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">k</span>) <span class="id" title="var">XPR</span> <span class="id" title="var">d</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPD_n_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">d</span>) <span class="id" title="var">XPR</span> <span class="id" title="var">ℓ</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_Xpd</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">d</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Xpd</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">xpd_level_sub_psk_raw</span> (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>) : <span class="id" title="var">raw_package</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">parallel_raw</span> (<span class="id" title="var">List.map</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ <span class="id" title="var">pack</span> (<span class="id" title="var">Xpd</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>)) <span class="id" title="var">XPR_sub_PSK</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">valid_xpd_level_sub_psk</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XPR_sub_PSK_parents</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_ℓ</span> <span class="id" title="var">XPR_sub_PSK</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span> ] : <span class="id" title="var">chHASHinp</span> → <span class="id" title="var">chHASHout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">XPD</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXPDinp</span> → <span class="id" title="var">chXPDout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR_sub_PSK</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">xpd_level_sub_psk_raw</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">xpd_level_sub_psk</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">H</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">package</span> (<span class="id" title="var">xpd_level_sub_psk_raw</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="keyword">with</span> (<span class="id" title="var">valid_xpd_level_sub_psk</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">H</span>)}.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_xpd_level_sub_psk</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> (<span class="id" title="var">H</span> : (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">nat</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">XPD</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chXPDinp</span> → <span class="id" title="var">chXPDout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR_sub_PSK</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">xpd_level_sub_psk</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">H</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">reindex_interface_hierarchy_PSK</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_hierarchy</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span>.+1] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chXPDout</span> ])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">d</span>.+1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;([<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> 0 <span class="id" title="var">d</span>.+1] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chXPDout</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">interface_hierarchy</span> (<span class="id" title="var">λ</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> (<span class="id" title="var">n</span>.+1) <span class="id" title="var">d</span>.+1] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chXPDout</span> ])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">d</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">set_ℓ_XPR_split</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> (<span class="id" title="var">ℓ</span> + <span class="id" title="var">name_eq</span> <span class="id" title="var">n</span> <span class="id" title="var">PSK</span>) <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR</span> <span class="id" title="var">d</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> (<span class="id" title="var">ℓ</span>.+1) <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">d</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_n</span> <span class="id" title="var">XPR_sub_PSK</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">XPD_interface_rewrite</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XPR_parents</span> <span class="id" title="var">k</span>) <span class="id" title="var">d</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: (<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> (<span class="id" title="var">ℓ</span>.+1) <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>]) <span class="id" title="var">d</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_n</span> <span class="id" title="var">XPR_sub_PSK</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) )<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span> ] : <span class="id" title="var">chHASHinp</span> → <span class="id" title="var">chHASHout</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="id" title="var">interface_hierarchy</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">PSK</span>).1) <span class="id" title="var">n</span> <span class="id" title="var">k</span>] : <span class="id" title="var">chXPDout</span> → <span class="id" title="var">chGETout</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> (<span class="id" title="var">n</span> + <span class="id" title="var">name_eq</span> <span class="id" title="var">PSK</span> <span class="id" title="var">PSK</span>) <span class="id" title="var">k</span>] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chXPDout</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span>] : <span class="id" title="var">chHASHout</span> → <span class="id" title="var">chHASHout</span> ]) <span class="id" title="var">d</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">interface_hierarchy</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">GET_ℓ</span> <span class="id" title="var">XPR_sub_PSK_parents</span> <span class="id" title="var">k</span> <span class="id" title="var">n</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_ℓ</span> <span class="id" title="var">XPR_sub_PSK</span> <span class="id" title="var">k</span> <span class="id" title="var">n</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span>] : <span class="id" title="var">chHASHout</span> → <span class="id" title="var">chHASHout</span> ]) <span class="id" title="var">d</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">XPD_packages</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">H</span> : (<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">GET_n</span> <span class="id" title="var">XPR_parents</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: (<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> (<span class="id" title="var">ℓ</span>.+1) <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>]) <span class="id" title="var">d</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_n</span> <span class="id" title="var">XPR_sub_PSK</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) )<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span> ] : <span class="id" title="var">chHASHinp</span> → <span class="id" title="var">chHASHout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">XPD_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">SET_DH</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">DH</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>]) <span class="id" title="var">d</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">SET_DH_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">DH</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">GET_DH</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">DH</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>]) <span class="id" title="var">d</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">GET_DH_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">DH</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">DH_interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">DHGEN</span>] : <span class="id" title="var">chDHGENout</span> → <span class="id" title="var">chDHGENout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">DHEXP</span>] : <span class="id" title="var">chDHEXPinp</span> → <span class="id" title="var">chXPDout</span> ].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">DH_package</span> <span class="id" title="var">k</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">SET_DH</span> 0 <span class="id" title="var">k</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DH_interface</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_dh</span> <span class="id" title="var">k</span> : <span class="id" title="var">trimmed</span> <span class="id" title="var">DH_interface</span> (<span class="id" title="var">pack</span> (<span class="id" title="var">DH_package</span> <span class="id" title="var">k</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">domm_trim_disjoint_is_ident</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">E1</span> <span class="id" title="var">E2</span> <span class="id" title="var">p1</span> <span class="id" title="var">p2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idents</span> <span class="id" title="var">E1</span> :#: <span class="id" title="var">idents</span> <span class="id" title="var">E2</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">domm</span> (<span class="id" title="var">trim</span> <span class="id" title="var">E1</span> <span class="id" title="var">p1</span>) :#: <span class="id" title="var">domm</span> (<span class="id" title="var">trim</span> <span class="id" title="var">E2</span> <span class="id" title="var">p2</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_trim</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">I</span> <span class="id" title="var">p</span>, <span class="id" title="var">trimmed</span> <span class="id" title="var">I</span> (<span class="id" title="var">trim</span> <span class="id" title="var">I</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_xpd_package</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> (<span class="id" title="var">XPD_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) (<span class="id" title="var">XPD_packages</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_xtr_package</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">b</span> <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> (<span class="id" title="var">XTR_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) (<span class="id" title="var">XTR_packages</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">b</span> <span class="id" title="var">H_lt</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; 'chUNQinp' " :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span> × '<span class="id" title="var">bool</span> × <span class="id" title="var">chKey</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Notation</span> &quot; 'chUNQout' " :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">UNQ_XPD</span> <span class="id" title="var">d</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>]) (<span class="id" title="var">XPR</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">UNQ_XTR</span> <span class="id" title="var">d</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>]) (<span class="id" title="var">XTR_names</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">UNQ_DH</span> <span class="id" title="var">d</span> : <span class="id" title="var">Interface</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>]) ([<span class="id" title="var">DH</span>]).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">XTR_XPD</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>
