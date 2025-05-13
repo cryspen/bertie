@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,7 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
 From KeyScheduleTheorem Require Import Types.
 
@@ -74,11 +76,9 @@ Notation " 'chTranscript' " :=
   (t_Handle)
     (in custom pack_type at level 2).
 
-(* Definition KS : nat := 0%nat. *)
+(** Fig. 12, p. 18 *)
 
-(* Fig. 12, p. 18 *)
-(* Fig.29, P.63 *)
-
+(** Fig.29, P.63 *)
 
 #[global] Instance pos_bool : Positive #|'bool| :=
   eq_ind_r [eta Positive] (erefl : Positive 2) card_bool.
@@ -96,7 +96,7 @@ Definition fin_label := 'fin label_pow.
 Definition chLabel : choice_type := chFin (mkpos #|fin_label|).
 
 (* Name *)
-(* Definition 4.2: names are at least / Fig. 1  *)
+(** Definition 4.2: names are at least / Fig. 1  *)
 Inductive name :=
 | BOT
 
@@ -149,8 +149,6 @@ Definition fin_hash : finType := 'fin 3.
 #[global] Instance pos_hash : Positive #|fin_hash| :=
   eq_ind_r [eta Positive] (erefl : Positive 3) (card_ord 3).
 Definition chHash : choice_type := chFin (mkpos #|fin_hash|).
-
-(* Axiom chHash_to_hash : chHash -> name. *)
 
 (* Base handles are defined on p. 16 *)
 

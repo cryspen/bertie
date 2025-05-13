@@ -19,7 +19,10 @@
 <h1 class="libtitle">Library KeyScheduleTheorem.ExtraTypes</h1>
 
 <div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all_ssreflect</span> <span class="id" title="library">fingroup.fingroup</span> <span class="id" title="library">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span>.<br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span>.<br/>
@@ -45,6 +48,9 @@
 <span class="id" title="keyword">Import</span> <span class="id" title="module">choice.Choice.Exports</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
@@ -62,9 +68,11 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">OrderEnrichedCategory</span> <span class="id" title="library">GenericRulesSimple</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all_ssreflect</span> <span class="id" title="library">all_algebra</span> <span class="id" title="library">reals</span> <span class="id" title="library">distr</span> <span class="id" title="library">realsum</span><br/>
 &nbsp;&nbsp;<span class="id" title="library">fingroup.fingroup</span> <span class="id" title="library">solvable.cyclic</span> <span class="id" title="library">prime</span> <span class="id" title="library">ssrnat</span> <span class="id" title="library">ssreflect</span> <span class="id" title="library">ssrfun</span> <span class="id" title="library">ssrbool</span> <span class="id" title="library">ssrnum</span><br/>
 &nbsp;&nbsp;<span class="id" title="library">eqtype</span> <span class="id" title="library">choice</span> <span class="id" title="library">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">SPropBase</span>.<br/>
@@ -84,8 +92,12 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="library">Equations.Prop.DepElim</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
@@ -93,6 +105,8 @@
 
 <br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Types.html#"><span class="id" title="library">Types</span></a>.<br/>
@@ -105,8 +119,15 @@
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
 
 <br/>
+</div>
 
-<br/>
+<div class="doc">
+Fig. 12, p. 18 
+<div class="paragraph"> </div>
+
+ Fig.29, P.63 
+</div>
+<div class="code">
 
 <br/>
 #[<span class="id" title="var">global</span>] <span class="id" title="keyword">Instance</span> <a id="pos_bool" class="idref" href="#pos_bool"><span class="id" title="instance"><span id="pos_bool" class="id">pos_bool</span></span></a> : <span class="id" title="class">Positive</span> <span class="id" title="notation">#|</span><span class="id" title="notation">'</span><span class="id" title="notation">bool</span><span class="id" title="notation">|</span> :=<br/>
@@ -126,6 +147,12 @@
 <span class="id" title="keyword">Definition</span> <a id="chLabel" class="idref" href="#chLabel"><span class="id" title="definition"><span id="chLabel" class="id">chLabel</span></span></a> : <span class="id" title="inductive">choice_type</span> := <span class="id" title="constructor">chFin</span> (<span class="id" title="constructor">mkpos</span> <span class="id" title="notation">#|</span><a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#fin_label"><span class="id" title="definition">fin_label</span></a><span class="id" title="notation">|</span>).<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Definition 4.2: names are at least / Fig. 1  
+</div>
+<div class="code">
 <span class="id" title="keyword">Inductive</span> <a id="name" class="idref" href="#name"><span class="id" title="definition, inductive"><span id="name_rect" class="id"><span id="name_ind" class="id"><span id="name_rec" class="id"><span id="name_sind" class="id"><span id="name" class="id"><span id="name_rect" class="id"><span id="name_ind" class="id"><span id="name_rec" class="id"><span id="name_sind" class="id">name</span></span></span></span></span></span></span></span></span></span></a> :=<br/>
 | <a id="BOT" class="idref" href="#BOT"><span class="id" title="constructor"><span id="BOT" class="id">BOT</span></span></a><br/>
 <br/>
@@ -180,8 +207,6 @@
 #[<span class="id" title="var">global</span>] <span class="id" title="keyword">Instance</span> <a id="pos_hash" class="idref" href="#pos_hash"><span class="id" title="instance"><span id="pos_hash" class="id">pos_hash</span></span></a> : <span class="id" title="class">Positive</span> <span class="id" title="notation">#|</span><a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#fin_hash"><span class="id" title="definition">fin_hash</span></a><span class="id" title="notation">|</span> :=<br/>
 &nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Logic.html#eq_ind_r"><span class="id" title="definition">eq_ind_r</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ssr.ssrfun.html#20b75710d0541e9ffd06f8e723fd3daf"><span class="id" title="notation">[</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ssr.ssrfun.html#20b75710d0541e9ffd06f8e723fd3daf"><span class="id" title="notation">eta</span></a> <span class="id" title="class">Positive</span><a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ssr.ssrfun.html#20b75710d0541e9ffd06f8e723fd3daf"><span class="id" title="notation">]</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ssr.ssrfun.html#erefl"><span class="id" title="abbreviation">erefl</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ssr.ssreflect.html#::core_scope:x_':'_x"><span class="id" title="notation">:</span></a> <span class="id" title="class">Positive</span> 3) (<span class="id" title="lemma">card_ord</span> 3).<br/>
 <span class="id" title="keyword">Definition</span> <a id="chHash" class="idref" href="#chHash"><span class="id" title="definition"><span id="chHash" class="id">chHash</span></span></a> : <span class="id" title="inductive">choice_type</span> := <span class="id" title="constructor">chFin</span> (<span class="id" title="constructor">mkpos</span> <span class="id" title="notation">#|</span><a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#fin_hash"><span class="id" title="definition">fin_hash</span></a><span class="id" title="notation">|</span>).<br/>
-
-<br/>
 
 <br/>
 

@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,8 +66,9 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
 
-(* Translated definitions *)
+(** * Translated definitions *)
 
 Definition t_HashAlgorithm : choice_type :=
   ('unit ∐ 'unit ∐ 'unit).

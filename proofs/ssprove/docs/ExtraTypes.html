@@ -19,7 +19,10 @@
 <h1 class="libtitle">Library ExtraTypes</h1>
 
 <div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
@@ -45,6 +48,9 @@
 <span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
@@ -62,9 +68,11 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
@@ -84,8 +92,12 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
@@ -93,6 +105,8 @@
 
 <br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
@@ -105,8 +119,15 @@
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
 
 <br/>
+</div>
 
-<br/>
+<div class="doc">
+Fig. 12, p. 18 
+<div class="paragraph"> </div>
+
+ Fig.29, P.63 
+</div>
+<div class="code">
 
 <br/>
 #[<span class="id" title="var">global</span>] <span class="id" title="keyword">Instance</span> <span class="id" title="var">pos_bool</span> : <span class="id" title="var">Positive</span> #|'<span class="id" title="var">bool</span>| :=<br/>
@@ -126,6 +147,12 @@
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">chLabel</span> : <span class="id" title="var">choice_type</span> := <span class="id" title="var">chFin</span> (<span class="id" title="var">mkpos</span> #|<span class="id" title="var">fin_label</span>|).<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Definition 4.2: names are at least / Fig. 1  
+</div>
+<div class="code">
 <span class="id" title="keyword">Inductive</span> <span class="id" title="var">name</span> :=<br/>
 | <span class="id" title="var">BOT</span><br/>
 <br/>
@@ -180,8 +207,6 @@
 #[<span class="id" title="var">global</span>] <span class="id" title="keyword">Instance</span> <span class="id" title="var">pos_hash</span> : <span class="id" title="var">Positive</span> #|<span class="id" title="var">fin_hash</span>| :=<br/>
 &nbsp;&nbsp;<span class="id" title="var">eq_ind_r</span> [<span class="id" title="var">eta</span> <span class="id" title="var">Positive</span>] (<span class="id" title="var">erefl</span> : <span class="id" title="var">Positive</span> 3) (<span class="id" title="var">card_ord</span> 3).<br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">chHash</span> : <span class="id" title="var">choice_type</span> := <span class="id" title="var">chFin</span> (<span class="id" title="var">mkpos</span> #|<span class="id" title="var">fin_hash</span>|).<br/>
-
-<br/>
 
 <br/>
 
