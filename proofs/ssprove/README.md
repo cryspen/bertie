@@ -1,3 +1,8 @@
+# Content
+- `fextraction/*` - contains a manually fixed version of the generated SSProve code for the keyschedule
+- `handwritten/*` - contains utility functions for defining packages, and a partial proof of the core theorem
+
+# Re-generation
 Generate patch file by first running extraction
 ```bash
 ./hax-driver.py extract-ssprove

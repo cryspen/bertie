@@ -21,9 +21,28 @@ digraph interval_deps {
 		shape=doubleoctagon];
 	"handwritten.ExtraTypes"	[fillcolor=2];
 	"handwritten.ExtraTypes" -> "handwritten.Types";
-	"handwritten.Utility"	[fillcolor=2];
-	"handwritten.Utility" -> "handwritten.ssp_helper";
-	"handwritten.Utility" -> "handwritten.ExtraTypes";
+	"handwritten.Utility"	[fillcolor=4];
+	"handwritten.Utility.key_store"	[fillcolor=4];
+	"handwritten.Utility" -> "handwritten.Utility.key_store";
+	"handwritten.Utility.map_with_in"	[fillcolor=4];
+	"handwritten.Utility" -> "handwritten.Utility.map_with_in";
+	"handwritten.Utility.funext"	[fillcolor=4,
+		shape=doubleoctagon];
+	"handwritten.Utility" -> "handwritten.Utility.funext";
+	"handwritten.Utility.advantage"	[fillcolor=4,
+		shape=doubleoctagon];
+	"handwritten.Utility" -> "handwritten.Utility.advantage";
+	"handwritten.Utility.key_store" -> "handwritten.ssp_helper";
+	"handwritten.Utility.key_store" -> "handwritten.ExtraTypes";
+	"handwritten.Utility.random_util"	[fillcolor=4];
+	"handwritten.Utility.map_with_in" -> "handwritten.Utility.random_util";
+	"handwritten.Utility.interface_foreach_and_hierarchy"	[fillcolor=4];
+	"handwritten.Utility.map_with_in" -> "handwritten.Utility.interface_foreach_and_hierarchy";
+	"handwritten.Utility.random_util" -> "handwritten.ssp_helper";
+	"handwritten.Utility.interface_foreach_and_hierarchy" -> "handwritten.ssp_helper";
+	"handwritten.Utility.serialize_name"	[fillcolor=4];
+	"handwritten.Utility.interface_foreach_and_hierarchy" -> "handwritten.Utility.serialize_name";
+	"handwritten.Utility.serialize_name" -> "handwritten.ExtraTypes";
 	"handwritten.Dependencies"	[fillcolor=2];
 	"handwritten.Dependencies" -> "handwritten.Utility";
 	"handwritten.BasePackages"	[fillcolor=2];
@@ -35,9 +54,6 @@ digraph interval_deps {
 	"handwritten.Core"	[fillcolor=2];
 	"handwritten.Core" -> "handwritten.KeyPackages";
 	"handwritten.Core" -> "handwritten.XTR_XPD";
-	"handwritten.KeySchedulePackages"	[fillcolor=2,
-		penwidth=3];
-	"handwritten.KeySchedulePackages" -> "handwritten.Core";
 	"handwritten.CoreTheorem"	[fillcolor=2];
 	"handwritten.CoreTheorem" -> "handwritten.Core";
 	"handwritten.BertieResult"	[fillcolor=2,

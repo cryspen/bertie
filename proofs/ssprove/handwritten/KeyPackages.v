@@ -98,17 +98,16 @@ Section KeyPackages.
   Definition GET_O_star_ℓ d ℓ : Interface :=
     interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (O_star).
 
-  (* Fig 13-14. K key and log *)
+  (** Fig 13-14. K key and log *)
 
   Axiom exists_h_star : (chHandle -> raw_code 'unit) -> code L_L [interface] 'unit.
   Inductive ZAF := | Z | A | F | D | R.
 
   Axiom level : chHandle -> nat.
 
-  (* Fig 13 *)
+  (** Fig 13 *)
   Definition L_package d (n : name) (P : ZAF) :
     package
-      (* (fset_Log_table Log_table) *)
       L_L
       [interface]
       [interface
@@ -153,12 +152,9 @@ Section KeyPackages.
   Defined.
   Fail Next Obligation.
 
-  (* Fig 14 *)
+  (** Fig 14 *)
 
-  (* Definition fin_K_table : finType := Casts.prod_finType fin_key 'bool. *)
-  (* Definition chK_table := chFin (mkpos #|fin_K_table|). *)
-
-  Definition K_package d (n : name) (ℓ : nat) (* (d : nat) *) (_ : (ℓ <= d)%nat) (b : bool) :
+  Definition K_package d (n : name) (ℓ : nat) (_ : (ℓ <= d)%nat) (b : bool) :
     package
       L_K
       [interface
@@ -414,9 +410,6 @@ Section KeyPackages.
   Notation " 'chKout' " :=
     (chHandle)
       (in custom pack_type at level 2).
-  (* Definition K (n : chName) (ℓ : nat) := 10%nat. *)
-
-  (**** *)
 
   Definition K_psk_1_0 d := K_package d PSK 0 (ltac:(Lia.lia)) true.
   Obligation Tactic := (* try timeout 8 *) idtac.

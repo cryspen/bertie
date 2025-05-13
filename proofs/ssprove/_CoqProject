@@ -9,13 +9,21 @@
 ./fextraction/Bertie_Tls13formats.v
 ./fextraction/Bertie_Tls13keyscheduler_Key_schedule.v
 
-# PROOF
+# Proof
 
 ./handwritten/ssp_helper.v
 
 ./handwritten/Types.v
 ./handwritten/ExtraTypes.v
+
 ./handwritten/Utility.v
+./handwritten/Utility/random_util.v
+./handwritten/Utility/key_store.v
+./handwritten/Utility/serialize_name.v
+./handwritten/Utility/interface_foreach_and_hierarchy.v
+./handwritten/Utility/map_with_in.v
+./handwritten/Utility/funext.v
+./handwritten/Utility/advantage.v
 
 ./handwritten/Dependencies.v
 
@@ -24,8 +32,8 @@
 ./handwritten/XTR_XPD.v
 
 ./handwritten/Core.v
-./handwritten/KeySchedulePackages.v
-
 ./handwritten/CoreTheorem.v
+
+# Combination
 
 ./handwritten/BertieResult.v
