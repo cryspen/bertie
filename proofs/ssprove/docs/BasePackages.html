@@ -19,7 +19,10 @@
 <h1 class="libtitle">Library BasePackages</h1>
 
 <div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
@@ -45,6 +48,9 @@
 <span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
@@ -62,9 +68,11 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
@@ -84,8 +92,12 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
@@ -93,6 +105,10 @@
 
 <br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
@@ -174,22 +190,20 @@
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">DHEXP</span> : <span class="id" title="var">nat</span> := 12.<br/>
 
 <br/>
-
-<br/>
-
-<br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">SET_ℓ</span> <span class="id" title="var">Names</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>]) <span class="id" title="var">Names</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Names</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">SET_n</span> <span class="id" title="var">Names</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">Interface</span> :=<br/>
 &nbsp;&nbsp;<span class="id" title="var">interface_hierarchy</span> (<span class="id" title="var">SET_ℓ</span> <span class="id" title="var">Names</span> <span class="id" title="var">k</span>) <span class="id" title="var">d</span>.<br/>
 
 <br/>
-
-<br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">GET_ℓ</span> <span class="id" title="var">Names</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>]) <span class="id" title="var">Names</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Names</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">GET_n</span> <span class="id" title="var">Names</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">Interface</span> :=<br/>

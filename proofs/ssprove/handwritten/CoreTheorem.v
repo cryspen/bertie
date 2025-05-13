@@ -68,6 +68,49 @@ Import GroupScope GRing.Theory.
 Import PackageNotation.
 (* end details *)
 
+(**  Core Theorem for Cryptographic Security Reductions in a Hierarchical Game
+ Framework. This file establishes a fundamental result bounding the
+ advantage of adversaries in a sequence of security games, decomposing the
+ overall reduction into contributions from hash function properties,
+ extraction/prediction challenges, and composition of intermediate game
+ transitions. The theorem serves as the central technical tool for
+ analyzing the security of cryptographic constructions with layered
+ hardness assumptions.
+
+ Key components defined and proved:
+ - [G_core d k b H_lt] == Main game sequence parameterized by depth [d],
+                        key [k], boolean flag [b], and hardness threshold [H_lt].
+                        The [false]/[true] flag controls critical security
+                        properties being tested.
+ -  [AdvantageE G A]    == Security advantage of adversary [A] against game [G],
+                        measuring the difference in success probabilities.
+ -  [sumR_l lst f]      == Linear combination of advantages over a list of
+                        reduction functions, weighted by their contribution
+                        to the overall bound.
+ -  [R_cr, R_Z, R_D]    == Reduction functions for collision resistance,
+                        extraction, and prediction challenges.
+ -  [R_pi, R_xtr, R_xpd] == Interface functions linking adversarial strategies
+                        to intermediate game transitions.
+
+ The core_theorem provides an upper bound on the advantage of any valid
+ adversary in the initial game ([G_core] with [false]) versus the final secure
+ game ([G_core] with [true]). The bound aggregates contributions from:
+   - Hash function properties (collision resistance, extraction).
+   - Composition of intermediate game transitions ([sumR] over [ℓ]).
+   - Specialized reduction games ([Gsodh, Gpi, Gxtr, Gxpd]).
+
+ The proof strategy follows a modular approach:
+   - Intermediate lemmas ([d2], [d3], etc.) isolate individual game transitions.
+   - [Equation20_eq] decomposes the advantage into telescoping sums.
+   - [sumR_leq] axiom ensures monotonicity of the summation operator.
+   - The final bound combines all components using [maxR] and linear
+     combinations, reflecting worst-case contributions from each security
+     assumption.
+
+ This formalization is inspired by game-playing techniques in provable
+ security, formalizing the security analysis of iterative cryptographic
+ constructions with layered reductions.                                      **)
+
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.

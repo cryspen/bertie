@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>KeyScheduleTheorem.BasePackages</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library KeyScheduleTheorem.BasePackages</h1>
+
+<div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all_ssreflect</span> <span class="id" title="library">fingroup.fingroup</span> <span class="id" title="library">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">word_ssrZ</span> <span class="id" title="library">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ZArith.ZArith.html#"><span class="id" title="library">ZArith</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Strings.String.html#"><span class="id" title="library">Strings.String</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#ListNotations"><span class="id" title="module">List.ListNotations</span></a>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">choice.Choice.Exports</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Schnorr</span> <span class="id" title="library">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">OrderEnrichedCategory</span> <span class="id" title="library">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all_ssreflect</span> <span class="id" title="library">all_algebra</span> <span class="id" title="library">reals</span> <span class="id" title="library">distr</span> <span class="id" title="library">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">fingroup.fingroup</span> <span class="id" title="library">solvable.cyclic</span> <span class="id" title="library">prime</span> <span class="id" title="library">ssrnat</span> <span class="id" title="library">ssreflect</span> <span class="id" title="library">ssrfun</span> <span class="id" title="library">ssrbool</span> <span class="id" title="library">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">eqtype</span> <span class="id" title="library">choice</span> <span class="id" title="library">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Axioms</span> <span class="id" title="library">ChoiceAsOrd</span> <span class="id" title="library">SubDistr</span> <span class="id" title="library">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">UniformDistrLemmas</span> <span class="id" title="library">FreeProbProg</span> <span class="id" title="library">Theta_dens</span> <span class="id" title="library">RulesStateProb</span> <span class="id" title="library">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">pkg_core_definition</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">pkg_composition</span> <span class="id" title="library">pkg_rhl</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8.html#"><span class="id" title="library">Utf8</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span> <span class="id" title="library">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="library">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">GroupScope</span> <span class="id" title="module">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Types.html#"><span class="id" title="library">Types</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#"><span class="id" title="library">ExtraTypes</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Utility.html#"><span class="id" title="library">Utility</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Dependencies.html#"><span class="id" title="library">Dependencies</span></a>.<br/>
+
+<br/>
+
+<br/>
+#[<span class="id" title="var">global</span>] <span class="id" title="keyword">Notation</span> " 'chSETinp' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chHandle"><span class="id" title="definition">chHandle</span></a> <span class="id" title="notation">×</span> <span class="id" title="notation">'</span><span class="id" title="notation">bool</span> <span class="id" title="notation">×</span> <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chKey"><span class="id" title="definition">chKey</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+#[<span class="id" title="var">global</span>] <span class="id" title="keyword">Notation</span> " 'chSETout' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chHandle"><span class="id" title="definition">chHandle</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Definition</span> <a id="SET" class="idref" href="#SET"><span class="id" title="definition"><span id="SET" class="id">SET</span></span></a> (<a id="n:1" class="idref" href="#n:1"><span class="id" title="binder"><span id="n:1" class="id">n</span></span></a> : <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#name"><span class="id" title="inductive">name</span></a>) (<a id="1a24773ef495e417cc2ad8c7b9790c3a" class="idref" href="#1a24773ef495e417cc2ad8c7b9790c3a"><span class="id" title="binder"><span id="1a24773ef495e417cc2ad8c7b9790c3a" class="id">ℓ</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) (<a id="d:3" class="idref" href="#d:3"><span class="id" title="binder"><span id="d:3" class="id">d</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) := <a class="idref" href="KeyScheduleTheorem.Utility.serialize_name.html#serialize_name"><span class="id" title="definition">serialize_name</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#n:1"><span class="id" title="variable">n</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#1a24773ef495e417cc2ad8c7b9790c3a"><span class="id" title="variable">ℓ</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:3"><span class="id" title="variable">d</span></a> 0.<br/>
+
+<br/>
+#[<span class="id" title="var">global</span>] <span class="id" title="keyword">Notation</span> " 'chGETinp' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chHandle"><span class="id" title="definition">chHandle</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+#[<span class="id" title="var">global</span>] <span class="id" title="keyword">Notation</span> " 'chGETout' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chKey"><span class="id" title="definition">chKey</span></a> <span class="id" title="notation">×</span> <span class="id" title="notation">'</span><span class="id" title="notation">bool</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Definition</span> <a id="GET" class="idref" href="#GET"><span class="id" title="definition"><span id="GET" class="id">GET</span></span></a> (<a id="n:4" class="idref" href="#n:4"><span class="id" title="binder"><span id="n:4" class="id">n</span></span></a> : <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#name"><span class="id" title="inductive">name</span></a>) (<a id="dedfcf81b3bcf7825ae16d1bb458042a" class="idref" href="#dedfcf81b3bcf7825ae16d1bb458042a"><span class="id" title="binder"><span id="dedfcf81b3bcf7825ae16d1bb458042a" class="id">ℓ</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) (<a id="d:6" class="idref" href="#d:6"><span class="id" title="binder"><span id="d:6" class="id">d</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) := <a class="idref" href="KeyScheduleTheorem.Utility.serialize_name.html#serialize_name"><span class="id" title="definition">serialize_name</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#n:4"><span class="id" title="variable">n</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#dedfcf81b3bcf7825ae16d1bb458042a"><span class="id" title="variable">ℓ</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:6"><span class="id" title="variable">d</span></a> 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chHASHinp'" class="idref" href="#:pack_type::'chHASHinp'"><span class="id" title="notation"><span id=":pack_type::'chHASHinp'" class="id">&quot;</span></span></a> 'chHASHinp' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#bitvec"><span class="id" title="definition">bitvec</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chHASHout'" class="idref" href="#:pack_type::'chHASHout'"><span class="id" title="notation"><span id=":pack_type::'chHASHout'" class="id">&quot;</span></span></a> 'chHASHout' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#bitvec"><span class="id" title="definition">bitvec</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a id="HashFunction" class="idref" href="#HashFunction"><span class="id" title="definition, inductive"><span id="HashFunction_rect" class="id"><span id="HashFunction_ind" class="id"><span id="HashFunction_rec" class="id"><span id="HashFunction_sind" class="id"><span id="HashFunction" class="id"><span id="HashFunction_rect" class="id"><span id="HashFunction_ind" class="id"><span id="HashFunction_rec" class="id"><span id="HashFunction_sind" class="id">HashFunction</span></span></span></span></span></span></span></span></span></span></a> :=<br/>
+| <a id="f_hash" class="idref" href="#f_hash"><span class="id" title="constructor"><span id="f_hash" class="id">f_hash</span></span></a><br/>
+| <a id="f_xtr" class="idref" href="#f_xtr"><span class="id" title="constructor"><span id="f_xtr" class="id">f_xtr</span></span></a><br/>
+| <a id="f_xpd" class="idref" href="#f_xpd"><span class="id" title="constructor"><span id="f_xpd" class="id">f_xpd</span></span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="HASH" class="idref" href="#HASH"><span class="id" title="definition"><span id="HASH" class="id">HASH</span></span></a> (<a id="f:9" class="idref" href="#f:9"><span class="id" title="binder"><span id="f:9" class="id">f</span></span></a> : <a class="idref" href="KeyScheduleTheorem.BasePackages.html#HashFunction"><span class="id" title="inductive">HashFunction</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> :=<br/>
+&nbsp;&nbsp;22%<span class="id" title="var">nat</span> <span class="id" title="notation">+</span> <span class="id" title="keyword">match</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#f:9"><span class="id" title="variable">f</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="KeyScheduleTheorem.BasePackages.html#f_hash"><span class="id" title="constructor">f_hash</span></a> ⇒ 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="KeyScheduleTheorem.BasePackages.html#f_xtr"><span class="id" title="constructor">f_xtr</span></a> ⇒ 1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="KeyScheduleTheorem.BasePackages.html#f_xpd"><span class="id" title="constructor">f_xpd</span></a> ⇒ 2<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chUNQinp'" class="idref" href="#:pack_type::'chUNQinp'"><span class="id" title="notation"><span id=":pack_type::'chUNQinp'" class="id">&quot;</span></span></a> 'chUNQinp' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chHandle"><span class="id" title="definition">chHandle</span></a> <span class="id" title="notation">×</span> <span class="id" title="notation">'</span><span class="id" title="notation">bool</span> <span class="id" title="notation">×</span> <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chKey"><span class="id" title="definition">chKey</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chUNQout'" class="idref" href="#:pack_type::'chUNQout'"><span class="id" title="notation"><span id=":pack_type::'chUNQout'" class="id">&quot;</span></span></a> 'chUNQout' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chHandle"><span class="id" title="definition">chHandle</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="UNQ" class="idref" href="#UNQ"><span class="id" title="definition"><span id="UNQ" class="id">UNQ</span></span></a> (<a id="n:11" class="idref" href="#n:11"><span class="id" title="binder"><span id="n:11" class="id">n</span></span></a> : <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#name"><span class="id" title="inductive">name</span></a>) (<a id="d:12" class="idref" href="#d:12"><span class="id" title="binder"><span id="d:12" class="id">d</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> := <a class="idref" href="KeyScheduleTheorem.Utility.serialize_name.html#serialize_name"><span class="id" title="definition">serialize_name</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#n:11"><span class="id" title="variable">n</span></a> 0 <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:12"><span class="id" title="variable">d</span></a> 2.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chDHGENinp'" class="idref" href="#:pack_type::'chDHGENinp'"><span class="id" title="notation"><span id=":pack_type::'chDHGENinp'" class="id">&quot;</span></span></a> 'chDHGENinp' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.Dependencies.html#chGroup"><span class="id" title="axiom">chGroup</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chDHGENout'" class="idref" href="#:pack_type::'chDHGENout'"><span class="id" title="notation"><span id=":pack_type::'chDHGENout'" class="id">&quot;</span></span></a> 'chDHGENout' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.Dependencies.html#chGroup"><span class="id" title="axiom">chGroup</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Definition</span> <a id="DHGEN" class="idref" href="#DHGEN"><span class="id" title="definition"><span id="DHGEN" class="id">DHGEN</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> := 11.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chDHEXPinp'" class="idref" href="#:pack_type::'chDHEXPinp'"><span class="id" title="notation"><span id=":pack_type::'chDHEXPinp'" class="id">&quot;</span></span></a> 'chDHEXPinp' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.Dependencies.html#chGroup"><span class="id" title="axiom">chGroup</span></a> <span class="id" title="notation">×</span> <a class="idref" href="KeyScheduleTheorem.Dependencies.html#chGroup"><span class="id" title="axiom">chGroup</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a id=":pack_type::'chDHEXPout'" class="idref" href="#:pack_type::'chDHEXPout'"><span class="id" title="notation"><span id=":pack_type::'chDHEXPout'" class="id">&quot;</span></span></a> 'chDHEXPout' " :=<br/>
+&nbsp;&nbsp;(<a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#chHandle"><span class="id" title="definition">chHandle</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Definition</span> <a id="DHEXP" class="idref" href="#DHEXP"><span class="id" title="definition"><span id="DHEXP" class="id">DHEXP</span></span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> := 12.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="7a9c1496eff9a38347de3fbcb0f7bb4e" class="idref" href="#7a9c1496eff9a38347de3fbcb0f7bb4e"><span class="id" title="definition"><span id="7a9c1496eff9a38347de3fbcb0f7bb4e" class="id">SET_ℓ</span></span></a> <a id="Names:13" class="idref" href="#Names:13"><span class="id" title="binder"><span id="Names:13" class="id">Names</span></span></a> <a id="d:14" class="idref" href="#d:14"><span class="id" title="binder"><span id="d:14" class="id">d</span></span></a> <a id="4f12b218a1dc54dcb58eebdaa8ed9e8a" class="idref" href="#4f12b218a1dc54dcb58eebdaa8ed9e8a"><span class="id" title="binder"><span id="4f12b218a1dc54dcb58eebdaa8ed9e8a" class="id">ℓ</span></span></a> : <span class="id" title="definition">Interface</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="KeyScheduleTheorem.Utility.interface_foreach_and_hierarchy.html#interface_foreach"><span class="id" title="definition">interface_foreach</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <a id="n:16" class="idref" href="#n:16"><span class="id" title="binder"><span id="n:16" class="id">n</span></span></a> ⇒ <span class="id" title="notation">[</span><span class="id" title="notation">interface</span> <span class="id" title="notation">#</span><span class="id" title="notation">val</span> <span class="id" title="notation">#[</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#SET"><span class="id" title="definition">SET</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#n:16"><span class="id" title="variable">n</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#4f12b218a1dc54dcb58eebdaa8ed9e8a"><span class="id" title="variable">ℓ</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:14"><span class="id" title="variable">d</span></a> <span class="id" title="notation">]</span> <span class="id" title="notation">:</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#:pack_type::'chSETinp'"><span class="id" title="notation">chSETinp</span></a> <span class="id" title="notation">→</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#:pack_type::'chSETout'"><span class="id" title="notation">chSETout</span></a><span class="id" title="notation">]</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="KeyScheduleTheorem.BasePackages.html#Names:13"><span class="id" title="variable">Names</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="SET_n" class="idref" href="#SET_n"><span class="id" title="definition"><span id="SET_n" class="id">SET_n</span></span></a> <a id="Names:17" class="idref" href="#Names:17"><span class="id" title="binder"><span id="Names:17" class="id">Names</span></span></a> <a id="d:18" class="idref" href="#d:18"><span class="id" title="binder"><span id="d:18" class="id">d</span></span></a> <a id="k:19" class="idref" href="#k:19"><span class="id" title="binder"><span id="k:19" class="id">k</span></span></a> : <span class="id" title="definition">Interface</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="KeyScheduleTheorem.Utility.interface_foreach_and_hierarchy.html#interface_hierarchy"><span class="id" title="definition">interface_hierarchy</span></a> (<a class="idref" href="KeyScheduleTheorem.BasePackages.html#7a9c1496eff9a38347de3fbcb0f7bb4e"><span class="id" title="definition">SET_ℓ</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#Names:17"><span class="id" title="variable">Names</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#k:19"><span class="id" title="variable">k</span></a>) <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:18"><span class="id" title="variable">d</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="53cd1044ebd4ab3d34c4dbdd1f13d837" class="idref" href="#53cd1044ebd4ab3d34c4dbdd1f13d837"><span class="id" title="definition"><span id="53cd1044ebd4ab3d34c4dbdd1f13d837" class="id">GET_ℓ</span></span></a> <a id="Names:20" class="idref" href="#Names:20"><span class="id" title="binder"><span id="Names:20" class="id">Names</span></span></a> <a id="d:21" class="idref" href="#d:21"><span class="id" title="binder"><span id="d:21" class="id">d</span></span></a> <a id="ace2df6e2143aeae6fc8aac2d22353ba" class="idref" href="#ace2df6e2143aeae6fc8aac2d22353ba"><span class="id" title="binder"><span id="ace2df6e2143aeae6fc8aac2d22353ba" class="id">ℓ</span></span></a> : <span class="id" title="definition">Interface</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="KeyScheduleTheorem.Utility.interface_foreach_and_hierarchy.html#interface_foreach"><span class="id" title="definition">interface_foreach</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <a id="n:23" class="idref" href="#n:23"><span class="id" title="binder"><span id="n:23" class="id">n</span></span></a> ⇒ <span class="id" title="notation">[</span><span class="id" title="notation">interface</span> <span class="id" title="notation">#</span><span class="id" title="notation">val</span> <span class="id" title="notation">#[</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#GET"><span class="id" title="definition">GET</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#n:23"><span class="id" title="variable">n</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#ace2df6e2143aeae6fc8aac2d22353ba"><span class="id" title="variable">ℓ</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:21"><span class="id" title="variable">d</span></a> <span class="id" title="notation">]</span> <span class="id" title="notation">:</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#:pack_type::'chGETinp'"><span class="id" title="notation">chGETinp</span></a> <span class="id" title="notation">→</span> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#:pack_type::'chGETout'"><span class="id" title="notation">chGETout</span></a><span class="id" title="notation">]</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="KeyScheduleTheorem.BasePackages.html#Names:20"><span class="id" title="variable">Names</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="GET_n" class="idref" href="#GET_n"><span class="id" title="definition"><span id="GET_n" class="id">GET_n</span></span></a> <a id="Names:24" class="idref" href="#Names:24"><span class="id" title="binder"><span id="Names:24" class="id">Names</span></span></a> <a id="d:25" class="idref" href="#d:25"><span class="id" title="binder"><span id="d:25" class="id">d</span></span></a> <a id="k:26" class="idref" href="#k:26"><span class="id" title="binder"><span id="k:26" class="id">k</span></span></a> : <span class="id" title="definition">Interface</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="KeyScheduleTheorem.Utility.interface_foreach_and_hierarchy.html#interface_hierarchy"><span class="id" title="definition">interface_hierarchy</span></a> (<a class="idref" href="KeyScheduleTheorem.BasePackages.html#53cd1044ebd4ab3d34c4dbdd1f13d837"><span class="id" title="definition">GET_ℓ</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#Names:24"><span class="id" title="variable">Names</span></a> <a class="idref" href="KeyScheduleTheorem.BasePackages.html#k:26"><span class="id" title="variable">k</span></a>) <a class="idref" href="KeyScheduleTheorem.BasePackages.html#d:25"><span class="id" title="variable">d</span></a>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

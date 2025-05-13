@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,46 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
+
+(******************************************************************************)
+(* This file defines base cryptographic packages and interfaces for a key     *)
+(* schedule theorem framework. It establishes notations, inductive types,     *)
+(* and hierarchical interfaces for cryptographic operations such as SET,      *)
+(* GET, HASH, UNQ, DHGEN, and DHEXP. These operations model primitives used   *)
+(* in key derivation and protocol execution.                                  *)
+(*                                                                            *)
+(* Key components defined in this file:                                       *)
+(*                                                                            *)
+(* - **Cryptographic Operation Interfaces**:                                  *)
+(*   - `SET`: Models key storage operations with input `(chHandle × bool ×    *)
+(*     chKey)` and output `chHandle`.                                         *)
+(*   - `GET`: Models key retrieval operations with input `chHandle` and       *)
+(*     output `(chKey × bool)`.                                               *)
+(*   - `HASH`: Defines hash function operations over `bitvec` with            *)
+(*     inductive type `HashFunction` (f_hash, f_xtr, f_xpd) and a mapping to  *)
+(*     unique identifiers.                                                    *)
+(*   - `UNQ`: Models unique handle generation with input `(chHandle × bool    *)
+(*     × chKey)` and output `chHandle`.                                       *)
+(*   - `DHGEN`/`DHEXP`: Defines Diffie-Hellman group generation and key       *)
+(*     exchange operations over `chGroup`.                                    *)
+(*                                                                            *)
+(* - **Interface Hierarchies**:                                               *)
+(*   - `SET_ℓ` and `GET_ℓ`: Parameterized interfaces for operations over a    *)
+(*     list of `name`s, indexed by depth `ℓ` and parameter `d`.               *)
+(*   - `SET_n` and `GET_n`: Hierarchical interfaces combining `SET_ℓ`/`GET_ℓ` *)
+(*     across depths.                                                         *)
+(*                                                                            *)
+(* - **Notations and Helper Definitions**:                                    *)
+(*   - `chSETinp`, `chSETout`, etc.: Syntactic sugar for input/output types.  *)
+(*   - `serialize_name`: Maps names and parameters to unique identifiers.     *)
+(*   - `HashFunction`: Enumerates hash function types (f_hash, f_xtr, f_xpd). *)
+(*   - `HASH`: Assigns unique numeric identifiers to hash functions.          *)
+(*                                                                            *)
+(* This module is part of the `KeyScheduleTheorem` project and relies on      *)
+(* foundational libraries such as `mathcomp`, `Hacspec`, and `Relational` for *)
+(* formal verification of cryptographic protocols.                            *)
+(******************************************************************************)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -135,22 +176,18 @@ Notation " 'chDHEXPout' " :=
     (in custom pack_type at level 2).
 Definition DHEXP : nat := 12.
 
-(* Definition SET_DH : nat := 13. *)
-
-(* Definition SET_ℓ_f d n ℓ := [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]. *)
-
 Definition SET_ℓ Names d ℓ : Interface :=
-  interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) Names.
-(* SET_ℓ_f d n ℓ *)
+  interface_foreach
+    (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout])
+    Names.
 
 Definition SET_n Names d k : Interface :=
   interface_hierarchy (SET_ℓ Names k) d.
 
-(* Definition GET_ℓ_f d n ℓ := [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]. *)
-
 Definition GET_ℓ Names d ℓ : Interface :=
-  interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) Names.
-(* GET_ℓ_f d n ℓ *)
+  interface_foreach
+    (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout])
+    Names.
 
 Definition GET_n Names d k : Interface :=
   interface_hierarchy (GET_ℓ Names k) d.

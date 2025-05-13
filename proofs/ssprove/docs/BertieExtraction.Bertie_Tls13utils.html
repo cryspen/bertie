@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>BertieExtraction.Bertie_Tls13utils</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library BertieExtraction.Bertie_Tls13utils</h1>
+
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">word_ssrZ</span> <span class="id" title="library">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ZArith.ZArith.html#"><span class="id" title="library">ZArith</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Strings.String.html#"><span class="id" title="library">Strings.String</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#ListNotations"><span class="id" title="module">List.ListNotations</span></a>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">choice.Choice.Exports</span>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="BertieExtraction.Fixes.html#"><span class="id" title="library">Fixes</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Equations</span> <a id="v_INCORRECT_STATE" class="idref" href="#v_INCORRECT_STATE"><span class="id" title="definition">v_INCORRECT_STATE</span></a> : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int8</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#v_INCORRECT_STATE:2"><span class="id" title="definition">v_INCORRECT_STATE</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (128 : <span class="id" title="abbreviation">int8</span>) : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int8</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Equations</span> <a id="v_PAYLOAD_TOO_LONG" class="idref" href="#v_PAYLOAD_TOO_LONG"><span class="id" title="definition">v_PAYLOAD_TOO_LONG</span></a> : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int8</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#v_PAYLOAD_TOO_LONG:4"><span class="id" title="definition">v_PAYLOAD_TOO_LONG</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (130 : <span class="id" title="abbreviation">int8</span>) : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int8</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Equations</span> <a id="v_U16" class="idref" href="#v_U16"><span class="id" title="definition">v_U16</span></a> (<a id="x:5" class="idref" href="#x:5"><span class="id" title="binder">x</span></a> : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int16</span>) : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int16</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#v_U16:8"><span class="id" title="definition">v_U16</span></a> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#x:7"><span class="id" title="variable">x</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">x</span> : <span class="id" title="record">both</span> <span class="id" title="abbreviation">int16</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="t_Bytes" class="idref" href="#t_Bytes"><span class="id" title="definition">t_Bytes</span></a> : <span class="id" title="inductive">choice_type</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>).<br/>
+<span class="id" title="keyword">Equations</span> <a id="t_Bytes0" class="idref" href="#t_Bytes0"><span class="id" title="definition">t_Bytes0</span></a> (<a id="s:9" class="idref" href="#s:9"><span class="id" title="binder">s</span></a> : <span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>) : <span class="id" title="record">both</span> (<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes0:12"><span class="id" title="definition">t_Bytes0</span></a> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#s:11"><span class="id" title="variable">s</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">bind_both</span> <span class="id" title="var">s</span> (<span class="id" title="keyword">fun</span> <a id="x:13" class="idref" href="#x:13"><span class="id" title="binder">x</span></a> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#x:13"><span class="id" title="variable">x</span></a> : (<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>))) : <span class="id" title="record">both</span> (<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>).<br/>
+<span class="id" title="keyword">Equations</span> <a id="Build_t_Bytes" class="idref" href="#Build_t_Bytes"><span class="id" title="definition">Build_t_Bytes</span></a> {<a id="t_Bytes0:14" class="idref" href="#t_Bytes0:14"><span class="id" title="binder">t_Bytes0</span></a> : <span class="id" title="record">both</span> (<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>)} : <span class="id" title="record">both</span> (<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#Build_t_Bytes:16"><span class="id" title="definition">Build_t_Bytes</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">bind_both</span> <span class="id" title="var">t_Bytes0</span> (<span class="id" title="keyword">fun</span> <a id="t_Bytes0:17" class="idref" href="#t_Bytes0:17"><span class="id" title="binder">t_Bytes0</span></a> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> ((<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes0:17"><span class="id" title="variable">t_Bytes0</span></a>) : (<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>))) : <span class="id" title="record">both</span> (<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>).<br/>
+<span class="id" title="keyword">Notation</span> <a id="ca122b146c35c2fdf27a3afbb0f60f3f" class="idref" href="#ca122b146c35c2fdf27a3afbb0f60f3f"><span class="id" title="notation">&quot;</span></a>'Build_t_Bytes' '[' x ']' '(' '0' ':=' y ')'" := (<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#Build_t_Bytes"><span class="id" title="definition">Build_t_Bytes</span></a> (<span class="id" title="var">t_Bytes0</span> := <span class="id" title="var">y</span>)).<br/>
+
+<br/>
+#[<span class="id" title="var">global</span>] <span class="id" title="var">Program</span> <span class="id" title="keyword">Instance</span> <a id="t_Bytes_t_Clone" class="idref" href="#t_Bytes_t_Clone"><span class="id" title="instance">t_Bytes_t_Clone</span></a> : <span class="id" title="class">t_Clone</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">_</span>.<br/>
+<span class="id" title="keyword">Hint Unfold</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes_t_Clone"><span class="id" title="instance">t_Bytes_t_Clone</span></a>.<br/>
+
+<br/>
+#[<span class="id" title="var">global</span>] <span class="id" title="var">Program</span> <span class="id" title="keyword">Instance</span> <a id="t_Bytes_t_From" class="idref" href="#t_Bytes_t_From"><span class="id" title="instance">t_Bytes_t_From</span></a> : <a class="idref" href="BertieExtraction.Fixes.html#t_From"><span class="id" title="class">t_From</span></a> (<span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>) (<span class="id" title="record">both</span> (<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>)) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <a id="f_from:19" class="idref" href="#f_from:19"><span class="id" title="binder">f_from</span></a> := <span class="id" title="keyword">fun</span>  (<a id="x:18" class="idref" href="#x:18"><span class="id" title="binder">x</span></a> : <span class="id" title="record">both</span> (<span class="id" title="definition">t_Vec</span> <span class="id" title="abbreviation">int8</span> <span class="id" title="constructor">t_Global</span>)) ⇒ <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes0"><span class="id" title="definition">t_Bytes0</span></a> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#x:18"><span class="id" title="variable">x</span></a> : <span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;{| <a class="idref" href="BertieExtraction.Fixes.html#f_from"><span class="id" title="method">f_from</span></a> := (@<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#f_from:19"><span class="id" title="variable">f_from</span></a>)|}.<br/>
+<span class="id" title="keyword">Hint Unfold</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes_t_From"><span class="id" title="instance">t_Bytes_t_From</span></a>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Equations</span> <a id="impl_Bytes__from_slice" class="idref" href="#impl_Bytes__from_slice"><span class="id" title="definition">impl_Bytes__from_slice</span></a> (<a id="s:20" class="idref" href="#s:20"><span class="id" title="binder">s</span></a> : <span class="id" title="record">both</span> (<span class="id" title="definition">seq</span> <span class="id" title="abbreviation">int8</span>)) : <span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#impl_Bytes__from_slice:23"><span class="id" title="definition">impl_Bytes__from_slice</span></a> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#s:22"><span class="id" title="variable">s</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Fixes.html#f_into"><span class="id" title="definition">f_into</span></a> <span class="id" title="var">s</span> : <span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Equations</span> <a id="impl_Bytes__zeroes" class="idref" href="#impl_Bytes__zeroes"><span class="id" title="definition">impl_Bytes__zeroes</span></a> (<a id="len:24" class="idref" href="#len:24"><span class="id" title="binder">len</span></a> : <span class="id" title="record">both</span> <span class="id" title="definition">uint_size</span>) : <span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#impl_Bytes__zeroes:27"><span class="id" title="definition">impl_Bytes__zeroes</span></a> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#len:26"><span class="id" title="variable">len</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#Build_t_Bytes"><span class="id" title="definition">Build_t_Bytes</span></a> (<span class="id" title="var">t_Bytes0</span> := <a class="idref" href="BertieExtraction.Fixes.html#from_elem"><span class="id" title="axiom">from_elem</span></a> ( (<span class="id" title="definition">ret_both</span> (0 : <span class="id" title="abbreviation">int8</span>))) <span class="id" title="var">len</span>) : <span class="id" title="record">both</span> <a class="idref" href="BertieExtraction.Bertie_Tls13utils.html#t_Bytes"><span class="id" title="definition">t_Bytes</span></a>.<br/>
+
+<br/>
+
+<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

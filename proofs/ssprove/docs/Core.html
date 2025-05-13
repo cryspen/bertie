@@ -109,9 +109,100 @@
 </details><div class="code">
 
 <br/>
+</div>
+
+<div class="doc">
+ This file defines a cryptographic reduction framework based on the G-core
+ construction described in <span class="inlinecode"><span class="id" title="var">IACR</span></span> <span class="inlinecode">2021/467,</span> <span class="inlinecode"><span class="id" title="var">Figure</span></span> <span class="inlinecode">31</span>. It formalizes protocol
+ components and their hybridization scenarios for security analysis.
+
+<div class="paragraph"> </div>
+
+ Key definitions and properties:
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">all_names</span></span> == list of all protocol-relevant names (<span class="inlinecode"><span class="id" title="var">PSK</span>;</span> <span class="inlinecode"><span class="id" title="var">DH</span></span> + N_star).
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">N_star</span></span>    == predefined names excluding PSK/DH (<span class="inlinecode"><span class="id" title="var">ES</span>;</span> <span class="inlinecode"><span class="id" title="var">EEM</span>;</span> <span class="inlinecode">...;</span> <span class="inlinecode"><span class="id" title="var">ZERO_IKM</span></span>).
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">N_star_correct</span></span> == lemma proving N_star correctly excludes PSK/DH.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ Packages (via G_core_package_construction):
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">G_core_Hash</span></span> == null hash function (check: <span class="inlinecode"><span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">⇒</span> <span class="inlinecode"><span class="id" title="var">false</span></span>, hash: <span class="inlinecode"><span class="id" title="var">Z</span></span>).
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">G_core_D</span></span>    == deterministic behavior (D for all names).
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">G_core_R_esalt</span></span> == random values for <span class="inlinecode"><span class="id" title="var">ESALT</span></span>, deterministic otherwise.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">G_core_SODH</span></span> == hybridization with <span class="inlinecode"><span class="id" title="var">HS</span></span> checks for idealization.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">G_core_hyb_ℓ</span></span> == parameterized hybrid packages (idealize names ≤ ℓ).
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">G_core_ki</span></span>   == fully idealized package (all keys active).
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ Hybridization mechanics:
+<ul class="doclist">
+<li> Conditional behavior (e.g., <span class="inlinecode"><span class="id" title="var">i</span></span> <span class="inlinecode">&lt;=?</span> <span class="inlinecode"><span class="id" title="var">ℓ</span></span>) controls idealization thresholds.
+
+</li>
+<li> Modular design allows reuse of <span class="inlinecode"><span class="id" title="var">G_core_package_construction</span></span> for variants.
+
+</li>
+<li> Packages model real-world (e.g., <span class="inlinecode"><span class="id" title="var">G_core_Hash</span></span>) and idealized (e.g.,
+   <span class="inlinecode"><span class="id" title="var">G_core_ki</span></span>) components for incremental security analysis.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ Verification:
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">N_star_correct</span></span> ensures correctness of name exclusion logic.
+
+</li>
+<li> Assumes correctness of external definitions (e.g., <span class="inlinecode"><span class="id" title="var">G_check_XTR_XPD</span></span>).
+
+</li>
+<li> Hybrid packages depend on precise conditional logic for security proofs.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ Applications:
+ This module is part of a larger Coq development for verifying cryptographic
+ protocols. It enables systematic simulation of protocol steps and their
+ idealized counterparts, crucial for proving security reductions.
+ See referenced paper for full context.                                      
+</div>
+<div class="code">
+
+<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ExtraTypes</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utility</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ssp_helper</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Dependencies</span>.<br/>
@@ -125,7 +216,7 @@
 </div>
 
 <div class="doc">
-<a id="lab6"></a><h1 class="section">Core</h1>
+<a id="lab1"></a><h1 class="section">Core</h1>
 
 </div>
 <div class="code">
@@ -141,7 +232,7 @@
 </div>
 
 <div class="doc">
-<a id="lab7"></a><h2 class="section">Definitions</h2>
+<a id="lab2"></a><h2 class="section">Definitions</h2>
 
 </div>
 <div class="code">
@@ -316,7 +407,7 @@
 </div>
 
 <div class="doc">
-<a id="lab8"></a><h1 class="section">Actual core</h1>
+<a id="lab3"></a><h1 class="section">Actual core</h1>
 
 </div>
 <div class="code">
@@ -957,7 +1048,7 @@
 </div>
 
 <div class="doc">
-<a id="lab9"></a><h2 class="section">Packages of intermediate steps in G-core reduction</h2>
+<a id="lab4"></a><h2 class="section">Packages of intermediate steps in G-core reduction</h2>
  <a href=https://eprint.iacr.org/2021/467.pdf#figure.caption.1681>Page 70 : Fig 31.</a> Proof overview 
 </div>
 <div class="code">

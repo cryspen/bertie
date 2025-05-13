@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>BertieExtraction.Bertie_Tls13formats</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library BertieExtraction.Bertie_Tls13formats</h1>
+
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">word_ssrZ</span> <span class="id" title="library">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ZArith.ZArith.html#"><span class="id" title="library">ZArith</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Strings.String.html#"><span class="id" title="library">Strings.String</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#ListNotations"><span class="id" title="module">List.ListNotations</span></a>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">choice.Choice.Exports</span>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Equations</span> <a id="v_LABEL_TLS13" class="idref" href="#v_LABEL_TLS13"><span class="id" title="definition">v_LABEL_TLS13</span></a> : <span class="id" title="record">both</span> (<span class="id" title="notation">nseq</span> <span class="id" title="notation">int8</span> <span class="id" title="notation">6</span>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="BertieExtraction.Bertie_Tls13formats.html#v_LABEL_TLS13:2"><span class="id" title="definition">v_LABEL_TLS13</span></a>  :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">array_from_list</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">[</span></a><span class="id" title="definition">ret_both</span> (116 : <span class="id" title="abbreviation">int8</span>)<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (108 : <span class="id" title="abbreviation">int8</span>)<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (115 : <span class="id" title="abbreviation">int8</span>)<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (49 : <span class="id" title="abbreviation">int8</span>)<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (51 : <span class="id" title="abbreviation">int8</span>)<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">;</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">ret_both</span> (32 : <span class="id" title="abbreviation">int8</span>)<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#e76c6291366b599375c28eba0aae94bb"><span class="id" title="notation">]</span></a> : <span class="id" title="record">both</span> (<span class="id" title="notation">nseq</span> <span class="id" title="notation">int8</span> <span class="id" title="notation">6</span>).<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

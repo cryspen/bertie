@@ -125,8 +125,24 @@
 <span class="id" title="keyword">Export</span> <span class="id" title="var">key_store</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem.Utility</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">serialize_name</span>.<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">serialize_name</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem.Utility</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">interface_foreach_and_hierarchy</span>.<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">interface_foreach_and_hierarchy</span>.<br/>
+
+<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem.Utility</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">map_with_in</span>.<br/>
 <span class="id" title="keyword">Export</span> <span class="id" title="var">map_with_in</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem.Utility</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">funext</span>.<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">funext</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem.Utility</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">advantage</span>.<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">advantage</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">alg</span> : <span class="id" title="var">chKey</span> → <span class="id" title="var">chHash</span> :=<br/>
@@ -138,58 +154,10 @@
 </div>
 
 <div class="doc">
-<a id="lab10"></a><h1 class="section">Helper definitions</h1>
+<a id="lab10"></a><h1 class="section">Ltac</h1>
 
 </div>
 <div class="code">
-
-<br/>
-<span class="id" title="keyword">Definition</span> <span class="id" title="var">ℓ_raw_packages</span> (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>)<br/>
-&nbsp;&nbsp;(<span class="id" title="var">p</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">n</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">nat</span> →  <span class="id" title="var">raw_package</span>)<br/>
-&nbsp;&nbsp;: <span class="id" title="var">raw_package</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="var">map_with_in_num_upper</span> <span class="id" title="var">d</span> <span class="id" title="var">d</span> (<span class="id" title="var">H_le</span> := <span class="id" title="var">leqnn</span> <span class="id" title="var">d</span>) <span class="id" title="var">p</span>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-<a id="lab11"></a><h1 class="section">Ltac</h1>
-
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_Parable</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| [ |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> (<span class="id" title="var">trim</span> <span class="id" title="var">_</span> ?<span class="id" title="var">a</span>) (<span class="id" title="var">trim</span> <span class="id" title="var">_</span> ?<span class="id" title="var">b</span>) ] ] ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">parable_trim</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">try</span> (<span class="id" title="tactic">unfold</span> <span class="id" title="var">idents</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> &lt;- !<span class="id" title="var">fset1E</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> !<span class="id" title="var">imfset1</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="var">now</span> <span class="id" title="tactic">rewrite</span> <span class="id" title="var">fdisjoint1s</span>)<br/>
-&nbsp;&nbsp;| <span class="id" title="var">Ha</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Ea</span> ?<span class="id" title="var">a</span> ,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hb</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Eb</span> ?<span class="id" title="var">b</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;|- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> ?<span class="id" title="var">a</span> ?<span class="id" title="var">b</span> ] ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Ha</span> ; <span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Hb</span> ; <span class="id" title="var">solve_Parable</span><br/>
-&nbsp;&nbsp;| <span class="id" title="var">Ha</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Ea</span> ?<span class="id" title="var">a</span> ,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hb</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Eb</span> ?<span class="id" title="var">b</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;|- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> ?<span class="id" title="var">a</span> (?<span class="id" title="var">b</span> ∘ ?<span class="id" title="var">c</span>) ] ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Ha</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Hb</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">erewrite</span> !<span class="id" title="var">link_trim_commut</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">solve_Parable</span><br/>
-&nbsp;&nbsp;| <span class="id" title="var">Ha</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Ea</span> ?<span class="id" title="var">a</span> ,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Hb</span> : <span class="id" title="var">trimmed</span> ?<span class="id" title="var">Eb</span> ?<span class="id" title="var">b</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;|- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> (?<span class="id" title="var">b</span> ∘ ?<span class="id" title="var">c</span>) ?<span class="id" title="var">a</span> ] ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Ha</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">Hb</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">erewrite</span> !<span class="id" title="var">link_trim_commut</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">solve_Parable</span><br/>
-&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> ?<span class="id" title="var">a</span> (<span class="id" title="var">par</span> ?<span class="id" title="var">b</span> ?<span class="id" title="var">c</span>) ] ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">parable_par_r</span> ; <span class="id" title="var">solve_Parable</span><br/>
-&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">Parable</span> (<span class="id" title="var">par</span> ?<span class="id" title="var">a</span> ?<span class="id" title="var">b</span>) ?<span class="id" title="var">c</span> ] ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">parable_par_l</span> ; <span class="id" title="var">solve_Parable</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_trimmed</span> :=<br/>
@@ -239,7 +207,7 @@
 </div>
 
 <div class="doc">
-<a id="lab12"></a><h1 class="section">Package composition</h1>
+<a id="lab11"></a><h1 class="section">Package composition</h1>
 
 </div>
 <div class="code">
@@ -260,13 +228,17 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">I</span> (<span class="id" title="var">E1</span> :|: <span class="id" title="var">E2</span>) (<span class="id" title="var">parallel_raw</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">P</span>)).<br/>
 
 <br/>
-<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> <span class="id" title="var">I</span> <span class="id" title="var">E</span> <span class="id" title="var">P</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">I</span>, <span class="id" title="var">E</span>, <span class="id" title="var">P</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| [], [], [] ⇒ <span class="id" title="var">True</span><br/>
-&nbsp;&nbsp;| [<span class="id" title="var">i</span>], [<span class="id" title="var">e</span>], [<span class="id" title="var">p</span>] ⇒ <span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">e</span> <span class="id" title="var">p</span><br/>
-&nbsp;&nbsp;| (<span class="id" title="var">i</span> :: <span class="id" title="var">I'</span>), (<span class="id" title="var">e</span> :: <span class="id" title="var">E'</span>), (<span class="id" title="var">p</span> :: <span class="id" title="var">P'</span>) ⇒ <span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">e</span> <span class="id" title="var">p</span> ∧ <span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> <span class="id" title="var">I'</span> <span class="id" title="var">E'</span> <span class="id" title="var">P'</span><br/>
-&nbsp;&nbsp;| <span class="id" title="var">_</span>, <span class="id" title="var">_</span>, <span class="id" title="var">_</span> ⇒ <span class="id" title="var">False</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">parallel_raw_cons</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span> <span class="id" title="var">E</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">parallel_raw</span> (<span class="id" title="var">n</span> :: <span class="id" title="var">E</span>) = <span class="id" title="var">par</span> <span class="id" title="var">n</span> (<span class="id" title="var">parallel_raw</span> <span class="id" title="var">E</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab12"></a><h1 class="section">Trimmed</h1>
+
+</div>
+<div class="code">
 
 <br/>
 <span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">trimmed_pairs</span> <span class="id" title="var">E</span> <span class="id" title="var">P</span> :=<br/>
@@ -278,46 +250,16 @@
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">all_idents_disjoint</span> {<span class="id" title="var">A</span>} <span class="id" title="var">f</span> <span class="id" title="var">I</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">I</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| [] | [<span class="id" title="var">_</span>] ⇒ <span class="id" title="var">True</span><br/>
-&nbsp;&nbsp;| (<span class="id" title="var">x</span> :: <span class="id" title="var">xs</span>) ⇒<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">A</span>) <span class="id" title="var">f</span> <span class="id" title="var">xs</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">all_idents_disjoint</span> <span class="id" title="var">f</span> <span class="id" title="var">xs</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
-
-<br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_parallel_raw</span> : <span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">f</span> <span class="id" title="var">I</span> <span class="id" title="var">L</span>},<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="var">A</span>, <span class="id" title="var">x</span> ≠ <span class="id" title="var">y</span> → <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span>)) → <span class="id" title="var">uniq</span> <span class="id" title="var">I</span> →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">f</span> <span class="id" title="var">I</span>) <span class="id" title="var">L</span> →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> (<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">A</span>) <span class="id" title="var">f</span> <span class="id" title="var">I</span>) (<span class="id" title="var">parallel_raw</span> <span class="id" title="var">L</span>).<br/>
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">parallel_raw_cons</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span> <span class="id" title="var">E</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">parallel_raw</span> (<span class="id" title="var">n</span> :: <span class="id" title="var">E</span>) = <span class="id" title="var">par</span> <span class="id" title="var">n</span> (<span class="id" title="var">parallel_raw</span> <span class="id" title="var">E</span>).<br/>
-
-<br/>
-<span class="id" title="keyword">Theorem</span> <span class="id" title="var">valid_parable</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">N</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">P</span> : <span class="id" title="var">list</span> <span class="id" title="var">raw_package</span>) <span class="id" title="var">f</span> <span class="id" title="var">g</span> <span class="id" title="var">L</span> <span class="id" title="var">I</span> <span class="id" title="var">E</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> ≠ <span class="id" title="var">y</span> → <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span>)) → <span class="id" title="var">uniq</span> <span class="id" title="var">E</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">f</span> <span class="id" title="var">E</span>) <span class="id" title="var">P</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">g</span> <span class="id" title="var">I</span>) (<span class="id" title="var">List.map</span> <span class="id" title="var">f</span> <span class="id" title="var">E</span>) <span class="id" title="var">P</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_package</span> <span class="id" title="var">L</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">N</span>) <span class="id" title="var">g</span> <span class="id" title="var">I</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">N</span>) <span class="id" title="var">f</span> <span class="id" title="var">E</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">parallel_raw</span> <span class="id" title="var">P</span>).<br/>
-
-<br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_pairs_cons</span> :<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">b</span>) (<span class="id" title="var">c</span> :: <span class="id" title="var">d</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;↔ (<span class="id" title="var">trimmed</span> <span class="id" title="var">a</span> <span class="id" title="var">c</span> ∧ <span class="id" title="var">trimmed_pairs</span> <span class="id" title="var">b</span> <span class="id" title="var">d</span>).<br/>
- 
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">valid_pairs_cons</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span> <span class="id" title="var">e</span> <span class="id" title="var">f</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">b</span>) (<span class="id" title="var">c</span> :: <span class="id" title="var">d</span>) (<span class="id" title="var">e</span> :: <span class="id" title="var">f</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;↔ (<span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">c</span> <span class="id" title="var">e</span> ∧ <span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> <span class="id" title="var">b</span> <span class="id" title="var">d</span> <span class="id" title="var">f</span>).<br/>
  
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_pairs_map</span> :<br/>
@@ -327,6 +269,49 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">List.map</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">List.map</span> <span class="id" title="var">g</span> <span class="id" title="var">l</span>).<br/>
 
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_pairs_map_with_in</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) (<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>), (<span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>) → <span class="id" title="var">Interface</span>) <span class="id" title="var">g</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> (<span class="id" title="var">H</span> : <span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>), <span class="id" title="var">trimmed</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>) (<span class="id" title="var">g</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in</span> <span class="id" title="var">l</span> <span class="id" title="var">f</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in</span> <span class="id" title="var">l</span> <span class="id" title="var">g</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_pairs_map_with_in_rel</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">l</span> <span class="id" title="var">l'</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) <span class="id" title="var">H_in</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>), (<span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>) → <span class="id" title="var">Interface</span>) <span class="id" title="var">g</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> (<span class="id" title="var">H</span> : <span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>), <span class="id" title="var">trimmed</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>) (<span class="id" title="var">g</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in_rel</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> (<span class="id" title="var">H_in</span> := <span class="id" title="var">H_in</span>) <span class="id" title="var">f</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in_rel</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> (<span class="id" title="var">H_in</span> := <span class="id" title="var">H_in</span>) <span class="id" title="var">g</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_trim</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">I</span> <span class="id" title="var">p</span>, <span class="id" title="var">trimmed</span> <span class="id" title="var">I</span> (<span class="id" title="var">trim</span> <span class="id" title="var">I</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab13"></a><h1 class="section">Valid pairs</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> <span class="id" title="var">I</span> <span class="id" title="var">E</span> <span class="id" title="var">P</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">I</span>, <span class="id" title="var">E</span>, <span class="id" title="var">P</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [], [], [] ⇒ <span class="id" title="var">True</span><br/>
+&nbsp;&nbsp;| [<span class="id" title="var">i</span>], [<span class="id" title="var">e</span>], [<span class="id" title="var">p</span>] ⇒ <span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">e</span> <span class="id" title="var">p</span><br/>
+&nbsp;&nbsp;| (<span class="id" title="var">i</span> :: <span class="id" title="var">I'</span>), (<span class="id" title="var">e</span> :: <span class="id" title="var">E'</span>), (<span class="id" title="var">p</span> :: <span class="id" title="var">P'</span>) ⇒ <span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">e</span> <span class="id" title="var">p</span> ∧ <span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> <span class="id" title="var">I'</span> <span class="id" title="var">E'</span> <span class="id" title="var">P'</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>, <span class="id" title="var">_</span>, <span class="id" title="var">_</span> ⇒ <span class="id" title="var">False</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">valid_pairs_cons</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span> <span class="id" title="var">e</span> <span class="id" title="var">f</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">b</span>) (<span class="id" title="var">c</span> :: <span class="id" title="var">d</span>) (<span class="id" title="var">e</span> :: <span class="id" title="var">f</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;↔ (<span class="id" title="var">valid_package</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">c</span> <span class="id" title="var">e</span> ∧ <span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> <span class="id" title="var">b</span> <span class="id" title="var">d</span> <span class="id" title="var">f</span>).<br/>
+ 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">valid_pairs_map</span> :<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} <span class="id" title="var">L</span> <span class="id" title="var">i</span> (<span class="id" title="var">f</span> : <span class="id" title="var">A</span> → <span class="id" title="var">Interface</span>) <span class="id" title="var">g</span> <span class="id" title="var">l</span>,<br/>
@@ -354,20 +339,40 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in_rel</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> (<span class="id" title="var">H_in</span> := <span class="id" title="var">H_in</span>) <span class="id" title="var">g</span>).<br/>
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_pairs_map_with_in</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) (<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>), (<span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>) → <span class="id" title="var">Interface</span>) <span class="id" title="var">g</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> (<span class="id" title="var">H</span> : <span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>), <span class="id" title="var">trimmed</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>) (<span class="id" title="var">g</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>)) →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in</span> <span class="id" title="var">l</span> <span class="id" title="var">f</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in</span> <span class="id" title="var">l</span> <span class="id" title="var">g</span>).<br/>
+</div>
+
+<div class="doc">
+<a id="lab14"></a><h1 class="section">All idents disjoint</h1>
+
+</div>
+<div class="code">
 
 <br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_pairs_map_with_in_rel</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">l</span> <span class="id" title="var">l'</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) <span class="id" title="var">H_in</span> (<span class="id" title="var">f</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>), (<span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>) → <span class="id" title="var">Interface</span>) <span class="id" title="var">g</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> (<span class="id" title="var">H</span> : <span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">l</span>), <span class="id" title="var">trimmed</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>) (<span class="id" title="var">g</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span>)) →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in_rel</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> (<span class="id" title="var">H_in</span> := <span class="id" title="var">H_in</span>) <span class="id" title="var">f</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">map_with_in_rel</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> (<span class="id" title="var">H_in</span> := <span class="id" title="var">H_in</span>) <span class="id" title="var">g</span>).<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">all_idents_disjoint</span> {<span class="id" title="var">A</span>} <span class="id" title="var">f</span> <span class="id" title="var">I</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">I</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] | [<span class="id" title="var">_</span>] ⇒ <span class="id" title="var">True</span><br/>
+&nbsp;&nbsp;| (<span class="id" title="var">x</span> :: <span class="id" title="var">xs</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">A</span>) <span class="id" title="var">f</span> <span class="id" title="var">xs</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">all_idents_disjoint</span> <span class="id" title="var">f</span> <span class="id" title="var">xs</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">all_idents_disjoint_foreach</span> :<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} <span class="id" title="var">f</span> (<span class="id" title="var">L</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> ≠ <span class="id" title="var">y</span> → <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">uniq</span> <span class="id" title="var">L</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all_idents_disjoint</span> <span class="id" title="var">f</span> <span class="id" title="var">L</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">valid_parable</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">N</span> : <span class="id" title="var">eqType</span>} (<span class="id" title="var">P</span> : <span class="id" title="var">list</span> <span class="id" title="var">raw_package</span>) <span class="id" title="var">f</span> <span class="id" title="var">g</span> <span class="id" title="var">L</span> <span class="id" title="var">I</span> <span class="id" title="var">E</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> ≠ <span class="id" title="var">y</span> → <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span>)) → <span class="id" title="var">uniq</span> <span class="id" title="var">E</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed_pairs</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">f</span> <span class="id" title="var">E</span>) <span class="id" title="var">P</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_pairs</span> <span class="id" title="var">L</span> (<span class="id" title="var">List.map</span> <span class="id" title="var">g</span> <span class="id" title="var">I</span>) (<span class="id" title="var">List.map</span> <span class="id" title="var">f</span> <span class="id" title="var">E</span>) <span class="id" title="var">P</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">valid_package</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">N</span>) <span class="id" title="var">g</span> <span class="id" title="var">I</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="var">A</span> := <span class="id" title="var">N</span>) <span class="id" title="var">f</span> <span class="id" title="var">E</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">parallel_raw</span> <span class="id" title="var">P</span>).<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">parallel_package</span><br/>
@@ -410,13 +415,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> <span class="id" title="var">f</span> <span class="id" title="var">Names</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach_in_rel</span> <span class="id" title="var">Names</span> <span class="id" title="var">Names</span> (<span class="id" title="var">H_in</span> := <span class="id" title="keyword">fun</span> <span class="id" title="var">a</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">H</span>) <span class="id" title="var">g</span>).<br/>
 <span class="id" title="keyword">Defined</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">all_idents_disjoint_foreach</span> :<br/>
-&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} <span class="id" title="var">f</span> (<span class="id" title="var">L</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>),<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>, <span class="id" title="var">x</span> ≠ <span class="id" title="var">y</span> → <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">x</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">y</span>)) →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">uniq</span> <span class="id" title="var">L</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all_idents_disjoint</span> <span class="id" title="var">f</span> <span class="id" title="var">L</span>).<br/>
 
 <br/>
 <span class="id" title="keyword">Theorem</span> <span class="id" title="var">valid_forall</span> : <span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">L</span>} <span class="id" title="var">g</span> <span class="id" title="var">f</span> <span class="id" title="var">u</span> <span class="id" title="var">Names</span> (<span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>),<br/>
@@ -469,6 +467,12 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">H3</span> : (<span class="id" title="var">a</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">Names</span>) = <span class="id" title="var">true</span>), <span class="id" title="var">pack</span> (<span class="id" title="var">u</span> <span class="id" title="var">a</span> <span class="id" title="var">H3</span>))).<br/>
 
 <br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">ℓ_raw_packages</span> (<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">p</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">n</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">nat</span> →  <span class="id" title="var">raw_package</span>)<br/>
+&nbsp;&nbsp;: <span class="id" title="var">raw_package</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="var">map_with_in_num_upper</span> <span class="id" title="var">d</span> <span class="id" title="var">d</span> (<span class="id" title="var">H_le</span> := <span class="id" title="var">leqnn</span> <span class="id" title="var">d</span>) <span class="id" title="var">p</span>.<br/>
+
+<br/>
 <span class="id" title="keyword">Theorem</span> <span class="id" title="var">ℓ_raw_package_trimmed</span> :<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>)<br/>
@@ -493,6 +497,19 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span> →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">ℓ</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>))<br/>
 &nbsp;&nbsp;: <span class="id" title="var">package</span> <span class="id" title="var">L</span> (<span class="id" title="var">interface_hierarchy</span> <span class="id" title="var">g</span> <span class="id" title="var">d</span>) (<span class="id" title="var">interface_hierarchy</span> <span class="id" title="var">f</span> <span class="id" title="var">d</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">trimmed_ℓ_packages</span> {<span class="id" title="var">L</span>}<br/>
+&nbsp;&nbsp;(<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;{<span class="id" title="var">g</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">Interface</span>}<br/>
+&nbsp;&nbsp;{<span class="id" title="var">f</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">Interface</span>}<br/>
+&nbsp;&nbsp;(<span class="id" title="var">p</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span> → <span class="id" title="var">package</span> <span class="id" title="var">L</span> (<span class="id" title="var">g</span> <span class="id" title="var">n</span>) (<span class="id" title="var">f</span> <span class="id" title="var">n</span>))<br/>
+&nbsp;&nbsp;(<span class="id" title="var">H_trim_p</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span>, <span class="id" title="keyword">∀</span> (<span class="id" title="var">H_ge</span> : (<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span>), <span class="id" title="var">trimmed</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) (<span class="id" title="var">p</span> <span class="id" title="var">n</span> <span class="id" title="var">H_ge</span>))<br/>
+&nbsp;&nbsp;(<span class="id" title="var">Hdisj</span> : ∀ (<span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> &gt; <span class="id" title="var">ℓ</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">ℓ</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>))<br/>
+&nbsp;&nbsp;: <span class="id" title="var">trimmed</span> (<span class="id" title="var">interface_hierarchy</span> <span class="id" title="var">f</span> <span class="id" title="var">d</span>) (<span class="id" title="var">ℓ_packages</span> <span class="id" title="var">d</span> <span class="id" title="var">p</span> <span class="id" title="var">H_trim_p</span> <span class="id" title="var">Hdisj</span>).<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">combined</span><br/>
@@ -581,19 +598,6 @@
 &nbsp;&nbsp;)))).<br/>
 
 <br/>
-<span class="id" title="keyword">Definition</span> <span class="id" title="var">trimmed_ℓ_packages</span> {<span class="id" title="var">L</span>}<br/>
-&nbsp;&nbsp;(<span class="id" title="var">d</span> : <span class="id" title="var">nat</span>)<br/>
-&nbsp;&nbsp;{<span class="id" title="var">g</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">Interface</span>}<br/>
-&nbsp;&nbsp;{<span class="id" title="var">f</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">Interface</span>}<br/>
-&nbsp;&nbsp;(<span class="id" title="var">p</span> : <span class="id" title="keyword">∀</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>), (<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span> → <span class="id" title="var">package</span> <span class="id" title="var">L</span> (<span class="id" title="var">g</span> <span class="id" title="var">n</span>) (<span class="id" title="var">f</span> <span class="id" title="var">n</span>))<br/>
-&nbsp;&nbsp;(<span class="id" title="var">H_trim_p</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span>, <span class="id" title="keyword">∀</span> (<span class="id" title="var">H_ge</span> : (<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span>), <span class="id" title="var">trimmed</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>) (<span class="id" title="var">p</span> <span class="id" title="var">n</span> <span class="id" title="var">H_ge</span>))<br/>
-&nbsp;&nbsp;(<span class="id" title="var">Hdisj</span> : ∀ (<span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) ,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> &gt; <span class="id" title="var">ℓ</span>)%<span class="id" title="var">nat</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> ≥ <span class="id" title="var">n</span>)%<span class="id" title="var">nat</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">ℓ</span>) :#: <span class="id" title="var">idents</span> (<span class="id" title="var">f</span> <span class="id" title="var">n</span>))<br/>
-&nbsp;&nbsp;: <span class="id" title="var">trimmed</span> (<span class="id" title="var">interface_hierarchy</span> <span class="id" title="var">f</span> <span class="id" title="var">d</span>) (<span class="id" title="var">ℓ_packages</span> <span class="id" title="var">d</span> <span class="id" title="var">p</span> <span class="id" title="var">H_trim_p</span> <span class="id" title="var">Hdisj</span>).<br/>
-
-<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">parallel_ID</span> <span class="id" title="var">d</span> (<span class="id" title="var">L</span> : <span class="id" title="var">seq</span> <span class="id" title="var">name</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">name</span> → <span class="id" title="var">Interface</span>) :<br/>
@@ -619,9 +623,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fset0</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_hierarchy_foreach</span> <span class="id" title="var">f</span> <span class="id" title="var">L</span> <span class="id" title="var">d</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_hierarchy_foreach</span> <span class="id" title="var">f</span> <span class="id" title="var">L</span> <span class="id" title="var">d</span>).<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_trim</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">I</span> <span class="id" title="var">p</span>, <span class="id" title="var">trimmed</span> <span class="id" title="var">I</span> (<span class="id" title="var">trim</span> <span class="id" title="var">I</span> <span class="id" title="var">p</span>).<br/>
 
 <br/>
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_direct_in</span> :=<br/>
@@ -693,86 +694,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="keyword">context</span> [ <span class="id" title="var">trimmed</span> ?<span class="id" title="var">E</span> (<span class="id" title="var">ID</span> <span class="id" title="var">_</span>) ] ⇒<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">trimmed_ID</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">domm_trim_disjoint_is_ident</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">E1</span> <span class="id" title="var">E2</span> <span class="id" title="var">p1</span> <span class="id" title="var">p2</span>, <span class="id" title="var">idents</span> <span class="id" title="var">E1</span> :#: <span class="id" title="var">idents</span> <span class="id" title="var">E2</span> → <span class="id" title="var">domm</span> (<span class="id" title="var">trim</span> <span class="id" title="var">E1</span> <span class="id" title="var">p1</span>) :#: <span class="id" title="var">domm</span> (<span class="id" title="var">trim</span> <span class="id" title="var">E2</span> <span class="id" title="var">p2</span>).<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-<a id="lab13"></a><h1 class="section">FunExt rewrite</h1>
-
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function_fset_cons_l</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">x</span> <span class="id" title="var">xs</span> <span class="id" title="var">K</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">x</span> <span class="id" title="var">n</span> :: <span class="id" title="var">xs</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">K</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;= (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) ([<span class="id" title="var">x</span> <span class="id" title="var">n</span>]) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">K</span>).<br/>
- 
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function_fset_cat_l</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">ys</span> <span class="id" title="var">xs</span> <span class="id" title="var">K</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">ys</span> <span class="id" title="var">n</span> ++ <span class="id" title="var">xs</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">K</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;= (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) (<span class="id" title="var">ys</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">K</span>).<br/>
- 
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function_fset_cat_middle</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">ys</span> <span class="id" title="var">xs</span> <span class="id" title="var">L</span> <span class="id" title="var">R</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">L</span> :|: <span class="id" title="var">fset</span> (<span class="id" title="var">ys</span> <span class="id" title="var">n</span> ++ <span class="id" title="var">xs</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">R</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;= (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">L</span> :|: <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) (<span class="id" title="var">ys</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">R</span>).<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function_fset_cat</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">ys</span> <span class="id" title="var">xs</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">ys</span> <span class="id" title="var">n</span> ++ <span class="id" title="var">xs</span> <span class="id" title="var">n</span>))<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;= (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) (<span class="id" title="var">ys</span> <span class="id" title="var">n</span>) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">n</span>)).<br/>
- 
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function_fset_cons</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">x</span> <span class="id" title="var">xs</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">x</span> <span class="id" title="var">n</span> :: <span class="id" title="var">xs</span> <span class="id" title="var">n</span>))<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;= (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) ([<span class="id" title="var">x</span> <span class="id" title="var">n</span>]) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">n</span>)).<br/>
- 
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function2_fset_cat</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">x</span> <span class="id" title="var">xs</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">B</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">x</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> :: <span class="id" title="var">xs</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>))<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;= (<span class="id" title="keyword">fun</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">B</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) ([<span class="id" title="var">x</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>]) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>)).<br/>
- 
-<br/>
-</div>
-
-<div class="doc">
-<a id="lab14"></a><h1 class="section">Advantage</h1>
-
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">advantage_reflexivity</span> :<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">P</span> <span class="id" title="var">A</span>, <span class="id" title="var">AdvantageE</span> <span class="id" title="var">P</span> <span class="id" title="var">P</span> <span class="id" title="var">A</span> = 0%<span class="id" title="var">R</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Advantage_par_emptyR</span> :<br/>
-&nbsp;&nbsp;∀ <span class="id" title="var">G₀</span> <span class="id" title="var">G₁</span> <span class="id" title="var">A</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">par</span> <span class="id" title="var">G₀</span> <span class="id" title="var">emptym</span>) (<span class="id" title="var">par</span> <span class="id" title="var">G₁</span> <span class="id" title="var">emptym</span>) <span class="id" title="var">A</span> = <span class="id" title="var">AdvantageE</span> <span class="id" title="var">G₀</span> <span class="id" title="var">G₁</span> <span class="id" title="var">A</span>.<br/>
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">Advantage_parR</span> :<br/>
-&nbsp;&nbsp;∀ <span class="id" title="var">G₀</span> <span class="id" title="var">G₁</span> <span class="id" title="var">G₁'</span> <span class="id" title="var">A</span> <span class="id" title="var">L₀</span> <span class="id" title="var">L₁</span> <span class="id" title="var">L₁'</span> <span class="id" title="var">E₀</span> <span class="id" title="var">E₁</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">L₀</span> <span class="id" title="var">Game_import</span> <span class="id" title="var">E₀</span> <span class="id" title="var">G₀</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">L₁</span> <span class="id" title="var">Game_import</span> <span class="id" title="var">E₁</span> <span class="id" title="var">G₁</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">L₁'</span> <span class="id" title="var">Game_import</span> <span class="id" title="var">E₁</span> <span class="id" title="var">G₁'</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">flat</span> <span class="id" title="var">E₁</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> <span class="id" title="var">E₀</span> <span class="id" title="var">G₀</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> <span class="id" title="var">E₁</span> <span class="id" title="var">G₁</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> <span class="id" title="var">E₁</span> <span class="id" title="var">G₁'</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">par</span> <span class="id" title="var">G₁</span> <span class="id" title="var">G₀</span>) (<span class="id" title="var">par</span> <span class="id" title="var">G₁'</span> <span class="id" title="var">G₀</span>) <span class="id" title="var">A</span> =<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AdvantageE</span> <span class="id" title="var">G₁</span> <span class="id" title="var">G₁'</span> (<span class="id" title="var">A</span> ∘ <span class="id" title="var">par</span> (<span class="id" title="var">ID</span> <span class="id" title="var">E₁</span>) <span class="id" title="var">G₀</span>).<br/>
 </div>
 </div>
 

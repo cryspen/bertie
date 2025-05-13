@@ -109,9 +109,77 @@
 </details><div class="code">
 
 <br/>
+</div>
+
+<div class="doc">
+ This file develops a formal framework for verifying interface-based component
+ systems, focusing on ensuring disjointness and minimality (trimmedness) of
+ component interfaces. The development uses math-comp's ssreflect style to
+ model hierarchical and modular systems, with applications to structured
+ protocol or system designs. Key contributions include:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> Definitions of hierarchical interfaces (e.g., <span class="inlinecode"><span class="id" title="var">XPD</span></span>, <span class="inlinecode"><span class="id" title="var">XTR</span></span>, <span class="inlinecode"><span class="id" title="var">DH</span></span>) parameterized
+   over component identifiers and protocol phases, constructed using
+   <span class="inlinecode"><span class="id" title="var">interface_hierarchy</span></span> and <span class="inlinecode"><span class="id" title="var">interface_foreach</span></span>.
+
+</li>
+<li> Package constructions (<span class="inlinecode"><span class="id" title="var">XPD_packages</span></span>, <span class="inlinecode"><span class="id" title="var">XTR_packages</span></span>, <span class="inlinecode"><span class="id" title="var">DH_package</span></span>) that
+   bundle interfaces with implementations while ensuring well-formedness.
+
+</li>
+<li> Proofs of trimmedness properties (<span class="inlinecode"><span class="id" title="var">trimmed_xpd_package</span></span>, <span class="inlinecode"><span class="id" title="var">trimmed_xtr_package</span></span>)
+   guaranteeing that component interfaces are minimal and non-overlapping.
+
+</li>
+<li> Lemmas establishing domain-disjointness (<span class="inlinecode"><span class="id" title="var">domm_trim_disjoint_is_ident</span></span>) and
+   correctness of hierarchical interface compositions.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ The framework supports modular reasoning about systems with layered
+ components, such as cryptographic protocols or distributed systems, where
+ interface isolation is critical. It leverages math-comp's <span class="inlinecode"><span class="id" title="var">fset</span></span> and <span class="inlinecode"><span class="id" title="var">section</span></span>
+ mechanisms for precise control over domain interactions.
+
+<div class="paragraph"> </div>
+
+ Key definitions and notations include:
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">XPD_n</span></span> <span class="inlinecode"><span class="id" title="var">d</span></span> <span class="inlinecode"><span class="id" title="var">k</span></span>: A hierarchical interface for extended components at depth <span class="inlinecode"><span class="id" title="var">d</span></span>.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">DH_interface</span></span>: A Diffie-Hellman (DH) protocol interface with <span class="inlinecode"><span class="id" title="var">DHGEN</span></span> and
+     <span class="inlinecode"><span class="id" title="var">DHEXP</span></span> operations.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">trimmed</span></span> <span class="inlinecode"><span class="id" title="var">I</span></span> <span class="inlinecode"><span class="id" title="var">p</span></span>: A property asserting that package <span class="inlinecode"><span class="id" title="var">p</span></span> has domain exactly <span class="inlinecode"><span class="id" title="var">I</span></span>.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">interface_hierarchy</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span>: A constructor for interfaces with layered operations.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ This module is part of a larger effort to formalize system designs with
+ rigorous guarantees about component isolation and compositional validity.           
+</div>
+<div class="code">
+
+<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ExtraTypes</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utility</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ssp_helper</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Dependencies</span>.<br/>

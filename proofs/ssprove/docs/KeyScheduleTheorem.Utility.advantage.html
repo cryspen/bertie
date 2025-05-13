@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>KeyScheduleTheorem.Utility.advantage</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library KeyScheduleTheorem.Utility.advantage</h1>
+
+<div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all_ssreflect</span> <span class="id" title="library">fingroup.fingroup</span> <span class="id" title="library">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">word_ssrZ</span> <span class="id" title="library">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.ZArith.ZArith.html#"><span class="id" title="library">ZArith</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Strings.String.html#"><span class="id" title="library">Strings.String</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Lists.List.html#ListNotations"><span class="id" title="module">List.ListNotations</span></a>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">choice.Choice.Exports</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Schnorr</span> <span class="id" title="library">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">OrderEnrichedCategory</span> <span class="id" title="library">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all_ssreflect</span> <span class="id" title="library">all_algebra</span> <span class="id" title="library">reals</span> <span class="id" title="library">distr</span> <span class="id" title="library">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">fingroup.fingroup</span> <span class="id" title="library">solvable.cyclic</span> <span class="id" title="library">prime</span> <span class="id" title="library">ssrnat</span> <span class="id" title="library">ssreflect</span> <span class="id" title="library">ssrfun</span> <span class="id" title="library">ssrbool</span> <span class="id" title="library">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">eqtype</span> <span class="id" title="library">choice</span> <span class="id" title="library">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Axioms</span> <span class="id" title="library">ChoiceAsOrd</span> <span class="id" title="library">SubDistr</span> <span class="id" title="library">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">UniformDistrLemmas</span> <span class="id" title="library">FreeProbProg</span> <span class="id" title="library">Theta_dens</span> <span class="id" title="library">RulesStateProb</span> <span class="id" title="library">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">pkg_core_definition</span> <span class="id" title="library">choice_type</span> <span class="id" title="library">pkg_composition</span> <span class="id" title="library">pkg_rhl</span> <span class="id" title="library">Package</span> <span class="id" title="library">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="library">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8.html#"><span class="id" title="library">Utf8</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ord</span> <span class="id" title="library">fset</span> <span class="id" title="library">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="library">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">GroupScope</span> <span class="id" title="module">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.micromega.Lia.html#"><span class="id" title="library">Lia</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="module">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab27"></a><h1 class="section">Advantage</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="advantage_reflexivity" class="idref" href="#advantage_reflexivity"><span class="id" title="lemma">advantage_reflexivity</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <a id="P:1" class="idref" href="#P:1"><span class="id" title="binder">P</span></a> <a id="A:2" class="idref" href="#A:2"><span class="id" title="binder">A</span></a>, <span class="id" title="definition">AdvantageE</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#P:1"><span class="id" title="variable">P</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#P:1"><span class="id" title="variable">P</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#A:2"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> 0%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="Advantage_par_emptyR" class="idref" href="#Advantage_par_emptyR"><span class="id" title="lemma">Advantage_par_emptyR</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <a id="40cc21b0c82b256649e3d25f1d2ae8b6" class="idref" href="#40cc21b0c82b256649e3d25f1d2ae8b6"><span class="id" title="binder">G₀</span></a> <a id="65746f422557d8248df089a74301a04c" class="idref" href="#65746f422557d8248df089a74301a04c"><span class="id" title="binder">G₁</span></a> <a id="A:5" class="idref" href="#A:5"><span class="id" title="binder">A</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">,</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">AdvantageE</span> (<span class="id" title="definition">par</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#40cc21b0c82b256649e3d25f1d2ae8b6"><span class="id" title="variable">G₀</span></a> <span class="id" title="definition">emptym</span>) (<span class="id" title="definition">par</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#65746f422557d8248df089a74301a04c"><span class="id" title="variable">G₁</span></a> <span class="id" title="definition">emptym</span>) <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#A:5"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="definition">AdvantageE</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#40cc21b0c82b256649e3d25f1d2ae8b6"><span class="id" title="variable">G₀</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#65746f422557d8248df089a74301a04c"><span class="id" title="variable">G₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#A:5"><span class="id" title="variable">A</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="Advantage_parR" class="idref" href="#Advantage_parR"><span class="id" title="lemma">Advantage_parR</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">∀</span></a> <a id="9b596e90754349e2095a68b45d3bda86" class="idref" href="#9b596e90754349e2095a68b45d3bda86"><span class="id" title="binder">G₀</span></a> <a id="cacbadc758dd48d9ad3039e6985afc6c" class="idref" href="#cacbadc758dd48d9ad3039e6985afc6c"><span class="id" title="binder">G₁</span></a> <a id="71b18b4db2871925034313fec77a2e92" class="idref" href="#71b18b4db2871925034313fec77a2e92"><span class="id" title="binder">G₁'</span></a> <a id="A:9" class="idref" href="#A:9"><span class="id" title="binder">A</span></a> <a id="832b2aff65b51c55a884237588e35181" class="idref" href="#832b2aff65b51c55a884237588e35181"><span class="id" title="binder">L₀</span></a> <a id="5458cb2ef3c79d2c1b7a082afdd33206" class="idref" href="#5458cb2ef3c79d2c1b7a082afdd33206"><span class="id" title="binder">L₁</span></a> <a id="437d9279e0df811d9e19ac33b8f694ff" class="idref" href="#437d9279e0df811d9e19ac33b8f694ff"><span class="id" title="binder">L₁'</span></a> <a id="dd3b5084fe4d879bf156381820496a89" class="idref" href="#dd3b5084fe4d879bf156381820496a89"><span class="id" title="binder">E₀</span></a> <a id="e7682ef8c91507151d043650a5e37544" class="idref" href="#e7682ef8c91507151d043650a5e37544"><span class="id" title="binder">E₁</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#e15f3fa8414cf45e36c73a91b3f5f2c2"><span class="id" title="notation">,</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="class">ValidPackage</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#832b2aff65b51c55a884237588e35181"><span class="id" title="variable">L₀</span></a> <span class="id" title="definition">Game_import</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#dd3b5084fe4d879bf156381820496a89"><span class="id" title="variable">E₀</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#9b596e90754349e2095a68b45d3bda86"><span class="id" title="variable">G₀</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="class">ValidPackage</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#5458cb2ef3c79d2c1b7a082afdd33206"><span class="id" title="variable">L₁</span></a> <span class="id" title="definition">Game_import</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#e7682ef8c91507151d043650a5e37544"><span class="id" title="variable">E₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#cacbadc758dd48d9ad3039e6985afc6c"><span class="id" title="variable">G₁</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="class">ValidPackage</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#437d9279e0df811d9e19ac33b8f694ff"><span class="id" title="variable">L₁'</span></a> <span class="id" title="definition">Game_import</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#e7682ef8c91507151d043650a5e37544"><span class="id" title="variable">E₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#71b18b4db2871925034313fec77a2e92"><span class="id" title="variable">G₁'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">flat</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#e7682ef8c91507151d043650a5e37544"><span class="id" title="variable">E₁</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">trimmed</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#dd3b5084fe4d879bf156381820496a89"><span class="id" title="variable">E₀</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#9b596e90754349e2095a68b45d3bda86"><span class="id" title="variable">G₀</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">trimmed</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#e7682ef8c91507151d043650a5e37544"><span class="id" title="variable">E₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#cacbadc758dd48d9ad3039e6985afc6c"><span class="id" title="variable">G₁</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">trimmed</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#e7682ef8c91507151d043650a5e37544"><span class="id" title="variable">E₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#71b18b4db2871925034313fec77a2e92"><span class="id" title="variable">G₁'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Unicode.Utf8_core.html#c41c566ddac4c1298b9e7dd2bae1c794"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">AdvantageE</span> (<span class="id" title="definition">par</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#cacbadc758dd48d9ad3039e6985afc6c"><span class="id" title="variable">G₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#9b596e90754349e2095a68b45d3bda86"><span class="id" title="variable">G₀</span></a>) (<span class="id" title="definition">par</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#71b18b4db2871925034313fec77a2e92"><span class="id" title="variable">G₁'</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#9b596e90754349e2095a68b45d3bda86"><span class="id" title="variable">G₀</span></a>) <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#A:9"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.18.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="definition">AdvantageE</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#cacbadc758dd48d9ad3039e6985afc6c"><span class="id" title="variable">G₁</span></a> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#71b18b4db2871925034313fec77a2e92"><span class="id" title="variable">G₁'</span></a> (<a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#A:9"><span class="id" title="variable">A</span></a> <span class="id" title="notation">∘</span> <span class="id" title="definition">par</span> (<span class="id" title="definition">ID</span> <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#e7682ef8c91507151d043650a5e37544"><span class="id" title="variable">E₁</span></a>) <a class="idref" href="KeyScheduleTheorem.Utility.advantage.html#9b596e90754349e2095a68b45d3bda86"><span class="id" title="variable">G₀</span></a>).<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

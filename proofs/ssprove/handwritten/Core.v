@@ -68,6 +68,40 @@ Import GroupScope GRing.Theory.
 Import PackageNotation.
 (* end details *)
 
+(**  This file defines a cryptographic reduction framework based on the G-core
+ construction described in [IACR 2021/467, Figure 31]. It formalizes protocol
+ components and their hybridization scenarios for security analysis.
+
+ Key definitions and properties:
+ - [all_names] == list of all protocol-relevant names ([PSK; DH] + N_star).
+ - [N_star]    == predefined names excluding PSK/DH ([ES; EEM; ...; ZERO_IKM]).
+ - [N_star_correct] == lemma proving N_star correctly excludes PSK/DH.
+
+ Packages (via G_core_package_construction):
+ - [G_core_Hash] == null hash function (check: [fun _ => false], hash: [Z]).
+ - [G_core_D]    == deterministic behavior (D for all names).
+ - [G_core_R_esalt] == random values for [ESALT], deterministic otherwise.
+ - [G_core_SODH] == hybridization with [HS] checks for idealization.
+ - [G_core_hyb_ℓ] == parameterized hybrid packages (idealize names ≤ ℓ).
+ - [G_core_ki]   == fully idealized package (all keys active).
+
+ Hybridization mechanics:
+ - Conditional behavior (e.g., [i <=? ℓ]) controls idealization thresholds.
+ - Modular design allows reuse of [G_core_package_construction] for variants.
+ - Packages model real-world (e.g., [G_core_Hash]) and idealized (e.g.,
+   [G_core_ki]) components for incremental security analysis.
+
+ Verification:
+ - [N_star_correct] ensures correctness of name exclusion logic.
+ - Assumes correctness of external definitions (e.g., [G_check_XTR_XPD]).
+ - Hybrid packages depend on precise conditional logic for security proofs.
+
+ Applications:
+ This module is part of a larger Coq development for verifying cryptographic
+ protocols. It enables systematic simulation of protocol steps and their
+ idealized counterparts, crucial for proving security reductions.
+ See referenced paper for full context.                                      **)
+
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.

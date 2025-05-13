@@ -1,0 +1,906 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>KeyScheduleTheorem.CoreTheorem</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library KeyScheduleTheorem.CoreTheorem</h1>
+
+<div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">word_ssrZ</span> <span class="id" title="var">word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Strings.String</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">List.ListNotations</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">bool_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ChoiceEquality</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">LocationUtility</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Comparable</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib_Pre</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Hacspec</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Hacspec_Lib</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">hacspec_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">HB</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">structures</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">jasmin_word</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Schnorr</span> <span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Axioms</span> <span class="id" title="var">ChoiceAsOrd</span> <span class="id" title="var">SubDistr</span> <span class="id" title="var">Couplings</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">UniformDistrLemmas</span> <span class="id" title="var">FreeProbProg</span> <span class="id" title="var">Theta_dens</span> <span class="id" title="var">RulesStateProb</span> <span class="id" title="var">UniformStateProb</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">pkg_core_definition</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">pkg_composition</span> <span class="id" title="var">pkg_rhl</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">SigmaProtocol</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utf8</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span> <span class="id" title="var">fmap</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="keyword">Equations</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Equations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">GroupScope</span> <span class="id" title="var">GRing.Theory</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+ Core Theorem for Cryptographic Security Reductions in a Hierarchical Game
+ Framework. This file establishes a fundamental result bounding the
+ advantage of adversaries in a sequence of security games, decomposing the
+ overall reduction into contributions from hash function properties,
+ extraction/prediction challenges, and composition of intermediate game
+ transitions. The theorem serves as the central technical tool for
+ analyzing the security of cryptographic constructions with layered
+ hardness assumptions.
+
+<div class="paragraph"> </div>
+
+ Key components defined and proved:
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">G_core</span></span> <span class="inlinecode"><span class="id" title="var">d</span></span> <span class="inlinecode"><span class="id" title="var">k</span></span> <span class="inlinecode"><span class="id" title="var">b</span></span> <span class="inlinecode"><span class="id" title="var">H_lt</span></span> == Main game sequence parameterized by depth <span class="inlinecode"><span class="id" title="var">d</span></span>,
+                        key <span class="inlinecode"><span class="id" title="var">k</span></span>, boolean flag <span class="inlinecode"><span class="id" title="var">b</span></span>, and hardness threshold <span class="inlinecode"><span class="id" title="var">H_lt</span></span>.
+                        The <span class="inlinecode"><span class="id" title="var">false</span></span>/<span class="inlinecode"><span class="id" title="var">true</span></span> flag controls critical security
+                        properties being tested.
+
+</li>
+<li>  <span class="inlinecode"><span class="id" title="var">AdvantageE</span></span> <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span>    == Security advantage of adversary <span class="inlinecode"><span class="id" title="var">A</span></span> against game <span class="inlinecode"><span class="id" title="var">G</span></span>,
+                        measuring the difference in success probabilities.
+
+</li>
+<li>  <span class="inlinecode"><span class="id" title="var">sumR_l</span></span> <span class="inlinecode"><span class="id" title="var">lst</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span>      == Linear combination of advantages over a list of
+                        reduction functions, weighted by their contribution
+                        to the overall bound.
+
+</li>
+<li>  <span class="inlinecode"><span class="id" title="var">R_cr</span>,</span> <span class="inlinecode"><span class="id" title="var">R_Z</span>,</span> <span class="inlinecode"><span class="id" title="var">R_D</span></span>    == Reduction functions for collision resistance,
+                        extraction, and prediction challenges.
+
+</li>
+<li>  <span class="inlinecode"><span class="id" title="var">R_pi</span>,</span> <span class="inlinecode"><span class="id" title="var">R_xtr</span>,</span> <span class="inlinecode"><span class="id" title="var">R_xpd</span></span> == Interface functions linking adversarial strategies
+                        to intermediate game transitions.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ The core_theorem provides an upper bound on the advantage of any valid
+ adversary in the initial game (<span class="inlinecode"><span class="id" title="var">G_core</span></span> with <span class="inlinecode"><span class="id" title="var">false</span></span>) versus the final secure
+ game (<span class="inlinecode"><span class="id" title="var">G_core</span></span> with <span class="inlinecode"><span class="id" title="var">true</span></span>). The bound aggregates contributions from:
+<ul class="doclist">
+<li> Hash function properties (collision resistance, extraction).
+
+</li>
+<li> Composition of intermediate game transitions (<span class="inlinecode"><span class="id" title="var">sumR</span></span> over <span class="inlinecode"><span class="id" title="var">ℓ</span></span>).
+
+</li>
+<li> Specialized reduction games (<span class="inlinecode"><span class="id" title="var">Gsodh</span>,</span> <span class="inlinecode"><span class="id" title="var">Gpi</span>,</span> <span class="inlinecode"><span class="id" title="var">Gxtr</span>,</span> <span class="inlinecode"><span class="id" title="var">Gxpd</span></span>).
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ The proof strategy follows a modular approach:
+<ul class="doclist">
+<li> Intermediate lemmas (<span class="inlinecode"><span class="id" title="var">d2</span></span>, <span class="inlinecode"><span class="id" title="var">d3</span></span>, etc.) isolate individual game transitions.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">Equation20_eq</span></span> decomposes the advantage into telescoping sums.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">sumR_leq</span></span> axiom ensures monotonicity of the summation operator.
+
+</li>
+<li> The final bound combines all components using <span class="inlinecode"><span class="id" title="var">maxR</span></span> and linear
+     combinations, reflecting worst-case contributions from each security
+     assumption.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+ This formalization is inspired by game-playing techniques in provable
+ security, formalizing the security analysis of iterative cryptographic
+ constructions with layered reductions.                                      
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ExtraTypes</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Utility</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Dependencies</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ssp_helper</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">BasePackages</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">KeyPackages</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">XTR_XPD</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab33"></a><h1 class="section">Core theorem</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">CoreTheorem</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">DepInstance</span> : <span class="id" title="var">Dependencies</span>}.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Existing Instance</span> <span class="id" title="var">DepInstance</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab34"></a><h2 class="section">Set and operation from paper</h2>
+
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">SblngN</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) : <span class="id" title="var">list</span> <span class="id" title="var">name</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>)) == <span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n'</span>)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>)) == <span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n'</span>))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all_names</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">ChldrN</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) : <span class="id" title="var">list</span> <span class="id" title="var">name</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">filter</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> == <span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n'</span>)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|| (<span class="id" title="var">n</span> == <span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n'</span>))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all_names</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">POp</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="var">base_op</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">xtr_op</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">xpd_op</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">out_op</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">PrntOp</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) : <span class="id" title="var">POp</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>)), <span class="id" title="var">nfto</span> (<span class="id" title="var">snd</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">BOT</span>, <span class="id" title="var">BOT</span>) ⇒ <span class="id" title="var">base_op</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">BOT</span>) ⇒ <span class="id" title="var">xpd_op</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">xtr_op</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">ChldrOp</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) : <span class="id" title="var">POp</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">ChldrN</span> <span class="id" title="var">n</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">out_op</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">x</span> :: <span class="id" title="var">_</span>) ⇒ <span class="id" title="var">PrntOp</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">n1</span> <span class="id" title="var">n</span> := <span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>)).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">CN</span> <span class="id" title="var">n</span> := <span class="id" title="var">ChldrN</span> (<span class="id" title="var">n1</span> <span class="id" title="var">n</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">E</span> <span class="id" title="var">n</span> := <span class="id" title="var">n1</span> <span class="id" title="var">n</span> :: <span class="id" title="var">CN</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">eN_star</span> <span class="id" title="var">n</span> := <span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">x</span> \<span class="id" title="var">notin</span> <span class="id" title="var">E</span> <span class="id" title="var">n</span>) (<span class="id" title="var">N_star</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">eI_star</span> <span class="id" title="var">n</span> := <span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">x</span> \<span class="id" title="var">notin</span> <span class="id" title="var">E</span> <span class="id" title="var">n</span>) (<span class="id" title="var">I_star</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">eO_star</span> <span class="id" title="var">n</span> := <span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">x</span> \<span class="id" title="var">notin</span> <span class="id" title="var">E</span> <span class="id" title="var">n</span>) (<span class="id" title="var">O_star</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">eXPN</span> <span class="id" title="var">n</span> := <span class="id" title="var">filter</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <span class="id" title="var">x</span> \<span class="id" title="var">notin</span> <span class="id" title="var">CN</span> <span class="id" title="var">n</span>) (<span class="id" title="var">XTR_names</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab35"></a><h2 class="section">Definitions of reductions</h2>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Gacr</span> (<span class="id" title="var">f</span> : <span class="id" title="var">HashFunction</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">bool</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span> ] : <span class="id" title="var">chHASHinp</span> → <span class="id" title="var">chHASHout</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="var">Admitted</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">R_alg</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span>]  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">R_cr</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span>]  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">R_Z</span> (<span class="id" title="var">f</span> : <span class="id" title="var">HashFunction</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>]  [<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">R_D</span> (<span class="id" title="var">f</span> : <span class="id" title="var">HashFunction</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>]  [<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">R_xtr</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">XTR_names</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>]  [<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">R_xpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> (<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>) (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">XPR</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> (<span class="id" title="var">L_K</span> :|: <span class="id" title="var">L_L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;([<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span>] : <span class="id" title="var">chHASHout</span> → <span class="id" title="var">chHASHout</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: (<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ <span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">k</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">CN</span> <span class="id" title="var">n</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">GET_ℓ</span> (<span class="id" title="var">CN</span> <span class="id" title="var">n</span>) <span class="id" title="var">k</span> <span class="id" title="var">ℓ</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_ℓ</span> [(<span class="id" title="var">n1</span> <span class="id" title="var">n</span>)] <span class="id" title="var">k</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(((<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">k</span>) <span class="id" title="var">XPR</span> (<span class="id" title="var">ℓ</span>.-1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: (<span class="id" title="var">interface_hierarchy_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ_off</span> ⇒ <span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">k</span> <span class="id" title="var">n</span> (<span class="id" title="var">ℓ</span>.+1 + <span class="id" title="var">ℓ_off</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">XPR</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> - (<span class="id" title="var">ℓ</span>.+1))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">DH_interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_ℓ</span> [<span class="id" title="var">PSK</span>] <span class="id" title="var">k</span> 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">XTR_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">GET_n</span> <span class="id" title="var">O_star</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>). 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">R_pi</span> (<span class="id" title="var">L</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>]  [<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">Gsodh</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">loc_GamePair</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">Gxtr</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">loc_GamePair</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Fig. 24(a), p. 40 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Gxpd</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">loc_GamePair</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;([<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">HASH</span> <span class="id" title="var">f_hash</span>] : <span class="id" title="var">chHASHout</span> → <span class="id" title="var">chHASHout</span> ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> (<span class="id" title="var">n1</span> <span class="id" title="var">n</span>) <span class="id" title="var">k</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">SET_ℓ</span> [<span class="id" title="var">n1</span> <span class="id" title="var">n</span>] <span class="id" title="var">k</span> <span class="id" title="var">ℓ</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ <span class="id" title="var">XPD_n_ℓ_f</span> <span class="id" title="var">k</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">CN</span> <span class="id" title="var">n</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">GET_ℓ</span> (<span class="id" title="var">CN</span> <span class="id" title="var">n</span>) <span class="id" title="var">k</span> <span class="id" title="var">ℓ</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">interface_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">CN</span> <span class="id" title="var">n</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">Gpi</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> &lt; <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">L</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f</span> : <span class="id" title="var">ZAF</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">loc_GamePair</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">Ai</span> : <span class="id" title="var">raw_package</span> → <span class="id" title="var">bool</span> → <span class="id" title="var">raw_package</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">R_sodh</span> : <span class="id" title="var">package</span> <span class="id" title="var">fset0</span> [<span class="id" title="var">interface</span>] [<span class="id" title="var">interface</span>].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab36"></a><h2 class="section">D2-D7 and Core Theorem</h2>
+
+<div class="paragraph"> </div>
+
+ <a href=https://eprint.iacr.org/2021/467.pdf#lemma.1683>D2</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d2</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">false</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) <span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">Advantage</span> (<span class="id" title="var">Gacr</span> <span class="id" title="var">f_hash</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_cr</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_Hash</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) <span class="id" title="var">A</span>)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1684>D3</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d3</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_Hash</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core_D</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) <span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">Advantage</span> (<span class="id" title="var">Gacr</span> <span class="id" title="var">f_xtr</span>) (<span class="id" title="var">A</span> ∘ (<span class="id" title="var">R_Z</span> <span class="id" title="var">f_xtr</span>)) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gacr</span> <span class="id" title="var">f_xpd</span>) (<span class="id" title="var">A</span> ∘ (<span class="id" title="var">R_Z</span> <span class="id" title="var">f_xpd</span>)) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gacr</span> <span class="id" title="var">f_xtr</span>) (<span class="id" title="var">A</span> ∘ (<span class="id" title="var">R_D</span> <span class="id" title="var">f_xtr</span>)) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gacr</span> <span class="id" title="var">f_xpd</span>) (<span class="id" title="var">A</span> ∘ (<span class="id" title="var">R_D</span> <span class="id" title="var">f_xpd</span>)))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1685>D4</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d4</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_R_esalt</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) <span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">maxR</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">i</span> ⇒ <span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_D</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>)))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1686>D5</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d5</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_R_esalt</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core_SODH</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) <span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <span class="id" title="var">Advantage</span> (<span class="id" title="var">Gsodh</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_sodh</span>))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Idealization order 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">idealization_loop</span> (<span class="id" title="var">fuel</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">ioc</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span>) {<span class="id" title="keyword">struct</span> <span class="id" title="var">fuel</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">name</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">fuel</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">O</span> ⇒ []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">fuel</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">ioc</span> != <span class="id" title="var">all_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">filter</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> \<span class="id" title="var">notin</span> <span class="id" title="var">ioc</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="keyword">let</span> (<span class="id" title="var">n1</span>, <span class="id" title="var">n2</span>) := <span class="id" title="var">PrntN</span> <span class="id" title="var">n</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">nfto</span> <span class="id" title="var">n1</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">ioc</span>) || (<span class="id" title="var">nfto</span> <span class="id" title="var">n1</span> == <span class="id" title="var">BOT</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; ((<span class="id" title="var">nfto</span> <span class="id" title="var">n2</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">ioc</span>) || (<span class="id" title="var">nfto</span> <span class="id" title="var">n2</span> == <span class="id" title="var">BOT</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="var">all</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">sn</span> ⇒ <span class="id" title="var">sn</span> \<span class="id" title="var">notin</span> <span class="id" title="var">ioc</span>) (<span class="id" title="var">SblngN</span> <span class="id" title="var">n</span>))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">n_c</span> :: <span class="id" title="var">xs</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">ioc</span> ++ <span class="id" title="var">SblngN</span> <span class="id" title="var">n_c</span>] ++ <span class="id" title="var">idealization_loop</span> <span class="id" title="var">fuel</span> (<span class="id" title="var">ioc</span> ++ <span class="id" title="var">SblngN</span> <span class="id" title="var">n_c</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+<details><div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">idealization_order_one_iter</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">fuel</span> <span class="id" title="var">ioc</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">idealization_loop</span> <span class="id" title="var">fuel</span>.+1 <span class="id" title="var">ioc</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">if</span> <span class="id" title="var">ioc</span> != <span class="id" title="var">all_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> (<span class="id" title="var">filter</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">n</span> \<span class="id" title="var">notin</span> <span class="id" title="var">ioc</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="keyword">let</span> (<span class="id" title="var">n1</span>, <span class="id" title="var">n2</span>) := <span class="id" title="var">PrntN</span> <span class="id" title="var">n</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">nfto</span> <span class="id" title="var">n1</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">ioc</span>) || (<span class="id" title="var">nfto</span> <span class="id" title="var">n1</span> == <span class="id" title="var">BOT</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; ((<span class="id" title="var">nfto</span> <span class="id" title="var">n2</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">ioc</span>) || (<span class="id" title="var">nfto</span> <span class="id" title="var">n2</span> == <span class="id" title="var">BOT</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="var">all</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">sn</span> ⇒ <span class="id" title="var">sn</span> \<span class="id" title="var">notin</span> <span class="id" title="var">ioc</span>) (<span class="id" title="var">SblngN</span> <span class="id" title="var">n</span>))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all_names</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">n_c</span> :: <span class="id" title="var">xs</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">snc</span> := <span class="id" title="var">SblngN</span> <span class="id" title="var">n_c</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">ioc</span> ++ <span class="id" title="var">snc</span>] ++ <span class="id" title="var">idealization_loop</span> <span class="id" title="var">fuel</span> (<span class="id" title="var">ioc</span> ++ <span class="id" title="var">snc</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> []).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_cons</span> : <span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span>} <span class="id" title="var">f</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">filter</span> <span class="id" title="var">f</span> (<span class="id" title="var">a</span> :: <span class="id" title="var">x</span>) =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="var">a</span> :: <span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">filter</span> <span class="id" title="var">f</span> <span class="id" title="var">x</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#figure.caption.1806>Idealization order</a> 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">IdealizationOrder</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">ioc0</span> := [<span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>] <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">fuel</span> := <span class="id" title="var">List.length</span> <span class="id" title="var">all_names</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;([::] :: [<span class="id" title="var">ioc0</span>] ++ <span class="id" title="var">idealization_loop</span> <span class="id" title="var">fuel</span> <span class="id" title="var">ioc0</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Pre-compute order for TLS 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">IdealizationOrderPreCompute</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;[:: [::];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">ESALT</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">BINDER</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">BINDER</span>; <span class="id" title="var">HS</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">BINDER</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">SHT</span>; <span class="id" title="var">CHT</span>; <span class="id" title="var">HSALT</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">BINDER</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">SHT</span>; <span class="id" title="var">CHT</span>; <span class="id" title="var">HSALT</span>; <span class="id" title="var">AS</span>];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:: <span class="id" title="var">PSK</span>; <span class="id" title="var">ZERO_SALT</span>; <span class="id" title="var">DH</span>; <span class="id" title="var">ZERO_IKM</span>; <span class="id" title="var">ES</span>; <span class="id" title="var">EEM</span>; <span class="id" title="var">CET</span>; <span class="id" title="var">BIND</span>; <span class="id" title="var">ESALT</span>; <span class="id" title="var">BINDER</span>; <span class="id" title="var">HS</span>; <span class="id" title="var">SHT</span>; <span class="id" title="var">CHT</span>; <span class="id" title="var">HSALT</span>; <span class="id" title="var">AS</span>; <span class="id" title="var">RM</span>; <span class="id" title="var">CAT</span>; <span class="id" title="var">SAT</span>; <span class="id" title="var">EAM</span>]].<br/>
+
+<br/>
+</div>
+<details><div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">filter_nil</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">a</span> : <span class="id" title="var">pred</span> <span class="id" title="var">A</span>} : <span class="id" title="var">filter</span> <span class="id" title="var">a</span> [::] = [::].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">notin_nil</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">a</span> : <span class="id" title="var">A</span>} : <span class="id" title="var">a</span> \<span class="id" title="var">notin</span> [::] = <span class="id" title="var">true</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">reflexivity</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">unfold_SblngN</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">SblngN</span>, <span class="id" title="var">all_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">repeat</span> ((<span class="id" title="tactic">rewrite</span> <span class="id" title="var">filter_cons</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> !<span class="id" title="var">nfto_name_to_chName_cancel</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">replace</span> (<span class="id" title="var">_</span> == <span class="id" title="var">_</span>) <span class="id" title="keyword">with</span> <span class="id" title="var">false</span> <span class="id" title="tactic">by</span> <span class="id" title="tactic">reflexivity</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">Bool.andb_false_l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|| (<span class="id" title="tactic">rewrite</span> <span class="id" title="var">filter_cons</span> ; <span class="id" title="tactic">rewrite</span> !<span class="id" title="var">nfto_name_to_chName_cancel</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">replace</span> (<span class="id" title="var">_</span> == <span class="id" title="var">_</span>) <span class="id" title="keyword">with</span> <span class="id" title="var">true</span> <span class="id" title="tactic">by</span> <span class="id" title="tactic">reflexivity</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">Bool.andb_true_l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">replace</span> (<span class="id" title="var">_</span> == <span class="id" title="var">_</span>) <span class="id" title="keyword">with</span> <span class="id" title="var">true</span> <span class="id" title="tactic">by</span> <span class="id" title="tactic">reflexivity</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">filter_nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">reflexivity</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">compute_SblngN</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">l</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H0</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">set</span> (<span class="id" title="var">l</span> := <span class="id" title="var">SblngN</span> <span class="id" title="var">_</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eassert</span> (<span class="id" title="var">H0</span> : <span class="id" title="var">l</span> = <span class="id" title="var">_</span>) ; [ <span class="id" title="tactic">subst</span> <span class="id" title="var">l</span> ; <span class="id" title="var">unfold_SblngN</span> | <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span> ; <span class="id" title="tactic">clear</span> <span class="id" title="var">l</span> <span class="id" title="var">H0</span> ].<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">compute_idealization_order_one_iter</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">idealization_order_one_iter</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">replace</span> (<span class="id" title="var">_</span> != <span class="id" title="var">_</span>) <span class="id" title="keyword">with</span> <span class="id" title="var">true</span> <span class="id" title="tactic">by</span> (<span class="id" title="tactic">symmetry</span> ; <span class="id" title="tactic">apply</span> /<span class="id" title="var">eqP</span> ; <span class="id" title="tactic">discriminate</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> (<span class="id" title="tactic">rewrite</span> <span class="id" title="var">filter_cons</span> ; <span class="id" title="var">compute_SblngN</span> ; <span class="id" title="tactic">simpl</span> (<span class="id" title="var">_</span> &amp;&amp; <span class="id" title="var">_</span>) ; <span class="id" title="tactic">rewrite</span> !<span class="id" title="var">nfto_name_to_chName_cancel</span> ; <span class="id" title="tactic">simpl</span> (<span class="id" title="var">_</span> &amp;&amp; <span class="id" title="var">_</span>) ; <span class="id" title="tactic">hnf</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;|| (<span class="id" title="tactic">rewrite</span> <span class="id" title="var">filter_cons</span> ; <span class="id" title="var">compute_SblngN</span> ;  <span class="id" title="tactic">replace</span> (<span class="id" title="var">_</span> &amp;&amp; <span class="id" title="var">_</span>) <span class="id" title="keyword">with</span> <span class="id" title="var">false</span> <span class="id" title="tactic">by</span> <span class="id" title="tactic">reflexivity</span> ; <span class="id" title="tactic">hnf</span>) ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">compute_SblngN</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cbn</span> <span class="id" title="keyword">zeta</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">compute_eq</span> : (<span class="id" title="var">IdealizationOrder</span> = <span class="id" title="var">IdealizationOrderPreCompute</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d10_helper</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">j</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">j</span>.+1 ≤ <span class="id" title="var">List.length</span> <span class="id" title="var">IdealizationOrderPreCompute</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> <span class="id" title="var">all_names</span> <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">j</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> <span class="id" title="var">all_names</span> <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">j</span>.+1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1896>D10</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d10</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">i</span> <span class="id" title="var">j</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">i</span> &lt; <span class="id" title="var">j</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">j</span> ≤ <span class="id" title="var">List.length</span> <span class="id" title="var">IdealizationOrderPreCompute</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> <span class="id" title="var">all_names</span> <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">i</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">x</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> <span class="id" title="var">all_names</span> <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">j</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1898>D11</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d11</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">c</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">c</span> == <span class="id" title="var">O</span>)%<span class="id" title="var">nat</span> || (<span class="id" title="var">PSK</span> \<span class="id" title="var">notin</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.-1)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">PSK</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.+1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ES</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">ES</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1899>D12</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d12</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">c</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">c</span> == <span class="id" title="var">O</span>)%<span class="id" title="var">nat</span> || (<span class="id" title="var">ESALT</span> \<span class="id" title="var">notin</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.-1)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ESALT</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.+1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">HS</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">HS</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1900>D13</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d13</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">c</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">c</span> == <span class="id" title="var">O</span>)%<span class="id" title="var">nat</span> || (<span class="id" title="var">HSALT</span> \<span class="id" title="var">notin</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.-1)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">HSALT</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.+1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">AS</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">AS</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1901>D14</a>
+      
+   
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d14</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">c</span> <span class="id" title="var">A</span> <span class="id" title="var">n</span> (<span class="id" title="var">_</span> : <span class="id" title="var">ChldrOp</span> (<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) = <span class="id" title="var">xpd_op</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">H_in_xpr</span> : <span class="id" title="var">n</span> \<span class="id" title="tactic">in</span> <span class="id" title="var">XPR</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) \<span class="id" title="var">notin</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.-1) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">c</span> == <span class="id" title="var">O</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|| ((<span class="id" title="var">nfto</span> (<span class="id" title="var">fst</span> (<span class="id" title="var">PrntN</span> <span class="id" title="var">n</span>))) \<span class="id" title="tactic">in</span> <span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.+1)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_pred_ℓ_c</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span> (<span class="id" title="var">nth</span> [] <span class="id" title="var">IdealizationOrderPreCompute</span> <span class="id" title="var">c</span>.+1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">H_in_xpr</span>))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab37"></a><h1 class="section"><a href=https://eprint.iacr.org/2021/467.pdf#lemma.1687>D6</a>: Hybrid lemma</h1>
+
+      <a href=https://eprint.iacr.org/2021/467.pdf#subsection.1897>proof structure</a>
+      Dependends on idealization order
+   
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d6</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">ℓ</span>, (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">d</span>)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span>.+1) <span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ES</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">ES</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">HS</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">HS</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">AS</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">AS</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">sumR_l_in_rel</span> <span class="id" title="var">XPR</span> <span class="id" title="var">XPR</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">H</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">H_in</span> ⇒ <span class="id" title="var">Advantage</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Gxpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">A</span> ∘ <span class="id" title="var">R_xpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">H_in</span>))%<span class="id" title="var">R</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">hyb_telescope</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> 0) (<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">d</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">sumR</span> 0 <span class="id" title="var">d</span> (<span class="id" title="var">leq0n</span> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒ <span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> (<span class="id" title="var">ℓ</span>+1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#equation.1689>Equation 20</a> : lhs 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equation20_lhs</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> &gt; 0)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_SODH</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> 0) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>) = 0)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_package_esalt_D_to_R</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">k</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ls</span> <span class="id" title="var">k</span> <span class="id" title="var">all_names</span> (<span class="id" title="var">λ</span> <span class="id" title="var">_</span> : <span class="id" title="var">name</span>, <span class="id" title="var">D</span>) <span class="id" title="var">erefl</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ls</span> <span class="id" title="var">k</span> <span class="id" title="var">all_names</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">name</span> : <span class="id" title="var">ExtraTypes.name</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">name</span> <span class="id" title="keyword">as</span> <span class="id" title="var">name'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">name'</span> = <span class="id" title="var">name</span> → <span class="id" title="var">ZAF</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">ESALT</span> ⇒ <span class="id" title="var">λ</span> <span class="id" title="var">_</span> : <span class="id" title="var">ESALT</span> = <span class="id" title="var">name</span>, <span class="id" title="var">R</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">λ</span> <span class="id" title="var">_</span> : <span class="id" title="var">_</span> = <span class="id" title="var">name</span>, <span class="id" title="var">D</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="var">erefl</span>) <span class="id" title="var">erefl</span>) <span class="id" title="var">A</span> = 0%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">D_to_R_esalt_is_zero</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_D</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core_R_esalt</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) <span class="id" title="var">A</span> = 0%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#equation.1689>Equation 20</a> : rhs 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equation20_rhs</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_ki</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">d</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>) = 0)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#equation.1689>Equation 20</a> : full 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">equation20_eq</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">d</span> &gt; 0)%<span class="id" title="var">nat</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_SODH</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_ki</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+<span class="id" title="var">sumR</span> 0 <span class="id" title="var">d</span> (<span class="id" title="var">leq0n</span> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒ <span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core_hyb_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> (<span class="id" title="var">ℓ</span> + 1))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1688>D7</a> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">d7</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span> (<span class="id" title="var">G_core_ki</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">Advantage</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">x</span> : <span class="id" title="var">bool</span>, <span class="id" title="var">Gpi</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> [:: <span class="id" title="var">ESALT</span>] <span class="id" title="var">R</span> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_pi</span> [:: <span class="id" title="var">ESALT</span>]) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">x</span> : <span class="id" title="var">bool</span>, <span class="id" title="var">Gpi</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">O_star</span> <span class="id" title="var">R</span> <span class="id" title="var">x</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_pi</span> <span class="id" title="var">O_star</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+</div>
+<details><div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">sumR_leq</span> : <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_range</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">ℓ</span>, (<span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">u</span>)%<span class="id" title="var">nat</span> → <span class="id" title="var">f</span> <span class="id" title="var">ℓ</span> ≤ <span class="id" title="var">g</span> <span class="id" title="var">ℓ</span>)%<span class="id" title="var">R</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">sumR</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_range</span> <span class="id" title="var">f</span> ≤ <span class="id" title="var">sumR</span> <span class="id" title="var">l</span> <span class="id" title="var">u</span> <span class="id" title="var">H_range</span> <span class="id" title="var">g</span>)%<span class="id" title="var">R</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a href=https://eprint.iacr.org/2021/467.pdf#lemma.1679>D1</a> : Core theorem 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">core_theorem</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) <span class="id" title="var">H_lt</span> (<span class="id" title="var">H_gt</span> : (0 &lt; <span class="id" title="var">d</span>)%<span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">LA</span> : {<span class="id" title="var">fset</span> <span class="id" title="var">Location</span>}) (<span class="id" title="var">A</span> : <span class="id" title="var">raw_package</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> <span class="id" title="var">A</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">i</span>, <span class="id" title="var">ValidPackage</span> <span class="id" title="var">LA</span> (<span class="id" title="var">KS_interface</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>) <span class="id" title="var">A_export</span> (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">AdvantageE</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">false</span> <span class="id" title="var">H_lt</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">G_core</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">true</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">A</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">sumR_l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[(<span class="id" title="var">R_cr</span>, <span class="id" title="var">f_hash</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">R_Z</span> <span class="id" title="var">f_xtr</span>, <span class="id" title="var">f_xtr</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">R_Z</span> <span class="id" title="var">f_xpd</span>, <span class="id" title="var">f_xpd</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">R_D</span> <span class="id" title="var">f_xtr</span>, <span class="id" title="var">f_xtr</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">R_D</span> <span class="id" title="var">f_xpd</span>, <span class="id" title="var">f_xpd</span>)]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">R_hash_fn</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gacr</span> (<span class="id" title="var">snd</span> <span class="id" title="var">R_hash_fn</span>)) (<span class="id" title="var">A</span> ∘ (<span class="id" title="var">fst</span> <span class="id" title="var">R_hash_fn</span>))) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">maxR</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">i</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gsodh</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_sodh</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gpi</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> [<span class="id" title="var">ESALT</span>] <span class="id" title="var">R</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_pi</span> [<span class="id" title="var">ESALT</span>]) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gpi</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">O_star</span> <span class="id" title="var">R</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_pi</span> <span class="id" title="var">O_star</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">sumR</span> 0 <span class="id" title="var">d</span> (<span class="id" title="var">leq0n</span> <span class="id" title="var">d</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">ES</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">ES</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">HS</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">HS</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Advantage</span> (<span class="id" title="var">Gxtr</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">AS</span> <span class="id" title="var">ℓ</span>) (<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_xtr</span> <span class="id" title="var">AS</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">erefl</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">sumR_l_in_rel</span> <span class="id" title="var">XPR</span> <span class="id" title="var">XPR</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">H</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">H_in</span> ⇒ <span class="id" title="var">Advantage</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Gxpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ai</span> <span class="id" title="var">A</span> <span class="id" title="var">i</span> ∘ <span class="id" title="var">R_xpd</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">H_in</span>))%<span class="id" title="var">R</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))%<span class="id" title="var">R</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">CoreTheorem</span>.<br/>
+
+<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>
