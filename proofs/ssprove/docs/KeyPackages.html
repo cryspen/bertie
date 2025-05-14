@@ -153,23 +153,33 @@
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">UNQ_O_star</span> <span class="id" title="var">d</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>]) (<span class="id" title="var">O_star</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">O_star</span>).<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">SET_O_star</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>]) (<span class="id" title="var">O_star</span>) <span class="id" title="var">d</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">O_star</span>) <span class="id" title="var">d</span>.<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">SET_O_star_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>]) (<span class="id" title="var">O_star</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">O_star</span>).<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">GET_O_star</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>]) (<span class="id" title="var">O_star</span>) <span class="id" title="var">d</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_hierarchy_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">O_star</span>) <span class="id" title="var">d</span>.<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">GET_O_star_ℓ</span> <span class="id" title="var">d</span> <span class="id" title="var">ℓ</span> : <span class="id" title="var">Interface</span> :=<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>]) (<span class="id" title="var">O_star</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">O_star</span>).<br/>
 
 <br/>
 </div>
@@ -180,7 +190,9 @@ Fig 13-14. K key and log
 <div class="code">
 
 <br/>
-&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">exists_h_star</span> : (<span class="id" title="var">chHandle</span> → <span class="id" title="var">raw_code</span> '<span class="id" title="var">unit</span>) → <span class="id" title="var">code</span> <span class="id" title="var">L_L</span> [<span class="id" title="var">interface</span>] '<span class="id" title="var">unit</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="var">exists_h_star</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">chHandle</span> → <span class="id" title="var">raw_code</span> '<span class="id" title="var">unit</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">code</span> <span class="id" title="var">L_L</span> [<span class="id" title="var">interface</span>] '<span class="id" title="var">unit</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">ZAF</span> := | <span class="id" title="var">Z</span> | <span class="id" title="var">A</span> | <span class="id" title="var">F</span> | <span class="id" title="var">D</span> | <span class="id" title="var">R</span>.<br/>
 
 <br/>
@@ -234,16 +246,23 @@ Fig 14
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_Ls</span> <span class="id" title="var">d</span> (<span class="id" title="var">Names</span> : <span class="id" title="var">_</span>) <span class="id" title="var">P</span> :<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">H</span> : <span class="id" title="var">uniq</span> <span class="id" title="var">Names</span>),<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> (<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> =&gt;[<span class="id" title="var">interface</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]) <span class="id" title="var">Names</span>) (<span class="id" title="var">Ls</span> <span class="id" title="var">d</span> <span class="id" title="var">Names</span> <span class="id" title="var">P</span> <span class="id" title="var">H</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Names</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ls</span> <span class="id" title="var">d</span> <span class="id" title="var">Names</span> <span class="id" title="var">P</span> <span class="id" title="var">H</span>).<br/>
 
 <br/>
-&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Ks</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> ≤ <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>) (<span class="id" title="var">Names</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">name</span> → <span class="id" title="var">bool</span>) :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Ks</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> ≤ <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Names</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">b</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">name</span> → <span class="id" title="var">bool</span>) :<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">uniq</span> <span class="id" title="var">Names</span> →<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">L_K</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>]) <span class="id" title="var">Names</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_foreach</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span>])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Names</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">SET_n</span> (<span class="id" title="var">Names</span>) <span class="id" title="var">d</span> <span class="id" title="var">k</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">GET_n</span> (<span class="id" title="var">Names</span>) <span class="id" title="var">d</span> <span class="id" title="var">k</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
@@ -251,11 +270,14 @@ Fig 14
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">trimmed_Ks</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> (<span class="id" title="var">Names</span> : <span class="id" title="var">_</span>) <span class="id" title="var">b</span> :<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<span class="id" title="var">H</span> : <span class="id" title="var">uniq</span> <span class="id" title="var">Names</span>),<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span> (<span class="id" title="var">interface_hierarchy_foreach</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>),<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span>] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span> ;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span>] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span> ]) <span class="id" title="var">Names</span> <span class="id" title="var">d</span>) (<span class="id" title="var">Ks</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">Names</span> <span class="id" title="var">b</span> <span class="id" title="var">H</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">trimmed</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_hierarchy_foreach</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> (<span class="id" title="var">n</span> : <span class="id" title="var">name</span>) (<span class="id" title="var">ℓ</span> : <span class="id" title="var">nat</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span>] : <span class="id" title="var">chSETinp</span> → <span class="id" title="var">chSETout</span> ;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> <span class="id" title="var">n</span> <span class="id" title="var">ℓ</span> <span class="id" title="var">k</span>] : <span class="id" title="var">chGETinp</span> → <span class="id" title="var">chGETout</span> ])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Names</span> <span class="id" title="var">d</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Ks</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> <span class="id" title="var">H_lt</span> <span class="id" title="var">Names</span> <span class="id" title="var">b</span> <span class="id" title="var">H</span>).<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Nk_package</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">_</span> : (<span class="id" title="var">d</span> ≤ <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>) :<br/>
@@ -264,21 +286,7 @@ Fig 14
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">DH</span> <span class="id" title="var">k</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">SET_n</span> [<span class="id" title="var">DH</span>] <span class="id" title="var">d</span> <span class="id" title="var">k</span> :|: <span class="id" title="var">GET_n</span> [<span class="id" title="var">DH</span>] <span class="id" title="var">d</span> <span class="id" title="var">k</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<br/>
-.<br/>
-
-<br/>
-
-<br/>
-
-<br/>
-
-<br/>
-
-<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">SET_n</span> [<span class="id" title="var">DH</span>] <span class="id" title="var">d</span> <span class="id" title="var">k</span> :|: <span class="id" title="var">GET_n</span> [<span class="id" title="var">DH</span>] <span class="id" title="var">d</span> <span class="id" title="var">k</span>).<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
 
 <br/>
@@ -298,7 +306,9 @@ Fig 14
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">package</span> (<span class="id" title="var">L_K</span>) [<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">UNQ</span> <span class="id" title="var">PSK</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chKinp</span> → <span class="id" title="var">chKout</span> ]<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">interface_hierarchy</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">λ</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span> #<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chKinp</span> → <span class="id" title="var">chKout</span> ; #<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> <span class="id" title="var">PSK</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chKout</span> → <span class="id" title="var">chGETout</span> ])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">interface</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[<span class="id" title="var">SET</span> <span class="id" title="var">PSK</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chKinp</span> → <span class="id" title="var">chKout</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; #<span class="id" title="var">val</span> #[<span class="id" title="var">GET</span> <span class="id" title="var">PSK</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span>] : <span class="id" title="var">chKout</span> → <span class="id" title="var">chGETout</span> ])<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">d</span>) :=<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">ℓ_packages</span> <span class="id" title="var">d</span> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> <span class="id" title="var">H</span> ⇒ <span class="id" title="var">K_package</span> <span class="id" title="var">d</span> <span class="id" title="var">PSK</span> <span class="id" title="var">n</span> <span class="id" title="var">H</span> <span class="id" title="var">false</span>) <span class="id" title="var">_</span> <span class="id" title="var">_</span>).<br/>
 

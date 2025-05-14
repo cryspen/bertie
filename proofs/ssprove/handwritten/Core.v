@@ -95,13 +95,7 @@ Import PackageNotation.
  Verification:
  - [N_star_correct] ensures correctness of name exclusion logic.
  - Assumes correctness of external definitions (e.g., [G_check_XTR_XPD]).
- - Hybrid packages depend on precise conditional logic for security proofs.
-
- Applications:
- This module is part of a larger Coq development for verifying cryptographic
- protocols. It enables systematic simulation of protocol steps and their
- idealized counterparts, crucial for proving security reductions.
- See referenced paper for full context.                                      **)
+ - Hybrid packages depend on precise conditional logic for security proofs. **)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
