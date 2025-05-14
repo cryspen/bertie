@@ -112,6 +112,110 @@
 </details><div class="code">
 
 <br/>
+</div>
+
+<div class="doc">
+<a id="lab22"></a><h1 class="section">Utility</h1>
+
+    This file contains the building blocks for creating the packages
+    used in the proofs for the Key Schedule.
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">serialize_name</span></span>
+<ul class="doclist">
+<li> assigning the "wires", this makes it easy to proof
+          that there is no overlap of names/indexes for
+          function definitions.
+
+</li>
+</ul>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">key_store</span></span>
+<ul class="doclist">
+<li> helper functions for looking up and storing key.
+          These functions ensures  the same key is used by
+          all functions, and samples a new key if one is not
+          assigned.
+
+</li>
+</ul>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">map_with_in</span></span>
+<ul class="doclist">
+<li> defines mapping over lists or ranges propergating
+          properties on the list to each element in the mapping
+          function. E.g. any value in a range is less than
+          the upper bound
+
+</li>
+</ul>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">interface_foreach_and_hierarchy</span></span>
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">interface_foreach</span></span> defines an interface indexed by
+          elements of list, while <span class="inlinecode"><span class="id" title="var">interface_hierarchy</span></span> defines
+          an interface indexed by a range, given by an upper bound.
+          These can be combined, and form commutative monoids.
+
+</li>
+</ul>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">funext</span></span>, <span class="inlinecode"><span class="id" title="var">random_util</span></span> and <span class="inlinecode"><span class="id" title="var">advantage</span></span>
+<ul class="doclist">
+<li> contains simple helper functions, that makes proofs
+          and definitions a bit easier.
+
+</li>
+</ul>
+
+</li>
+</ul>
+    In this file we define
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">ℓ_package</span></span>
+<ul class="doclist">
+<li> a package defined by interface functions for import
+          and export, index by a natural number in a range,
+          together with a function defining the package at each
+          index. This allows us to define packages depending on
+          all previous levels.
+
+</li>
+</ul>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">parallel_package</span></span>
+<ul class="doclist">
+<li> Like <span class="inlinecode"><span class="id" title="var">ℓ_package</span></span>, but where we define the interfaces
+          and packages indexed by a list of elements instead of a
+          range.
+
+</li>
+</ul>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">combined</span></span>
+<ul class="doclist">
+<li> is the composition of <span class="inlinecode"><span class="id" title="var">ℓ_package</span></span> and <span class="inlinecode"><span class="id" title="var">parallel_package</span></span>
+          to allow indexing on both a range and a list of elements.
+          This allows us to define the TLS key schedule as a series
+          of packages based on their names and a round index.
+
+</li>
+</ul>
+
+</li>
+</ul>
+    The remainder of the file contains LTac and definitions to ensure
+    the packages are valid, trimmed and can be ignored/skipped (<span class="inlinecode">×<span class="id" title="var">_ID</span></span>).
+ 
+</div>
+<div class="code">
+
+<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Types.html#"><span class="id" title="library">Types</span></a>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.ExtraTypes.html#"><span class="id" title="library">ExtraTypes</span></a>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.ssp_helper.html#"><span class="id" title="library">ssp_helper</span></a>.<br/>
@@ -154,7 +258,7 @@
 </div>
 
 <div class="doc">
-<a id="lab18"></a><h1 class="section">Ltac</h1>
+<a id="lab23"></a><h1 class="section">Ltac</h1>
 
 </div>
 <div class="code">
@@ -207,7 +311,7 @@
 </div>
 
 <div class="doc">
-<a id="lab19"></a><h1 class="section">Package composition</h1>
+<a id="lab24"></a><h1 class="section">Package composition</h1>
 
 </div>
 <div class="code">
@@ -235,7 +339,7 @@
 </div>
 
 <div class="doc">
-<a id="lab20"></a><h1 class="section">Trimmed</h1>
+<a id="lab25"></a><h1 class="section">Trimmed</h1>
 
 </div>
 <div class="code">
@@ -292,7 +396,7 @@
 </div>
 
 <div class="doc">
-<a id="lab21"></a><h1 class="section">Valid pairs</h1>
+<a id="lab26"></a><h1 class="section">Valid pairs</h1>
 
 </div>
 <div class="code">
@@ -342,7 +446,7 @@
 </div>
 
 <div class="doc">
-<a id="lab22"></a><h1 class="section">All idents disjoint</h1>
+<a id="lab27"></a><h1 class="section">All idents disjoint</h1>
 
 </div>
 <div class="code">

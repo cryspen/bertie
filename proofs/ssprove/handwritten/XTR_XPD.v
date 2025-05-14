@@ -68,36 +68,15 @@ Import GroupScope GRing.Theory.
 Import PackageNotation.
 (* end details *)
 
-(**  This file develops a formal framework for verifying interface-based component
- systems, focusing on ensuring disjointness and minimality (trimmedness) of
- component interfaces. The development uses math-comp's ssreflect style to
- model hierarchical and modular systems, with applications to structured
- protocol or system designs. Key contributions include:
-
- - Definitions of hierarchical interfaces (e.g., [XPD], [XTR], [DH]) parameterized
-   over component identifiers and protocol phases, constructed using
-   [interface_hierarchy] and [interface_foreach].
- - Package constructions ([XPD_packages], [XTR_packages], [DH_package]) that
-   bundle interfaces with implementations while ensuring well-formedness.
- - Proofs of trimmedness properties ([trimmed_xpd_package], [trimmed_xtr_package])
-   guaranteeing that component interfaces are minimal and non-overlapping.
- - Lemmas establishing domain-disjointness ([domm_trim_disjoint_is_ident]) and
-   correctness of hierarchical interface compositions.
-
- The framework supports modular reasoning about systems with layered
- components, such as cryptographic protocols or distributed systems, where
- interface isolation is critical. It leverages math-comp's [fset] and [section]
- mechanisms for precise control over domain interactions.
-
- Key definitions and notations include:
-   - [XPD_n d k]: A hierarchical interface for extended components at depth [d].
-   - [DH_interface]: A Diffie-Hellman (DH) protocol interface with [DHGEN] and
-     [DHEXP] operations.
-   - [trimmed I p]: A property asserting that package [p] has domain exactly [I].
-   - [interface_hierarchy f]: A constructor for interfaces with layered operations.
-
- This module is part of a larger effort to formalize system designs with
- rigorous guarantees about component isolation and compositional validity.           **)
+(** * XTR / XPD
+    This file include:
+    - Definitions of hierarchical interfaces (e.g., [XPD], [XTR], [DH]) parameterized
+      over component identifiers and protocol phases, constructed using
+      [interface_hierarchy] and [interface_foreach].
+    - Package constructions ([XPD_packages], [XTR_packages], [DH_package]) that
+      bundle interfaces with implementations while ensuring well-formedness.
+    - Proofs of trimmedness properties ([trimmed_xpd_package], [trimmed_xtr_package])
+      guaranteeing that component interfaces are minimal and non-overlapping.         **)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -108,8 +87,6 @@ From KeyScheduleTheorem Require Import ssp_helper.
 From KeyScheduleTheorem Require Import Dependencies.
 
 From KeyScheduleTheorem Require Import BasePackages.
-
-(** * XTR / XPD *)
 
 Section XTR_XPD.
 
@@ -824,26 +801,6 @@ Section XTR_XPD.
     apply trimmed_package_cons.
     apply trimmed_package_cons.
     apply trimmed_empty_package.
-  Qed.
-
-  Lemma domm_trim_disjoint_is_ident :
-    forall E1 E2 p1 p2,
-      idents E1 :#: idents E2 ->
-      domm (trim E1 p1) :#: domm (trim E2 p2).
-  Proof.
-    intros.
-    eapply fdisjoint_trans.
-    1: apply domm_trim.
-    rewrite fdisjointC.
-    eapply fdisjoint_trans.
-    1: apply domm_trim.
-    rewrite fdisjointC.
-    apply H.
-  Qed.
-
-  Lemma trimmed_trim : forall I p, trimmed I (trim I p).
-  Proof.
-    intros. unfold trimmed. now rewrite trim_idemp.
   Qed.
 
   Lemma trimmed_xpd_package : forall (d k : nat) (H_lt : (d < k)%nat),

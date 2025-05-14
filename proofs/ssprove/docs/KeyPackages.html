@@ -19,7 +19,10 @@
 <h1 class="libtitle">Library KeyPackages</h1>
 
 <div class="code">
+</div>
+<details><summary>imports </summary><div class="code">
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">ssreflect</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Crypt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">choice_type</span> <span class="id" title="var">Package</span> <span class="id" title="var">Prelude</span>.<br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">extructures</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ord</span> <span class="id" title="var">fset</span>.<br/>
@@ -45,6 +48,9 @@
 <span class="id" title="keyword">Import</span> <span class="id" title="var">choice.Choice.Exports</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Obligation</span> <span class="id" title="keyword">Tactic</span> :=  <span class="id" title="var">solve_ssprove_obligations</span>.<br/>
@@ -62,9 +68,11 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">Relational</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">OrderEnrichedCategory</span> <span class="id" title="var">GenericRulesSimple</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "-notation-overridden,-ambiguous-paths".<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">all_ssreflect</span> <span class="id" title="var">all_algebra</span> <span class="id" title="var">reals</span> <span class="id" title="var">distr</span> <span class="id" title="var">realsum</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">fingroup.fingroup</span> <span class="id" title="var">solvable.cyclic</span> <span class="id" title="var">prime</span> <span class="id" title="var">ssrnat</span> <span class="id" title="var">ssreflect</span> <span class="id" title="var">ssrfun</span> <span class="id" title="var">ssrbool</span> <span class="id" title="var">ssrnum</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">eqtype</span> <span class="id" title="var">choice</span> <span class="id" title="var">seq</span>.<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Warnings</span> "notation-overridden,ambiguous-paths".<br/>
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">Mon</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">SPropBase</span>.<br/>
@@ -84,8 +92,12 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="var">Equations.Prop.DepElim</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="keyword">Equations</span> <span class="id" title="var">With</span> <span class="id" title="var">UIP</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Bullet</span> <span class="id" title="var">Behavior</span> "Strict Subproofs".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Goal</span> <span class="id" title="var">Selector</span> "!".<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Primitive</span> <span class="id" title="var">Projections</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">ring_scope</span>.<br/>
@@ -93,6 +105,33 @@
 
 <br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">PackageNotation</span>.<br/>
+</div>
+</details><div class="code">
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab12"></a><h1 class="section">Key Packages</h1>
+
+    This file defines Keys (<span class="inlinecode"><span class="id" title="var">K_package</span></span>) and Logging (<span class="inlinecode"><span class="id" title="var">L_package</span></span>) packages,
+    and their generalizations <span class="inlinecode"><span class="id" title="var">Ks</span></span> and <span class="inlinecode"><span class="id" title="var">Ls</span></span>.
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">exists_h_star</span></span>: finds a handle, with some given properties and runs given
+      function if any exists.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">L_package</span></span>: Ensures uniqueness of store. Indexed by which form of uniqueness
+      to ensure, and how to handle invalid use of logs.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">K_package</span></span>: Set and get keys. Samples new key if it does not exists.
+
+</li>
+</ul>
+ 
+</div>
+<div class="code">
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Types</span>.<br/>
@@ -104,10 +143,6 @@
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">BasePackages</span>.<br/>
-
-<br/>
-
-<br/>
 
 <br/>
 <span class="id" title="keyword">Section</span> <span class="id" title="var">KeyPackages</span>.<br/>
@@ -203,14 +238,6 @@ Fig 14
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#<span class="id" title="var">val</span> #[ <span class="id" title="var">UNQ</span> <span class="id" title="var">n</span> <span class="id" title="var">d</span> ] : <span class="id" title="var">chUNQinp</span> → <span class="id" title="var">chUNQout</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]) <span class="id" title="var">Names</span>) (<span class="id" title="var">Ls</span> <span class="id" title="var">d</span> <span class="id" title="var">Names</span> <span class="id" title="var">P</span> <span class="id" title="var">H</span>).<br/>
 
-<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function_fset_cons</span> :<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">x</span> <span class="id" title="var">xs</span>, (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">x</span> <span class="id" title="var">n</span> :: <span class="id" title="var">xs</span> <span class="id" title="var">n</span>)) = (<span class="id" title="keyword">fun</span> (<span class="id" title="var">n</span> : <span class="id" title="var">A</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) ([<span class="id" title="var">x</span> <span class="id" title="var">n</span>]) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">n</span>)).<br/>
- 
-<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">function2_fset_cat</span> :<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> {<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="var">eqType</span>} {<span class="id" title="var">T</span>} <span class="id" title="var">x</span> <span class="id" title="var">xs</span>, (<span class="id" title="keyword">fun</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">B</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">x</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> :: <span class="id" title="var">xs</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>)) = (<span class="id" title="keyword">fun</span> (<span class="id" title="var">a</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">B</span>) ⇒ <span class="id" title="var">fset</span> (<span class="id" title="var">T</span> := <span class="id" title="var">T</span>) ([<span class="id" title="var">x</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>]) :|: <span class="id" title="var">fset</span> (<span class="id" title="var">xs</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>)).<br/>
- 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Ks</span> (<span class="id" title="var">d</span> <span class="id" title="var">k</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">H_lt</span> : (<span class="id" title="var">d</span> ≤ <span class="id" title="var">k</span>)%<span class="id" title="var">nat</span>) (<span class="id" title="var">Names</span> : <span class="id" title="var">list</span> <span class="id" title="var">name</span>) (<span class="id" title="var">b</span> : <span class="id" title="var">nat</span> → <span class="id" title="var">name</span> → <span class="id" title="var">bool</span>) :<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">uniq</span> <span class="id" title="var">Names</span> →<br/>

@@ -112,14 +112,14 @@
 </div>
 
 <div class="doc">
+<a id="lab2"></a><h1 class="section">Core Theorem</h1>
+
  Core Theorem for Cryptographic Security Reductions in a Hierarchical Game
  Framework. This file establishes a fundamental result bounding the
  advantage of adversaries in a sequence of security games, decomposing the
  overall reduction into contributions from hash function properties,
  extraction/prediction challenges, and composition of intermediate game
- transitions. The theorem serves as the central technical tool for
- analyzing the security of cryptographic constructions with layered
- hardness assumptions.
+ transitions.
 
 <div class="paragraph"> </div>
 
@@ -129,15 +129,6 @@
                         key <span class="inlinecode"><span class="id" title="var">k</span></span>, boolean flag <span class="inlinecode"><span class="id" title="var">b</span></span>, and hardness threshold <span class="inlinecode"><span class="id" title="var">H_lt</span></span>.
                         The <span class="inlinecode"><span class="id" title="var">false</span></span>/<span class="inlinecode"><span class="id" title="var">true</span></span> flag controls critical security
                         properties being tested.
-
-</li>
-<li>  <span class="inlinecode"><span class="id" title="var">AdvantageE</span></span> <span class="inlinecode"><span class="id" title="var">G</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span>    == Security advantage of adversary <span class="inlinecode"><span class="id" title="var">A</span></span> against game <span class="inlinecode"><span class="id" title="var">G</span></span>,
-                        measuring the difference in success probabilities.
-
-</li>
-<li>  <span class="inlinecode"><span class="id" title="var">sumR_l</span></span> <span class="inlinecode"><span class="id" title="var">lst</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span>      == Linear combination of advantages over a list of
-                        reduction functions, weighted by their contribution
-                        to the overall bound.
 
 </li>
 <li>  <span class="inlinecode"><span class="id" title="var">R_cr</span>,</span> <span class="inlinecode"><span class="id" title="var">R_Z</span>,</span> <span class="inlinecode"><span class="id" title="var">R_D</span></span>    == Reduction functions for collision resistance,
@@ -177,21 +168,12 @@
 <li> <span class="inlinecode"><span class="id" title="var">Equation20_eq</span></span> decomposes the advantage into telescoping sums.
 
 </li>
-<li> <span class="inlinecode"><span class="id" title="var">sumR_leq</span></span> axiom ensures monotonicity of the summation operator.
-
-</li>
 <li> The final bound combines all components using <span class="inlinecode"><span class="id" title="var">maxR</span></span> and linear
      combinations, reflecting worst-case contributions from each security
-     assumption.
+     assumption.                                                                
 
 </li>
 </ul>
-
-<div class="paragraph"> </div>
-
- This formalization is inspired by game-playing techniques in provable
- security, formalizing the security analysis of iterative cryptographic
- constructions with layered reductions.                                      
 </div>
 <div class="code">
 
@@ -215,15 +197,6 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Core</span>.<br/>
 
 <br/>
-</div>
-
-<div class="doc">
-<a id="lab5"></a><h1 class="section">Core theorem</h1>
-
-</div>
-<div class="code">
-
-<br/>
 <span class="id" title="keyword">Section</span> <span class="id" title="var">CoreTheorem</span>.<br/>
 
 <br/>
@@ -234,7 +207,7 @@
 </div>
 
 <div class="doc">
-<a id="lab6"></a><h2 class="section">Set and operation from paper</h2>
+<a id="lab3"></a><h2 class="section">Set and operation from paper</h2>
 
 </div>
 <div class="code">
@@ -289,7 +262,7 @@
 </div>
 
 <div class="doc">
-<a id="lab7"></a><h2 class="section">Definitions of reductions</h2>
+<a id="lab4"></a><h2 class="section">Definitions of reductions</h2>
 
 </div>
 <div class="code">
@@ -408,7 +381,7 @@ Fig. 24(a), p. 40
 </div>
 
 <div class="doc">
-<a id="lab8"></a><h2 class="section">D2-D7 and Core Theorem</h2>
+<a id="lab5"></a><h2 class="section">D2-D7 and Core Theorem</h2>
 
 <div class="paragraph"> </div>
 
@@ -718,7 +691,7 @@ Pre-compute order for TLS
 </div>
 
 <div class="doc">
-<a id="lab9"></a><h1 class="section"><a href=https://eprint.iacr.org/2021/467.pdf#lemma.1687>D6</a>: Hybrid lemma</h1>
+<a id="lab6"></a><h1 class="section"><a href=https://eprint.iacr.org/2021/467.pdf#lemma.1687>D6</a>: Hybrid lemma</h1>
 
       <a href=https://eprint.iacr.org/2021/467.pdf#subsection.1897>proof structure</a>
       Dependends on idealization order

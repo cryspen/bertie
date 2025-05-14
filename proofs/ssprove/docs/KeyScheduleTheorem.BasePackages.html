@@ -109,6 +109,78 @@
 </details><div class="code">
 
 <br/>
+</div>
+
+<div class="doc">
+<a id="lab36"></a><h1 class="section">Base Packages</h1>
+
+    This file defines establishes notations such as SET, GET, HASH, UNQ, DHGEN, and DHEXP.
+    These operations model primitives used in key derivation and protocol execution.
+
+<div class="paragraph"> </div>
+
+    Key components defined in this file:
+<ul class="doclist">
+<li> **Cryptographic Operation Interfaces**:
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">SET</span></span>: Models key storage operations with input <span class="inlinecode">(<span class="id" title="var">chHandle</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">bool</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">chKey</span>)</span>
+      and output <span class="inlinecode"><span class="id" title="var">chHandle</span></span>.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">GET</span></span>: Models key retrieval operations with input <span class="inlinecode"><span class="id" title="var">chHandle</span></span> and
+     output <span class="inlinecode">(<span class="id" title="var">chKey</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">bool</span>)</span>.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">HASH</span></span>: Defines hash function operations over <span class="inlinecode"><span class="id" title="var">bitvec</span></span> with
+     inductive type <span class="inlinecode"><span class="id" title="var">HashFunction</span></span> (f_hash, f_xtr, f_xpd) and a mapping to
+     unique identifiers.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">UNQ</span></span>: Models unique handle generation with input <span class="inlinecode">(<span class="id" title="var">chHandle</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">bool</span></span>
+     <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">chKey</span>)</span> and output <span class="inlinecode"><span class="id" title="var">chHandle</span></span>.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">DHGEN</span></span>/<span class="inlinecode"><span class="id" title="var">DHEXP</span></span>: Defines Diffie-Hellman group generation and key
+     exchange operations over <span class="inlinecode"><span class="id" title="var">chGroup</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> **Interface Hierarchies**:
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">SET_ℓ</span></span> and <span class="inlinecode"><span class="id" title="var">GET_ℓ</span></span>: Parameterized interfaces for operations over a
+     list of <span class="inlinecode"><span class="id" title="var">name</span></span>s, indexed by depth <span class="inlinecode"><span class="id" title="var">ℓ</span></span> and parameter <span class="inlinecode"><span class="id" title="var">d</span></span>.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">SET_n</span></span> and <span class="inlinecode"><span class="id" title="var">GET_n</span></span>: Hierarchical interfaces combining <span class="inlinecode"><span class="id" title="var">SET_ℓ</span></span>/<span class="inlinecode"><span class="id" title="var">GET_ℓ</span></span>
+     across depths.
+
+<div class="paragraph"> </div>
+
+
+</li>
+</ul>
+
+</li>
+<li> **Notations and Helper Definitions**:
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">chSETinp</span></span>, <span class="inlinecode"><span class="id" title="var">chSETout</span></span>, etc.: Syntactic sugar for input/output types.
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">HashFunction</span></span>: Enumerates hash function types (f_hash, f_xtr, f_xpd).
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">HASHHASH</span></span>: Assigns unique numeric identifiers to hash functions.          
+
+</li>
+</ul>
+
+</li>
+</ul>
+</div>
+<div class="code">
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Types.html#"><span class="id" title="library">Types</span></a>.<br/>
@@ -117,8 +189,6 @@
 
 <br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="KeyScheduleTheorem.Dependencies.html#"><span class="id" title="library">Dependencies</span></a>.<br/>
-
-<br/>
 
 <br/>
 #[<span class="id" title="var">global</span>] <span class="id" title="keyword">Notation</span> " 'chSETinp' " :=<br/>

@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -66,6 +67,43 @@ Import GroupScope GRing.Theory.
 
 Import PackageNotation.
 
+(* end details *)
+
+(** * Dependencies
+    This file contains a description / type class for all
+    the external dependencies required to instantiate the
+    "real" and "ideal" definition of the Key Schedule and
+    proofs about it.
+    - [PrntN] and [TLSPrntN]
+        - The key schedule proof is for TLS-like protocols
+          where [TLSPrntN] defines the transition graph of the
+          protocol. Here we define a concrete version [PrntN]
+          that is easier to work with. This, however, restricts
+          us to a specific instantiation, as we require them
+          to be equal [TLSPrntN_is_PrntN]. [TlsLikeKeySchedule]
+          is a proof that the required properties hold.
+    - [Labels]
+        - a function taking names to a unique label bytestring.
+          This is part of defining the TLS key schedule graph.
+    - [xtr], [xpd], [xtr_angle], [xpd_angle]
+        - defines how we step in the transition graph.
+    - [PrntIdx]
+        - the parrent indexes
+    - [chGroup], [chGroup_is_finGroup], [gen], [DHGEN_function], [DHEXP_function]
+        - The proof builds on Diffie Hellman (DH) defined on a
+          secure group. Here we assume the generation function
+          and group exists, as this should be replaced by an
+          Key-exchange mechanism (KEM).
+    - [fin_K_table], [chK_table], [L_K], [K_table], [in_K_table]
+        - The key store assumes locations exists for Keys
+          based on handles. The stored value is the key and a boolean
+          Furthermore, all handles have a location in the table (surjective).
+    - [fin_L_table], [chL_table], [L_L], [L_table], [in_L_table]
+        - same as above but for Logging instead. Here we also store a
+          handle along with the key and boolean.
+    - [d] the bound on the number of rounds.
+ *)
+
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import Utility.
@@ -110,7 +148,7 @@ Class Dependencies := {
     xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle ;
     PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName) ;
     ord : chGroup → nat ;
-    E : nat -> nat ;
+    (* E : nat -> nat ; *)
 
     L_L : {fset Location} ;
     L_table : chHandle -> nat ;
@@ -120,9 +158,9 @@ Class Dependencies := {
     K_table : chHandle -> nat ;
     in_K_table : forall x, ('option chK_table; K_table x) \in L_K ;
 
-    L_M : {fset Location} ;
-    M : chHandle -> nat ;
-    H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M ;
+    (* L_M : {fset Location} ; *)
+    (* M : chHandle -> nat ; *)
+    (* H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); M s) \in L_M ; *)
 
     d : nat ;
 
@@ -156,11 +194,11 @@ Lemma TlsLikeKeySchedule :
       exists n1, ((PrntN n = (name_to_chName n1, name_to_chName BOT)) /\ (n1 != BOT)).
 Proof.
   repeat split.
-  intros.
-  rewrite !in_cons in H1.
-  rewrite !notin_cons in H0.
-  repeat (move: H0 => /andP [ /eqP ] ? H0) ; clear H0.
-  repeat (move: H1 => /orP [ /eqP ? | H1 ] ; subst) ; [ .. | discriminate ].
+  intros ? H_notin H_in.
+  rewrite !in_cons in H_in.
+  rewrite !notin_cons in H_notin.
+  repeat (move: H_notin => /andP [ /eqP ] ? H_notin) ; clear H_notin.
+  repeat (move: H_in => /orP [ /eqP ? | H_in ] ; subst) ; [ .. | discriminate ].
   all: try contradiction.
   all: try (eexists ; split ; [ reflexivity | apply /eqP ; try discriminate ]).
 Qed.

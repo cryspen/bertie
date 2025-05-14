@@ -68,9 +68,10 @@ Import GroupScope GRing.Theory.
 Import PackageNotation.
 (* end details *)
 
-(**  This file defines a cryptographic reduction framework based on the G-core
+(** * Core
+ This file defines a cryptographic reduction framework based on the Gcore
  construction described in [IACR 2021/467, Figure 31]. It formalizes protocol
- components and their hybridization scenarios for security analysis.
+ components and their hybridization arguments for security analysis.
 
  Key definitions and properties:
  - [all_names] == list of all protocol-relevant names ([PSK; DH] + N_star).
@@ -114,8 +115,6 @@ From KeyScheduleTheorem Require Import BasePackages.
 From KeyScheduleTheorem Require Import KeyPackages.
 From KeyScheduleTheorem Require Import XTR_XPD.
 
-(** * Core *)
-
 Section Core.
 
   Context {DepInstance : Dependencies}.
@@ -136,52 +135,6 @@ Section Core.
        :|: (XPD_n d k :|: XTR_n d k)
        :|: GET_O_star d k
     ).
-
-  (* Definition parallel_ID d (L : seq name) (f : name -> Interface) : *)
-  (*   (∀ x y, x ≠ y → idents (f x) :#: idents (f y)) -> *)
-  (*   (uniq L) -> *)
-  (*   (forall x, flat (f x)) -> *)
-  (*   package fset0 (interface_foreach f L) (interface_foreach f L) := *)
-  (*   fun H H0 H1 => *)
-  (*     parallel_package d L *)
-  (*       (fun x => {package ID (f x) #with valid_ID _ _ (H1 x)}) H *)
-  (*       (fun x => trimmed_ID _) H0. *)
-
-  (* Definition combined_ID (d : nat) (L : seq name) (f : name -> nat -> Interface) : *)
-  (*   (forall n x y, x ≠ y → idents (f x n) :#: idents (f y n)) -> *)
-  (*   (uniq L) -> *)
-  (*   (forall n x, flat (f x n)) -> *)
-  (*   (forall n ℓ, *)
-  (*       (ℓ < n)%nat -> *)
-  (*       (n <= d)%nat -> *)
-  (*       ∀ x y, idents (f x ℓ) :#: idents (f y n)) -> *)
-  (*   package *)
-  (*     fset0 *)
-  (*     (interface_hierarchy_foreach f L d) *)
-  (*     (interface_hierarchy_foreach f L d). *)
-  (* Proof. *)
-  (*   intros. *)
-  (*   refine (ℓ_packages d (fun x _ => parallel_ID d L (f^~ x) _ _ _) _ _). *)
-  (*   - intros. *)
-  (*     unfold parallel_ID. *)
-  (*     apply trimmed_parallel_raw. *)
-  (*     + apply H. *)
-  (*     + apply H0. *)
-  (*     + apply trimmed_pairs_map. *)
-  (*       intros. *)
-  (*       unfold pack. *)
-  (*       apply trimmed_ID. *)
-  (*   - intros. *)
-  (*     apply idents_foreach_disjoint_foreach. *)
-  (*     intros. *)
-  (*     now apply H2. *)
-
-  (*     Unshelve. *)
-  (*     + intros. *)
-  (*       now apply H. *)
-  (*     + apply H0. *)
-  (*     + apply H1. *)
-  (* Defined. *)
 
   Lemma reindex_interface_hierarchy_PSK2 :
     forall d k,
@@ -647,7 +600,7 @@ Section Core.
     (chHandle)
       (in custom pack_type at level 2).
 
-  Axiom level : chHandle -> nat.
+  (* Axiom level : chHandle -> nat. *)
 
   (** [∀ n ∈ O]: the path from psk to n contains an [n' ∈ S.]
       If there exists a path from [dh] to an [n ∈ O], then it contains an [n' ∈ S].

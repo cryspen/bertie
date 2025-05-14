@@ -1,3 +1,4 @@
+(* begin details : imports *)
 From mathcomp Require Import all_ssreflect fingroup.fingroup ssreflect.
 Set Warnings "-notation-overridden,-ambiguous-paths".
 From Crypt Require Import choice_type Package Prelude.
@@ -65,6 +66,17 @@ Local Open Scope ring_scope.
 Import GroupScope GRing.Theory.
 
 Import PackageNotation.
+(* end details *)
+
+(** * Key Packages
+    This file defines Keys ([K_package]) and Logging ([L_package]) packages,
+    and their generalizations [Ks] and [Ls].
+    - [exists_h_star]: finds a handle, with some given properties and runs given
+      function if any exists.
+    - [L_package]: Ensures uniqueness of store. Indexed by which form of uniqueness
+      to ensure, and how to handle invalid use of logs.
+    - [K_package]: Set and get keys. Samples new key if it does not exists.
+ *)
 
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
@@ -74,33 +86,41 @@ From KeyScheduleTheorem Require Import Dependencies.
 
 From KeyScheduleTheorem Require Import BasePackages.
 
-(*** Helper *)
-
-(*** Key packages *)
-
 Section KeyPackages.
 
   Context {DepInstance : Dependencies}.
   Existing Instance DepInstance.
 
   Definition UNQ_O_star d : Interface :=
-    interface_foreach (fun n => [interface #val #[ UNQ n d ] : chUNQinp → chUNQout]) (O_star).
+    interface_foreach (fun n =>
+        [interface #val #[ UNQ n d ] : chUNQinp → chUNQout])
+      (O_star).
 
   Definition SET_O_star d k : Interface :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ SET n ℓ k ] : chSETinp → chSETout]) (O_star) d.
+    interface_hierarchy_foreach (fun n ℓ =>
+        [interface #val #[ SET n ℓ k ] : chSETinp → chSETout])
+      (O_star) d.
 
   Definition SET_O_star_ℓ d ℓ : Interface :=
-    interface_foreach (fun n => [interface #val #[ SET n ℓ d ] : chSETinp → chSETout]) (O_star).
+    interface_foreach (fun n =>
+        [interface #val #[ SET n ℓ d ] : chSETinp → chSETout])
+      (O_star).
 
   Definition GET_O_star d k : Interface :=
-    interface_hierarchy_foreach (fun n ℓ => [interface #val #[ GET n ℓ k ] : chGETinp → chGETout]) (O_star) d.
+    interface_hierarchy_foreach (fun n ℓ =>
+        [interface #val #[ GET n ℓ k ] : chGETinp → chGETout])
+      (O_star) d.
 
   Definition GET_O_star_ℓ d ℓ : Interface :=
-    interface_foreach (fun n => [interface #val #[ GET n ℓ d ] : chGETinp → chGETout]) (O_star).
+    interface_foreach (fun n =>
+        [interface #val #[ GET n ℓ d ] : chGETinp → chGETout])
+      (O_star).
 
   (** Fig 13-14. K key and log *)
 
-  Axiom exists_h_star : (chHandle -> raw_code 'unit) -> code L_L [interface] 'unit.
+  Axiom exists_h_star :
+    (chHandle -> raw_code 'unit) ->
+    code L_L [interface] 'unit.
   Inductive ZAF := | Z | A | F | D | R.
 
   Axiom level : chHandle -> nat.
@@ -118,7 +138,9 @@ Section KeyPackages.
       #def #[ UNQ n d (* n ℓ *) ] ('(h,hon,k) : chUNQinp) : chUNQout {
          (exists_h_star (fun h_star =>
            temp ← get_or_fail (L_table h_star) fin_L_table ;;
-           let '(h',hon',k) := (fto (fst (fst (otf temp))) , snd (fst (otf temp)) , snd (otf temp)) : _ in
+           let '(h',hon',k) := (fto (fst (fst (otf temp))) ,
+                                snd (fst (otf temp)) ,
+                                snd (otf temp)) : _ in
            r ← ret (level h) ;;
            r' ← ret (level h_star) ;;
            match P with
@@ -257,14 +279,6 @@ Section KeyPackages.
       apply trimmed_package_cons.
       apply trimmed_empty_package.
   Qed.
-
-  Lemma function_fset_cons :
-    forall {A : eqType} {T} x xs, (fun (n : A) => fset (x n :: xs n)) = (fun (n : A) => fset (T := T) ([x n]) :|: fset (xs n)).
-  Proof. now setoid_rewrite <- (fset_cat). Qed.
-
-  Lemma function2_fset_cat :
-    forall {A B : eqType} {T} x xs, (fun (a : A) (b : B) => fset (x a b :: xs a b)) = (fun (a : A) (b : B) => fset (T := T) ([x a b]) :|: fset (xs a b)).
-  Proof. now setoid_rewrite <- (fset_cat). Qed.
 
   Definition Ks (d k : nat) (H_lt : (d <= k)%nat) (Names : list name) (b : nat -> name -> bool) :
     uniq Names ->

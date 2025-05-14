@@ -112,9 +112,11 @@
 </div>
 
 <div class="doc">
- This file defines a cryptographic reduction framework based on the G-core
+<a id="lab7"></a><h1 class="section">Core</h1>
+
+ This file defines a cryptographic reduction framework based on the Gcore
  construction described in <span class="inlinecode"><span class="id" title="var">IACR</span></span> <span class="inlinecode">2021/467,</span> <span class="inlinecode"><span class="id" title="var">Figure</span></span> <span class="inlinecode">31</span>. It formalizes protocol
- components and their hybridization scenarios for security analysis.
+ components and their hybridization arguments for security analysis.
 
 <div class="paragraph"> </div>
 
@@ -213,15 +215,6 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">KeyScheduleTheorem</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">XTR_XPD</span>.<br/>
 
 <br/>
-</div>
-
-<div class="doc">
-<a id="lab1"></a><h1 class="section">Core</h1>
-
-</div>
-<div class="code">
-
-<br/>
 <span class="id" title="keyword">Section</span> <span class="id" title="var">Core</span>.<br/>
 
 <br/>
@@ -232,7 +225,7 @@
 </div>
 
 <div class="doc">
-<a id="lab2"></a><h2 class="section">Definitions</h2>
+<a id="lab8"></a><h2 class="section">Definitions</h2>
 
 </div>
 <div class="code">
@@ -252,12 +245,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: (<span class="id" title="var">XPD_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span> :|: <span class="id" title="var">XTR_n</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:|: <span class="id" title="var">GET_O_star</span> <span class="id" title="var">d</span> <span class="id" title="var">k</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;).<br/>
-
-<br/>
-
-<br/>
-
-<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">reindex_interface_hierarchy_PSK2</span> :<br/>
@@ -407,7 +394,7 @@
 </div>
 
 <div class="doc">
-<a id="lab3"></a><h1 class="section">Actual core</h1>
+<a id="lab9"></a><h1 class="section">Actual core</h1>
 
 </div>
 <div class="code">
@@ -421,7 +408,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">in</span> <span class="id" title="var">custom</span> <span class="id" title="var">pack_type</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
 
 <br/>
-&nbsp;&nbsp;<span class="id" title="keyword">Axiom</span> <span class="id" title="keyword">level</span> : <span class="id" title="var">chHandle</span> → <span class="id" title="var">nat</span>.<br/>
 
 <br/>
 </div>
@@ -1048,7 +1034,7 @@
 </div>
 
 <div class="doc">
-<a id="lab4"></a><h2 class="section">Packages of intermediate steps in G-core reduction</h2>
+<a id="lab10"></a><h2 class="section">Packages of intermediate steps in G-core reduction</h2>
  <a href=https://eprint.iacr.org/2021/467.pdf#figure.caption.1681>Page 70 : Fig 31.</a> Proof overview 
 </div>
 <div class="code">

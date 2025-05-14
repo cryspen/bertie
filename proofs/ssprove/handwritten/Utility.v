@@ -70,6 +70,51 @@ Require Import Lia.
 Import PackageNotation.
 (* end details *)
 
+(** * Utility
+    This file contains the building blocks for creating the packages
+    used in the proofs for the Key Schedule.
+    - [serialize_name]
+        - assigning the "wires", this makes it easy to proof
+          that there is no overlap of names/indexes for
+          function definitions.
+    - [key_store]
+        - helper functions for looking up and storing key.
+          These functions ensures  the same key is used by
+          all functions, and samples a new key if one is not
+          assigned.
+    - [map_with_in]
+        - defines mapping over lists or ranges propergating
+          properties on the list to each element in the mapping
+          function. E.g. any value in a range is less than
+          the upper bound
+    - [interface_foreach_and_hierarchy]
+        - [interface_foreach] defines an interface indexed by
+          elements of list, while [interface_hierarchy] defines
+          an interface indexed by a range, given by an upper bound.
+          These can be combined, and form commutative monoids.
+    - [funext], [random_util] and [advantage]
+        - contains simple helper functions, that makes proofs
+          and definitions a bit easier.
+    In this file we define
+    - [ℓ_package]
+        - a package defined by interface functions for import
+          and export, index by a natural number in a range,
+          together with a function defining the package at each
+          index. This allows us to define packages depending on
+          all previous levels.
+    - [parallel_package]
+        - Like [ℓ_package], but where we define the interfaces
+          and packages indexed by a list of elements instead of a
+          range.
+    - [combined]
+        - is the composition of [ℓ_package] and [parallel_package]
+          to allow indexing on both a range and a list of elements.
+          This allows us to define the TLS key schedule as a series
+          of packages based on their names and a round index.
+    The remainder of the file contains LTac and definitions to ensure
+    the packages are valid, trimmed and can be ignored/skipped ([*_ID]).
+ *)
+
 From KeyScheduleTheorem Require Import Types.
 From KeyScheduleTheorem Require Import ExtraTypes.
 From KeyScheduleTheorem Require Import ssp_helper.

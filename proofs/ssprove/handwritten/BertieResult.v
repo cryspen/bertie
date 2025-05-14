@@ -391,7 +391,7 @@ Section BertieKeySchedule.
   Definition Bertie_xpd_angle : name -> chLabel -> chHandle -> bitvec -> code fset0 fset0 chHandle. Admitted.
   Definition Bertie_PrntIdx : name -> forall (ℓ : bitvec), code fset0 [interface] (chProd chName chName). Admitted.
   Definition Bertie_ord : chGroup → nat. Admitted.
-  Definition Bertie_E : nat -> nat. Admitted.
+  (* Definition Bertie_E : nat -> nat. Admitted. *)
 
   Definition Bertie_L_K : {fset Location}. Admitted.
   Definition Bertie_K_table : chHandle -> nat. Admitted.
@@ -401,9 +401,9 @@ Section BertieKeySchedule.
   Definition Bertie_L_table : chHandle -> nat. Admitted.
   Definition Bertie_in_L_table : forall x, ('option chL_table; Bertie_L_table x) \in Bertie_L_L. Admitted.
 
-  Definition Bertie_L_M : {fset Location}. Admitted.
-  Definition Bertie_M : chHandle -> nat. Admitted.
-  Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted.
+  (* Definition Bertie_L_M : {fset Location}. Admitted. *)
+  (* Definition Bertie_M : chHandle -> nat. Admitted. *)
+  (* Definition Bertie_H : name → ∀ s : chHandle, ('option ('fin #|fin_handle|); Bertie_M s) \in Bertie_L_M. Admitted. *)
 
   Definition Bertie_DHGEN_function : chGroup -> code fset0 fset0 chGroup. Admitted.
   Definition Bertie_DHEXP_function : chGroup -> chGroup -> code fset0 fset0 chHandle. Admitted.
@@ -422,7 +422,7 @@ Instance BertieKeySchedule (d : nat) : Dependencies :=
     xpd_angle := Bertie_xpd_angle ;
     PrntIdx := Bertie_PrntIdx ;
     ord := Bertie_ord ;
-    E := Bertie_E ;
+    (* E := Bertie_E ; *)
 
     L_L := Bertie_L_L ;
     L_table := Bertie_L_table  ;
@@ -432,9 +432,9 @@ Instance BertieKeySchedule (d : nat) : Dependencies :=
     K_table := Bertie_K_table ;
     in_K_table := Bertie_in_K_table ;
 
-    L_M := Bertie_L_M ;
-    M := Bertie_M ;
-    H := Bertie_H ;
+    (* L_M := Bertie_L_M ; *)
+    (* M := Bertie_M ; *)
+    (* H := Bertie_H ; *)
 
     d := d ;
 
