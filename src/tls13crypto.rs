@@ -119,7 +119,6 @@ pub enum HashAlgorithm {
     SHA512,
 }
 
-
 /// Hash `data` with the given `algorithm`.
 ///
 /// Returns the digest or an [`TLSError`].
@@ -149,10 +148,10 @@ impl HashAlgorithm {
     #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
     pub(crate) fn hash_len(&self) -> usize {
         match self {
-                HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
-                HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
-                HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
-            }
+            HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
+            HashAlgorithm::SHA384 => Sha2Algorithm::Sha384.hash_len(),
+            HashAlgorithm::SHA512 => Sha2Algorithm::Sha512.hash_len(),
+        }
     }
 
     /// Get the libcrux hmac algorithm.

@@ -206,14 +206,19 @@ pub fn decrypt_zerortt(
 ///
 /// Returns the ciphertext, new [`DuplexCipherStateH`] if successful, or a
 /// [`TLSError`] otherwise.
-#[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace("
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace(
+        "
 fun bertie__tls13record__encrypt_handshake(
       bertie__tls13formats__handshake_data__t_HandshakeData,
       nat,
       bertie__tls13record__t_DuplexCipherStateH
     )
     : bitstring.
-"))]
+"
+    )
+)]
 pub(crate) fn encrypt_handshake(
     payload: handshake_data::HandshakeData,
     pad: usize,
@@ -234,8 +239,10 @@ pub(crate) fn encrypt_handshake(
     Ok((rec, state))
 }
 
-#[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace(
-"reduc forall payload: $:{handshake_data::HandshakeData},
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace(
+        "reduc forall payload: $:{handshake_data::HandshakeData},
               pad: nat,
               sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
               sender_counter: nat,
@@ -260,7 +267,8 @@ bertie__tls13record__DuplexCipherStateH(
     )
 ) = payload.
 "
-))]
+    )
+)]
 /// Decrypt a handshake message.
 pub(crate) fn decrypt_handshake(
     ciphertext: &Bytes,

@@ -947,7 +947,7 @@ pub fn bench_parse_server_hello(
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-"(* marked as constructor *)
+        "(* marked as constructor *)
 fun bertie__tls13formats__server_hello(
       bertie__tls13crypto__t_Algorithms,
       bertie__tls13utils__t_Bytes,
@@ -1013,12 +1013,7 @@ pub(crate) fn parse_server_hello(
     }
 }
 
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace(
-        ""
-    )
-)]
+#[cfg_attr(feature = "hax-pv", proverif::replace(""))]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     let enc_extensions_msg =

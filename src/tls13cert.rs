@@ -315,10 +315,14 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// certificate.
 ///
 /// Returns the start offset within the `cert` bytes and length of the key.
-#[cfg_attr(feature = "hax-pv", proverif::before(
-    "
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::before(
+        "
 
-"))]
+"
+    )
+)]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(

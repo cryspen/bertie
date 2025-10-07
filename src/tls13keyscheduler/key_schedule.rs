@@ -326,7 +326,8 @@ pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<Key, TLSEr
         handle.name,
         handle.level,
         (handle.name, handle.alg, handle.level),
-    ).ok_or(INCORRECT_STATE)
+    )
+    .ok_or(INCORRECT_STATE)
 }
 
 #[allow(non_snake_case)]
