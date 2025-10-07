@@ -33,7 +33,7 @@ pub(crate) fn hkdf_expand_label(
 pub(crate) fn zero_salt(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
     let handle = Handle {
         name: ZeroSalt,
-        alg: alg.clone(),
+        alg: *alg,
         level: 0,
     };
     set_by_handle(
@@ -49,7 +49,7 @@ pub(crate) fn no_psk(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle //
 {
     let handle = Handle {
         name: PSK,
-        alg: alg.clone(),
+        alg: *alg,
         level: 0,
     };
     set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));
@@ -60,7 +60,7 @@ pub(crate) fn no_psk(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle //
 pub(crate) fn zero_ikm(ks: &mut TLSkeyscheduler, alg: &HashAlgorithm) -> Handle {
     let handle = Handle {
         name: ZeroIKM,
-        alg: alg.clone(),
+        alg: *alg,
         level: 0,
     };
     set_by_handle(ks, &handle, Bytes::zeroes(alg.hash_len()));

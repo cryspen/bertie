@@ -636,9 +636,9 @@ pub(crate) fn client_hello(
             parsed_session_ticket,
             _,
             parsed_trunc_len,
-        ) = parse_client_hello(&*algorithms, &client_hello)?;
+        ) = parse_client_hello(algorithms, &client_hello)?;
         check_eq(&parsed_client_random, &client_random_copy)?;
-        check_eq(&parsed_server_name, &server_name)?;
+        check_eq(&parsed_server_name, server_name)?;
         check_eq(&parsed_gx, kem_pk)?;
         check_eq_option(&parsed_session_ticket, session_ticket)?;
     }
@@ -1071,7 +1071,7 @@ pub(crate) fn server_certificate(
     let cert_request = encode_length_u8(&[])?;
     let encoded_cert = encode_length_u24(cert)?;
     let ext = encode_length_u16(Bytes::new())?;
-    let cert_with_extension = encode_length_u24(&&encoded_cert.concat(ext))?;
+    let cert_with_extension = encode_length_u24(&encoded_cert.concat(ext))?;
     let cert_msg = HandshakeData::from_bytes(
         HandshakeType::Certificate,
         &cert_request.concat(cert_with_extension),

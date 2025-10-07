@@ -464,6 +464,7 @@ impl Bytes {
     /// Read a hex string into [`Bytes`].
     pub fn from_hex(s: &str) -> Bytes {
         let s: String = s.split_whitespace().collect();
+        #[allow(clippy::manual_is_multiple_of)]
         if s.len() % 2 == 0 {
             Bytes(
                 (0..s.len())
@@ -686,6 +687,7 @@ pub(crate) fn check_eq_option(b1: &Option<Bytes>, b2: &Option<Bytes>) -> Result<
 ///
 /// Returns `Ok(())` when they are equal, and a [`TLSError`] otherwise.
 pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
+    #[allow(clippy::manual_is_multiple_of)]
     if b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {

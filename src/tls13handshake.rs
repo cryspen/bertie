@@ -14,7 +14,6 @@ use crate::{
     },
     tls13record::*,
     tls13utils::*,
-    Server,
 };
 
 /* Handshake State Machine */
