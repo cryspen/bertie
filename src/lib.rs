@@ -39,7 +39,9 @@ use alloc as std;
 
 mod tls13formats;
 mod tls13handshake;
+mod tls13keyscheduler;
 mod tls13record;
+pub use tls13keyscheduler::key_schedule::TLSkeyscheduler;
 
 pub mod server;
 pub mod tls13api;

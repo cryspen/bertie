@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     eprintln,
     fs::File,
     io::{BufReader, Read, Write},
@@ -14,6 +15,7 @@ use crate::{
     server::ServerDB,
     tls13cert::{rsa_private_key, verification_key_from_cert},
     tls13crypto::{Algorithms, SignatureKey, SignatureScheme},
+    tls13keyscheduler::key_schedule::*,
     tls13utils::{
         AppData, Bytes, INVALID_COMPRESSION_LIST, MISSING_KEY_SHARE, PARSE_FAILED,
         PROTOCOL_VERSION_ALERT,
@@ -186,11 +188,16 @@ impl BertieStream<ServerState<TcpStream>> {
     pub fn connect(&mut self, rng: &mut impl CryptoRng) -> Result<(), BertieError> {
         let client_hello = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
 
+        let mut ks: TLSkeyscheduler = TLSkeyscheduler {
+            keys: HashMap::new(),
+        };
+
         match Server::accept(
             self.ciphersuite,
             self.state.db.clone(),
             &client_hello.into(),
             rng,
+            &mut ks,
         ) {
             Err(x) => {
                 match x {
@@ -218,7 +225,7 @@ impl BertieStream<ServerState<TcpStream>> {
                 self.check_ccs_message(&ccs)?;
 
                 let cf_rec = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
-                let sstate = server_state.read_handshake(&cf_rec.into())?;
+                let sstate = server_state.read_handshake(&cf_rec.into(), &mut ks)?;
 
                 self.state.sstate = Some(sstate);
             }

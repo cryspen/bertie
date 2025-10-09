@@ -1,14 +1,18 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
 use std::println;
 
+use crate::tls13crypto::hash;
 use crate::tls13handshake::*;
+use crate::tls13keyscheduler::{key_schedule::*, *};
 use crate::tls13utils::*;
 use crate::{
     tls13crypto::{
         hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
+    TLSkeyscheduler,
 };
 
 // These are the sample TLS 1.3 traces taken from RFC 8448
@@ -309,7 +313,7 @@ fn test_parse_client_hello_record() {
 
 #[test]
 fn test_parse_client_hello_roundtrip() {
-    let cr = Random::new();
+    let cr = Random::zeroes(32);
     let gx = Bytes::from_hex(client_x25519_pub);
     let sn = Bytes::zeroes(23);
     let ch =
@@ -370,7 +374,7 @@ fn test_parse_server_hello_length_zero() {
 
 #[test]
 fn test_parse_server_hello_roundtrip() {
-    let sr: Random = Random::new();
+    let sr: Random = Random::zeroes(32);
     let mut sid = Bytes::zeroes(24);
     sid[0] = U8(255);
     let gy = Bytes::from_hex(server_x25519_pub);
@@ -485,7 +489,7 @@ fn test_key_schedule() {
     let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     let sha256_emp = Bytes::from_hex(sha256_emp_str);
 
-    if let Ok(ha) = HashAlgorithm::SHA256.hash(&Bytes::new()) {
+    if let Ok(ha) = hash(&HashAlgorithm::SHA256, &Bytes::new()) {
         println!(
             "computed hash(empty) {}\nexpected hash(empty) {}",
             ha.as_hex(),
@@ -509,64 +513,135 @@ fn test_key_schedule() {
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let transcript = client_hello_bytes.concat(server_hello_bytes);
-    let tx_hash = ha.hash(&transcript);
+    let tx_hash = hash(&ha, &transcript);
+
+    let mut ks = TLSkeyscheduler {
+        keys: HashMap::new(),
+    };
+
+    // KEM
+    let shared_secret_handle = Handle {
+        name: TLSnames::KEM,
+        alg: ha,
+        level: 0,
+    };
+    set_by_handle(&mut ks, &shared_secret_handle, shared_secret_bytes);
+
     let mut b = true;
     match tx_hash {
         Err(x) => {
             println!("Error: {}", x);
         }
         Ok(tx_hash) => {
-            let keys = derive_hk_ms(&ha, &ae, &shared_secret_bytes, &None, &tx_hash);
-            b = keys.is_ok();
-            match keys {
+            let handles = derive_hk_handles(&ha, &shared_secret_handle, &None, &tx_hash, &mut ks);
+            b = handles.is_ok();
+            match handles {
                 Err(x) => {
                     println!("Error: {}", x);
                 }
-                Ok((aead_key_iv1, aead_key_iv2, cfk, sfk, ms)) => {
-                    println!("Derive Succeeded!");
-                    println!(
-                        "chk: key {} \n iv {}",
-                        aead_key_iv1.key.bytes().as_hex(),
-                        aead_key_iv1.iv.as_hex()
-                    );
-                    println!(
-                        "shk: key {} \n iv {}",
-                        aead_key_iv2.key.bytes().as_hex(),
-                        aead_key_iv2.iv.as_hex()
-                    );
-                    println!("cfk: {}", cfk.as_hex());
-                    println!("sfk: {}", sfk.as_hex());
-                    println!("ms: {}", ms.as_hex());
-                    let transcript = transcript
-                        .concat(encrypted_extensions_bytes)
-                        .concat(server_certificate_bytes)
-                        .concat(server_cert_verify_bytes)
-                        .concat(server_finished_bytes);
-                    let tx_hash = ha.hash(&transcript);
-                    match tx_hash {
+                Ok((cht_handle, sht_handle, ms_handle)) => {
+                    let lookup = tagkey_from_handle(&mut ks, &ms_handle);
+                    b = lookup.is_ok();
+                    match lookup {
                         Err(x) => {
                             println!("Error: {}", x);
                         }
-                        Ok(tx_hash) => {
-                            let keys = derive_app_keys(&ha, &ae, &ms, &tx_hash);
+                        Ok(ms) => {
+                            let keys = derive_hk_ms(&ha, &ae, &cht_handle, &sht_handle, &mut ks);
                             b = keys.is_ok();
                             match keys {
                                 Err(x) => {
                                     println!("Error: {}", x);
                                 }
-                                Ok((aead_key_iv1, aead_key_iv2, ms)) => {
+                                Ok((aead_key_iv1, aead_key_iv2, cfk, sfk)) => {
                                     println!("Derive Succeeded!");
                                     println!(
-                                        "cak: key {} \n iv {}",
+                                        "chk: key {} \n iv {}",
                                         aead_key_iv1.key.bytes().as_hex(),
                                         aead_key_iv1.iv.as_hex()
                                     );
                                     println!(
-                                        "sak: key {} \n iv {}",
+                                        "shk: key {} \n iv {}",
                                         aead_key_iv2.key.bytes().as_hex(),
                                         aead_key_iv2.iv.as_hex()
                                     );
-                                    println!("exp: {}", ms.as_hex());
+                                    println!("cfk: {}", cfk.as_hex());
+                                    println!("sfk: {}", sfk.as_hex());
+                                    println!("ms: {}", ms.val.as_hex());
+                                    let transcript = transcript
+                                        .concat(encrypted_extensions_bytes)
+                                        .concat(server_certificate_bytes)
+                                        .concat(server_cert_verify_bytes)
+                                        .concat(server_finished_bytes);
+                                    let tx_hash = hash(&ha, &transcript);
+                                    match tx_hash {
+                                        Err(x) => {
+                                            println!("Error: {}", x);
+                                        }
+                                        Ok(tx_hash) => {
+                                            let handles = derive_app_handles(
+                                                &ha, &ms_handle, &tx_hash, &mut ks,
+                                            );
+                                            b = handles.is_ok();
+                                            match handles {
+                                                Err(x) => {
+                                                    println!("Error: {}", x);
+                                                }
+                                                Ok((cat_handle, sat_handle, ms_handle)) => {
+                                                    let keys = derive_app_keys(
+                                                        &ha,
+                                                        &ae,
+                                                        &cat_handle,
+                                                        &sat_handle,
+                                                        &mut ks,
+                                                    );
+                                                    let lookup =
+                                                        tagkey_from_handle(&mut ks, &ms_handle);
+
+                                                    b = lookup.is_ok();
+                                                    match lookup {
+                                                        Err(x) => {
+                                                            println!("Error: {}", x);
+                                                        }
+                                                        Ok(ms) => {
+                                                            b = keys.is_ok();
+                                                            match keys {
+                                                                Err(x) => {
+                                                                    println!("Error: {}", x);
+                                                                }
+                                                                Ok((
+                                                                    aead_key_iv1,
+                                                                    aead_key_iv2,
+                                                                )) => {
+                                                                    println!("Derive Succeeded!");
+                                                                    println!(
+                                                                        "cak: key {} \n iv {}",
+                                                                        aead_key_iv1
+                                                                            .key
+                                                                            .bytes()
+                                                                            .as_hex(),
+                                                                        aead_key_iv1.iv.as_hex()
+                                                                    );
+                                                                    println!(
+                                                                        "sak: key {} \n iv {}",
+                                                                        aead_key_iv2
+                                                                            .key
+                                                                            .bytes()
+                                                                            .as_hex(),
+                                                                        aead_key_iv2.iv.as_hex()
+                                                                    );
+                                                                    println!(
+                                                                        "exp: {}",
+                                                                        ms.val.as_hex()
+                                                                    );
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -632,9 +707,9 @@ fn test_finished() {
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let tx1 = ch.concat(sh).concat(ee).concat(sc).concat(cv);
-    let tx_hash1 = ha.hash(&tx1);
+    let tx_hash1 = hash(&ha, &tx1);
     let tx2 = tx1.concat(sf);
-    let tx_hash2 = ha.hash(&tx2);
+    let tx_hash2 = hash(&ha, &tx2);
     let mut b = true;
     match (tx_hash1, tx_hash2) {
         (Ok(h1), Ok(h2)) => {

@@ -28,7 +28,8 @@ libcrux-ecdsa = { version = "0.0.3-alpha.1", features = ["rand"] }
 hax-lib = { version = "0.3" }
 
 [features]
-default = ["api", "std"]
+default = ["api", "std", "defensive"]
+defensive = []
 std = []
 test_utils = []
 secret_integers = []
@@ -78,4 +79,4 @@ default-members = [
 ]
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)'] }
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)', 'cfg(hax)'] }

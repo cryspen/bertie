@@ -16,7 +16,7 @@ type t_ClientCipherState0 =
       Bertie.Tls13crypto.t_AeadAlgorithm ->
       Bertie.Tls13crypto.t_AeadKeyIV ->
       u64 ->
-      Bertie.Tls13utils.t_Bytes
+      Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
     -> t_ClientCipherState0
 
 /// Build the initial client cipher state.
@@ -24,21 +24,21 @@ val client_cipher_state0
       (ae: Bertie.Tls13crypto.t_AeadAlgorithm)
       (kiv: Bertie.Tls13crypto.t_AeadKeyIV)
       (c: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
+      (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
     : Prims.Pure t_ClientCipherState0 Prims.l_True (fun _ -> Prims.l_True)
 
 /// The AEAD state of the server with the key, iv, and counter.
 type t_ServerCipherState0 = {
   f_key_iv:Bertie.Tls13crypto.t_AeadKeyIV;
   f_counter:u64;
-  f_early_exporter_ms:Bertie.Tls13utils.t_Bytes
+  f_early_exporter_ms:Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
 }
 
 /// Create the initial cipher state for the server.
 val server_cipher_state0
       (key_iv: Bertie.Tls13crypto.t_AeadKeyIV)
       (counter: u64)
-      (early_exporter_ms: Bertie.Tls13utils.t_Bytes)
+      (early_exporter_ms: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
     : Prims.Pure t_ServerCipherState0 Prims.l_True (fun _ -> Prims.l_True)
 
 /// Duplex cipher state with hello keys.
@@ -64,7 +64,7 @@ type t_DuplexCipherState1 =
       u64 ->
       Bertie.Tls13crypto.t_AeadKeyIV ->
       u64 ->
-      Bertie.Tls13utils.t_Bytes
+      Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
     -> t_DuplexCipherState1
 
 /// Create the next cipher state.
@@ -74,12 +74,14 @@ val duplex_cipher_state1
       (c1: u64)
       (kiv2: Bertie.Tls13crypto.t_AeadKeyIV)
       (c2: u64)
-      (k: Bertie.Tls13utils.t_Bytes)
+      (k: Bertie.Tls13keyscheduler.Key_schedule.t_TagKey)
     : Prims.Pure t_DuplexCipherState1 Prims.l_True (fun _ -> Prims.l_True)
 
 /// Derive the AEAD IV with counter `n`
 val derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64)
-    : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure Bertie.Tls13utils.t_Bytes
+      (requires (Bertie.Tls13utils.impl_Bytes__len iv <: usize) >=. mk_usize 8)
+      (fun _ -> Prims.l_True)
 
 /// Encrypt the record `payload` with the given `key_iv`.
 val encrypt_record_payload
@@ -116,7 +118,13 @@ val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
       (fun _ -> Prims.l_True)
 
 val padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize)
-    : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure usize
+      (requires (Bertie.Tls13utils.impl_Bytes__len b <: usize) >=. n)
+      (ensures
+        fun out ->
+          let out:usize = out in
+          out <=. n)
+      (decreases (Rust_primitives.Hax.Int.from_machine n <: Hax_lib.Int.t_Int))
 
 /// AEAD decrypt the record `ciphertext`
 val decrypt_record_payload

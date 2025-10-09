@@ -34,6 +34,7 @@ WORKSPACE_ROOT ?= $(shell git rev-parse --show-toplevel)/..
 HAX_HOME            ?= $(WORKSPACE_ROOT)/hax
 HAX_PROOF_LIBS_HOME ?= $(HAX_HOME)/proof-libs/fstar
 HAX_LIBS_HOME       ?= $(HAX_HOME)/hax-lib/proofs/fstar/extraction
+LIBCRUX_MODELS_HOME ?= ../libcrux-models
 
 FSTAR_HOME    ?= $(WORKSPACE_ROOT)/FStar
 HACL_HOME     ?= $(WORKSPACE_ROOT)/hacl-star
@@ -54,10 +55,11 @@ ROOTS = $(wildcard *.fst)
 
 
 
-FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME)
+FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME) $(LIBCRUX_MODELS_HOME)
 
 FSTAR_FLAGS = --cmi \
   --warn_error -331 \
+  --z3version 4.13.3 \
   --cache_checked_modules --cache_dir $(CACHE_DIR) \
   --already_cached "+Prims+FStar+LowStar+C+Spec.Loops+TestLib" \
   $(addprefix --include ,$(FSTAR_INCLUDE_DIRS))
