@@ -10,4 +10,4 @@ hex = "0.4.3"
 tracing = "0.1"
 bertie = { path = ".." }
 anyhow = "1"
-thiserror = "1"
+thiserror = "2"
