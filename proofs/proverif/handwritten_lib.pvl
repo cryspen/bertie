@@ -1,9 +1,11 @@
-(* The terms defined in this file can not be extracted by hax at the
-moment, thus we provide them here.
+(* The terms defined in this file cannot be extracted by hax at the
+   moment, thus we provide them here.
 
-Under the uniform-bitstring ProVerif backend, every Rust type collapses
-to ProVerif's [bitstring], so we no longer declare per-Rust-type
-ProVerif type names.  The standard `rust_primitives::*`, `core::*` and
-`hax_lib::*` symbols are already declared by hax's shipped
-`primitives.pvl`, which `hax-driver.py typecheck-proverif` loads
-automatically. *)
+   Under the uniform-bitstring ProVerif backend, every Rust type
+   collapses to ProVerif's [bitstring], so we no longer declare per-
+   Rust-type ProVerif type names. The standard `rust_primitives::*`,
+   `core::*`, `rand_core::*`, and `hax_lib::*` symbols are already
+   declared by hax's shipped `primitives.pvl`, which
+   `hax-driver.py typecheck-proverif` loads automatically. As of the
+   uniform-bitstring migration this file is empty — left in place so
+   future bertie-specific overrides have a home. *)
