@@ -688,8 +688,7 @@ let bertie__tls13formats__Transcript__Transcript(  (* XXX: hand-insert *)
       ).
 letfun bertie__tls13formats__Impl_20__transcript_hash(self: bitstring) =
 let th = bertie__tls13crypto__hash(bertie__tls13formats__Transcript__Transcript__hash_algorithm(self),
-  bertie__tls13formats__handshake_data__HandshakeData__HandshakeData__0(bertie__tls13formats__Transcript__Transcript__transcript(self))) in th
-  else bitstring_err().
+  bertie__tls13formats__handshake_data__HandshakeData__HandshakeData__0(bertie__tls13formats__Transcript__Transcript__transcript(self))) in th.
 (* marked as constructor *)
 fun bertie__tls13formats__Impl_20__transcript_hash_without_client_hello(bitstring,
 bitstring,
@@ -935,24 +934,12 @@ fun bertie__tls13keyscheduler__hash_empty(bitstring): bitstring [data].
 fun bertie__tls13keyscheduler__derive_binder_key(bitstring,
 bitstring,
 bitstring): bitstring [data].
-fun extern__derive_aead_key_iv(
-    bitstring,
-    bitstring,
-    bitstring,
-    bitstring
-         )
-     : bitstring.
+fun extern__derive_aead_key_iv(bitstring, bitstring, bitstring, bitstring): bitstring.
 letfun bertie__tls13keyscheduler__derive_aead_key_iv(hash_algorithm: bitstring,
 aead_algorithm: bitstring,
 handle: bitstring,
 ks: bitstring) =
-let hax_temp_output = ((extern__derive_aead_key_iv(
-              hash_algorithm,
-              aead_algorithm,
-              handle,
-              ks
-            )
-         )) in
+let hax_temp_output = (extern__derive_aead_key_iv(hash_algorithm, aead_algorithm, handle, ks)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
   hax_temp_output).
 (* marked as constructor *)
@@ -961,21 +948,11 @@ bitstring,
 bitstring,
 bitstring,
 bitstring): bitstring [data].
-fun extern__derive_finished_key(
-                bitstring,
-                bitstring,
-                bitstring
-         )
-     : bitstring.
+fun extern__derive_finished_key(bitstring, bitstring, bitstring): bitstring.
 letfun bertie__tls13keyscheduler__derive_finished_key(ha: bitstring,
 handle: bitstring,
 ks: bitstring) =
-let hax_temp_output = ((extern__derive_finished_key(
-                ha,
-                handle,
-                ks
-            )
-         )) in
+let hax_temp_output = (extern__derive_finished_key(ha, handle, ks)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
   hax_temp_output).
 letfun bertie__tls13keyscheduler__derive_hk_handles(ha: bitstring,
@@ -984,26 +961,22 @@ psko: bitstring,
 transcript_hash: bitstring,
 ks: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  psk_handle: bitstring) = (let Some(k) = psko in rust_primitives__hax__Tuple2__Tuple2(ks,
-  k)
+  psk_handle: bitstring) = (let Some(k) = psko in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  k))
   else let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__no_psk(ks,
-  ha)) in
-  let ks = (tmp0) in
+  ha)) in (let ks = (tmp0) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  out_kw)) in
-  let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  out_kw)) else bitstring_err()) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__zero_salt(ks,
-  ha)) in
-  let ks = (tmp0) in
+  ha)) in (let ks = (tmp0) in
   let zero_salt_handle = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XTR(ks,
   nat_lit(0),
   bertie__tls13keyscheduler__key_schedule__TLSnames__ES(),
   psk_handle,
-  zero_salt_handle)) in
-  let ks = (tmp0) in
+  zero_salt_handle)) in (let ks = (tmp0) in
   let hoist55 = (out_kw) in
   let early_secret = hoist55 in let digest_emp = bertie__tls13keyscheduler__hash_empty(ha) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -1011,16 +984,14 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   nat_lit(0),
   early_secret,
   True(),
-  digest_emp)) in
-  let ks = (tmp0) in
+  digest_emp)) in (let ks = (tmp0) in
   let hoist56 = (out_kw) in
   let derived_secret = hoist56 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XTR(ks,
   nat_lit(0),
   bertie__tls13keyscheduler__key_schedule__TLSnames__HS(),
   shared_secret,
-  derived_secret)) in
-  let ks = (tmp0) in
+  derived_secret)) in (let ks = (tmp0) in
   let hoist57 = (out_kw) in
   let handshake_secret = hoist57 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -1028,8 +999,7 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   nat_lit(0),
   handshake_secret,
   True(),
-  transcript_hash)) in
-  let ks = (tmp0) in
+  transcript_hash)) in (let ks = (tmp0) in
   let hoist58 = (out_kw) in
   let client_handshake_traffic_secret = hoist58 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -1037,8 +1007,7 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   nat_lit(0),
   handshake_secret,
   True(),
-  transcript_hash)) in
-  let ks = (tmp0) in
+  transcript_hash)) in (let ks = (tmp0) in
   let hoist59 = (out_kw) in
   let server_handshake_traffic_secret = hoist59 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -1046,35 +1015,24 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   nat_lit(0),
   handshake_secret,
   True(),
-  digest_emp)) in
-  let ks = (tmp0) in
+  digest_emp)) in (let ks = (tmp0) in
   let hoist60 = (out_kw) in
   let master_secret_ = hoist60 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__zero_ikm(ks,
-  ha)) in
-  let ks = (tmp0) in
+  ha)) in (let ks = (tmp0) in
   let zero_ikm_handle = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XTR(ks,
   nat_lit(0),
   bertie__tls13keyscheduler__key_schedule__TLSnames__AS(),
   zero_ikm_handle,
-  master_secret_)) in
-  let ks = (tmp0) in
+  master_secret_)) in (let ks = (tmp0) in
   let hoist61 = (out_kw) in
   let master_secret = hoist61 in let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(client_handshake_traffic_secret,
   server_handshake_traffic_secret,
   master_secret)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13keyscheduler__derive_hk_ms(ha: bitstring,
 ae: bitstring,
 client_handshake_traffic_secret: bitstring,
@@ -1083,39 +1041,31 @@ ks: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_finished_key(ha,
   client_handshake_traffic_secret,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist62 = (out_kw) in
   let client_finished_key = hoist62 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_finished_key(ha,
   server_handshake_traffic_secret,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist63 = (out_kw) in
   let server_finished_key = hoist63 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_aead_key_iv(ha,
   ae,
   client_handshake_traffic_secret,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist64 = (out_kw) in
   let client_write_key_iv = hoist64 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_aead_key_iv(ha,
   ae,
   server_handshake_traffic_secret,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist65 = (out_kw) in
   let server_write_key_iv = hoist65 in let hax_temp_output = (rust_primitives__hax__Tuple4__Tuple4(client_write_key_iv,
   server_write_key_iv,
   client_finished_key,
   server_finished_key)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13keyscheduler__derive_app_handles(ha: bitstring,
 master_secret: bitstring,
 tx: bitstring,
@@ -1126,8 +1076,7 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   nat_lit(0),
   master_secret,
   True(),
-  tx)) in
-  let ks = (tmp0) in
+  tx)) in (let ks = (tmp0) in
   let hoist66 = (out_kw) in
   let client_application_traffic_secret_0 = hoist66 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -1135,8 +1084,7 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   nat_lit(0),
   master_secret,
   True(),
-  tx)) in
-  let ks = (tmp0) in
+  tx)) in (let ks = (tmp0) in
   let hoist67 = (out_kw) in
   let server_application_traffic_secret_0 = hoist67 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -1144,17 +1092,13 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   nat_lit(0),
   master_secret,
   True(),
-  tx)) in
-  let ks = (tmp0) in
+  tx)) in (let ks = (tmp0) in
   let hoist68 = (out_kw) in
   let exporter_master_secret = hoist68 in let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(client_application_traffic_secret_0,
   server_application_traffic_secret_0,
   exporter_master_secret)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13keyscheduler__derive_app_keys(ha: bitstring,
 ae: bitstring,
 client_application_traffic_secret_0: bitstring,
@@ -1164,22 +1108,18 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_aead_key_iv(ha,
   ae,
   client_application_traffic_secret_0,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist69 = (out_kw) in
   let client_write_key_iv = hoist69 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_aead_key_iv(ha,
   ae,
   server_application_traffic_secret_0,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist70 = (out_kw) in
   let server_write_key_iv = hoist70 in let hax_temp_output = (rust_primitives__hax__Tuple2__Tuple2(client_write_key_iv,
   server_write_key_iv)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13keyscheduler__derive_rms(ha: bitstring,
 master_secret: bitstring,
 tx: bitstring,
@@ -1190,11 +1130,10 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   nat_lit(0),
   master_secret,
   True(),
-  tx)) in
-  let ks = (tmp0) in
+  tx)) in (let ks = (tmp0) in
   let hax_temp_output = (out_kw) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output).
+  hax_temp_output)) else bitstring_err().
 fun bertie__tls13cert__CertificateKey__CertificateKey(bitstring,
 bitstring): bitstring [data].
 reduc forall bertie__tls13cert__CertificateKey__CertificateKey__0_v: bitstring,
@@ -1352,20 +1291,19 @@ let (=True()) = bertie__tls13utils__eq(sni,
   Some(rust_primitives__hax__Tuple2__Tuple2(stkt: bitstring,
   psk: bitstring))) = rust_primitives__hax__Tuple3__Tuple3(bertie__tls13crypto__Impl_38__psk_mode(ciphersuite),
   tkt,
-  bertie__server__ServerDB__ServerDB__psk_opt(db)) in let wildcard: bitstring = bertie__tls13utils__check_eq(ctkt,
+  bertie__server__ServerDB__ServerDB__psk_opt(db)) in (let wildcard: bitstring = bertie__tls13utils__check_eq(ctkt,
   stkt) in let server = (bertie__server__ServerInfo__ServerInfo(bertie__server__ServerDB__ServerDB__cert(db),
   bertie__server__ServerDB__ServerDB__sk(db),
   Some(psk))) in
-  server
-  else bitstring_err()
+  server)
   else let rust_primitives__hax__Tuple3__Tuple3((=False()),
   wildcard: bitstring,
   wildcard: bitstring) = rust_primitives__hax__Tuple3__Tuple3(bertie__tls13crypto__Impl_38__psk_mode(ciphersuite),
   tkt,
-  bertie__server__ServerDB__ServerDB__psk_opt(db)) in let server = (bertie__server__ServerInfo__ServerInfo(bertie__server__ServerDB__ServerDB__cert(db),
+  bertie__server__ServerDB__ServerDB__psk_opt(db)) in (let server = (bertie__server__ServerInfo__ServerInfo(bertie__server__ServerDB__ServerDB__cert(db),
   bertie__server__ServerDB__ServerDB__sk(db),
   None())) in
-  server
+  server)
   else bitstring_err()) else (bitstring_err()).
 
 fun bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(bitstring,
@@ -2376,13 +2314,12 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   u_sa: bitstring,
   u_ks: bitstring,
   psk_mode: bitstring,
-  zero_rtt: bitstring) = (algs0) in
-  let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
+  zero_rtt: bitstring) = (algs0) in (let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   hax_temp_output: bitstring) = (let rust_primitives__hax__Tuple3__Tuple3((=True()),
   Some(k),
   wildcard: bitstring) = rust_primitives__hax__Tuple3__Tuple3(psk_mode,
   psk,
-  trunc_len) in let psk_handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
+  trunc_len) in (let psk_handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
   ha,
   nat_lit(0))) in
   let ks = (bertie__tls13keyscheduler__key_schedule__set_by_handle(ks,
@@ -2393,8 +2330,7 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   trunc_len) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_binder_key(ha,
   psk_handle,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist16 = (out_kw) in
   let mk_handle = hoist16 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__key_schedule__XPD(ks,
@@ -2402,8 +2338,7 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   nat_lit(0),
   mk_handle,
   True(),
-  th_trunc)) in
-  let ks = (tmp0) in
+  th_trunc)) in (let ks = (tmp0) in
   let hoist17 = (out_kw) in
   let binder_handle = hoist17 in let hoist18 = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   binder_handle) in let binder = (bertie__tls13keyscheduler__key_schedule__TagKey__TagKey__val(hoist18)) in
@@ -2417,11 +2352,10 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   ae,
   psk_handle,
   th,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist19 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(aek: bitstring,
-  handle: bitstring) = hoist19 in let key = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
+  handle: bitstring) = hoist19 in (let key = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   handle) in let cipher0 = (Some(bertie__tls13record__client_cipher_state0(ae,
   aek,
   nat_lit(0),
@@ -2429,32 +2363,24 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   rust_primitives__hax__Tuple2__Tuple2(ks,
   rust_primitives__hax__Tuple3__Tuple3(nch,
   cipher0,
-  tx_ch))
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(ks,
+  tx_ch)))
+  else bitstring_err()) else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(ks,
   rust_primitives__hax__Tuple3__Tuple3(nch,
   None(),
-  tx_ch)))
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
+  tx_ch)))) else bitstring_err()) else bitstring_err())
   else let rust_primitives__hax__Tuple3__Tuple3((=False()),
   None(),
   (=nat_lit(0))) = rust_primitives__hax__Tuple3__Tuple3(psk_mode,
   psk,
-  trunc_len) in let tx_ch = (bertie__tls13formats__Impl_20__add(tx,
+  trunc_len) in (let tx_ch = (bertie__tls13formats__Impl_20__add(tx,
   ch)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
   rust_primitives__hax__Tuple3__Tuple3(ch,
   None(),
-  tx_ch))
+  tx_ch)))
   else rust_primitives__hax__Tuple2__Tuple2(ks,
-  bitstring_err())) in
-  rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output).
+  bitstring_err())) in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output)) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__build_client_hello(ciphersuite: bitstring,
 server_name: bitstring,
 session_ticket: bitstring,
@@ -2466,33 +2392,30 @@ let tx = (bertie__tls13formats__Impl_20__new_kw(bertie__tls13crypto__Impl_38__ha
   nat_lit(32))) in
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   tmp1: bitstring) = (rand_core__RngCore__fill_bytes(rng,
-  client_random)) in
-  let rng = (tmp0) in
+  client_random)) in (let rng = (tmp0) in
   let client_random = (tmp1) in
   let wildcard: bitstring = (rust_primitives__hax__Tuple0__Tuple0) in
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13crypto__kem_keygen(bertie__tls13crypto__Impl_38__kem(ciphersuite),
-  rng)) in
-  let rng = (tmp0) in
+  rng)) in (let rng = (tmp0) in
   let hoist14 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(kem_sk: bitstring,
-  kem_pk: bitstring) = hoist14 in let rust_primitives__hax__Tuple2__Tuple2(client_hello: bitstring,
+  kem_pk: bitstring) = hoist14 in (let rust_primitives__hax__Tuple2__Tuple2(client_hello: bitstring,
   trunc_len: bitstring) = bertie__tls13formats__client_hello(ciphersuite,
   bertie__tls13utils__bytes(client_random),
   kem_pk,
   server_name,
-  session_ticket) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  session_ticket) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__compute_psk_binder_zero_rtt(ciphersuite,
   client_hello,
   trunc_len,
   psk,
   tx,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist15 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(nch: bitstring,
   cipher0: bitstring,
-  tx_ch: bitstring) = hoist15 in let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(nch,
+  tx_ch: bitstring) = hoist15 in (let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(nch,
   cipher0,
   bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(client_random,
   ciphersuite,
@@ -2505,10 +2428,10 @@ let tx = (bertie__tls13formats__Impl_20__new_kw(bertie__tls13crypto__Impl_38__ha
   tx_ch))) in
   rust_primitives__hax__Tuple3__Tuple3(rng,
   ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err())
+  else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__put_server_hello(handshake: bitstring,
 state: bitstring,
 ks: bitstring) =
@@ -2517,10 +2440,9 @@ let bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(client_
   server_info: bitstring,
   sk: bitstring,
   psk: bitstring,
-  tx: bitstring) = (state) in
-  let rust_primitives__hax__Tuple2__Tuple2(sr: bitstring,
+  tx: bitstring) = (state) in (let rust_primitives__hax__Tuple2__Tuple2(sr: bitstring,
   ct: bitstring) = bertie__tls13formats__parse_server_hello(ciphersuite,
-  handshake) in let tx = (bertie__tls13formats__Impl_20__add(tx,
+  handshake) in (let tx = (bertie__tls13formats__Impl_20__add(tx,
   handshake)) in
   let shared_secret = bertie__tls13crypto__kem_decap(bertie__tls13crypto__Algorithms__Algorithms__kem(ciphersuite),
   ct,
@@ -2531,38 +2453,36 @@ let bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(client_
   shared_secret_handle,
   shared_secret)) in
   let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  psk_handle: bitstring) = (let Some(bytes) = psk in let handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
+  psk_handle: bitstring) = (let Some(bytes) = psk in (let handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
   bertie__tls13crypto__Algorithms__Algorithms__hash(ciphersuite),
   nat_lit(0))) in
   let ks = (bertie__tls13keyscheduler__key_schedule__set_by_handle(ks,
   handle,
   bytes)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  Some(handle))
-  else let None() = psk in rust_primitives__hax__Tuple2__Tuple2(ks,
-  None())) in
-  let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  Some(handle)))
+  else let None() = psk in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  None()))
+  else bitstring_err()) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_hk_handles(bertie__tls13crypto__Algorithms__Algorithms__hash(ciphersuite),
   shared_secret_handle,
   psk_handle,
   th,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist20 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(ch_handle: bitstring,
   sh_handle: bitstring,
-  ms_handle: bitstring) = hoist20 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  ms_handle: bitstring) = hoist20 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_hk_ms(bertie__tls13crypto__Algorithms__Algorithms__hash(ciphersuite),
   bertie__tls13crypto__Algorithms__Algorithms__aead(ciphersuite),
   ch_handle,
   sh_handle,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist21 = (out_kw) in
   let rust_primitives__hax__Tuple4__Tuple4(chk: bitstring,
   shk: bitstring,
   cfk: bitstring,
-  sfk: bitstring) = hoist21 in let hax_temp_output = (rust_primitives__hax__Tuple2__Tuple2(bertie__tls13record__Impl__new_kw(chk,
+  sfk: bitstring) = hoist21 in (let hax_temp_output = (rust_primitives__hax__Tuple2__Tuple2(bertie__tls13record__Impl__new_kw(chk,
   nat_lit(0),
   shk,
   nat_lit(0)),
@@ -2575,12 +2495,10 @@ let bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(client_
   sfk,
   tx))) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__put_server_signature(encrypted_extensions: bitstring,
 server_certificate: bitstring,
 server_certificate_verify: bitstring,
@@ -2592,8 +2510,7 @@ let bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello(client_
   master_secret_handle: bitstring,
   client_finished_key: bitstring,
   server_finished_key: bitstring,
-  transcript: bitstring) = (handshake_state) in
-  let (=True()) = core__ops__bit__Not__not_kw(bertie__tls13crypto__Impl_38__psk_mode(algorithms)) in (let wildcard: bitstring = bertie__tls13formats__parse_encrypted_extensions(algorithms,
+  transcript: bitstring) = (handshake_state) in (let (=True()) = core__ops__bit__Not__not_kw(bertie__tls13crypto__Impl_38__psk_mode(algorithms)) in (let wildcard: bitstring = bertie__tls13formats__parse_encrypted_extensions(algorithms,
   encrypted_extensions) in let transcript = (bertie__tls13formats__Impl_20__add(transcript,
   encrypted_extensions)) in
   let certificate = bertie__tls13formats__parse_server_certificate(server_certificate) in let transcript = (bertie__tls13formats__Impl_20__add(transcript,
@@ -2617,14 +2534,7 @@ let bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello(client_
   master_secret_handle,
   client_finished_key,
   server_finished_key,
-  transcript)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()) else (bitstring_err()).
+  transcript)) else (bitstring_err())) else bitstring_err().
 letfun bertie__tls13handshake__put_psk_skip_server_signature(encrypted_extensions: bitstring,
 handshake_state: bitstring) =
 let bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello(client_random: bitstring,
@@ -2634,8 +2544,7 @@ let bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello(client_
   master_secret_handle: bitstring,
   client_finished_key: bitstring,
   server_finished_key: bitstring,
-  transcript: bitstring) = (handshake_state) in
-  let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algorithms) in (let wildcard: bitstring = bertie__tls13formats__parse_encrypted_extensions(algorithms,
+  transcript: bitstring) = (handshake_state) in (let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algorithms) in (let wildcard: bitstring = bertie__tls13formats__parse_encrypted_extensions(algorithms,
   encrypted_extensions) in let transcript = (bertie__tls13formats__Impl_20__add(transcript,
   encrypted_extensions)) in
   bertie__tls13handshake__ClientPostCertificateVerify__ClientPostCertificateVerify(client_random,
@@ -2645,8 +2554,7 @@ let bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello(client_
   master_secret_handle,
   client_finished_key,
   server_finished_key,
-  transcript)
-  else bitstring_err()) else (bitstring_err()).
+  transcript)) else (bitstring_err())) else bitstring_err().
 letfun bertie__tls13handshake__put_server_finished(server_finished: bitstring,
 handshake_state: bitstring,
 ks: bitstring) =
@@ -2657,14 +2565,12 @@ let bertie__tls13handshake__ClientPostCertificateVerify__ClientPostCertificateVe
   master_secret_handle: bitstring,
   client_finished_key: bitstring,
   server_finished_key: bitstring,
-  transcript: bitstring) = (handshake_state) in
-  let bertie__tls13crypto__Algorithms__Algorithms(hash: bitstring,
+  transcript: bitstring) = (handshake_state) in (let bertie__tls13crypto__Algorithms__Algorithms(hash: bitstring,
   aead: bitstring,
   signature: bitstring,
   kem: bitstring,
   psk_mode: bitstring,
-  zero_rtt: bitstring) = (algorithms) in
-  let transcript_hash = bertie__tls13formats__Impl_20__transcript_hash(transcript) in let verify_data = bertie__tls13formats__parse_finished(server_finished) in let wildcard: bitstring = bertie__tls13crypto__hmac_verify(hash,
+  zero_rtt: bitstring) = (algorithms) in (let transcript_hash = bertie__tls13formats__Impl_20__transcript_hash(transcript) in let verify_data = bertie__tls13formats__parse_finished(server_finished) in let wildcard: bitstring = bertie__tls13crypto__hmac_verify(hash,
   server_finished_key,
   transcript_hash,
   verify_data) in let transcript = (bertie__tls13formats__Impl_20__add(transcript,
@@ -2673,21 +2579,19 @@ let bertie__tls13handshake__ClientPostCertificateVerify__ClientPostCertificateVe
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_app_handles(hash,
   master_secret_handle,
   transcript_hash_server_finished,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist22 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(ca_handle: bitstring,
   sa_handle: bitstring,
-  exp_handle: bitstring) = hoist22 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  exp_handle: bitstring) = hoist22 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_app_keys(hash,
   aead,
   ca_handle,
   sa_handle,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist23 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(cak: bitstring,
-  sak: bitstring) = hoist23 in let exp = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
+  sak: bitstring) = hoist23 in (let exp = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   exp_handle) in let cipher1 = (bertie__tls13record__duplex_cipher_state1(aead,
   cak,
   nat_lit(0),
@@ -2703,14 +2607,9 @@ let bertie__tls13handshake__ClientPostCertificateVerify__ClientPostCertificateVe
   client_finished_key,
   transcript))) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__get_client_finished(handshake_state: bitstring,
 ks: bitstring) =
 let bertie__tls13handshake__ClientPostServerFinished__ClientPostServerFinished(client_random: bitstring,
@@ -2719,8 +2618,7 @@ let bertie__tls13handshake__ClientPostServerFinished__ClientPostServerFinished(c
   server_info: bitstring,
   master_secret_handle: bitstring,
   client_finished_key: bitstring,
-  transcript: bitstring) = (handshake_state) in
-  let transcript_hash = bertie__tls13formats__Impl_20__transcript_hash(transcript) in let verify_data = bertie__tls13crypto__hmac_tag(bertie__tls13crypto__Impl_38__hash(algorithms),
+  transcript: bitstring) = (handshake_state) in (let transcript_hash = bertie__tls13formats__Impl_20__transcript_hash(transcript) in let verify_data = bertie__tls13crypto__hmac_tag(bertie__tls13crypto__Impl_38__hash(algorithms),
   client_finished_key,
   transcript_hash) in let client_finished = bertie__tls13formats__finished(verify_data) in let transcript = (bertie__tls13formats__Impl_20__add(transcript,
   client_finished)) in
@@ -2728,8 +2626,7 @@ let bertie__tls13handshake__ClientPostServerFinished__ClientPostServerFinished(c
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_rms(bertie__tls13crypto__Impl_38__hash(algorithms),
   master_secret_handle,
   transcript_hash,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist24 = (out_kw) in
   let resumption_master_secret = hoist24 in let hax_temp_output = (rust_primitives__hax__Tuple2__Tuple2(client_finished,
   bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished(client_random,
@@ -2739,12 +2636,7 @@ let bertie__tls13handshake__ClientPostServerFinished__ClientPostServerFinished(c
   resumption_master_secret,
   transcript))) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__client_init(algs: bitstring,
 sn: bitstring,
 tkt: bitstring,
@@ -2758,80 +2650,72 @@ let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
   tkt,
   psk,
   rng,
-  ks)) in
-  let rng = (tmp0) in
+  ks)) in (let rng = (tmp0) in
   let ks = (tmp1) in
   let hax_temp_output = (out_kw) in
   rust_primitives__hax__Tuple3__Tuple3(rng,
   ks,
-  hax_temp_output).
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__client_set_params(payload: bitstring,
 st: bitstring,
 ks: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__put_server_hello(payload,
   st,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hax_temp_output = (out_kw) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output).
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__client_finish(payload: bitstring,
 handshake_state: bitstring,
 ks: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  hax_temp_output: bitstring) = (let (=False()) = bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__algs_post_server_hello(handshake_state)) in let rust_primitives__hax__Tuple4__Tuple4(encrypted_extensions: bitstring,
+  hax_temp_output: bitstring) = (let (=False()) = bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__algs_post_server_hello(handshake_state)) in (let rust_primitives__hax__Tuple4__Tuple4(encrypted_extensions: bitstring,
   server_certificate: bitstring,
   server_certificate_verify: bitstring,
-  server_finished: bitstring) = bertie__tls13formats__handshake_data__Impl_5__to_four(payload) in let client_state_certificate_verify = bertie__tls13handshake__put_server_signature(encrypted_extensions,
+  server_finished: bitstring) = bertie__tls13formats__handshake_data__Impl_5__to_four(payload) in (let client_state_certificate_verify = bertie__tls13handshake__put_server_signature(encrypted_extensions,
   server_certificate,
   server_certificate_verify,
   handshake_state) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__put_server_finished(server_finished,
   client_state_certificate_verify,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist25 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(cipher: bitstring,
-  client_state_server_finished: bitstring) = hoist25 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  client_state_server_finished: bitstring) = hoist25 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_client_finished(client_state_server_finished,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist26 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(client_finished: bitstring,
-  client_state: bitstring) = hoist26 in rust_primitives__hax__Tuple2__Tuple2(ks,
+  client_state: bitstring) = hoist26 in (rust_primitives__hax__Tuple2__Tuple2(ks,
   rust_primitives__hax__Tuple3__Tuple3(client_finished,
   cipher,
-  client_state))
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__algs_post_server_hello(handshake_state)) in let rust_primitives__hax__Tuple2__Tuple2(encrypted_extensions: bitstring,
-  server_finished: bitstring) = bertie__tls13formats__handshake_data__Impl_5__to_two(payload) in let client_state_certificate_verify = bertie__tls13handshake__put_psk_skip_server_signature(encrypted_extensions,
+  client_state)))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err())
+  else let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__algs_post_server_hello(handshake_state)) in (let rust_primitives__hax__Tuple2__Tuple2(encrypted_extensions: bitstring,
+  server_finished: bitstring) = bertie__tls13formats__handshake_data__Impl_5__to_two(payload) in (let client_state_certificate_verify = bertie__tls13handshake__put_psk_skip_server_signature(encrypted_extensions,
   handshake_state) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__put_server_finished(server_finished,
   client_state_certificate_verify,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist27 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(cipher: bitstring,
-  client_state_server_finished: bitstring) = hoist27 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  client_state_server_finished: bitstring) = hoist27 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_client_finished(client_state_server_finished,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist28 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(client_finished: bitstring,
-  client_state: bitstring) = hoist28 in rust_primitives__hax__Tuple2__Tuple2(ks,
+  client_state: bitstring) = hoist28 in (rust_primitives__hax__Tuple2__Tuple2(ks,
   rust_primitives__hax__Tuple3__Tuple3(client_finished,
   cipher,
-  client_state))
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()) in
-  rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output).
+  client_state)))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err())
+  else bitstring_err()) in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__process_psk_binder_zero_rtt(ciphersuite: bitstring,
 th_trunc: bitstring,
 th: bitstring,
@@ -2843,7 +2727,7 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   Some(k),
   Some(binder)) = rust_primitives__hax__Tuple3__Tuple3(bertie__tls13crypto__Algorithms__Algorithms__psk_mode(ciphersuite),
   psko,
-  bindero) in let psk_handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
+  bindero) in (let psk_handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
   bertie__tls13crypto__Algorithms__Algorithms__hash(ciphersuite),
   nat_lit(0))) in
   let ks = (bertie__tls13keyscheduler__key_schedule__set_by_handle(ks,
@@ -2852,8 +2736,7 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_binder_key(bertie__tls13crypto__Algorithms__Algorithms__hash(ciphersuite),
   psk_handle,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist30 = (out_kw) in
   let mk_handle = hoist30 in let hoist31 = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   mk_handle) in let mk = (bertie__tls13keyscheduler__key_schedule__TagKey__TagKey__val(hoist31)) in
@@ -2863,8 +2746,7 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   nat_lit(0),
   mk_handle,
   True(),
-  th_trunc)) in
-  let ks = (tmp0) in
+  th_trunc)) in (let ks = (tmp0) in
   let hoist32 = (out_kw) in
   let binder_handle = hoist32 in let hoist33 = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   binder_handle) in let binder = (bertie__tls13keyscheduler__key_schedule__TagKey__TagKey__val(hoist33)) in
@@ -2876,33 +2758,25 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   bertie__tls13crypto__Algorithms__Algorithms__aead(ciphersuite),
   psk_handle,
   th,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist34 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(key_iv: bitstring,
-  early_exporter_ms_handle: bitstring) = hoist34 in let early_exporter_ms = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
+  early_exporter_ms_handle: bitstring) = hoist34 in (let early_exporter_ms = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   early_exporter_ms_handle) in rust_primitives__hax__Tuple2__Tuple2(ks,
   Some(bertie__tls13record__server_cipher_state0(key_iv,
   nat_lit(0),
-  early_exporter_ms)))
-  else bitstring_err()
-  else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(ks,
-  None()))
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
+  early_exporter_ms))))
+  else bitstring_err()) else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(ks,
+  None()))) else bitstring_err()) else bitstring_err())
   else let rust_primitives__hax__Tuple3__Tuple3((=False()),
   None(),
   None()) = rust_primitives__hax__Tuple3__Tuple3(bertie__tls13crypto__Algorithms__Algorithms__psk_mode(ciphersuite),
   psko,
-  bindero) in rust_primitives__hax__Tuple2__Tuple2(ks,
-  None())
+  bindero) in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  None()))
   else rust_primitives__hax__Tuple2__Tuple2(ks,
-  bitstring_err())) in
-  rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output).
+  bitstring_err())) in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__put_client_hello(ciphersuite: bitstring,
 ch: bitstring,
 db: bitstring,
@@ -2914,7 +2788,7 @@ let rust_primitives__hax__Tuple7__Tuple7(client_randomness: bitstring,
   tkto: bitstring,
   bindero: bitstring,
   trunc_len: bitstring) = bertie__tls13formats__parse_client_hello(ciphersuite,
-  ch) in let tx = (bertie__tls13formats__Impl_20__new_kw(bertie__tls13crypto__Impl_38__hash(ciphersuite))) in
+  ch) in (let tx = (bertie__tls13formats__Impl_20__new_kw(bertie__tls13crypto__Impl_38__hash(ciphersuite))) in
   let th_trunc = bertie__tls13formats__Impl_20__transcript_hash_without_client_hello(tx,
   ch,
   trunc_len) in let transcript = (bertie__tls13formats__Impl_20__add(tx,
@@ -2928,8 +2802,7 @@ let rust_primitives__hax__Tuple7__Tuple7(client_randomness: bitstring,
   th,
   bertie__server__ServerInfo__ServerInfo__psk_opt(server),
   bindero,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist29 = (out_kw) in
   let cipher0 = hoist29 in let hax_temp_output = (rust_primitives__hax__Tuple2__Tuple2(cipher0,
   bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello(client_randomness,
@@ -2939,11 +2812,7 @@ let rust_primitives__hax__Tuple7__Tuple7(client_randomness: bitstring,
   server,
   transcript))) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
+  hax_temp_output)) else bitstring_err())
   else bitstring_err().
 letfun bertie__tls13handshake__get_server_hello(state: bitstring,
 rng: bitstring,
@@ -2952,18 +2821,16 @@ let server_random = (rust_primitives__hax__repeat(nat_lit(0),
   nat_lit(32))) in
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   tmp1: bitstring) = (rand_core__RngCore__fill_bytes(rng,
-  server_random)) in
-  let rng = (tmp0) in
+  server_random)) in (let rng = (tmp0) in
   let server_random = (tmp1) in
   let wildcard: bitstring = (rust_primitives__hax__Tuple0__Tuple0) in
   let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13crypto__kem_encap(bertie__tls13crypto__Algorithms__Algorithms__kem(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__ciphersuite(state)),
   bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__gx(state),
-  rng)) in
-  let rng = (tmp0) in
+  rng)) in (let rng = (tmp0) in
   let hoist35 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(shared_secret: bitstring,
-  gy: bitstring) = hoist35 in let shared_secret_handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__KEM(),
+  gy: bitstring) = hoist35 in (let shared_secret_handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__KEM(),
   bertie__tls13crypto__Algorithms__Algorithms__hash(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__ciphersuite(state)),
   nat_lit(0))) in
   let ks = (bertie__tls13keyscheduler__key_schedule__set_by_handle(ks,
@@ -2976,38 +2843,36 @@ let server_random = (rust_primitives__hax__repeat(nat_lit(0),
   sh)) in
   let transcript_hash = bertie__tls13formats__Impl_20__transcript_hash(transcript) in let psk_handle = (bertie__server__ServerInfo__ServerInfo__psk_opt(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__server(state))) in
   let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  psk_handle: bitstring) = (let Some(bytes) = psk_handle in let handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
+  psk_handle: bitstring) = (let Some(bytes) = psk_handle in (let handle = (bertie__tls13keyscheduler__key_schedule__Handle__Handle(bertie__tls13keyscheduler__key_schedule__TLSnames__PSK(),
   bertie__tls13crypto__Algorithms__Algorithms__hash(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__ciphersuite(state)),
   nat_lit(0))) in
   let ks = (bertie__tls13keyscheduler__key_schedule__set_by_handle(ks,
   handle,
   bytes)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  Some(handle))
-  else let None() = psk_handle in rust_primitives__hax__Tuple2__Tuple2(ks,
-  None())) in
-  let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  Some(handle)))
+  else let None() = psk_handle in (rust_primitives__hax__Tuple2__Tuple2(ks,
+  None()))
+  else bitstring_err()) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_hk_handles(bertie__tls13crypto__Algorithms__Algorithms__hash(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__ciphersuite(state)),
   shared_secret_handle,
   psk_handle,
   transcript_hash,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist36 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(ch_handle: bitstring,
   sh_handle: bitstring,
-  ms_handle: bitstring) = hoist36 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  ms_handle: bitstring) = hoist36 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_hk_ms(bertie__tls13crypto__Algorithms__Algorithms__hash(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__ciphersuite(state)),
   bertie__tls13crypto__Algorithms__Algorithms__aead(bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello__ciphersuite(state)),
   ch_handle,
   sh_handle,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist37 = (out_kw) in
   let rust_primitives__hax__Tuple4__Tuple4(chk: bitstring,
   shk: bitstring,
   cfk: bitstring,
-  sfk: bitstring) = hoist37 in let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(sh,
+  sfk: bitstring) = hoist37 in (let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(sh,
   bertie__tls13record__Impl__new_kw(shk,
   nat_lit(0),
   chk,
@@ -3022,12 +2887,10 @@ let server_random = (rust_primitives__hax__repeat(nat_lit(0),
   transcript))) in
   rust_primitives__hax__Tuple3__Tuple3(rng,
   ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__get_rsa_signature(cert: bitstring,
 sk: bitstring,
 sigval: bitstring,
@@ -3050,25 +2913,23 @@ let ee = bertie__tls13formats__encrypted_extensions(bertie__tls13handshake__Serv
   let transcript_hash = bertie__tls13formats__Impl_20__transcript_hash(transcript) in let sigval = (bertie__tls13utils__Impl_23__concat(bertie__tls13utils__Impl_23__from_slice(bertie__tls13formats__PREFIX_SERVER_SIGNATURE),
   transcript_hash)) in
   let rust_primitives__hax__Tuple2__Tuple2(rng: bitstring,
-  hoist38: bitstring) = (let bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256() = bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  hoist38: bitstring) = (let bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256() = bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13crypto__sign(bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)),
   bertie__server__ServerInfo__ServerInfo__sk(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__server(state)),
   sigval,
-  rng)) in
-  let rng = (tmp0) in
+  rng)) in (let rng = (tmp0) in
   rust_primitives__hax__Tuple2__Tuple2(rng,
-  out_kw)
-  else let bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256() = bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  out_kw)) else bitstring_err())
+  else let bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256() = bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_rsa_signature(bertie__server__ServerInfo__ServerInfo__cert(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__server(state)),
   bertie__server__ServerInfo__ServerInfo__sk(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__server(state)),
   sigval,
-  rng)) in
-  let rng = (tmp0) in
+  rng)) in (let rng = (tmp0) in
   rust_primitives__hax__Tuple2__Tuple2(rng,
-  out_kw)
-  else let bertie__tls13crypto__SignatureScheme__ED25519() = bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)) in rust_primitives__hax__Tuple2__Tuple2(rng,
-  bitstring_err())) in
-  let sig = hoist38 in let scv = bertie__tls13formats__certificate_verify(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state),
+  out_kw)) else bitstring_err())
+  else let bertie__tls13crypto__SignatureScheme__ED25519() = bertie__tls13crypto__Impl_38__signature(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)) in (rust_primitives__hax__Tuple2__Tuple2(rng,
+  bitstring_err()))
+  else bitstring_err()) in (let sig = hoist38 in let scv = bertie__tls13formats__certificate_verify(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state),
   sig) in let transcript = (bertie__tls13formats__Impl_20__add(transcript,
   scv)) in
   let hax_temp_output = (rust_primitives__hax__Tuple4__Tuple4(ee,
@@ -3082,24 +2943,17 @@ let ee = bertie__tls13formats__encrypted_extensions(bertie__tls13handshake__Serv
   bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__sfk(state),
   transcript))) in
   rust_primitives__hax__Tuple2__Tuple2(rng,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__get_server_signature(state: bitstring,
 rng: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(rng: bitstring,
   hax_temp_output: bitstring) = (let (=True()) = core__ops__bit__Not__not_kw(bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state))) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_server_signature_no_psk(state,
-  rng)) in
-  let rng = (tmp0) in
+  rng)) in (let rng = (tmp0) in
   rust_primitives__hax__Tuple2__Tuple2(rng,
-  out_kw)) else (rust_primitives__hax__Tuple2__Tuple2(rng,
-  bitstring_err()))) in
-  rust_primitives__hax__Tuple2__Tuple2(rng,
-  hax_temp_output).
+  out_kw)) else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(rng,
+  bitstring_err()))) in (rust_primitives__hax__Tuple2__Tuple2(rng,
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__get_skip_server_signature_no_psk(st: bitstring) =
 let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(cr: bitstring,
   sr: bitstring,
@@ -3108,8 +2962,7 @@ let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(cr: bit
   ms: bitstring,
   cfk: bitstring,
   sfk: bitstring,
-  tx: bitstring) = (st) in
-  let ee = bertie__tls13formats__encrypted_extensions(algs) in let tx = (bertie__tls13formats__Impl_20__add(tx,
+  tx: bitstring) = (st) in (let ee = bertie__tls13formats__encrypted_extensions(algs) in let tx = (bertie__tls13formats__Impl_20__add(tx,
   ee)) in
   rust_primitives__hax__Tuple2__Tuple2(ee,
   bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVerify(cr,
@@ -3118,8 +2971,7 @@ let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(cr: bit
   ms,
   cfk,
   sfk,
-  tx))
-  else bitstring_err().
+  tx))) else bitstring_err().
 letfun bertie__tls13handshake__get_skip_server_signature(st: bitstring) =
 let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(cr: bitstring,
   sr: bitstring,
@@ -3128,8 +2980,7 @@ let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(cr: bit
   ms: bitstring,
   cfk: bitstring,
   sfk: bitstring,
-  tx: bitstring) = (st) in
-  let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algs) in (bertie__tls13handshake__get_skip_server_signature_no_psk(st)) else (bitstring_err()).
+  tx: bitstring) = (st) in (let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algs) in (bertie__tls13handshake__get_skip_server_signature_no_psk(st)) else (bitstring_err())) else bitstring_err().
 letfun bertie__tls13handshake__get_server_finished(st: bitstring,
 ks: bitstring) =
 let bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVerify(cr: bitstring,
@@ -3138,14 +2989,12 @@ let bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVe
   ms_handle: bitstring,
   cfk: bitstring,
   sfk: bitstring,
-  tx: bitstring) = (st) in
-  let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
+  tx: bitstring) = (st) in (let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   ae: bitstring,
   u_sa: bitstring,
   u_gn: bitstring,
   u_psk_mode: bitstring,
-  u_zero_rtt: bitstring) = (algs) in
-  let th_scv = bertie__tls13formats__Impl_20__transcript_hash(tx) in let vd = bertie__tls13crypto__hmac_tag(ha,
+  u_zero_rtt: bitstring) = (algs) in (let th_scv = bertie__tls13formats__Impl_20__transcript_hash(tx) in let vd = bertie__tls13crypto__hmac_tag(ha,
   sfk,
   th_scv) in let sfin = bertie__tls13formats__finished(vd) in let tx = (bertie__tls13formats__Impl_20__add(tx,
   sfin)) in
@@ -3153,21 +3002,19 @@ let bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVe
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_app_handles(ha,
   ms_handle,
   th_sfin,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist39 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(ca_handle: bitstring,
   sa_handle: bitstring,
-  exp_handle: bitstring) = hoist39 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  exp_handle: bitstring) = hoist39 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_app_keys(ha,
   ae,
   ca_handle,
   sa_handle,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist40 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(cak: bitstring,
-  sak: bitstring) = hoist40 in let exp = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
+  sak: bitstring) = hoist40 in (let exp = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
   exp_handle) in let cipher1 = (bertie__tls13record__duplex_cipher_state1(ae,
   sak,
   nat_lit(0),
@@ -3183,14 +3030,9 @@ let bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVe
   cfk,
   tx))) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__put_client_finished(cfin: bitstring,
 st: bitstring,
 ks: bitstring) =
@@ -3199,8 +3041,7 @@ let bertie__tls13handshake__ServerPostServerFinished__ServerPostServerFinished(c
   algs: bitstring,
   ms: bitstring,
   cfk: bitstring,
-  tx: bitstring) = (st) in
-  let th = bertie__tls13formats__Impl_20__transcript_hash(tx) in let vd = bertie__tls13formats__parse_finished(cfin) in let wildcard: bitstring = bertie__tls13crypto__hmac_verify(bertie__tls13crypto__Impl_38__hash(algs),
+  tx: bitstring) = (st) in (let th = bertie__tls13formats__Impl_20__transcript_hash(tx) in let vd = bertie__tls13formats__parse_finished(cfin) in let wildcard: bitstring = bertie__tls13crypto__hmac_verify(bertie__tls13crypto__Impl_38__hash(algs),
   cfk,
   th,
   vd) in let tx = (bertie__tls13formats__Impl_20__add(tx,
@@ -3209,8 +3050,7 @@ let bertie__tls13handshake__ServerPostServerFinished__ServerPostServerFinished(c
   out_kw: bitstring) = (bertie__tls13keyscheduler__derive_rms(bertie__tls13crypto__Impl_38__hash(algs),
   ms,
   th,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist41 = (out_kw) in
   let rms = hoist41 in let hax_temp_output = (bertie__tls13handshake__ServerPostClientFinished__ServerPostClientFinished(cr,
   sr,
@@ -3218,12 +3058,7 @@ let bertie__tls13handshake__ServerPostServerFinished__ServerPostServerFinished(c
   rms,
   tx)) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output)) else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__server_init_no_psk(algs: bitstring,
 ch: bitstring,
 db: bitstring,
@@ -3233,36 +3068,32 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__put_client_hello(algs,
   ch,
   db,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist42 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(cipher0: bitstring,
-  st: bitstring) = hoist42 in let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
+  st: bitstring) = hoist42 in (let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
   tmp1: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_server_hello(st,
   rng,
-  ks)) in
-  let rng = (tmp0) in
+  ks)) in (let rng = (tmp0) in
   let ks = (tmp1) in
   let hoist43 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(sh: bitstring,
   cipher_hs: bitstring,
-  st: bitstring) = hoist43 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  st: bitstring) = hoist43 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_server_signature(st,
-  rng)) in
-  let rng = (tmp0) in
+  rng)) in (let rng = (tmp0) in
   let hoist44 = (out_kw) in
   let rust_primitives__hax__Tuple4__Tuple4(ee: bitstring,
   sc: bitstring,
   scv: bitstring,
-  st: bitstring) = hoist44 in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  st: bitstring) = hoist44 in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_server_finished(st,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist45 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(sfin: bitstring,
   cipher1: bitstring,
-  st: bitstring) = hoist45 in let flight = (bertie__tls13formats__handshake_data__Impl_5__concat(bertie__tls13formats__handshake_data__Impl_5__concat(bertie__tls13formats__handshake_data__Impl_5__concat(ee,
+  st: bitstring) = hoist45 in (let flight = (bertie__tls13formats__handshake_data__Impl_5__concat(bertie__tls13formats__handshake_data__Impl_5__concat(bertie__tls13formats__handshake_data__Impl_5__concat(ee,
   sc),
   scv),
   sfin)) in
@@ -3274,11 +3105,11 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   st)) in
   rust_primitives__hax__Tuple3__Tuple3(rng,
   ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__server_init_psk(algs: bitstring,
 ch: bitstring,
 db: bitstring,
@@ -3288,29 +3119,26 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__put_client_hello(algs,
   ch,
   db,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist46 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(cipher0: bitstring,
-  st: bitstring) = hoist46 in let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
+  st: bitstring) = hoist46 in (let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
   tmp1: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_server_hello(st,
   rng,
-  ks)) in
-  let rng = (tmp0) in
+  ks)) in (let rng = (tmp0) in
   let ks = (tmp1) in
   let hoist47 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(sh: bitstring,
   cipher_hs: bitstring,
-  st: bitstring) = hoist47 in let rust_primitives__hax__Tuple2__Tuple2(ee: bitstring,
-  st: bitstring) = bertie__tls13handshake__get_skip_server_signature(st) in let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
+  st: bitstring) = hoist47 in (let rust_primitives__hax__Tuple2__Tuple2(ee: bitstring,
+  st: bitstring) = bertie__tls13handshake__get_skip_server_signature(st) in (let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__get_server_finished(st,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hoist48 = (out_kw) in
   let rust_primitives__hax__Tuple3__Tuple3(sfin: bitstring,
   cipher1: bitstring,
-  st: bitstring) = hoist48 in let flight = (bertie__tls13formats__handshake_data__Impl_5__concat(ee,
+  st: bitstring) = hoist48 in (let flight = (bertie__tls13formats__handshake_data__Impl_5__concat(ee,
   sfin)) in
   let hax_temp_output = (rust_primitives__hax__Tuple6__Tuple6(sh,
   flight,
@@ -3320,11 +3148,11 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   st)) in
   rust_primitives__hax__Tuple3__Tuple3(rng,
   ks,
-  hax_temp_output)
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err()
-  else bitstring_err().
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err())
+  else bitstring_err()) else bitstring_err())
+  else bitstring_err()) else bitstring_err().
 letfun bertie__tls13handshake__server_init(algs: bitstring,
 ch: bitstring,
 db: bitstring,
@@ -3332,41 +3160,38 @@ rng: bitstring,
 ks: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   rng: bitstring),
-  hax_temp_output: bitstring) = (let (=False()) = bertie__tls13crypto__Impl_38__psk_mode(algs) in let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
+  hax_temp_output: bitstring) = (let (=False()) = bertie__tls13crypto__Impl_38__psk_mode(algs) in (let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
   tmp1: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__server_init_no_psk(algs,
   ch,
   db,
   rng,
-  ks)) in
-  let rng = (tmp0) in
+  ks)) in (let rng = (tmp0) in
   let ks = (tmp1) in
   rust_primitives__hax__Tuple2__Tuple2(rust_primitives__hax__Tuple2__Tuple2(ks,
   rng),
-  out_kw)
-  else let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algs) in let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
+  out_kw)) else bitstring_err())
+  else let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algs) in (let rust_primitives__hax__Tuple3__Tuple3(tmp0: bitstring,
   tmp1: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__server_init_psk(algs,
   ch,
   db,
   rng,
-  ks)) in
-  let rng = (tmp0) in
+  ks)) in (let rng = (tmp0) in
   let ks = (tmp1) in
   rust_primitives__hax__Tuple2__Tuple2(rust_primitives__hax__Tuple2__Tuple2(ks,
   rng),
-  out_kw)) in
-  rust_primitives__hax__Tuple3__Tuple3(rng,
+  out_kw)) else bitstring_err())
+  else bitstring_err()) in (rust_primitives__hax__Tuple3__Tuple3(rng,
   ks,
-  hax_temp_output).
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__server_finish(cf: bitstring,
 st: bitstring,
 ks: bitstring) =
 let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
   out_kw: bitstring) = (bertie__tls13handshake__put_client_finished(cf,
   st,
-  ks)) in
-  let ks = (tmp0) in
+  ks)) in (let ks = (tmp0) in
   let hax_temp_output = (out_kw) in
   rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output).
+  hax_temp_output)) else bitstring_err().
