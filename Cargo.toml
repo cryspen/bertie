@@ -80,3 +80,10 @@ default-members = [
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)', 'cfg(hax)'] }
+
+# Use the in-tree hax-lib so the new pv_extern/pv_stub/pv_inverse_of macros are
+# available before they ship to crates.io. Drop once published.
+[patch.crates-io]
+hax-lib = { path = "/Users/karthik/hax/.claude/worktrees/proverif-backend-update/hax-lib" }
+hax-lib-macros = { path = "/Users/karthik/hax/.claude/worktrees/proverif-backend-update/hax-lib/macros" }
+hax-lib-macros-types = { path = "/Users/karthik/hax/.claude/worktrees/proverif-backend-update/hax-lib/macros/types" }

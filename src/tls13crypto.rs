@@ -126,7 +126,7 @@ impl HashAlgorithm {
 
     /// Get the size of the hash digest.
     #[hax_lib::ensures(|result| result <= 64)]
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body("nat_lit(0)"))]
+    #[cfg_attr(feature = "hax-pv", hax_lib::pv_stub("nat_lit(0)"))]
     pub(crate) fn hash_len(&self) -> usize {
         match self {
             HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
@@ -145,7 +145,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hmac tag.
-    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("nat_lit(0)"))]
+    #[cfg_attr(feature = "hax-pv", hax_lib::pv_stub("nat_lit(0)"))]
     pub(crate) fn hmac_tag_len(&self) -> usize {
         self.hash_len()
     }
@@ -257,7 +257,7 @@ pub enum AeadAlgorithm {
 
 impl AeadAlgorithm {
     /// Get the key length of the AEAD algorithm in bytes.
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body("nat_lit(0)"))]
+    #[cfg_attr(feature = "hax-pv", hax_lib::pv_stub("nat_lit(0)"))]
     pub(crate) fn key_len(&self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 32,
@@ -267,7 +267,7 @@ impl AeadAlgorithm {
     }
 
     /// Get the length of the IV for this algorithm.
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body("nat_lit(0)"))]
+    #[cfg_attr(feature = "hax-pv", hax_lib::pv_stub("nat_lit(0)"))]
     pub(crate) fn iv_len(self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 12,
