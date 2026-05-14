@@ -211,9 +211,9 @@ pub fn decrypt_zerortt(
     hax_lib::proverif::replace(
         "
 fun bertie__tls13record__encrypt_handshake(
-      bertie__tls13formats__handshake_data__t_HandshakeData,
-      nat,
-      bertie__tls13record__t_DuplexCipherStateH
+      bitstring,
+      bitstring,
+      bitstring
     )
     : bitstring.
 "
@@ -242,24 +242,24 @@ pub(crate) fn encrypt_handshake(
 #[cfg_attr(
     feature = "hax-pv",
     hax_lib::proverif::replace(
-        "reduc forall payload: $:{handshake_data::HandshakeData},
-              pad: nat,
-              sender_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-              sender_counter: nat,
-              receiver_key_iv: bertie__tls13crypto__t_AeadKeyIV,
-              receiver_counter: nat;
+        "reduc forall payload: bitstring,
+              pad: bitstring,
+              sender_key_iv: bitstring,
+              sender_counter: bitstring,
+              receiver_key_iv: bitstring,
+              receiver_counter: bitstring;
 ${decrypt_handshake}(
            ${encrypt_handshake}(
            payload,
            pad,
-           bertie__tls13record__DuplexCipherStateH(
+           bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(
                  receiver_key_iv,
                  receiver_counter,
                  sender_key_iv,
                  sender_counter
                )
            ),
-bertie__tls13record__DuplexCipherStateH(
+bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(
       sender_key_iv,
       sender_counter,
       receiver_key_iv,
