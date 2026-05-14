@@ -82,27 +82,8 @@ pub struct RsaVerificationKey {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "type $:{PublicVerificationKey}.
-
-fun $:{PublicVerificationKey}_to_bitstring(
-      $:{PublicVerificationKey}
-    )
-    : bitstring [typeConverter].
-fun $:{PublicVerificationKey}_from_bitstring(bitstring)
-    : $:{PublicVerificationKey} [typeConverter].
-const $:{PublicVerificationKey}_default_value: $:{PublicVerificationKey}.
-letfun $:{PublicVerificationKey}_default() =
-       $:{PublicVerificationKey}_default_value.
-letfun $:{PublicVerificationKey}_err() =
-       let x = construct_fail() in $:{PublicVerificationKey}_default_value.
-fun ${PublicVerificationKey::EcDsa}($:{Bytes}
-    )
-    : $:{PublicVerificationKey} [data].
-
-fun ${PublicVerificationKey::Rsa}(
-      $:{RsaVerificationKey}
-    )
-    : $:{PublicVerificationKey} [data].
+        "fun ${PublicVerificationKey::EcDsa}(bitstring): bitstring [data].
+fun ${PublicVerificationKey::Rsa}(bitstring): bitstring [data].
 "
     )
 )]
@@ -145,7 +126,7 @@ impl HashAlgorithm {
 
     /// Get the size of the hash digest.
     #[hax_lib::ensures(|result| result <= 64)]
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("nat_lit(0)"))]
     pub(crate) fn hash_len(&self) -> usize {
         match self {
             HashAlgorithm::SHA256 => Sha2Algorithm::Sha256.hash_len(),
@@ -164,7 +145,7 @@ impl HashAlgorithm {
     }
 
     /// Get the size of the hmac tag.
-    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("0"))]
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("nat_lit(0)"))]
     pub(crate) fn hmac_tag_len(&self) -> usize {
         self.hash_len()
     }
@@ -276,7 +257,7 @@ pub enum AeadAlgorithm {
 
 impl AeadAlgorithm {
     /// Get the key length of the AEAD algorithm in bytes.
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("nat_lit(0)"))]
     pub(crate) fn key_len(&self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 32,
@@ -286,7 +267,7 @@ impl AeadAlgorithm {
     }
 
     /// Get the length of the IV for this algorithm.
-    #[cfg_attr(feature = "hax-pv", proverif::replace_body("0"))]
+    #[cfg_attr(feature = "hax-pv", proverif::replace_body("nat_lit(0)"))]
     pub(crate) fn iv_len(self) -> usize {
         match self {
             AeadAlgorithm::Chacha20Poly1305 => 12,

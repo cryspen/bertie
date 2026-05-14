@@ -650,14 +650,14 @@ pub(crate) fn client_hello(
     feature = "hax-pv",
     proverif::before(
         "fun extern__client_hello_c(
-      $:{Bytes}, (* client_randomness *)
-      $:{Bytes}, (* session_id *)
-      $:{Bytes}, (*server name /sni*)
-      $:{Bytes}, (*kem_pk / gx*)
-      Option, (*tkto*)
-      Option, (*bindero*)
-      nat) (*trunc_len*)
-      : $:{HandshakeData} [data]."
+      bitstring, (* client_randomness *)
+      bitstring, (* session_id *)
+      bitstring, (*server name /sni*)
+      bitstring, (*kem_pk / gx*)
+      bitstring, (*tkto*)
+      bitstring, (*bindero*)
+      bitstring) (*trunc_len*)
+      : bitstring [data]."
     )
 )]
 #[cfg_attr(
@@ -736,32 +736,31 @@ pub fn bench_parse_client_hello(
     proverif::replace(
         "
 fun ${parse_client_hello}(
-  $:{Algorithms},
-  $:{HandshakeData})
-: bitstring
+  bitstring,
+  bitstring): bitstring
 reduc forall
-      algs:$:{Algorithms},
-      client_random: $:{Bytes},
-      server_name: $:{Bytes},
-      kem_pk: $:{Bytes},
-      session_ticket: Option,
-      binder: Option;
+      algs: bitstring,
+      client_random: bitstring,
+      server_name: bitstring,
+      kem_pk: bitstring,
+      session_ticket: bitstring,
+      binder: bitstring;
     ${parse_client_hello}(
         algs,
         extern__client_hello_c(client_random,
-                            $:{Bytes}_default_value,
+                            bitstring_default(),
                             server_name,
                             kem_pk,
                             session_ticket,
                             binder,
-                            0))
-           = (client_random,
-                            $:{Bytes}_default_value,
+                            nat_lit(0)))
+           = rust_primitives__hax__Tuple7__Tuple7(client_random,
+                            bitstring_default(),
                             server_name,
                             kem_pk,
                             session_ticket,
                             binder,
-                            0)."
+                            nat_lit(0))."
     )
 )]
 #[hax_lib::ensures(|result| match result {

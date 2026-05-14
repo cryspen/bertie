@@ -335,14 +335,7 @@ pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<Key, TLSEr
 #[cfg_attr(
     feature = "hax-pv",
     hax_lib::proverif::before(
-        "fun extern__XPD(
-                $:{TLSnames},
-                nat,
-                $:{Handle},
-                bool,
-                $:{Bytes}
-         )
-     : $:{Handle}."
+        "fun extern__XPD(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data]."
     )
 )]
 #[cfg_attr(
@@ -415,13 +408,7 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
 #[cfg_attr(
     feature = "hax-pv",
     hax_lib::proverif::before(
-        "fun extern__XTR(
-                nat,
-                $:{TLSnames},
-                $:{Handle},
-                $:{Handle}
-         )
-     : $:{Handle}."
+        "fun extern__XTR(bitstring, bitstring, bitstring, bitstring): bitstring [data]."
     )
 )]
 #[cfg_attr(
