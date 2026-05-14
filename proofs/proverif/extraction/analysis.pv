@@ -162,7 +162,7 @@ let Client(algs: bitstring) =
         = (None(), None())
     in
 
-    let (rng_client: bitstring, ks_client: bitstring, client_init_out: bitstring)
+    let rust_primitives__hax__Tuple3__Tuple3(rng_client: bitstring, ks_client: bitstring, client_init_out: bitstring)
         = bertie__tls13handshake__client_init(algs,
                                               server_name,
                                               client_ticket_o,
@@ -171,7 +171,7 @@ let Client(algs: bitstring) =
                                               ks_client)
     in
 
-    let (nch: bitstring,
+    let rust_primitives__hax__Tuple3__Tuple3(nch: bitstring,
          cipher0: bitstring,
          client_state: bitstring)
         = client_init_out in
@@ -179,8 +179,8 @@ let Client(algs: bitstring) =
     in(c, server_hello: bitstring);
 
 
-    let (ks_client: bitstring,
-         (duplex_cipher_state_h: bitstring,
+    let rust_primitives__hax__Tuple2__Tuple2(ks_client: bitstring,
+         rust_primitives__hax__Tuple2__Tuple2(duplex_cipher_state_h: bitstring,
          client_state: bitstring))
         = bertie__tls13handshake__client_set_params(server_hello,
                                                     client_state,
@@ -191,7 +191,7 @@ let Client(algs: bitstring) =
 
     let flight = bertie__tls13record__decrypt_handshake(flight_encrypted, duplex_cipher_state_h) in
 
-    let (ks_client: bitstring, (client_finished: bitstring,
+    let rust_primitives__hax__Tuple2__Tuple2(ks_client: bitstring, rust_primitives__hax__Tuple3__Tuple3(client_finished: bitstring,
          cipher: bitstring,
          client_state: bitstring))
         = bertie__tls13handshake__client_finish(flight,
@@ -200,9 +200,9 @@ let Client(algs: bitstring) =
     in
 
     (* This is what `get_server_info` does *)
-    let server_pub_info = accessor_bertie__tls13handshake__ClientPostClientFinished__bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished__3(client_state) in
-    let certificate_opt = accessor_bertie__server__ServerPubInfo__bertie__server__ServerPubInfo__ServerPubInfo__certificate(server_pub_info) in
-    let server_name_info = accessor_bertie__server__ServerPubInfo__bertie__server__ServerPubInfo__ServerPubInfo__server_name(
+    let server_pub_info = bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished__3(client_state) in
+    let certificate_opt = bertie__server__ServerPubInfo__ServerPubInfo__certificate(server_pub_info) in
+    let server_name_info = bertie__server__ServerPubInfo__ServerPubInfo__server_name(
                           server_pub_info
                         ) in
     let Some(certificate) = certificate_opt in
@@ -222,7 +222,7 @@ let Server() =
     let ks_server = KS_EMPTY in
 
     in(c, nch: bitstring);
-    let (rng_server: bitstring, ks_server: bitstring, server_init_output: bitstring)
+    let rust_primitives__hax__Tuple3__Tuple3(rng_server: bitstring, ks_server: bitstring, server_init_output: bitstring)
         = bertie__tls13handshake__server_init(algs,
                                               nch,
                                               db,
@@ -230,8 +230,7 @@ let Server() =
                                               ks_server)
     in
 
-    let
-      (server_hello: bitstring,
+    let rust_primitives__hax__Tuple6__Tuple6(server_hello: bitstring,
        flight: bitstring,
        cipher0: bitstring,
        cipher_hs: bitstring,
@@ -249,7 +248,7 @@ let Server() =
     in(c, finish_encrypted: bitstring);
     let client_finished = bertie__tls13record__decrypt_handshake(finish_encrypted, cipher_hs) in
 
-    let (ks_server: bitstring, server_state: bitstring)
+    let rust_primitives__hax__Tuple2__Tuple2(ks_server: bitstring, server_state: bitstring)
         = bertie__tls13handshake__server_finish(client_finished,
                                                 server_state,
                                                 ks_server)
@@ -263,7 +262,7 @@ let CreateServer(algs: bitstring) =
     let psk_opt = None() in
 
     let bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256()
-        = accessor_bertie__tls13crypto__Algorithms__bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
+        = bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
         in
         (let cert = extern__certificate(
                        server_name,
@@ -279,7 +278,7 @@ let CreateServer(algs: bitstring) =
         in
         insert server_dbs(server_name, db, algs))
     else let bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256()
-             = accessor_bertie__tls13crypto__Algorithms__bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
+             = bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
              in
              (let cert = extern__certificate(
                          server_name,
