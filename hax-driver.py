@@ -222,9 +222,19 @@ elif options.sub == "typecheck":
 elif options.sub == "typecheck-proverif":
     # Typecheck subcommand.
     custom_env = {}
+    # Resolve hax's shipped primitives library. Allow override via env, but
+    # default to the in-tree hax checkout used during development.
+    hax_primitives = os.environ.get(
+        "HAX_PROVERIF_PRIMITIVES",
+        os.path.expanduser(
+            "~/hax/.claude/worktrees/proverif-backend-update/hax-lib/proof-libs/proverif/primitives"
+        ),
+    )
     shell(
         [
             "proverif",
+            "-lib",
+            hax_primitives,
             "-lib",
             "proofs/proverif/handwritten_lib",
             "-lib",
