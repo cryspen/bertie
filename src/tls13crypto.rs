@@ -174,15 +174,15 @@ pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Resul
         "
 reduc
   forall
-        alg : $:{HashAlgorithm},
-         mk : $:{Bytes},
-      input : $:{Bytes};
+        alg : bitstring,
+         mk : bitstring,
+      input : bitstring;
         ${hmac_verify}(
             alg,
             mk,
             input,
             ${hmac_tag}(alg, mk, input)
-         ) = ()."
+         ) = rust_primitives__hax__Tuple0__Tuple0."
     )
 )]
 pub(crate) fn hmac_verify(
@@ -402,11 +402,11 @@ pub(crate) fn sign_rsa(
     feature = "hax-pv",
     proverif::before(
         "fun extern__sign_inner(
-         $:{SignatureScheme},
-         $:{Bytes}, (* sk *)
-         $:{Bytes}  (* input *)
+         bitstring,
+         bitstring, (* sk *)
+         bitstring  (* input *)
      )
-     : $:{Bytes}."
+     : bitstring."
     )
 )]
 #[cfg_attr(
@@ -464,25 +464,25 @@ pub(crate) fn sign(
     feature = "hax-pv",
     proverif::replace(
         "
-fun extern__vk_from_sk($:{Bytes}): $:{PublicVerificationKey}.
+fun extern__vk_from_sk(bitstring): bitstring.
 
 fun extern__sign_inner_rsa(
-                 $:{Bytes}, (* sk *)
-                 $:{Bytes}  (* input *)
+                 bitstring, (* sk *)
+                 bitstring  (* input *)
              )
-             : $:{Bytes}.
+             : bitstring.
 
 fun ${verify}(
-            $:{SignatureScheme}, 
-            $:{PublicVerificationKey},
-            $:{Bytes}, (* input *)
-            $:{Bytes}  (* sig *)
+            bitstring,
+            bitstring,
+            bitstring, (* input *)
+            bitstring  (* sig *)
         )
     : bitstring
 
   reduc forall
-                     sk: $:{Bytes},
-                  input: $:{Bytes};
+                     sk: bitstring,
+                  input: bitstring;
 
         ${verify}(
             ${SignatureScheme::RsaPssRsaSha256},
@@ -493,11 +493,11 @@ fun ${verify}(
                 input
             )
         )
-        = ()
+        = rust_primitives__hax__Tuple0__Tuple0
 
   otherwise forall
-                sk                   : $:{Bytes},
-                input                : $:{Bytes};
+                sk                   : bitstring,
+                input                : bitstring;
 
         ${verify}(
             ${SignatureScheme::EcdsaSecp256r1Sha256},
@@ -509,7 +509,7 @@ fun ${verify}(
                 input
             )
         )
-        = ()."
+        = rust_primitives__hax__Tuple0__Tuple0."
     )
 )]
 pub(crate) fn verify(
@@ -614,14 +614,14 @@ impl KemScheme {
 /// Generate a new KEM key pair.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before("fun extern__kem_pk_from_sk($:{Bytes}): $:{Bytes}.")
+    proverif::before("fun extern__kem_pk_from_sk(bitstring): bitstring.")
 )]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(
-        "(new kem_sk: $:{Bytes};
+        "(new kem_sk: bitstring;
        let kem_pk = extern__kem_pk_from_sk(kem_sk) in
-       (kem_sk, kem_pk))"
+       rust_primitives__hax__Tuple2__Tuple2(kem_sk, kem_pk))"
     )
 )]
 pub(crate) fn kem_keygen(
@@ -669,14 +669,14 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 /// KEM encapsulation
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before("fun extern__kem_encapsulation($:{Bytes}, $:{Bytes}): $:{Bytes}.")
+    proverif::before("fun extern__kem_encapsulation(bitstring, bitstring): bitstring.")
 )]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(
-        "(new shared_secret: $:{Bytes};
+        "(new shared_secret: bitstring;
           let ct = extern__kem_encapsulation(pk, shared_secret) in
-          (shared_secret, ct))"
+          rust_primitives__hax__Tuple2__Tuple2(shared_secret, ct))"
     )
 )]
 pub(crate) fn kem_encap(
@@ -717,7 +717,7 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "reduc forall alg: $:{KemScheme}, kem_sk: $:{Bytes}, shared_secret: $:{Bytes};
+        "reduc forall alg: bitstring, kem_sk: bitstring, shared_secret: bitstring;
      ${kem_decap}(
      alg, extern__kem_encapsulation(extern__kem_pk_from_sk(kem_sk), shared_secret), kem_sk
      ) = shared_secret."

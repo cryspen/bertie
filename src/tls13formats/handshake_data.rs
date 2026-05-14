@@ -64,15 +64,15 @@ pub struct HandshakeData(pub(crate) Bytes);
     feature = "hax-pv",
     proverif::replace(
         "reduc forall
-                   hs1: $:{Bytes},
-                   hs2: $:{Bytes};
+                   hs1: bitstring,
+                   hs2: bitstring;
 
             ${to_two_inner}(
                 ${HandshakeData}(
                     ${crate::tls13utils::concat_inner}(hs1, hs2)
                 )
             )
-            = (hs1, hs2).
+            = rust_primitives__hax__Tuple2__Tuple2(hs1, hs2).
     "
     )
 )]
@@ -89,10 +89,10 @@ fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData
     feature = "hax-pv",
     proverif::replace(
         "reduc forall
-                   hs1: $:{Bytes},
-                   hs2: $:{Bytes},
-                   hs3: $:{Bytes},
-                   hs4: $:{Bytes};
+                   hs1: bitstring,
+                   hs2: bitstring,
+                   hs3: bitstring,
+                   hs4: bitstring;
 
             ${to_four_inner}(
                 ${HandshakeData}(
@@ -108,7 +108,7 @@ fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData
                     )
                 )
             )
-            = (hs1,
+            = rust_primitives__hax__Tuple4__Tuple4(hs1,
                hs2,
                hs3,
                hs4)."

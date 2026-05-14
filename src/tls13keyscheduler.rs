@@ -30,12 +30,12 @@ pub fn derive_binder_key(
     feature = "hax-pv",
     hax_lib::proverif::before(
         "fun extern__derive_aead_key_iv(
-    $:{HashAlgorithm},
-    $:{AeadAlgorithm},
-    $:{Handle},
-    $:{TLSkeyscheduler}
+    bitstring,
+    bitstring,
+    bitstring,
+    bitstring
          )
-     : $:{AeadKeyIV}."
+     : bitstring."
     )
 )]
 #[cfg_attr(
@@ -121,11 +121,11 @@ pub(crate) fn derive_0rtt_keys(
     feature = "hax-pv",
     hax_lib::proverif::before(
         "fun extern__derive_finished_key(
-                $:{HashAlgorithm},
-                $:{Handle},
-                $:{TLSkeyscheduler}
+                bitstring,
+                bitstring,
+                bitstring
          )
-     : $:{MacKey}."
+     : bitstring."
     )
 )]
 #[cfg_attr(
