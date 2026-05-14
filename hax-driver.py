@@ -203,7 +203,7 @@ elif options.sub == "extract-proverif":
                     "+!**::tls13record::decrypt_handshake"
                 ]
             ),
-            "pro-verif",
+            "proverif",
         ],
         cwd=".",
         env=hax_env,
