@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 
 use bertie::{
+    crypto_provider::LibcruxBertieProvider,
     server::ServerDB,
     test_utils::TestRng,
     tls13crypto::{
@@ -140,6 +141,7 @@ fn test_full_round_trip() {
     };
 
     match Client::connect(
+        &LibcruxBertieProvider,
         ciphersuite,
         &server_name,
         None,
@@ -154,6 +156,7 @@ fn test_full_round_trip() {
         Ok((client_hello, client)) => {
             println!("Client0 Complete {}", server_rng.raw().len());
             match Server::accept(
+        &LibcruxBertieProvider,
                 ciphersuite,
                 db,
                 &client_hello,
@@ -166,7 +169,7 @@ fn test_full_round_trip() {
                 }
                 Ok((sh, sf, server)) => {
                     println!("Server0 Complete");
-                    match client.read_handshake(&sh, &mut client_ks) {
+                    match client.read_handshake(&LibcruxBertieProvider, &sh, &mut client_ks) {
                         Err(x) => {
                             println!("ServerHello Error {}", x);
                             b = false;
@@ -176,7 +179,7 @@ fn test_full_round_trip() {
                             b = false;
                         }
                         Ok((None, client_state)) => match client_state
-                            .read_handshake(&sf, &mut client_ks)
+                            .read_handshake(&LibcruxBertieProvider, &sf, &mut client_ks)
                         {
                             Err(x) => {
                                 println!("ClientFinish Error {}", x);
@@ -188,7 +191,7 @@ fn test_full_round_trip() {
                             }
                             Ok((Some(cf), client)) => {
                                 println!("Client Complete");
-                                match server.read_handshake(&cf, &mut server_ks) {
+                                match server.read_handshake(&LibcruxBertieProvider, &cf, &mut server_ks) {
                                     Err(x) => {
                                         println!("Server1 Error {}", x);
                                         b = false;
@@ -199,16 +202,16 @@ fn test_full_round_trip() {
                                         // Send data from client to server.
                                         let data = Bytes::from(b"Hello server, here is the client");
                                         let (ap, client) =
-                                            client.write(AppData::new(data.clone())).unwrap();
-                                        let (apo, server) = server.read(&ap).unwrap();
+                                            client.write(&LibcruxBertieProvider, AppData::new(data.clone())).unwrap();
+                                        let (apo, server) = server.read(&LibcruxBertieProvider, &ap).unwrap();
                                         assert!(eq(&data, apo.unwrap().as_raw()));
 
                                         // Send data from server to client.
                                         let data =
                                             Bytes::from(b"Hello client, here is the server.");
                                         let (ap, _server) =
-                                            server.write(AppData::new(data.clone())).unwrap();
-                                        let (application_data, _cstate) = client.read(&ap).unwrap();
+                                            server.write(&LibcruxBertieProvider, AppData::new(data.clone())).unwrap();
+                                        let (application_data, _cstate) = client.read(&LibcruxBertieProvider, &ap).unwrap();
                                         assert!(eq(&data, application_data.unwrap().as_raw()));
                                     }
                                 }
@@ -254,6 +257,7 @@ fn test_full_round_trip_with_psk() {
     };
 
     match Client::connect(
+        &LibcruxBertieProvider,
         ciphersuite,
         &server_name,
         Some(session_ticket),
@@ -268,6 +272,7 @@ fn test_full_round_trip_with_psk() {
         Ok((client_hello, client)) => {
             println!("Client0 Complete {}", server_rng.raw().len());
             match Server::accept(
+        &LibcruxBertieProvider,
                 ciphersuite,
                 db,
                 &client_hello,
@@ -280,7 +285,7 @@ fn test_full_round_trip_with_psk() {
                 }
                 Ok((sh, sf, server)) => {
                     println!("Server0 Complete");
-                    match client.read_handshake(&sh, &mut client_ks) {
+                    match client.read_handshake(&LibcruxBertieProvider, &sh, &mut client_ks) {
                         Err(x) => {
                             println!("ServerHello Error {}", x);
                             b = false;
@@ -290,7 +295,7 @@ fn test_full_round_trip_with_psk() {
                             b = false;
                         }
                         Ok((None, client_state)) => match client_state
-                            .read_handshake(&sf, &mut client_ks)
+                            .read_handshake(&LibcruxBertieProvider, &sf, &mut client_ks)
                         {
                             Err(x) => {
                                 println!("ClientFinish Error {}", x);
@@ -302,7 +307,7 @@ fn test_full_round_trip_with_psk() {
                             }
                             Ok((Some(cf), client)) => {
                                 println!("Client Complete");
-                                match server.read_handshake(&cf, &mut server_ks) {
+                                match server.read_handshake(&LibcruxBertieProvider, &cf, &mut server_ks) {
                                     Err(x) => {
                                         println!("Server1 Error {}", x);
                                         b = false;
@@ -313,16 +318,16 @@ fn test_full_round_trip_with_psk() {
                                         // Send data from client to server.
                                         let data = Bytes::from(b"Hello server, here is the client");
                                         let (ap, client) =
-                                            client.write(AppData::new(data.clone())).unwrap();
-                                        let (apo, server) = server.read(&ap).unwrap();
+                                            client.write(&LibcruxBertieProvider, AppData::new(data.clone())).unwrap();
+                                        let (apo, server) = server.read(&LibcruxBertieProvider, &ap).unwrap();
                                         assert!(eq(&data, apo.unwrap().as_raw()));
 
                                         // Send data from server to client.
                                         let data =
                                             Bytes::from(b"Hello client, here is the server.");
                                         let (ap, _server) =
-                                            server.write(AppData::new(data.clone())).unwrap();
-                                        let (application_data, _cstate) = client.read(&ap).unwrap();
+                                            server.write(&LibcruxBertieProvider, AppData::new(data.clone())).unwrap();
+                                        let (application_data, _cstate) = client.read(&LibcruxBertieProvider, &ap).unwrap();
                                         assert!(eq(&data, application_data.unwrap().as_raw()));
                                     }
                                 }

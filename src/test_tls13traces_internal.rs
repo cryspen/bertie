@@ -3,13 +3,12 @@
 use std::collections::HashMap;
 use std::println;
 
-use crate::tls13crypto::hash;
-use crate::tls13handshake::*;
+use crate::crypto_provider::{BertieCrypto, LibcruxBertieProvider};
 use crate::tls13keyscheduler::{key_schedule::*, *};
 use crate::tls13utils::*;
 use crate::{
     tls13crypto::{
-        hmac_tag, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
+        AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
     TLSkeyscheduler,
@@ -489,7 +488,7 @@ fn test_key_schedule() {
     let sha256_emp_str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     let sha256_emp = Bytes::from_hex(sha256_emp_str);
 
-    if let Ok(ha) = hash(&HashAlgorithm::SHA256, &Bytes::new()) {
+    if let Ok(ha) = LibcruxBertieProvider.hash(&HashAlgorithm::SHA256, &Bytes::new()) {
         println!(
             "computed hash(empty) {}\nexpected hash(empty) {}",
             ha.as_hex(),
@@ -513,7 +512,7 @@ fn test_key_schedule() {
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let transcript = client_hello_bytes.concat(server_hello_bytes);
-    let tx_hash = hash(&ha, &transcript);
+    let tx_hash = LibcruxBertieProvider.hash(&ha, &transcript);
 
     let mut ks = TLSkeyscheduler {
         keys: HashMap::new(),
@@ -533,7 +532,14 @@ fn test_key_schedule() {
             println!("Error: {}", x);
         }
         Ok(tx_hash) => {
-            let handles = derive_hk_handles(&ha, &shared_secret_handle, &None, &tx_hash, &mut ks);
+            let handles = derive_hk_handles(
+                &LibcruxBertieProvider,
+                &ha,
+                &shared_secret_handle,
+                &None,
+                &tx_hash,
+                &mut ks,
+            );
             b = handles.is_ok();
             match handles {
                 Err(x) => {
@@ -547,7 +553,14 @@ fn test_key_schedule() {
                             println!("Error: {}", x);
                         }
                         Ok(ms) => {
-                            let keys = derive_hk_ms(&ha, &ae, &cht_handle, &sht_handle, &mut ks);
+                            let keys = derive_hk_ms(
+                                &LibcruxBertieProvider,
+                                &ha,
+                                &ae,
+                                &cht_handle,
+                                &sht_handle,
+                                &mut ks,
+                            );
                             b = keys.is_ok();
                             match keys {
                                 Err(x) => {
@@ -573,14 +586,18 @@ fn test_key_schedule() {
                                         .concat(server_certificate_bytes)
                                         .concat(server_cert_verify_bytes)
                                         .concat(server_finished_bytes);
-                                    let tx_hash = hash(&ha, &transcript);
+                                    let tx_hash = LibcruxBertieProvider.hash(&ha, &transcript);
                                     match tx_hash {
                                         Err(x) => {
                                             println!("Error: {}", x);
                                         }
                                         Ok(tx_hash) => {
                                             let handles = derive_app_handles(
-                                                &ha, &ms_handle, &tx_hash, &mut ks,
+                                                &LibcruxBertieProvider,
+                                                &ha,
+                                                &ms_handle,
+                                                &tx_hash,
+                                                &mut ks,
                                             );
                                             b = handles.is_ok();
                                             match handles {
@@ -589,6 +606,7 @@ fn test_key_schedule() {
                                                 }
                                                 Ok((cat_handle, sat_handle, ms_handle)) => {
                                                     let keys = derive_app_keys(
+                                                        &LibcruxBertieProvider,
                                                         &ha,
                                                         &ae,
                                                         &cat_handle,
@@ -707,14 +725,14 @@ fn test_finished() {
         zero_rtt,
     } = TLS_AES_128_GCM_SHA256_X25519_RSA;
     let tx1 = ch.concat(sh).concat(ee).concat(sc).concat(cv);
-    let tx_hash1 = hash(&ha, &tx1);
+    let tx_hash1 = LibcruxBertieProvider.hash(&ha, &tx1);
     let tx2 = tx1.concat(sf);
-    let tx_hash2 = hash(&ha, &tx2);
+    let tx_hash2 = LibcruxBertieProvider.hash(&ha, &tx2);
     let mut b = true;
     match (tx_hash1, tx_hash2) {
         (Ok(h1), Ok(h2)) => {
-            let m1 = hmac_tag(&ha, &sfk, &h1);
-            let m2 = hmac_tag(&ha, &cfk, &h2);
+            let m1 = LibcruxBertieProvider.hmac_tag(&ha, &sfk, &h1);
+            let m2 = LibcruxBertieProvider.hmac_tag(&ha, &cfk, &h2);
             match (m1, m2) {
                 (Ok(m1), Ok(m2)) => {
                     println!("computed sfin vd {}", m1.as_hex());

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 use bertie::{
+    crypto_provider::LibcruxBertieProvider,
     stream::init_db,
     tls13crypto::{
         Algorithms,
@@ -129,7 +130,7 @@ fn protocol() {
         rng.fill_bytes(&mut payload);
 
         for _ in 0..ITERATIONS {
-            let (client_hello, client) = Client::connect(
+            let (client_hello, client) = Client::connect(&LibcruxBertieProvider, 
                 ciphersuite,
                 &server_name,
                 None,
@@ -140,7 +141,7 @@ fn protocol() {
             .unwrap();
 
             let start_time = Instant::now();
-            let (server_hello, server_finished, server) = Server::accept(
+            let (server_hello, server_finished, server) = Server::accept(&LibcruxBertieProvider, 
                 ciphersuite,
                 db.clone(),
                 &client_hello,
@@ -152,24 +153,24 @@ fn protocol() {
             handshake_time += end_time.duration_since(start_time);
 
             let (_client_msg, client) = client
-                .read_handshake(&server_hello, &mut client_ks)
+                .read_handshake(&LibcruxBertieProvider, &server_hello, &mut client_ks)
                 .unwrap();
             let (client_msg, client) = client
-                .read_handshake(&server_finished, &mut client_ks)
+                .read_handshake(&LibcruxBertieProvider, &server_finished, &mut client_ks)
                 .unwrap();
 
             let start_time = Instant::now();
             let server = server
-                .read_handshake(&client_msg.unwrap(), &mut server_ks)
+                .read_handshake(&LibcruxBertieProvider, &client_msg.unwrap(), &mut server_ks)
                 .unwrap();
             let end_time = Instant::now();
             handshake_time += end_time.duration_since(start_time);
 
             let application_data = payload.clone().into();
-            let (c_msg_bytes, _client) = client.write(application_data).unwrap();
+            let (c_msg_bytes, _client) = client.write(&LibcruxBertieProvider, application_data).unwrap();
 
             let start_time = Instant::now();
-            let (msg, _server) = server.read(&c_msg_bytes).unwrap();
+            let (msg, _server) = server.read(&LibcruxBertieProvider, &c_msg_bytes).unwrap();
             let end_time = Instant::now();
             application_time += end_time.duration_since(start_time);
 

@@ -1,5 +1,6 @@
 // TLS 1.3 Record Layer Computations
 
+use crate::crypto_provider::BertieCrypto;
 use crate::tls13crypto::*;
 use crate::tls13formats::*;
 use crate::tls13keyscheduler::key_schedule::TagKey;
@@ -97,7 +98,9 @@ fn derive_iv_ctr(iv: &AeadIV, n: u64) -> AeadIV {
 }
 
 /// Encrypt the record `payload` with the given `key_iv`.
-pub(crate) fn encrypt_record_payload(
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer, skip(crypto)))]
+pub(crate) fn encrypt_record_payload<C: BertieCrypto>(
+    crypto: &C,
     key_iv: &AeadKeyIV,
     n: u64,
     ct: ContentType,
@@ -113,7 +116,7 @@ pub(crate) fn encrypt_record_payload(
     if clen <= 65536 {
         let clenb = (clen as u16).to_be_bytes();
         let ad = [23, 3, 3, clenb[0], clenb[1]].into();
-        let cip = aead_encrypt(&key_iv.key, &iv_ctr, &inner_plaintext, &ad)?;
+        let cip = crypto.aead_encrypt(&key_iv.key, &iv_ctr, &inner_plaintext, &ad)?;
         let rec = ad.concat(cip);
         Ok(rec)
     } else {
@@ -133,7 +136,8 @@ fn padlen(b: &Bytes, n: usize) -> usize {
 }
 
 /// AEAD decrypt the record `ciphertext`
-fn decrypt_record_payload(
+fn decrypt_record_payload<C: BertieCrypto>(
+    crypto: &C,
     kiv: &AeadKeyIV,
     n: u64,
     ciphertext: &Bytes,
@@ -147,7 +151,7 @@ fn decrypt_record_payload(
         check_eq(&ad, &ciphertext.slice_range(0..5))?;
 
         let cip = ciphertext.slice_range(5..ciphertext.len());
-        let plain = aead_decrypt(&kiv.key, &iv_ctr, &cip, &ad)?;
+        let plain = crypto.aead_decrypt(&kiv.key, &iv_ctr, &cip, &ad)?;
 
         let padding = padlen(&plain, plain.len());
         check(padding < plain.len())?;
@@ -165,13 +169,15 @@ fn decrypt_record_payload(
 /// Encrypt 0-RTT `payload`.
 /// TODO: Implement 0-RTT
 #[allow(dead_code)]
-fn encrypt_zerortt(
+fn encrypt_zerortt<C: BertieCrypto>(
+    crypto: &C,
     payload: AppData,
     pad: usize,
     st: ClientCipherState0,
 ) -> Result<(Bytes, ClientCipherState0), TLSError> {
     let ClientCipherState0(ae, kiv, n, exp) = st;
     let rec = encrypt_record_payload(
+        crypto,
         &kiv,
         n,
         ContentType::ApplicationData,
@@ -185,11 +191,12 @@ fn encrypt_zerortt(
 /// Decrypt 0-RTT `ciphertext`.
 /// TODO: Implement 0-RTT
 #[allow(dead_code)]
-pub fn decrypt_zerortt(
+pub fn decrypt_zerortt<C: BertieCrypto>(
+    crypto: &C,
     ciphertext: &Bytes,
     state: ServerCipherState0,
 ) -> Result<(AppData, ServerCipherState0), TLSError> {
-    let (ct, payload) = decrypt_record_payload(&state.key_iv, state.counter, ciphertext)?;
+    let (ct, payload) = decrypt_record_payload(crypto, &state.key_iv, state.counter, ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
     check(state.counter < u64::MAX)?;
     Ok((
@@ -219,7 +226,8 @@ fun bertie__tls13record__encrypt_handshake(
 "
     )
 )]
-pub(crate) fn encrypt_handshake(
+pub(crate) fn encrypt_handshake<C: BertieCrypto>(
+    crypto: &C,
     payload: handshake_data::HandshakeData,
     pad: usize,
     mut state: DuplexCipherStateH,
@@ -227,6 +235,7 @@ pub(crate) fn encrypt_handshake(
     let payload = payload.to_bytes();
 
     let rec = encrypt_record_payload(
+        crypto,
         &state.sender_key_iv,
         state.sender_counter,
         ContentType::Handshake,
@@ -270,12 +279,17 @@ bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(
     )
 )]
 /// Decrypt a handshake message.
-pub(crate) fn decrypt_handshake(
+pub(crate) fn decrypt_handshake<C: BertieCrypto>(
+    crypto: &C,
     ciphertext: &Bytes,
     mut state: DuplexCipherStateH,
 ) -> Result<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError> {
-    let (ct, payload) =
-        decrypt_record_payload(&state.receiver_key_iv, state.receiver_counter, ciphertext)?;
+    let (ct, payload) = decrypt_record_payload(
+        crypto,
+        &state.receiver_key_iv,
+        state.receiver_counter,
+        ciphertext,
+    )?;
     if ct == ContentType::Alert {
         Result::<(handshake_data::HandshakeData, DuplexCipherStateH), TLSError>::Err(
             GOT_HANDSHAKE_FAILURE_ALERT,
@@ -288,13 +302,15 @@ pub(crate) fn decrypt_handshake(
     }
 }
 
-pub fn encrypt_data(
+pub fn encrypt_data<C: BertieCrypto>(
+    crypto: &C,
     payload: AppData,
     pad: usize,
     st: DuplexCipherState1,
 ) -> Result<(Bytes, DuplexCipherState1), TLSError> {
     let DuplexCipherState1(ae, kiv, n, x, y, exp) = st;
     let rec = encrypt_record_payload(
+        crypto,
         &kiv,
         n,
         ContentType::ApplicationData,
@@ -305,21 +321,24 @@ pub fn encrypt_data(
     Ok((rec, DuplexCipherState1(ae, kiv, n + 1, x, y, exp)))
 }
 
-pub fn decrypt_data_or_hs(
+pub fn decrypt_data_or_hs<C: BertieCrypto>(
+    crypto: &C,
     ciphertext: &Bytes,
     st: DuplexCipherState1,
 ) -> Result<(ContentType, Bytes, DuplexCipherState1), TLSError> {
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
-    let (ct, payload) = decrypt_record_payload(&kiv, n, ciphertext)?;
+    let (ct, payload) = decrypt_record_payload(crypto, &kiv, n, ciphertext)?;
     check(n < u64::MAX)?;
     Ok((ct, payload, DuplexCipherState1(ae, x, y, kiv, n + 1, exp)))
 }
-pub fn decrypt_data(
+
+pub fn decrypt_data<C: BertieCrypto>(
+    crypto: &C,
     ciphertext: &Bytes,
     st: DuplexCipherState1,
 ) -> Result<(AppData, DuplexCipherState1), TLSError> {
     let DuplexCipherState1(ae, x, y, kiv, n, exp) = st;
-    let (ct, payload) = decrypt_record_payload(&kiv, n, ciphertext)?;
+    let (ct, payload) = decrypt_record_payload(crypto, &kiv, n, ciphertext)?;
     check(ct == ContentType::ApplicationData)?;
     check(n < u64::MAX)?;
     Ok((

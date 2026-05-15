@@ -435,7 +435,7 @@ impl Bytes {
 
     /// Get the length of these [`Bytes`].
     #[hax_lib::ensures(|result| fstar!("v result == Seq.length self._0"))]
-    pub(crate) fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.0.len()
     }
 

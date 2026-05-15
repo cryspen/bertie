@@ -12,6 +12,7 @@ use std::{
 use rand::CryptoRng;
 
 use crate::{
+    crypto_provider::LibcruxBertieProvider,
     server::ServerDB,
     tls13cert::{rsa_private_key, verification_key_from_cert},
     tls13crypto::{Algorithms, SignatureKey, SignatureScheme},
@@ -55,7 +56,8 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
             None => return Err(BertieError::InvalidState),
         };
 
-        let (wire_bytes, new_state) = sstate.write(AppData::new(bytes.into()))?;
+        let (wire_bytes, new_state) =
+            sstate.write(&LibcruxBertieProvider, AppData::new(bytes.into()))?;
         self.sstate = Some(new_state);
 
         // Write out the request
@@ -73,7 +75,7 @@ impl<Stream: Read + Write> TlsStream<Stream> for ServerState<Stream> {
         let application_data = loop {
             let record = read_record(&mut self.read_buffer, &mut self.stream)?;
             let ad;
-            (ad, sstate) = sstate.read(&record.into())?;
+            (ad, sstate) = sstate.read(&LibcruxBertieProvider, &record.into())?;
             match ad {
                 Some(application_data) => break application_data,
                 None => continue,
@@ -193,6 +195,7 @@ impl BertieStream<ServerState<TcpStream>> {
         };
 
         match Server::accept(
+            &LibcruxBertieProvider,
             self.ciphersuite,
             self.state.db.clone(),
             &client_hello.into(),
@@ -225,7 +228,11 @@ impl BertieStream<ServerState<TcpStream>> {
                 self.check_ccs_message(&ccs)?;
 
                 let cf_rec = read_record(&mut self.state.read_buffer, &mut self.state.stream)?;
-                let sstate = server_state.read_handshake(&cf_rec.into(), &mut ks)?;
+                let sstate = server_state.read_handshake(
+                    &LibcruxBertieProvider,
+                    &cf_rec.into(),
+                    &mut ks,
+                )?;
 
                 self.state.sstate = Some(sstate);
             }

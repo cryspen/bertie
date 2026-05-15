@@ -5,8 +5,9 @@ use crate::tls13utils::Declassify;
 
 // #[cfg(not(feature = "secret_integers"))]
 use crate::{
+    crypto_provider::BertieCrypto,
     tls13crypto::{
-        hash, zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
+        zero_key, Algorithms, Digest, HashAlgorithm, Hmac, KemPk, Random, SignatureScheme,
     },
     tls13utils::*,
 };
@@ -577,6 +578,7 @@ fn get_psk_extensions(
                                         _ => false
                                     }},
                                 _ => true})]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn client_hello(
     algorithms: &Algorithms,
     client_random: Random,
@@ -684,6 +686,7 @@ pub(crate) fn client_hello(
 #[hax_lib::requires(match trunc_len {
                      Option::Some(tl) => tl <= client_hello.len(),
                      _ => true})]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn set_client_hello_binder(
     ciphersuite: &Algorithms,
     binder: &Option<Hmac>,
@@ -885,6 +888,7 @@ pub(super) fn parse_client_hello(
             _ => false
         }},
     _ => true})]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn server_hello(
     algs: &Algorithms,
     server_random: Random,
@@ -1015,6 +1019,7 @@ pub(crate) fn parse_server_hello(
 }
 
 #[cfg_attr(feature = "hax-pv", proverif::replace(""))]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, TLSError> {
     let handshake_type = bytes1(HandshakeType::EncryptedExtensions as u8);
     let enc_extensions_msg =
@@ -1065,6 +1070,7 @@ pub(crate) fn parse_encrypted_extensions(
             _ => false
         }},
     _ => true})]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn server_certificate(
     _algs: &Algorithms,
     cert: &Bytes,
@@ -1190,6 +1196,7 @@ fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
         }},
     _ => true})]
 #[hax_lib::proverif::replace("")]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<HandshakeData, TLSError> {
     let sv = (match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => Ok(cv.clone()),
@@ -1267,6 +1274,7 @@ pub(crate) fn parse_certificate_verify(
             _ => false
         }},
     _ => true})]
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
 pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
     let finished_msg = HandshakeData::from_bytes(HandshakeType::Finished, vd)?;
 
@@ -1370,9 +1378,15 @@ impl ContentType {
 #[hax_lib::ensures(|result| match result {
                             Result::Ok(d) => (p.0.len() < 65536 && d.len() == 5 + p.0.len()),
                             _ => true})]
-pub(crate) fn handshake_record(p: HandshakeData) -> Result<Bytes, TLSError> {
+#[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
+pub(crate) fn handshake_record(p: HandshakeData, legacy_version_lsb: u8) -> Result<Bytes, TLSError> {
+    // TLS 1.3 records carry a legacy version of 0x0301 for the very first
+    // record (ClientHello, for middlebox compatibility) and 0x0303 for all
+    // subsequent ones. The caller passes the second byte directly so we
+    // never have to mutate the wire bytes after construction — keeping the
+    // shadow's byte-fingerprint stable for `#[traced(serializer)]`.
     let ty = bytes1(ContentType::Handshake as u8);
-    let ver = bytes2(3, 3);
+    let ver = bytes2(3, legacy_version_lsb);
     Ok(ty.concat(ver).concat(encode_length_u16(p.0)?))
 }
 
@@ -1455,22 +1469,20 @@ impl Transcript {
     }
 
     /// Get the hash of this transcript
-    pub(crate) fn transcript_hash(&self) -> Result<Digest, TLSError> {
-        let th = hash(&self.hash_algorithm, &self.transcript.0)?;
-        Ok(th)
+    pub(crate) fn transcript_hash<C: BertieCrypto>(&self, crypto: &C) -> Result<Digest, TLSError> {
+        crypto.hash(&self.hash_algorithm, &self.transcript.0)
     }
 
     /// Get the hash of this transcript without the client hello
-    #[hax_lib::pv_constructor]
     #[hax_lib::requires(trunc_len <= client_hello.len())]
-    pub(crate) fn transcript_hash_without_client_hello(
+    pub(crate) fn transcript_hash_without_client_hello<C: BertieCrypto>(
         &self,
+        crypto: &C,
         client_hello: &HandshakeData,
         trunc_len: usize,
     ) -> Result<Digest, TLSError> {
-        // let Transcript(ha, HandshakeData(tx)) = tx;
-        let HandshakeData(ch) = client_hello;
-        hash(
+        let HandshakeData(_ch) = client_hello;
+        crypto.hash(
             &self.hash_algorithm,
             &self
                 .transcript

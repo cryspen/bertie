@@ -43,11 +43,17 @@ mod tls13keyscheduler;
 mod tls13record;
 pub use tls13keyscheduler::key_schedule::TLSkeyscheduler;
 
+pub mod crypto_provider;
 pub mod server;
 pub mod tls13api;
 pub mod tls13cert;
 pub mod tls13crypto;
 pub mod tls13utils;
+
+#[cfg(feature = "trace")]
+mod trace_impls;
+
+pub use crypto_provider::{BertieCrypto, BertieRand, LibcruxBertieProvider};
 
 pub use tls13api::{Client, Server};
 // Debug exports only

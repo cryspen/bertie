@@ -174,7 +174,7 @@ impl HandshakeData {
 
     /// Returns a new [`HandshakeData`] that contains the bytes of
     /// `other` appended to the bytes of `self`.
-    #[hax_lib::pv_constructor]
+    #[cfg_attr(feature = "trace", symbolic_trace_macros::traced(serializer))]
     pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
         let mut message1 = self.to_bytes();
         let message2 = other.to_bytes();

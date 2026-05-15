@@ -17,7 +17,8 @@ use std::{
 
 use super::bertie_stream::{read_record, BertieError, BertieStream, TlsStream};
 use crate::{
-    tls13crypto::*, tls13keyscheduler::key_schedule::TLSkeyscheduler, tls13utils::*, Client,
+    crypto_provider::LibcruxBertieProvider, tls13crypto::*,
+    tls13keyscheduler::key_schedule::TLSkeyscheduler, tls13utils::*, Client,
 };
 
 pub struct ClientState<Stream: Read + Write> {
@@ -44,7 +45,8 @@ impl<T: Read + Write> TlsStream<T> for ClientState<T> {
             None => return Err(BertieError::InvalidState),
         };
 
-        let (wire_bytes, new_state) = cstate.write(AppData::new(bytes.into()))?;
+        let (wire_bytes, new_state) =
+            cstate.write(&LibcruxBertieProvider, AppData::new(bytes.into()))?;
         self.cstate = Some(new_state);
 
         // Write out the request
@@ -62,7 +64,7 @@ impl<T: Read + Write> TlsStream<T> for ClientState<T> {
         let application_data = loop {
             let record = read_record(&mut self.read_buffer, &mut self.stream)?;
             let ad;
-            (ad, state) = state.read(&record.into())?;
+            (ad, state) = state.read(&LibcruxBertieProvider, &record.into())?;
             match ad {
                 Some(application_data) => break application_data,
                 None => continue,
@@ -138,6 +140,7 @@ impl BertieStream<ClientState<TcpStream>> {
         let (client_hello, cstate) = {
             let sni = self.host.as_bytes();
             Client::connect(
+                &LibcruxBertieProvider,
                 self.ciphersuite,
                 &Bytes::from(sni),
                 None,
@@ -165,7 +168,11 @@ impl BertieStream<ClientState<TcpStream>> {
         }
 
         // Read server hello
-        let cstate = match cstate.read_handshake(&Bytes::from(server_hello), &mut ks) {
+        let cstate = match cstate.read_handshake(
+            &LibcruxBertieProvider,
+            &Bytes::from(server_hello),
+            &mut ks,
+        ) {
             Ok((_, cstate)) => cstate,
             Err(e) => {
                 println!(" >>> ERROR {e}");
@@ -196,7 +203,8 @@ impl BertieStream<ClientState<TcpStream>> {
         while cf_rec.is_none() {
             let rec = read_record(&mut read_buffer, &mut self.state.stream)?;
 
-            let (new_cf_rec, new_cstate) = match cstate.read_handshake(&rec.into(), &mut ks) {
+            let (new_cf_rec, new_cstate) =
+                match cstate.read_handshake(&LibcruxBertieProvider, &rec.into(), &mut ks) {
                 Ok((new_cf_rec, new_cstate)) => (new_cf_rec, new_cstate),
                 Err(e) => {
                     match e {

@@ -1,5 +1,6 @@
 use crate::{
-    tls13crypto::{hkdf_expand, hkdf_extract, hmac_tag, Digest, HashAlgorithm, Key},
+    crypto_provider::BertieCrypto,
+    tls13crypto::{Digest, HashAlgorithm, Key},
     tls13formats::*,
     tls13utils::*,
 };
@@ -9,8 +10,8 @@ use std::vec;
 /* TLS 1.3 Key Schedule: See RFC 8446 Section 7 */
 
 /// HKDF expand with a `label`.
-#[cfg_attr(feature = "hax-pv", hax_lib::pv_constructor)]
-pub(crate) fn hkdf_expand_label(
+pub(crate) fn hkdf_expand_label<C: BertieCrypto>(
+    crypto: &C,
     hash_algorithm: &HashAlgorithm,
     key: &Key,
     label: Bytes,
@@ -25,7 +26,7 @@ pub(crate) fn hkdf_expand_label(
         let info = encode_length_u8(tls13_label.as_raw())?
             .concat(encode_length_u8(context.as_raw())?)
             .prefix(&lenb);
-        hkdf_expand(hash_algorithm, key, &info, len)
+        crypto.hkdf_expand(hash_algorithm, key, &info, len)
     }
 }
 
@@ -241,11 +242,17 @@ pub struct TagKey {
     pub val: Key,
 }
 
-pub(crate) fn xtr_alg(alg: &HashAlgorithm, k1: &Key, k2: &Key) -> Result<Bytes, TLSError> {
-    hkdf_extract(alg, k1, k2)
+pub(crate) fn xtr_alg<C: BertieCrypto>(
+    crypto: &C,
+    alg: &HashAlgorithm,
+    k1: &Key,
+    k2: &Key,
+) -> Result<Bytes, TLSError> {
+    crypto.hkdf_extract(alg, k1, k2)
 }
 
-pub(crate) fn xpd_alg(
+pub(crate) fn xpd_alg<C: BertieCrypto>(
+    crypto: &C,
     alg: &HashAlgorithm,
     k1: &Key,
     label: Bytes,
@@ -253,14 +260,18 @@ pub(crate) fn xpd_alg(
 ) -> Result<Bytes, TLSError> {
     let kvt = convert_label(label.clone());
     if kvt == Some(____________) {
-        hmac_tag(alg, k1, d)
+        crypto.hmac_tag(alg, k1, d)
     } else {
-        hkdf_expand_label(alg, k1, label, d, alg.hash_len())
+        hkdf_expand_label(crypto, alg, k1, label, d, alg.hash_len())
     }
 }
 
-pub(crate) fn xtr(k1: &TagKey, k2: &TagKey) -> Result<TagKey, TLSError> {
-    let val = xtr_alg(&k1.alg, &k1.val, &k2.val)?;
+pub(crate) fn xtr<C: BertieCrypto>(
+    crypto: &C,
+    k1: &TagKey,
+    k2: &TagKey,
+) -> Result<TagKey, TLSError> {
+    let val = xtr_alg(crypto, &k1.alg, &k1.val, &k2.val)?;
 
     Ok(TagKey {
         alg: k1.alg,
@@ -269,10 +280,15 @@ pub(crate) fn xtr(k1: &TagKey, k2: &TagKey) -> Result<TagKey, TLSError> {
     })
 }
 
-pub(crate) fn xpd(k1: &TagKey, label: Bytes, d: &Digest) -> Result<TagKey, TLSError> {
+pub(crate) fn xpd<C: BertieCrypto>(
+    crypto: &C,
+    k1: &TagKey,
+    label: Bytes,
+    d: &Digest,
+) -> Result<TagKey, TLSError> {
     let alg = k1.clone().alg;
     let v = k1.clone().val;
-    let val = xpd_alg(&alg, &v, label, d)?;
+    let val = xpd_alg(crypto, &alg, &v, label, d)?;
 
     Ok(TagKey {
         tag: k1.tag,
@@ -332,26 +348,8 @@ pub fn get_by_handle(ks: &TLSkeyscheduler, handle: &Handle) -> Result<Key, TLSEr
 
 #[allow(non_snake_case)]
 #[allow(clippy::assign_op_pattern)]
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::before(
-        "fun extern__XPD(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data]."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::replace_body(
-        "(extern__XPD(
-              n,
-              l,
-              h1,
-              r,
-              args
-          )
-       )"
-    )
-)]
-pub fn XPD(
+pub fn XPD<C: BertieCrypto>(
+    crypto: &C,
     ks: &mut TLSkeyscheduler,
     n: TLSnames,
     mut l: u8,
@@ -371,6 +369,7 @@ pub fn XPD(
     let k: TagKey = if n == PSK {
         l = l + 1;
         xpd(
+            crypto,
             &TagKey {
                 alg: h1.alg,
                 tag: h1.name,
@@ -382,6 +381,7 @@ pub fn XPD(
     } else {
         let d = TLSkeyscheduler::hash(args);
         xpd(
+            crypto,
             &TagKey {
                 alg: h1.alg,
                 tag: h1.name,
@@ -405,26 +405,9 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
 }
 
 #[allow(non_snake_case)]
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::before(
-        "fun extern__XTR(bitstring, bitstring, bitstring, bitstring): bitstring [data]."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::replace_body(
-        "(extern__XTR(
-              level,
-              name,
-              h1,
-              h2
-          )
-       )"
-    )
-)]
 #[hax_lib::fstar::verification_status(lax)]
-pub(crate) fn XTR(
+pub(crate) fn XTR<C: BertieCrypto>(
+    crypto: &C,
     ks: &mut TLSkeyscheduler,
     level: u8,
     name: TLSnames,
@@ -442,6 +425,7 @@ pub(crate) fn XTR(
         .get(n2_unwrap, level, (h2.name, h2.alg, h2.level))
         .ok_or(INCORRECT_STATE)?;
     let k = xtr(
+        crypto,
         &TagKey {
             alg: h1.alg,
             tag: h1.name,

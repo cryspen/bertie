@@ -26,6 +26,15 @@ libcrux-rsa = { version = "0.0.2" }
 libcrux-ed25519 = { version = "0.0.3-alpha.1" }
 libcrux-ecdsa = { version = "0.0.3-alpha.1", features = ["rand"] }
 hax-lib = { version = "0.3" }
+# Optional: when the `trace` feature is enabled, every serializer in
+# `tls13formats.rs` registers a `Term::Struct { type_name: <fn>, fields:
+# <args> }` against its output bytes' fingerprint via the
+# `symbolic-trace` shadow map. The `bertie-trace-adapter` crate then picks
+# up the rich call terms in `network_sink` events. Builds without this
+# feature pay zero cost.
+symbolic-trace = { path = "/Users/karthik/symbolic-trace/symbolic-trace", optional = true }
+symbolic-trace-macros = { path = "/Users/karthik/symbolic-trace/symbolic-trace-macros", optional = true }
+serde_json = { version = "1", optional = true, default-features = false, features = ["alloc"] }
 
 [features]
 default = ["api", "std", "defensive"]
@@ -36,6 +45,7 @@ secret_integers = []
 api = []
 hax-fstar = []
 hax-pv = []
+trace = ["dep:symbolic-trace", "dep:symbolic-trace-macros", "dep:serde_json", "std"]
 
 [dev-dependencies]
 bertie = { path = ".", features = ["test_utils"] }

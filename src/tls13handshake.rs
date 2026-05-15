@@ -1,10 +1,10 @@
 use rand::CryptoRng;
 
 use crate::{
+    crypto_provider::BertieCrypto,
     server::{lookup_db, ServerDB, ServerInfo, ServerPubInfo},
     tls13cert::{cert_public_key, rsa_public_key, verification_key_from_cert},
     tls13crypto::{
-        hmac_tag, hmac_verify, kem_decap, kem_encap, kem_keygen, sign, sign_rsa, verify,
         Algorithms, Digest, KemSk, MacKey, Psk, Random, SignatureScheme,
     },
     tls13formats::{handshake_data::HandshakeData, *},
@@ -20,8 +20,7 @@ use crate::{
 /* We implement a simple linear state machine:
 PostClientHello -> PostServerHello -> PostCertificateVerify ->
 PostServerFinished -> PostClientFinished
-There are no optional steps, all states must be traversed, even if the traversals are NOOPS.
-See "put_psk_skip_server_signature" below */
+There are no optional steps, all states must be traversed, even if the traversals are NOOPS. */
 
 pub struct ClientPostClientHello(
     Random,
@@ -60,7 +59,6 @@ pub struct ClientPostServerFinished(
     MacKey,
     Transcript,
 );
-// We do not use most of this state, but we keep the unused parts for verification purposes.
 #[allow(dead_code)]
 pub struct ClientPostClientFinished(
     Random,
@@ -123,21 +121,18 @@ pub struct ServerPostCertificateVerify(
     Transcript,
 );
 pub struct ServerPostServerFinished(Random, Random, Algorithms, Handle, MacKey, Transcript);
-// We do not use most of this state, but we keep the unsused parts for verification purposes.
 #[allow(dead_code)]
 pub struct ServerPostClientFinished(Random, Random, Algorithms, Handle, Transcript);
 
-/* Handshake Core Functions: See RFC 8446 Section 4 */
-/* We delegate all details of message formatting and transcript Digestes to the caller */
-
 /* TLS 1.3 Client Side Handshake Functions */
 
-fn build_client_hello(
+fn build_client_hello<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     ciphersuite: Algorithms,
     server_name: &Bytes,
     session_ticket: Option<Bytes>,
     psk: Option<Psk>,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
     ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
@@ -150,7 +145,7 @@ fn build_client_hello(
     let tx = Transcript::new(ciphersuite.hash());
     let mut client_random = [0u8; 32];
     rng.fill_bytes(&mut client_random);
-    let (kem_sk, kem_pk) = kem_keygen(ciphersuite.kem(), rng)?;
+    let (kem_sk, kem_pk) = crypto.kem_keygen(ciphersuite.kem(), rng)?;
     let (client_hello, trunc_len) = client_hello(
         &ciphersuite,
         bytes(&client_random),
@@ -159,7 +154,7 @@ fn build_client_hello(
         &session_ticket,
     )?;
     let (nch, cipher0, tx_ch) =
-        compute_psk_binder_zero_rtt(ciphersuite, client_hello, trunc_len, &psk, tx, ks)?;
+        compute_psk_binder_zero_rtt(crypto, ciphersuite, client_hello, trunc_len, &psk, tx, ks)?;
     Ok((
         nch,
         cipher0,
@@ -180,7 +175,8 @@ fn build_client_hello(
 }
 
 #[hax_lib::requires(trunc_len <= ch.len())]
-fn compute_psk_binder_zero_rtt(
+fn compute_psk_binder_zero_rtt<C: BertieCrypto>(
+    crypto: &C,
     algs0: Algorithms,
     ch: HandshakeData,
     trunc_len: usize,
@@ -205,17 +201,17 @@ fn compute_psk_binder_zero_rtt(
             };
             set_by_handle(ks, &psk_handle, k.clone());
 
-            let th_trunc = tx.transcript_hash_without_client_hello(&ch, trunc_len)?;
-            let mk_handle = derive_binder_key(&ha, &psk_handle, ks)?;
+            let th_trunc = tx.transcript_hash_without_client_hello(crypto, &ch, trunc_len)?;
+            let mk_handle = derive_binder_key(crypto, &ha, &psk_handle, ks)?;
 
-            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
+            let binder_handle = XPD(crypto, ks, Binder, 0, &mk_handle, true, &th_trunc)?;
             let binder = tagkey_from_handle(ks, &binder_handle)?.val;
 
             let nch = set_client_hello_binder(&algs0, &Some(binder), ch, Some(trunc_len))?;
             let tx_ch = tx.add(&nch);
             if zero_rtt {
-                let th = tx_ch.transcript_hash()?;
-                let (aek, handle) = derive_0rtt_keys(&ha, &ae, &psk_handle, &th, ks)?;
+                let th = tx_ch.transcript_hash(crypto)?;
+                let (aek, handle) = derive_0rtt_keys(crypto, &ha, &ae, &psk_handle, &th, ks)?;
                 let key = tagkey_from_handle(ks, &handle)?;
                 let cipher0 = Some(client_cipher_state0(ae, aek, 0, key));
                 Ok((nch, cipher0, tx_ch))
@@ -231,7 +227,8 @@ fn compute_psk_binder_zero_rtt(
     }
 }
 
-fn put_server_hello(
+fn put_server_hello<C: BertieCrypto>(
+    crypto: &C,
     handshake: &HandshakeData,
     state: ClientPostClientHello,
     ks: &mut TLSkeyscheduler,
@@ -240,10 +237,9 @@ fn put_server_hello(
 
     let (sr, ct) = parse_server_hello(&ciphersuite, handshake)?;
     let tx = tx.add(handshake);
-    let shared_secret = kem_decap(ciphersuite.kem, &ct, &sk)?;
-    let th = tx.transcript_hash()?;
+    let shared_secret = crypto.kem_decap(ciphersuite.kem, &ct, &sk)?;
+    let th = tx.transcript_hash(crypto)?;
 
-    // KEM
     let shared_secret_handle = Handle {
         name: KEM,
         alg: ciphersuite.hash,
@@ -251,7 +247,6 @@ fn put_server_hello(
     };
     set_by_handle(ks, &shared_secret_handle, shared_secret);
 
-    // hax-issue: can't use mutating map here
     let psk_handle = match psk {
         Some(bytes) => {
             let handle = Handle {
@@ -266,6 +261,7 @@ fn put_server_hello(
     };
 
     let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
+        crypto,
         &ciphersuite.hash,
         &shared_secret_handle,
         &psk_handle,
@@ -274,6 +270,7 @@ fn put_server_hello(
     )?;
 
     let (chk, shk, cfk, sfk) = derive_hk_ms(
+        crypto,
         &ciphersuite.hash,
         &ciphersuite.aead,
         &ch_handle,
@@ -296,7 +293,8 @@ fn put_server_hello(
     ))
 }
 
-fn put_server_signature(
+fn put_server_signature<C: BertieCrypto>(
+    crypto: &C,
     encrypted_extensions: &HandshakeData,
     server_certificate: &HandshakeData,
     server_certificate_verify: &HandshakeData,
@@ -317,13 +315,13 @@ fn put_server_signature(
         let transcript = transcript.add(encrypted_extensions);
         let certificate = parse_server_certificate(server_certificate)?;
         let transcript = transcript.add(server_certificate);
-        let transcript_hash_server_certificate = transcript.transcript_hash()?;
+        let transcript_hash_server_certificate = transcript.transcript_hash(crypto)?;
         let spki = verification_key_from_cert(&certificate)?;
         let public_key = cert_public_key(&certificate, &spki)?;
         let cert_signature = parse_certificate_verify(&algorithms, server_certificate_verify)?;
         let sigval = (Bytes::from_slice(&PREFIX_SERVER_SIGNATURE))
             .concat(transcript_hash_server_certificate);
-        verify(
+        crypto.verify(
             &algorithms.signature(),
             &public_key,
             &sigval,
@@ -382,7 +380,8 @@ fn put_psk_skip_server_signature(
     }
 }
 
-fn put_server_finished(
+fn put_server_finished<C: BertieCrypto>(
+    crypto: &C,
     server_finished: &HandshakeData,
     handshake_state: ClientPostCertificateVerify,
     ks: &mut TLSkeyscheduler,
@@ -400,23 +399,24 @@ fn put_server_finished(
     let Algorithms {
         hash,
         aead,
-        signature,
-        kem,
-        psk_mode,
-        zero_rtt,
+        signature: _,
+        kem: _,
+        psk_mode: _,
+        zero_rtt: _,
     } = algorithms;
-    let transcript_hash = transcript.transcript_hash()?;
+    let transcript_hash = transcript.transcript_hash(crypto)?;
     let verify_data = parse_finished(server_finished)?;
-    hmac_verify(&hash, &server_finished_key, &transcript_hash, &verify_data)?;
+    crypto.hmac_verify(&hash, &server_finished_key, &transcript_hash, &verify_data)?;
     let transcript = transcript.add(server_finished);
-    let transcript_hash_server_finished = transcript.transcript_hash()?;
+    let transcript_hash_server_finished = transcript.transcript_hash(crypto)?;
     let (ca_handle, sa_handle, exp_handle) = derive_app_handles(
+        crypto,
         &hash,
         &master_secret_handle,
         &transcript_hash_server_finished,
         ks,
     )?;
-    let (cak, sak) = derive_app_keys(&hash, &aead, &ca_handle, &sa_handle, ks)?;
+    let (cak, sak) = derive_app_keys(crypto, &hash, &aead, &ca_handle, &sa_handle, ks)?;
     let exp = tagkey_from_handle(ks, &exp_handle)?;
 
     let cipher1 = duplex_cipher_state1(aead, cak, 0, sak, 0, exp);
@@ -434,7 +434,8 @@ fn put_server_finished(
     ))
 }
 
-fn get_client_finished(
+fn get_client_finished<C: BertieCrypto>(
+    crypto: &C,
     handshake_state: ClientPostServerFinished,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, ClientPostClientFinished), TLSError> {
@@ -447,12 +448,13 @@ fn get_client_finished(
         client_finished_key,
         transcript,
     ) = handshake_state;
-    let transcript_hash = transcript.transcript_hash()?;
-    let verify_data = hmac_tag(&algorithms.hash(), &client_finished_key, &transcript_hash)?;
+    let transcript_hash = transcript.transcript_hash(crypto)?;
+    let verify_data = crypto.hmac_tag(&algorithms.hash(), &client_finished_key, &transcript_hash)?;
     let client_finished = finished(&verify_data)?;
     let transcript = transcript.add(&client_finished);
-    let transcript_hash = transcript.transcript_hash()?;
+    let transcript_hash = transcript.transcript_hash(crypto)?;
     let resumption_master_secret = derive_rms(
+        crypto,
         &algorithms.hash(),
         &master_secret_handle,
         &transcript_hash,
@@ -471,17 +473,15 @@ fn get_client_finished(
     ))
 }
 
-// Client-Side Handshake API: Usable by Quic and TLS
-// client_init -> (encrypt_zerortt)* ->
-// client_set_params -> (encrypt_handshake | decrypt_handshake)* ->
-// client_finish -> (encrypt_data | decrypt_data)*
+// Client-Side Handshake API.
 
-pub fn client_init(
+pub fn client_init<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     algs: Algorithms,
     sn: &Bytes,
     tkt: Option<Bytes>,
     psk: Option<Psk>,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
     ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
@@ -491,19 +491,20 @@ pub fn client_init(
     ),
     TLSError,
 > {
-    build_client_hello(algs, sn, tkt, psk, rng, ks)
+    build_client_hello(crypto, algs, sn, tkt, psk, rng, ks)
 }
 
-/// Update the client state after generating the client hello message.
-pub(crate) fn client_set_params(
+pub(crate) fn client_set_params<C: BertieCrypto>(
+    crypto: &C,
     payload: &HandshakeData,
     st: ClientPostClientHello,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(DuplexCipherStateH, ClientPostServerHello), TLSError> {
-    put_server_hello(payload, st, ks)
+    put_server_hello(crypto, payload, st, ks)
 }
 
-pub fn client_finish(
+pub fn client_finish<C: BertieCrypto>(
+    crypto: &C,
     payload: &HandshakeData,
     handshake_state: ClientPostServerHello,
     ks: &mut TLSkeyscheduler,
@@ -517,25 +518,34 @@ pub fn client_finish(
                 server_finished,
             ) = payload.to_four()?;
             let client_state_certificate_verify = put_server_signature(
+                crypto,
                 &encrypted_extensions,
                 &server_certificate,
                 &server_certificate_verify,
                 handshake_state,
             )?;
-            let (cipher, client_state_server_finished) =
-                put_server_finished(&server_finished, client_state_certificate_verify, ks)?;
+            let (cipher, client_state_server_finished) = put_server_finished(
+                crypto,
+                &server_finished,
+                client_state_certificate_verify,
+                ks,
+            )?;
             let (client_finished, client_state) =
-                get_client_finished(client_state_server_finished, ks)?;
+                get_client_finished(crypto, client_state_server_finished, ks)?;
             Ok((client_finished, cipher, client_state))
         }
         true => {
             let (encrypted_extensions, server_finished) = payload.to_two()?;
             let client_state_certificate_verify =
                 put_psk_skip_server_signature(&encrypted_extensions, handshake_state)?;
-            let (cipher, client_state_server_finished) =
-                put_server_finished(&server_finished, client_state_certificate_verify, ks)?;
+            let (cipher, client_state_server_finished) = put_server_finished(
+                crypto,
+                &server_finished,
+                client_state_certificate_verify,
+                ks,
+            )?;
             let (client_finished, client_state) =
-                get_client_finished(client_state_server_finished, ks)?;
+                get_client_finished(crypto, client_state_server_finished, ks)?;
             Ok((client_finished, cipher, client_state))
         }
     }
@@ -543,7 +553,8 @@ pub fn client_finish(
 
 /* TLS 1.3 Server Side Handshake Functions */
 
-fn put_client_hello(
+fn put_client_hello<C: BertieCrypto>(
+    crypto: &C,
     ciphersuite: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
@@ -552,12 +563,19 @@ fn put_client_hello(
     let (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) =
         parse_client_hello(&ciphersuite, ch)?;
     let tx = Transcript::new(ciphersuite.hash());
-    let th_trunc = tx.transcript_hash_without_client_hello(ch, trunc_len)?;
+    let th_trunc = tx.transcript_hash_without_client_hello(crypto, ch, trunc_len)?;
     let transcript = tx.add(ch);
-    let th = transcript.transcript_hash()?;
+    let th = transcript.transcript_hash(crypto)?;
     let server = lookup_db(ciphersuite, &db, &sni, &tkto)?;
-    let cipher0 =
-        process_psk_binder_zero_rtt(ciphersuite, th_trunc, th, &server.psk_opt, bindero, ks)?;
+    let cipher0 = process_psk_binder_zero_rtt(
+        crypto,
+        ciphersuite,
+        th_trunc,
+        th,
+        &server.psk_opt,
+        bindero,
+        ks,
+    )?;
     Ok((
         cipher0,
         ServerPostClientHello {
@@ -572,7 +590,8 @@ fn put_client_hello(
 }
 
 /// Process the PSK binder for 0-RTT
-fn process_psk_binder_zero_rtt(
+fn process_psk_binder_zero_rtt<C: BertieCrypto>(
+    crypto: &C,
     ciphersuite: Algorithms,
     th_trunc: Digest,
     th: Digest,
@@ -581,7 +600,8 @@ fn process_psk_binder_zero_rtt(
     ks: &mut TLSkeyscheduler,
 ) -> Result<Option<ServerCipherState0>, TLSError> {
     match (ciphersuite.psk_mode, psko, bindero) {
-        (true, Some(k), Some(binder)) => {
+        (true, Some(k), Some(binder_in)) => {
+            let _ = binder_in;
             let psk_handle = Handle {
                 name: PSK,
                 alg: ciphersuite.hash,
@@ -589,16 +609,22 @@ fn process_psk_binder_zero_rtt(
             };
             set_by_handle(ks, &psk_handle, k.clone());
 
-            let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
+            let mk_handle = derive_binder_key(crypto, &ciphersuite.hash, &psk_handle, ks)?;
             let mk = tagkey_from_handle(ks, &mk_handle)?.val;
 
-            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
+            let binder_handle = XPD(crypto, ks, Binder, 0, &mk_handle, true, &th_trunc)?;
             let binder = tagkey_from_handle(ks, &binder_handle)?.val;
 
-            hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
+            crypto.hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
-                let (key_iv, early_exporter_ms_handle) =
-                    derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_handle, &th, ks)?;
+                let (key_iv, early_exporter_ms_handle) = derive_0rtt_keys(
+                    crypto,
+                    &ciphersuite.hash,
+                    &ciphersuite.aead,
+                    &psk_handle,
+                    &th,
+                    ks,
+                )?;
                 let early_exporter_ms = tagkey_from_handle(ks, &early_exporter_ms_handle)?;
                 Ok(Some(server_cipher_state0(key_iv, 0, early_exporter_ms)))
             } else {
@@ -610,16 +636,16 @@ fn process_psk_binder_zero_rtt(
     }
 }
 
-fn get_server_hello(
+fn get_server_hello<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     state: ServerPostClientHello,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, DuplexCipherStateH, ServerPostServerHello), TLSError> {
     let mut server_random = [0u8; 32];
     rng.fill_bytes(&mut server_random);
-    let (shared_secret, gy) = kem_encap(state.ciphersuite.kem, &state.gx, rng)?;
+    let (shared_secret, gy) = crypto.kem_encap(state.ciphersuite.kem, &state.gx, rng)?;
 
-    // KEM
     let shared_secret_handle = Handle {
         name: KEM,
         alg: state.ciphersuite.hash,
@@ -634,9 +660,8 @@ fn get_server_hello(
         &gy,
     )?;
     let transcript = state.transcript.add(&sh);
-    let transcript_hash = transcript.transcript_hash()?;
+    let transcript_hash = transcript.transcript_hash(crypto)?;
 
-    // hax-issue: can't use mutating map here
     let psk_handle = state.server.psk_opt.clone();
     let psk_handle = match psk_handle {
         Some(bytes) => {
@@ -652,6 +677,7 @@ fn get_server_hello(
     };
 
     let (ch_handle, sh_handle, ms_handle) = derive_hk_handles(
+        crypto,
         &state.ciphersuite.hash,
         &shared_secret_handle,
         &psk_handle,
@@ -660,6 +686,7 @@ fn get_server_hello(
     )?;
 
     let (chk, shk, cfk, sfk) = derive_hk_ms(
+        crypto,
         &state.ciphersuite.hash,
         &state.ciphersuite.aead,
         &ch_handle,
@@ -682,34 +709,22 @@ fn get_server_hello(
     ))
 }
 
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::replace_body(
-        "(
-              extern__sign_inner_rsa(
-                  sk,
-                  sigval
-               )
-         )"
-    )
-)]
-fn get_rsa_signature(
+fn get_rsa_signature<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     cert: &Bytes,
     sk: &Bytes,
     sigval: &Bytes,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
 ) -> Result<Bytes, TLSError> {
-    // To avoid cyclic dependencies between the modules we pull out
-    // the values from the RSA certificate here.
-    // We could really read this from the key as well.
     let (cert_scheme, cert_slice) = verification_key_from_cert(cert)?;
     let pk = rsa_public_key(cert, cert_slice)?;
-    sign_rsa(sk, &pk.modulus, &pk.exponent, cert_scheme, sigval, rng)
+    crypto.sign_rsa(sk, &pk.modulus, &pk.exponent, cert_scheme, sigval, rng)
 }
 
-fn get_server_signature_no_psk(
+fn get_server_signature_no_psk<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     state: ServerPostServerHello,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
 ) -> Result<
     (
         HandshakeData,
@@ -723,17 +738,17 @@ fn get_server_signature_no_psk(
     let transcript = state.transcript.add(&ee);
     let sc = server_certificate(&state.ciphersuite, &state.server.cert)?;
     let transcript = transcript.add(&sc);
-    let transcript_hash = transcript.transcript_hash()?;
+    let transcript_hash = transcript.transcript_hash(crypto)?;
     let sigval = Bytes::from_slice(&PREFIX_SERVER_SIGNATURE).concat(transcript_hash);
     let sig = (match state.ciphersuite.signature() {
-        SignatureScheme::EcdsaSecp256r1Sha256 => sign(
+        SignatureScheme::EcdsaSecp256r1Sha256 => crypto.sign(
             &state.ciphersuite.signature(),
             &state.server.sk,
             &sigval,
             rng,
         ),
         SignatureScheme::RsaPssRsaSha256 => {
-            get_rsa_signature(&state.server.cert, &state.server.sk, &sigval, rng)
+            get_rsa_signature(crypto, &state.server.cert, &state.server.sk, &sigval, rng)
         }
         SignatureScheme::ED25519 => Err(UNSUPPORTED_ALGORITHM),
     })?;
@@ -755,9 +770,10 @@ fn get_server_signature_no_psk(
     ))
 }
 
-fn get_server_signature(
+fn get_server_signature<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     state: ServerPostServerHello,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
 ) -> Result<
     (
         HandshakeData,
@@ -768,7 +784,7 @@ fn get_server_signature(
     TLSError,
 > {
     if !state.ciphersuite.psk_mode() {
-        get_server_signature_no_psk(state, rng)
+        get_server_signature_no_psk(crypto, state, rng)
     } else {
         Err(PSK_MODE_MISMATCH)
     }
@@ -781,7 +797,7 @@ fn get_skip_server_signature_no_psk(
         client_random: cr,
         server_random: sr,
         ciphersuite: algs,
-        server,
+        server: _,
         master_secret: ms,
         cfk,
         sfk,
@@ -798,24 +814,15 @@ fn get_skip_server_signature_no_psk(
 fn get_skip_server_signature(
     st: ServerPostServerHello,
 ) -> Result<(HandshakeData, ServerPostCertificateVerify), TLSError> {
-    let ServerPostServerHello {
-        client_random: cr,
-        server_random: sr,
-        ciphersuite: algs,
-        server,
-        master_secret: ms,
-        cfk,
-        sfk,
-        transcript: tx,
-    } = &st;
-    if algs.psk_mode() {
+    if st.ciphersuite.psk_mode() {
         get_skip_server_signature_no_psk(st)
     } else {
         Err(PSK_MODE_MISMATCH)
     }
 }
 
-fn get_server_finished(
+fn get_server_finished<C: BertieCrypto>(
+    crypto: &C,
     st: ServerPostCertificateVerify,
     ks: &mut TLSkeyscheduler,
 ) -> Result<(HandshakeData, DuplexCipherState1, ServerPostServerFinished), TLSError> {
@@ -823,18 +830,19 @@ fn get_server_finished(
     let Algorithms {
         hash: ha,
         aead: ae,
-        signature: _sa,
-        kem: _gn,
-        psk_mode: _psk_mode,
-        zero_rtt: _zero_rtt,
+        signature: _,
+        kem: _,
+        psk_mode: _,
+        zero_rtt: _,
     } = algs;
-    let th_scv = tx.transcript_hash()?;
-    let vd = hmac_tag(&ha, &sfk, &th_scv)?;
+    let th_scv = tx.transcript_hash(crypto)?;
+    let vd = crypto.hmac_tag(&ha, &sfk, &th_scv)?;
     let sfin = finished(&vd)?;
     let tx = tx.add(&sfin);
-    let th_sfin = tx.transcript_hash()?;
-    let (ca_handle, sa_handle, exp_handle) = derive_app_handles(&ha, &ms_handle, &th_sfin, ks)?;
-    let (cak, sak) = derive_app_keys(&ha, &ae, &ca_handle, &sa_handle, ks)?;
+    let th_sfin = tx.transcript_hash(crypto)?;
+    let (ca_handle, sa_handle, exp_handle) =
+        derive_app_handles(crypto, &ha, &ms_handle, &th_sfin, ks)?;
+    let (cak, sak) = derive_app_keys(crypto, &ha, &ae, &ca_handle, &sa_handle, ks)?;
     let exp = tagkey_from_handle(ks, &exp_handle)?;
     let cipher1 = duplex_cipher_state1(ae, sak, 0, cak, 0, exp);
     Ok((
@@ -844,31 +852,31 @@ fn get_server_finished(
     ))
 }
 
-fn put_client_finished(
+fn put_client_finished<C: BertieCrypto>(
+    crypto: &C,
     cfin: &HandshakeData,
     st: ServerPostServerFinished,
     ks: &mut TLSkeyscheduler,
 ) -> Result<ServerPostClientFinished, TLSError> {
     let ServerPostServerFinished(cr, sr, algs, ms, cfk, tx) = st;
-    let th = tx.transcript_hash()?;
+    let th = tx.transcript_hash(crypto)?;
     let vd = parse_finished(cfin)?;
-    hmac_verify(&algs.hash(), &cfk, &th, &vd)?;
+    crypto.hmac_verify(&algs.hash(), &cfk, &th, &vd)?;
     let tx = tx.add(cfin);
-    let th = tx.transcript_hash()?;
-    let rms = derive_rms(&algs.hash(), &ms, &th, ks)?;
+    let th = tx.transcript_hash(crypto)?;
+    let rms = derive_rms(crypto, &algs.hash(), &ms, &th, ks)?;
     Ok(ServerPostClientFinished(cr, sr, algs, rms, tx))
 }
 
-// Server-Side Handshake API: Usable by Quic and TLS
-// server_init -> (decrypt_zerortt)* | (encrypt_handshake | decrypt_handshake)* ->
-// server_finish -> (encrypt_data | decrypt_data)*
+// Server-Side Handshake API.
 
 #[allow(clippy::type_complexity)]
-pub fn server_init_no_psk(
+pub fn server_init_no_psk<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
     ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
@@ -881,21 +889,22 @@ pub fn server_init_no_psk(
     ),
     TLSError,
 > {
-    let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
-    let (sh, cipher_hs, st) = get_server_hello(st, rng, ks)?;
+    let (cipher0, st) = put_client_hello(crypto, algs, ch, db, ks)?;
+    let (sh, cipher_hs, st) = get_server_hello(crypto, st, rng, ks)?;
 
-    let (ee, sc, scv, st) = get_server_signature(st, rng)?;
-    let (sfin, cipher1, st) = get_server_finished(st, ks)?;
+    let (ee, sc, scv, st) = get_server_signature(crypto, st, rng)?;
+    let (sfin, cipher1, st) = get_server_finished(crypto, st, ks)?;
     let flight = ee.concat(&sc).concat(&scv).concat(&sfin);
     Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
 }
 
 #[allow(clippy::type_complexity)]
-pub fn server_init_psk(
+pub fn server_init_psk<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
     ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
@@ -908,22 +917,23 @@ pub fn server_init_psk(
     ),
     TLSError,
 > {
-    let (cipher0, st) = put_client_hello(algs, ch, db, ks)?;
-    let (sh, cipher_hs, st) = get_server_hello(st, rng, ks)?;
+    let (cipher0, st) = put_client_hello(crypto, algs, ch, db, ks)?;
+    let (sh, cipher_hs, st) = get_server_hello(crypto, st, rng, ks)?;
 
     let (ee, st) = get_skip_server_signature(st)?;
-    let (sfin, cipher1, st) = get_server_finished(st, ks)?;
+    let (sfin, cipher1, st) = get_server_finished(crypto, st, ks)?;
     let flight = ee.concat(&sfin);
 
     Ok((sh, flight, cipher0, cipher_hs, cipher1, st))
 }
 
 #[allow(clippy::type_complexity)]
-pub fn server_init(
+pub fn server_init<C: BertieCrypto, R: CryptoRng>(
+    crypto: &C,
     algs: Algorithms,
     ch: &HandshakeData,
     db: ServerDB,
-    rng: &mut impl CryptoRng,
+    rng: &mut R,
     ks: &mut TLSkeyscheduler,
 ) -> Result<
     (
@@ -937,28 +947,26 @@ pub fn server_init(
     TLSError,
 > {
     match algs.psk_mode() {
-        false => server_init_no_psk(algs, ch, db, rng, ks),
-        true => server_init_psk(algs, ch, db, rng, ks),
+        false => server_init_no_psk(crypto, algs, ch, db, rng, ks),
+        true => server_init_psk(crypto, algs, ch, db, rng, ks),
     }
 }
 
-pub fn server_finish(
+pub fn server_finish<C: BertieCrypto>(
+    crypto: &C,
     cf: &HandshakeData,
     st: ServerPostServerFinished,
     ks: &mut TLSkeyscheduler,
 ) -> Result<ServerPostClientFinished, TLSError> {
-    put_client_finished(cf, st, ks)
+    put_client_finished(crypto, cf, st, ks)
 }
 
 #[cfg(feature = "hax-pv")]
-/// This module exists only to guide hax towards extracting the
-/// definitions it depends on earlier that they would normally be
-/// extracted.
 mod proverif_extra {
     use crate::tls13utils::Bytes;
 
     #[hax_lib::proverif::replace("")]
     fn f() {
-        let b = Bytes::new();
+        let _b = Bytes::new();
     }
 }
