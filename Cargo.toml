@@ -32,8 +32,8 @@ hax-lib = { version = "0.3" }
 # `symbolic-trace` shadow map. The `bertie-trace-adapter` crate then picks
 # up the rich call terms in `network_sink` events. Builds without this
 # feature pay zero cost.
-symbolic-trace = { path = "/Users/karthik/symbolic-trace/symbolic-trace", optional = true }
-symbolic-trace-macros = { path = "/Users/karthik/symbolic-trace/symbolic-trace-macros", optional = true }
+symbolic-trace = { git = "https://github.com/cryspen/symbolic-tracing", branch = "main", optional = true }
+symbolic-trace-macros = { git = "https://github.com/cryspen/symbolic-tracing", branch = "main", optional = true }
 serde_json = { version = "1", optional = true, default-features = false, features = ["alloc"] }
 # Bertie's trace_impls.rs ships hand-written `Serialize` impls for `Bytes`
 # and `HandshakeData` so the symbolic-trace macro's byte-path walker can
