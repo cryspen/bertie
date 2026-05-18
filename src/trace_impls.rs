@@ -9,8 +9,10 @@
 //! rich call term instead of an opaque `Literal`.
 
 use std::format;
+use std::vec;
 use std::vec::Vec;
 
+use symbolic_trace::label::MemberLabel;
 use symbolic_trace::term::Term;
 use symbolic_trace::trace_arg::{TraceArg, TraceOutput};
 
@@ -27,17 +29,27 @@ fn bytes_to_term(raw: &[u8]) -> Term {
         .unwrap_or_else(|| Term::literal_from_bytes(raw))
 }
 
+fn bytes_producer(raw: &[u8]) -> Option<MemberLabel> {
+    symbolic_trace::session::with_session(|s| s.shadow.producer(raw)).flatten()
+}
+
 // ---------- TraceArg impls (byte-shaped values) ----------
 
 impl TraceArg for Bytes {
     fn trace_term(&self) -> Term {
         bytes_to_term(&self.declassify())
     }
+    fn trace_producer(&self) -> Option<MemberLabel> {
+        bytes_producer(&self.declassify())
+    }
 }
 
 impl TraceArg for HandshakeData {
     fn trace_term(&self) -> Term {
         bytes_to_term(&self.to_bytes().declassify())
+    }
+    fn trace_producer(&self) -> Option<MemberLabel> {
+        bytes_producer(&self.to_bytes().declassify())
     }
 }
 
@@ -107,17 +119,20 @@ impl TraceArg for AeadKey {
     fn trace_term(&self) -> Term {
         bytes_to_term(&self.bytes().declassify())
     }
+    fn trace_producer(&self) -> Option<MemberLabel> {
+        bytes_producer(&self.bytes().declassify())
+    }
 }
 
 impl TraceArg for crate::tls13crypto::AeadKeyIV {
     fn trace_term(&self) -> Term {
-        let mut fields = Vec::with_capacity(2);
-        fields.push((format!("key"), bytes_to_term(&self.key.bytes().declassify())));
-        fields.push((format!("iv"), bytes_to_term(&self.iv.declassify())));
-        Term::Struct {
-            type_name: format!("AeadKeyIV"),
-            fields,
-        }
+        Term::struct_call(
+            "AeadKeyIV",
+            vec![
+                ("key".into(), bytes_to_term(&self.key.bytes().declassify())),
+                ("iv".into(), bytes_to_term(&self.iv.declassify())),
+            ],
+        )
     }
 }
 
@@ -140,5 +155,26 @@ impl TraceOutput for Bytes {
 impl TraceOutput for HandshakeData {
     fn trace_output_bytes(&self) -> Option<Vec<u8>> {
         Some(self.to_bytes().declassify())
+    }
+}
+
+// ---------- Serialize impls (for the symbolic mode's byte-path walker) ----------
+//
+// `Bytes` and `HandshakeData` are the byte-shaped types Bertie returns
+// from `BertieCrypto` methods. The macro's output probe walks the result
+// via `serde::Serialize` to find byte sub-paths; Bertie's own types don't
+// derive Serialize (they wrap `Vec<U8>` for secret-handling reasons), so
+// we provide trace-feature-gated impls that simply serialize the
+// declassified byte vec.
+
+impl serde::Serialize for Bytes {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        self.declassify().serialize(s)
+    }
+}
+
+impl serde::Serialize for HandshakeData {
+    fn serialize<S: serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        self.to_bytes().declassify().serialize(s)
     }
 }
