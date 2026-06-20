@@ -1,0 +1,26 @@
+(*****************************************************************)
+(* missingdecl.pvl — UNDEFINED externals referenced by lib.pvl   *)
+(*                                                               *)
+(* DIAGNOSTIC, not part of the model. Each symbol below is       *)
+(* referenced by lib.pvl but has no definition (and is not in    *)
+(* primitives.pvl). Supply a real one by hand, or by extracting  *)
+(* the crate that owns it (e.g. a separately-extracted           *)
+(* dependency). Declared WITHOUT `[data]` because the real       *)
+(* nature (one-way fun / data constructor / letfun) is unknown.  *)
+(* GOAL: this file is EMPTY.                                     *)
+(*****************************************************************)
+fun bertie__tls13crypto__Impl_16__hmac_algorithm(bitstring): bitstring.
+fun bertie__tls13crypto__Impl_16__libcrux_algorithm(bitstring): bitstring.
+fun bertie__tls13formats__handshake_data__Impl_5__to_bytes(bitstring): bitstring.
+fun bertie__tls13keyscheduler__key_schedule__KeySchedule__get_kw(bitstring, bitstring, bitstring, bitstring): bitstring.
+fun bertie__tls13keyscheduler__key_schedule__KeySchedule__set_kw(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring.
+fun bertie__tls13keyscheduler__next_keys_c_2(bitstring, bitstring, bitstring, bitstring): bitstring.
+const bertie__tls13utils__INCORRECT_STATE: bitstring.
+fun bertie__tls13utils__Impl_17__declassify(bitstring): bitstring.
+fun bertie__tls13utils__Impl_23__extend_from_slice(bitstring, bitstring): bitstring.
+fun bertie__tls13utils__Impl_23__slice_range(bitstring, bitstring): bitstring.
+fun bertie__tls13utils__U8(bitstring): bitstring.
+fun core__option__Impl__ok_or(bitstring, bitstring): bitstring.
+fun libcrux_hmac__hmac(bitstring, bitstring, bitstring, bitstring): bitstring.
+fun libcrux_sha2__impl_hacl__Impl_1__hash(bitstring, bitstring, bitstring): bitstring.
+fun libcrux_sha2__impl_hacl__Impl__hash_len(bitstring): bitstring.

@@ -9,34 +9,15 @@
   `True`/`False`/`nat_lit` constructors, `logical_and`/`or`, and
   every `rust_primitives::*` / `core::*` / `hax_lib::*` opaque
   function the extraction surface needs.
-*)
 
-(*****************************************)
-(* Auto-declared external symbols        *)
-(*****************************************)
-fun alloc__vec__Impl__new_kw(bitstring): bitstring [data].
-fun alloc__vec__from_elem(bitstring, bitstring): bitstring [data].
-fun bertie__tls13crypto__Impl_16__hmac_algorithm(bitstring): bitstring [data].
-fun bertie__tls13crypto__Impl_16__libcrux_algorithm(bitstring): bitstring [data].
-fun bertie__tls13formats__handshake_data__Impl_5__to_bytes(bitstring): bitstring [data].
-fun bertie__tls13keyscheduler__key_schedule__KeySchedule__get_kw(bitstring, bitstring, bitstring, bitstring): bitstring [data].
-fun bertie__tls13keyscheduler__key_schedule__KeySchedule__set_kw(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data].
-fun bertie__tls13keyscheduler__next_keys_c_2(bitstring, bitstring, bitstring, bitstring): bitstring [data].
-const bertie__tls13utils__INCORRECT_STATE: bitstring.
-fun bertie__tls13utils__Impl_17__declassify(bitstring): bitstring [data].
-fun bertie__tls13utils__Impl_23__extend_from_slice(bitstring, bitstring): bitstring [data].
-fun bertie__tls13utils__Impl_23__slice_range(bitstring, bitstring): bitstring [data].
-fun bertie__tls13utils__U8(bitstring): bitstring [data].
-fun core__clone__Clone__clone(bitstring): bitstring [data].
-fun core__ops__range__Range__Range(bitstring, bitstring): bitstring [data].
-fun core__option__Impl__ok_or(bitstring, bitstring): bitstring [data].
-const core__option__Option__None: bitstring.
-fun core__option__Option__Some(bitstring): bitstring [data].
-fun core__result__Result__Err(bitstring): bitstring [data].
-fun core__result__Result__Ok(bitstring): bitstring [data].
-fun libcrux_hmac__hmac(bitstring, bitstring, bitstring, bitstring): bitstring [data].
-fun libcrux_sha2__impl_hacl__Impl_1__hash(bitstring, bitstring, bitstring): bitstring [data].
-fun libcrux_sha2__impl_hacl__Impl__hash_len(bitstring): bitstring [data].
+  Any symbol this file references but does NOT define, and that is
+  not in `primitives.pvl`, is listed in the companion
+  `missingdecl.pvl`. That file is a DIAGNOSTIC, not part of the
+  model: each entry must be supplied by hand or by another crate's
+  extraction (e.g. a separately-extracted dependency). The goal is
+  for `missingdecl.pvl` to be EMPTY — anything in it is a reachable
+  definition that was silently stubbed out.
+*)
 
 const bertie__tls13utils__UNSUPPORTED_ALGORITHM: bitstring.
 const bertie__tls13utils__PSK_MODE_MISMATCH: bitstring.
@@ -85,7 +66,7 @@ reduc forall bertie__tls13formats__handshake_data__HandshakeData__HandshakeData_
 (* marked as constructor *)
 fun bertie__tls13formats__handshake_data__to_bytes_inner(bitstring): bitstring [data].
 letfun bertie__tls13formats__handshake_data__Impl_5__len(self: bitstring) =
-(0).
+nat_lit(0).
 (* marked as constructor *)
 fun bertie__tls13formats__handshake_data__Impl_5__concat(bitstring,
 bitstring): bitstring [data].
@@ -2314,8 +2295,7 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   u_sa: bitstring,
   u_ks: bitstring,
   psk_mode: bitstring,
-  zero_rtt: bitstring) = (algs0) in (let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  hax_temp_output: bitstring) = (let rust_primitives__hax__Tuple3__Tuple3((=True()),
+  zero_rtt: bitstring) = (algs0) in (let rust_primitives__hax__Tuple3__Tuple3((=True()),
   Some(k),
   wildcard: bitstring) = rust_primitives__hax__Tuple3__Tuple3(psk_mode,
   psk,
@@ -2360,27 +2340,30 @@ let bertie__tls13crypto__Algorithms__Algorithms(ha: bitstring,
   aek,
   nat_lit(0),
   key))) in
-  rust_primitives__hax__Tuple2__Tuple2(ks,
-  rust_primitives__hax__Tuple3__Tuple3(nch,
+  let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(nch,
   cipher0,
-  tx_ch)))
-  else bitstring_err()) else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(ks,
-  rust_primitives__hax__Tuple3__Tuple3(nch,
+  tx_ch)) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err()) else (let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(nch,
   None(),
-  tx_ch)))) else bitstring_err()) else bitstring_err())
+  tx_ch)) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))) else bitstring_err()) else bitstring_err())
   else let rust_primitives__hax__Tuple3__Tuple3((=False()),
   None(),
   (=nat_lit(0))) = rust_primitives__hax__Tuple3__Tuple3(psk_mode,
   psk,
   trunc_len) in (let tx_ch = (bertie__tls13formats__Impl_20__add(tx,
   ch)) in
-  rust_primitives__hax__Tuple2__Tuple2(ks,
-  rust_primitives__hax__Tuple3__Tuple3(ch,
+  let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(ch,
   None(),
-  tx_ch)))
-  else rust_primitives__hax__Tuple2__Tuple2(ks,
-  bitstring_err())) in (rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)) else bitstring_err()) else bitstring_err().
+  tx_ch)) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))
+  else let hax_temp_output = (bitstring_err()) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output)) else bitstring_err().
 letfun bertie__tls13handshake__build_client_hello(ciphersuite: bitstring,
 server_name: bitstring,
 session_ticket: bitstring,
@@ -2669,8 +2652,7 @@ let rust_primitives__hax__Tuple2__Tuple2(tmp0: bitstring,
 letfun bertie__tls13handshake__client_finish(payload: bitstring,
 handshake_state: bitstring,
 ks: bitstring) =
-let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  hax_temp_output: bitstring) = (let (=False()) = bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__algs_post_server_hello(handshake_state)) in (let rust_primitives__hax__Tuple4__Tuple4(encrypted_extensions: bitstring,
+let (=False()) = bertie__tls13crypto__Impl_38__psk_mode(bertie__tls13handshake__algs_post_server_hello(handshake_state)) in (let rust_primitives__hax__Tuple4__Tuple4(encrypted_extensions: bitstring,
   server_certificate: bitstring,
   server_certificate_verify: bitstring,
   server_finished: bitstring) = bertie__tls13formats__handshake_data__Impl_5__to_four(payload) in (let client_state_certificate_verify = bertie__tls13handshake__put_server_signature(encrypted_extensions,
@@ -2687,10 +2669,11 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   ks)) in (let ks = (tmp0) in
   let hoist26 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(client_finished: bitstring,
-  client_state: bitstring) = hoist26 in (rust_primitives__hax__Tuple2__Tuple2(ks,
-  rust_primitives__hax__Tuple3__Tuple3(client_finished,
+  client_state: bitstring) = hoist26 in (let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(client_finished,
   cipher,
-  client_state)))
+  client_state)) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))
   else bitstring_err()) else bitstring_err())
   else bitstring_err()) else bitstring_err())
   else bitstring_err())
@@ -2707,23 +2690,22 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   ks)) in (let ks = (tmp0) in
   let hoist28 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(client_finished: bitstring,
-  client_state: bitstring) = hoist28 in (rust_primitives__hax__Tuple2__Tuple2(ks,
-  rust_primitives__hax__Tuple3__Tuple3(client_finished,
+  client_state: bitstring) = hoist28 in (let hax_temp_output = (rust_primitives__hax__Tuple3__Tuple3(client_finished,
   cipher,
-  client_state)))
+  client_state)) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))
   else bitstring_err()) else bitstring_err())
   else bitstring_err()) else bitstring_err())
   else bitstring_err())
-  else bitstring_err()) in (rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)) else bitstring_err().
+  else bitstring_err().
 letfun bertie__tls13handshake__process_psk_binder_zero_rtt(ciphersuite: bitstring,
 th_trunc: bitstring,
 th: bitstring,
 psko: bitstring,
 bindero: bitstring,
 ks: bitstring) =
-let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
-  hax_temp_output: bitstring) = (let rust_primitives__hax__Tuple3__Tuple3((=True()),
+let rust_primitives__hax__Tuple3__Tuple3((=True()),
   Some(k),
   Some(binder)) = rust_primitives__hax__Tuple3__Tuple3(bertie__tls13crypto__Algorithms__Algorithms__psk_mode(ciphersuite),
   psko,
@@ -2762,21 +2744,24 @@ let rust_primitives__hax__Tuple2__Tuple2(ks: bitstring,
   let hoist34 = (out_kw) in
   let rust_primitives__hax__Tuple2__Tuple2(key_iv: bitstring,
   early_exporter_ms_handle: bitstring) = hoist34 in (let early_exporter_ms = bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(ks,
-  early_exporter_ms_handle) in rust_primitives__hax__Tuple2__Tuple2(ks,
-  Some(bertie__tls13record__server_cipher_state0(key_iv,
+  early_exporter_ms_handle) in let hax_temp_output = (Some(bertie__tls13record__server_cipher_state0(key_iv,
   nat_lit(0),
-  early_exporter_ms))))
-  else bitstring_err()) else bitstring_err()) else (rust_primitives__hax__Tuple2__Tuple2(ks,
-  None()))) else bitstring_err()) else bitstring_err())
+  early_exporter_ms))) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))
+  else bitstring_err()) else bitstring_err()) else (let hax_temp_output = (None()) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))) else bitstring_err()) else bitstring_err())
   else let rust_primitives__hax__Tuple3__Tuple3((=False()),
   None(),
   None()) = rust_primitives__hax__Tuple3__Tuple3(bertie__tls13crypto__Algorithms__Algorithms__psk_mode(ciphersuite),
   psko,
-  bindero) in (rust_primitives__hax__Tuple2__Tuple2(ks,
-  None()))
-  else rust_primitives__hax__Tuple2__Tuple2(ks,
-  bitstring_err())) in (rust_primitives__hax__Tuple2__Tuple2(ks,
-  hax_temp_output)) else bitstring_err().
+  bindero) in (let hax_temp_output = (None()) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output))
+  else let hax_temp_output = (bitstring_err()) in
+  rust_primitives__hax__Tuple2__Tuple2(ks,
+  hax_temp_output).
 letfun bertie__tls13handshake__put_client_hello(ciphersuite: bitstring,
 ch: bitstring,
 db: bitstring,
