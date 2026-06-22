@@ -1,0 +1,174 @@
+name: proverif
+
+# Two-tier ProVerif CI for the bertie TLS 1.3 handshake:
+#
+#   * verify  (every push / PR): run ProVerif against the COMMITTED extraction
+#     snapshot (proofs/proverif/extraction/lib.pvl) + the handwritten model
+#     files, asserting the expected query verdicts. Fast — it does NOT build the
+#     hax engine and does NOT re-extract. Bertie does not vendor the engine's
+#     primitives.pvl, so we sparsely check out just that one file from
+#     cryspen/hax@proverif-rust-backend.
+#
+#   * extract (nightly + manual): rebuild the hax ProVerif backend from
+#     cryspen/hax@proverif-rust-backend, RE-EXTRACT lib.pvl via check-pv.sh
+#     (which also verifies), then fail if the extraction drifts from the
+#     committed snapshot. Catches engine/source drift. Heavy (builds the OCaml
+#     hax engine + cargo-hax), so it is not run per-push.
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Fast per-push / per-PR verification of the committed extraction snapshot.
+  # No hax engine build, no re-extraction.
+  # ---------------------------------------------------------------------------
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Bertie does not vendor the engine's primitives.pvl. Fetch only that one
+      # file from the hax backend via a sparse checkout.
+      - name: Fetch hax primitives.pvl (sparse)
+        uses: actions/checkout@v4
+        with:
+          repository: cryspen/hax
+          ref: proverif-rust-backend
+          path: hax-engine
+          sparse-checkout: |
+            hax-lib/proof-libs/proverif/primitives.pvl
+          sparse-checkout-cone-mode: false
+
+      - name: Install ProVerif
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y opam libgtk2.0-dev
+          opam init -y --disable-sandboxing --bare
+          opam install -y proverif
+
+      - name: Verify committed extraction against expected verdicts
+        run: |
+          eval "$(opam env)"
+          set -uo pipefail
+
+          PRIM="$GITHUB_WORKSPACE/hax-engine/hax-lib/proof-libs/proverif/primitives.pvl"
+          PVD=proofs/proverif
+
+          # (1) Regenerate the de-duplicated missingdecl (the exact python pass
+          #     that lives inside check-pv.sh): drop constructors that are really
+          #     defined in PRIM / handwritten_lib / lib.pvl, and mark the
+          #     surviving opaque constructors [data] so they are matchable in
+          #     patterns.
+          python3 - "$PRIM" "$PVD/handwritten_lib.pvl" "$PVD/extraction/lib.pvl" "$PVD/extraction/missingdecl.pvl" > "$PVD/extraction/missingdecl.dedup.pvl" <<'PY'
+          import re,sys
+          defs=set()
+          for f in sys.argv[1:4]:
+              try: t=open(f).read()
+              except: continue
+              for m in re.finditer(r'^(?:fun|letfun|const)\s+([A-Za-z0-9_]+)', t, re.M): defs.add(m.group(1))
+              for m in re.finditer(r';\s*([A-Za-z0-9_]+)\s*\(', t.replace('\n',' ')): defs.add(m.group(1))
+          out=[]
+          for l in open(sys.argv[4]):
+              m=re.match(r'^(fun|const)\s+([A-Za-z0-9_]+)', l)
+              if m and m.group(2) in defs: continue
+              if l.startswith('fun ') and l.rstrip().endswith(': bitstring.'): l=l.rstrip()[:-1]+' [data].\n'
+              out.append(l)
+          sys.stdout.write(''.join(out))
+          PY
+
+          # (2) Run ProVerif. Library order matters (mirrors check-pv.sh):
+          #     PRIM -> missingdecl.dedup -> handwritten_lib -> lib -> model.
+          LIBS=(-lib "$PRIM" -lib "$PVD/extraction/missingdecl.dedup.pvl" -lib "$PVD/handwritten_lib.pvl" -lib "$PVD/extraction/lib.pvl" -lib "$PVD/extraction/model.pvl")
+
+          verdicts () { grep '^RESULT' "$1" | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
+
+          rc=0
+
+          # --- Active (Dolev-Yao) attacker: the 7 security queries. ---
+          LOG=$(mktemp)
+          proverif "${LIBS[@]}" "$PVD/extraction/analysis.pv" > "$LOG" 2>&1
+          got=$(verdicts "$LOG")
+          exp="false false false true false true true "
+          echo "active  got: $got"
+          echo "active  exp: $exp"
+          if [ "$got" = "$exp" ]; then echo "ACTIVE CHECK PASSED (7/7)"; else echo "ACTIVE CHECK FAILED"; grep -m1 Error "$LOG"; rc=1; fi
+
+          # --- Passive attacker: both honest-completion events stay reachable
+          #     (a `false` verdict means "reachable"). ---
+          PLOG=$(mktemp)
+          proverif "${LIBS[@]}" "$PVD/extraction/analysis-passive.pv" > "$PLOG" 2>&1
+          pgot=$(verdicts "$PLOG")
+          pexp="false false "
+          echo "passive got: $pgot"
+          echo "passive exp: $pexp (ClientFinishedHandshake + ServerFinishedHandshake reachable)"
+          if [ "$pgot" = "$pexp" ]; then echo "PASSIVE CHECK PASSED (2/2 reachable)"; else echo "PASSIVE CHECK FAILED"; grep -m1 Error "$PLOG"; rc=1; fi
+
+          exit $rc
+
+  # ---------------------------------------------------------------------------
+  # Nightly / manual: rebuild the hax ProVerif backend, re-extract lib.pvl, and
+  # fail if it has drifted from the committed snapshot. check-pv.sh re-extracts
+  # AND verifies.
+  # ---------------------------------------------------------------------------
+  extract:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout hax ProVerif backend
+        uses: actions/checkout@v4
+        with:
+          repository: cryspen/hax
+          ref: proverif-rust-backend
+          path: hax-engine
+
+      - name: System deps (opam, jq, node, proverif)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y opam jq nodejs libgtk2.0-dev
+          opam init -y --disable-sandboxing --bare
+          opam install -y proverif
+
+      - name: Rust toolchain (pinned by hax)
+        run: |
+          TOOLCHAIN="$(grep -oE 'nightly-[0-9-]+' hax-engine/rust-toolchain.toml | head -1)"
+          rustup toolchain install "$TOOLCHAIN" \
+            --component rustc-dev --component rust-src --component llvm-tools-preview
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: hax-engine
+
+      - name: Cache opam
+        uses: actions/cache@v4
+        with:
+          path: ~/.opam
+          key: opam-hax-proverif-${{ runner.os }}-${{ hashFiles('hax-engine/engine/**/dune-project') }}
+
+      - name: Build + install the hax engine into a switch
+        run: |
+          opam switch list --short | grep -qx hax-proverif || opam switch create hax-proverif 5.3.0
+          HAX_OPAM_SWITCH=hax-proverif ./hax-engine/setup-local.sh
+
+      - name: Re-extract + verify (check-pv.sh)
+        env:
+          HAX_PROVERIF_DIR: ${{ github.workspace }}/hax-engine
+        run: |
+          HAX_PROVERIF_DIR="$GITHUB_WORKSPACE/hax-engine" bash proofs/proverif/check-pv.sh
+
+      - name: Drift check (re-extraction must match the committed snapshot)
+        run: |
+          git diff --exit-code -- \
+            proofs/proverif/extraction/lib.pvl \
+            proofs/proverif/extraction/missingdecl.pvl \
+            || { echo "::error::re-extraction drifted from the committed proofs/proverif/extraction/lib.pvl (or missingdecl.pvl) — re-snapshot and commit it"; exit 1; }
