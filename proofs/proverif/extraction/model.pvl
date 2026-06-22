@@ -1,0 +1,263 @@
+(*****************************************)
+(* Shared Bertie TLS 1.3 handshake model  *)
+(*                                        *)
+(* This library holds everything that is  *)
+(* common to the active-attacker analysis *)
+(* (analysis.pv) and the passive-attacker *)
+(* reachability analysis                  *)
+(* (analysis-passive.pv): the tables,     *)
+(* events, certificate-validation model,  *)
+(* ciphersuite descriptors and the        *)
+(* Client / Server / CreateServer role    *)
+(* processes. Keeping a single copy means *)
+(* both analyses provably run the same     *)
+(* protocol model.                        *)
+(*                                        *)
+(* It is loaded via `-lib model` AFTER the *)
+(* extracted `lib.pvl` (so the extracted   *)
+(* `bertie__*` / `extern__*` functions are *)
+(* already in scope) and hax's shipped     *)
+(* `primitives.pvl` (which declares the    *)
+(* public channel `c`, `None`/`Some`,      *)
+(* `nat_lit`, `False`, ...).               *)
+(*                                        *)
+(* Under hax's uniform-bitstring ProVerif *)
+(* backend every Rust type collapses to   *)
+(* the ProVerif `bitstring` type, and     *)
+(* variant constructors / accessors are   *)
+(* generated as `Type__Variant` and       *)
+(* `accessor_Type__Type__Variant__field`. *)
+(*****************************************)
+
+(* server_dbs(server_name, db, algs) *)
+table server_dbs(bitstring, bitstring, bitstring).
+
+(* server_psks(server_name, session_ticket, PSK) *)
+table server_psks(bitstring, bitstring, bitstring).
+
+event CompromisedServerCertSK(bitstring).
+event ClientFinishedHandshake(bitstring, bitstring, bitstring).
+event ServerFinishedHandshake(bitstring, bitstring, bitstring).
+
+(* This is how we model external certificate validation. *)
+fun extern__validate_cert(bitstring, bitstring): bool
+reduc forall server_name: bitstring,
+             alg: bitstring,
+             vk: bitstring;
+      extern__validate_cert(server_name, extern__certificate(server_name, alg, vk)) = true
+otherwise forall server_name: bitstring,
+                 invalid: bitstring;
+      extern__validate_cert(server_name, invalid) = false.
+
+(* Client and Server need to start from the same empty key schedule. *)
+const KS_EMPTY: bitstring.
+
+(* Ciphersuite algorithm descriptors, shared by every harness.
+
+   Considering non-PSK, non-0RTT suites. *)
+
+(* SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519 *)
+letfun SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519() =
+    bertie__tls13crypto__Algorithms__Algorithms(bertie__tls13crypto__HashAlgorithm__SHA256(),
+                                      bertie__tls13crypto__AeadAlgorithm__Chacha20Poly1305(),
+                                      bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
+                                      bertie__tls13crypto__KemScheme__X25519(),
+                                      False(),
+                                      False()).
+
+(* SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519 *)
+letfun SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519() =
+    bertie__tls13crypto__Algorithms__Algorithms(bertie__tls13crypto__HashAlgorithm__SHA256(),
+                                      bertie__tls13crypto__AeadAlgorithm__Aes128Gcm(),
+                                      bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
+                                      bertie__tls13crypto__KemScheme__X25519(),
+                                      False(),
+                                      False()).
+
+(* SHA256_Aes128Gcm_RsaPssRsaSha256_X25519 *)
+letfun SHA256_Aes128Gcm_RsaPssRsaSha256_X25519() =
+    bertie__tls13crypto__Algorithms__Algorithms(bertie__tls13crypto__HashAlgorithm__SHA256(),
+                                      bertie__tls13crypto__AeadAlgorithm__Aes128Gcm(),
+                                      bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256(),
+                                      bertie__tls13crypto__KemScheme__X25519(),
+                                      False(),
+                                      False()).
+
+(* SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519 *)
+letfun SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519() =
+    bertie__tls13crypto__Algorithms__Algorithms(bertie__tls13crypto__HashAlgorithm__SHA384(),
+                                      bertie__tls13crypto__AeadAlgorithm__Aes256Gcm(),
+                                      bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
+                                      bertie__tls13crypto__KemScheme__X25519(),
+                                      False(),
+                                      False()).
+
+(* SHA384_Aes256Gcm_RsaPssRsaSha256_X25519 *)
+letfun SHA384_Aes256Gcm_RsaPssRsaSha256_X25519() =
+    bertie__tls13crypto__Algorithms__Algorithms(bertie__tls13crypto__HashAlgorithm__SHA384(),
+                                      bertie__tls13crypto__AeadAlgorithm__Aes256Gcm(),
+                                      bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256(),
+                                      bertie__tls13crypto__KemScheme__X25519(),
+                                      False(),
+                                      False()).
+
+let Client(algs: bitstring) =
+    in(c, server_name: bitstring);
+    new rng_client: bitstring;
+    let ks_client = KS_EMPTY in
+
+    let (client_ticket_o: bitstring, psk_o: bitstring)
+        = (None(), None())
+    in
+
+    let rust_primitives__hax__Tuple3__Tuple3(rng_client: bitstring, ks_client: bitstring, client_init_out: bitstring)
+        = bertie__tls13handshake__client_init(algs,
+                                              server_name,
+                                              client_ticket_o,
+                                              psk_o,
+                                              rng_client,
+                                              ks_client)
+    in
+
+    let rust_primitives__hax__Tuple3__Tuple3(nch: bitstring,
+         cipher0: bitstring,
+         client_state: bitstring)
+        = client_init_out in
+    out(c, nch);
+    in(c, server_hello: bitstring);
+
+
+    let rust_primitives__hax__Tuple2__Tuple2(ks_client: bitstring,
+         rust_primitives__hax__Tuple2__Tuple2(duplex_cipher_state_h: bitstring,
+         client_state: bitstring))
+        = bertie__tls13handshake__client_set_params(server_hello,
+                                                    client_state,
+                                                    ks_client)
+    in
+
+    in(c, flight_encrypted: bitstring);
+
+    let flight = bertie__tls13record__decrypt_handshake(flight_encrypted, duplex_cipher_state_h) in
+
+    let rust_primitives__hax__Tuple2__Tuple2(ks_client: bitstring, rust_primitives__hax__Tuple3__Tuple3(client_finished: bitstring,
+         cipher: bitstring,
+         client_state: bitstring))
+        = bertie__tls13handshake__client_finish(flight,
+                                                client_state,
+                                                ks_client)
+    in
+
+    (* This is what `get_server_info` does *)
+    let server_pub_info = bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished__3(client_state) in
+    let certificate_opt = bertie__server__ServerPubInfo__ServerPubInfo__certificate(server_pub_info) in
+    let server_name_info = bertie__server__ServerPubInfo__ServerPubInfo__server_name(
+                          server_pub_info
+                        ) in
+    let Some(certificate) = certificate_opt in
+
+    (* Verify that certificate is valid *)
+    if extern__validate_cert(server_name_info, certificate) = true then (
+       event ClientFinishedHandshake(server_name,cipher,client_state);
+       let finish_encrypted = bertie__tls13record__encrypt_handshake(client_finished, nat_lit(0), duplex_cipher_state_h) in
+       out(c, finish_encrypted)
+    ).
+
+let Server() =
+    in(c, server_name: bitstring);
+    get server_dbs(=server_name, db, algs) in
+
+    new rng_server: bitstring;
+    let ks_server = KS_EMPTY in
+
+    in(c, nch: bitstring);
+    let rust_primitives__hax__Tuple3__Tuple3(rng_server: bitstring, ks_server: bitstring, server_init_output: bitstring)
+        = bertie__tls13handshake__server_init(algs,
+                                              nch,
+                                              db,
+                                              rng_server,
+                                              ks_server)
+    in
+
+    let rust_primitives__hax__Tuple6__Tuple6(server_hello: bitstring,
+       flight: bitstring,
+       cipher0: bitstring,
+       cipher_hs: bitstring,
+       cipher1: bitstring,
+       server_state: bitstring)
+    = server_init_output in
+
+    event ServerFinishedHandshake(server_name,cipher1,server_state);
+
+    out(c, server_hello);
+
+    let flight_encrypted = bertie__tls13record__encrypt_handshake(flight, nat_lit(0), cipher_hs) in
+    out(c, flight_encrypted);
+
+    in(c, finish_encrypted: bitstring);
+    let client_finished = bertie__tls13record__decrypt_handshake(finish_encrypted, cipher_hs) in
+
+    let rust_primitives__hax__Tuple2__Tuple2(ks_server: bitstring, server_state: bitstring)
+        = bertie__tls13handshake__server_finish(client_finished,
+                                                server_state,
+                                                ks_server)
+    in
+    0.
+
+let CreateServer(algs: bitstring) =
+    in(c, server_name: bitstring);
+
+    new cert_sk: bitstring;
+    let psk_opt = None() in
+
+    let bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256()
+        = bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
+        in
+        (let cert = extern__certificate(
+                       server_name,
+                       bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
+                       extern__vk_from_sk(cert_sk)
+                    )
+        in
+        let db = bertie__server__ServerDB__ServerDB(
+            server_name,
+            cert,
+            cert_sk,
+            psk_opt)
+        in
+        insert server_dbs(server_name, db, algs))
+    else let bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256()
+             = bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
+             in
+             (let cert = extern__certificate(
+                         server_name,
+                         bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256(),
+                         extern__vk_from_sk(cert_sk))
+             in
+             let db = bertie__server__ServerDB__ServerDB(
+                  server_name,
+                  cert,
+                  cert_sk,
+                  psk_opt)
+             in
+             insert server_dbs(server_name, db, algs)).
+
+let CompromiseServerCertSK() =
+    in(c, server_name: bitstring);
+    get server_dbs(=server_name, db, algs) in
+    let bertie__server__ServerDB__ServerDB(
+            server_name,
+            cert,
+            cert_sk,
+            psk_opt
+        ) = db in
+    event CompromisedServerCertSK(server_name);
+    out(c, cert_sk).
+
+let QuantumAttack() =
+    phase 1;
+    (* In phase 1 we assume that a quantum attacker can compromise
+    pre-quantum signature algorithms and forge signature. In this
+    model, we assume a PQ-KEM is used in the handshake, so
+    Harvest-Now-Decrypt-Later security is maintained for pre-quantum
+    session keys. *)
+    CompromiseServerCertSK().

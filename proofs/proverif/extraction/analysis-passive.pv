@@ -1,0 +1,116 @@
+(*****************************************)
+(* Passive-attacker reachability analysis  *)
+(*                                        *)
+(* Goal: check that the honest Bertie TLS  *)
+(* 1.3 handshake runs to completion        *)
+(* *without any help from the attacker* -  *)
+(* i.e. that both `ServerFinishedHandshake`*)
+(* and `ClientFinishedHandshake` stay      *)
+(* reachable when the attacker is a passive*)
+(* eavesdropper that can observe traffic   *)
+(* but neither inject nor modify messages. *)
+(*                                        *)
+(* This is a liveness / sanity check: if   *)
+(* a completion event were unreachable     *)
+(* here, the corresponding active-attacker *)
+(* query in analysis.pv would be vacuously *)
+(* true and hence meaningless. It also     *)
+(* guards against extraction regressions   *)
+(* that break honest interoperability      *)
+(* (e.g. a builder/parser representation   *)
+(* mismatch such as the HandshakeData      *)
+(* concat / to_two / to_four issue): such  *)
+(* a regression makes a completion event   *)
+(* provably unreachable (`is true`) here   *)
+(* while the active analysis still passes.  *)
+(*                                        *)
+(* The protocol functions (client_init,    *)
+(* server_init, client_set_params,         *)
+(* client_finish, the record layer, ...)   *)
+(* are the *same* extracted letfuns used by *)
+(* the active analysis (loaded via the      *)
+(* shared model.pvl / lib.pvl).            *)
+(*****************************************)
+
+set attacker = passive.
+
+(* Modelling note.
+
+   A passive attacker can only listen; it can neither build nor send the
+   messages that drive the protocol (in particular it cannot supply the
+   `in(c, server_name)` that bootstraps each role). Under such an attacker the
+   honest parties' messages are therefore delivered to each other unmodified.
+
+   We model the honest run as a single straight-line process that feeds each
+   party's *real* output directly into the next party's *real* input
+   (ClientHello -> server_init; ServerHello -> client_set_params; the encrypted
+   server flight -> decrypt_handshake -> client_finish). This is behaviourally
+   equivalent, for reachability, to routing the same messages over the public
+   channel `c` with `attacker = passive` (honest delivery is reliable and
+   unmodified there too), but it removes the channel-scheduling nondeterminism,
+   which lets ProVerif reconstruct a concrete witness trace and report a
+   definitive `is false` (= reachable) for each event. The fully channel-routed
+   variant additionally agrees: it finds a derivation for both events ("cannot
+   be proved", i.e. not provably unreachable), but cannot reconstruct a witness
+   because of the size of the symbolic key-schedule terms.
+
+   One representative ciphersuite is used: reachability of these events does not
+   depend on the suite (the suite only selects algorithm descriptors, all
+   modelled uniformly as bitstrings). *)
+
+let HonestComplete(algs: bitstring) =
+    new sn: bitstring;
+
+    (* Server long-term setup, exactly as CreateServer does for an ECDSA suite. *)
+    new cert_sk: bitstring;
+    let cert = extern__certificate(sn,
+                 bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
+                 extern__vk_from_sk(cert_sk)) in
+    let db = bertie__server__ServerDB__ServerDB(sn, cert, cert_sk, None()) in
+
+    (* Client init -> ClientHello (nch). *)
+    new rng_c: bitstring;
+    let rust_primitives__hax__Tuple3__Tuple3(rng_c2: bitstring, ks_c: bitstring, cinit: bitstring) =
+        bertie__tls13handshake__client_init(algs, sn, None(), None(), rng_c, KS_EMPTY) in
+    let rust_primitives__hax__Tuple3__Tuple3(nch: bitstring, cipher0c: bitstring, cstate: bitstring) =
+        cinit in
+
+    (* Server processes the honest ClientHello -> ServerHello + encrypted flight. *)
+    new rng_s: bitstring;
+    let rust_primitives__hax__Tuple3__Tuple3(rng_s2: bitstring, ks_s: bitstring, sinit: bitstring) =
+        bertie__tls13handshake__server_init(algs, nch, db, rng_s, KS_EMPTY) in
+    let rust_primitives__hax__Tuple6__Tuple6(server_hello: bitstring, flight: bitstring, c0: bitstring,
+        cipher_hs: bitstring, cipher1: bitstring, sstate: bitstring) = sinit in
+    event ServerFinishedHandshake(sn, cipher1, sstate);
+
+    (* Client consumes the honest ServerHello (KEM decap + handshake keys). *)
+    let rust_primitives__hax__Tuple2__Tuple2(ks_c2: bitstring,
+         rust_primitives__hax__Tuple2__Tuple2(dcs_h: bitstring, cstate2: bitstring)) =
+        bertie__tls13handshake__client_set_params(server_hello, cstate, ks_c) in
+
+    (* Record layer: the server encrypts its flight, the client decrypts it.
+       This only succeeds if the two sides agree on the handshake keys. *)
+    let flight_enc = bertie__tls13record__encrypt_handshake(flight, nat_lit(0), cipher_hs) in
+    let flight_dec = bertie__tls13record__decrypt_handshake(flight_enc, dcs_h) in
+
+    (* Client finishes on the honest flight (parse, verify signature + Finished). *)
+    let rust_primitives__hax__Tuple2__Tuple2(ks_c3: bitstring,
+         rust_primitives__hax__Tuple3__Tuple3(cfin: bitstring, cipher: bitstring, cstate3: bitstring)) =
+        bertie__tls13handshake__client_finish(flight_dec, cstate2, ks_c2) in
+
+    (* Client validates the server certificate, then completes (as in Client). *)
+    let server_pub_info = bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished__3(cstate3) in
+    let certificate_opt = bertie__server__ServerPubInfo__ServerPubInfo__certificate(server_pub_info) in
+    let server_name_info = bertie__server__ServerPubInfo__ServerPubInfo__server_name(server_pub_info) in
+    let Some(certificate) = certificate_opt in
+    if extern__validate_cert(server_name_info, certificate) = true then
+        event ClientFinishedHandshake(sn, cipher, cstate3).
+
+(* Both queries should report `is false` = reachable: the honest handshake runs
+   to completion with no attacker assistance. *)
+query x: bitstring, y: bitstring, z: bitstring;
+      event(ClientFinishedHandshake(x,y,z)).
+query x: bitstring, y: bitstring, z: bitstring;
+      event(ServerFinishedHandshake(x,y,z)).
+
+process HonestComplete(SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519())

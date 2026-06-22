@@ -67,9 +67,7 @@ reduc forall
                    hs2: bitstring;
 
             bertie__tls13formats__handshake_data__to_two_inner(
-                bertie__tls13formats__handshake_data__HandshakeData__HandshakeData(
-                    bertie__tls13utils__concat_inner(hs1, hs2)
-                )
+                bertie__tls13formats__handshake_data__Impl_5__concat(hs1, hs2)
             )
             = rust_primitives__hax__Tuple2__Tuple2(hs1, hs2).
     
@@ -82,17 +80,15 @@ reduc forall
                    hs4: bitstring;
 
             bertie__tls13formats__handshake_data__to_four_inner(
-                bertie__tls13formats__handshake_data__HandshakeData__HandshakeData(
-                    bertie__tls13utils__concat_inner(
-                        bertie__tls13utils__concat_inner(
-                            bertie__tls13utils__concat_inner(
-                                hs1,
-                                hs2
-                            ),
-                            hs3
+                bertie__tls13formats__handshake_data__Impl_5__concat(
+                    bertie__tls13formats__handshake_data__Impl_5__concat(
+                        bertie__tls13formats__handshake_data__Impl_5__concat(
+                            hs1,
+                            hs2
                         ),
-                        hs4
-                    )
+                        hs3
+                    ),
+                    hs4
                 )
             )
             = rust_primitives__hax__Tuple4__Tuple4(hs1,

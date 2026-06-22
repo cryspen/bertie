@@ -63,14 +63,18 @@ pub struct HandshakeData(pub(crate) Bytes);
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
+        // The splitter must invert what `HandshakeData::concat` builds, i.e.
+        // a nested `${HandshakeData::concat}` term (see `to_four_inner` and
+        // the server flight construction). Inverting a `concat_inner` shape
+        // here instead would make honest flights unparseable, so the honest
+        // protocol could not run to completion (caught by the passive-attacker
+        // reachability analysis, proofs/proverif/extraction/analysis-passive.pv).
         "reduc forall
                    hs1: bitstring,
                    hs2: bitstring;
 
             ${to_two_inner}(
-                ${HandshakeData}(
-                    ${crate::tls13utils::concat_inner}(hs1, hs2)
-                )
+                ${HandshakeData::concat}(hs1, hs2)
             )
             = rust_primitives__hax__Tuple2__Tuple2(hs1, hs2).
     "
@@ -95,17 +99,15 @@ fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData
                    hs4: bitstring;
 
             ${to_four_inner}(
-                ${HandshakeData}(
-                    ${crate::tls13utils::concat_inner}(
-                        ${crate::tls13utils::concat_inner}(
-                            ${crate::tls13utils::concat_inner}(
-                                hs1,
-                                hs2
-                            ),
-                            hs3
+                ${HandshakeData::concat}(
+                    ${HandshakeData::concat}(
+                        ${HandshakeData::concat}(
+                            hs1,
+                            hs2
                         ),
-                        hs4
-                    )
+                        hs3
+                    ),
+                    hs4
                 )
             )
             = rust_primitives__hax__Tuple4__Tuple4(hs1,

@@ -35,10 +35,33 @@ for l in open(sys.argv[4]):
     out.append(l)
 sys.stdout.write(''.join(out))
 PY
+# The handwritten model (tables, events, ciphersuites, Client/Server/...
+# role processes) lives in model.pvl and is shared by both the active and the
+# passive harness.
+LIBS=(-lib "$PRIM" -lib "$PVD/extraction/missingdecl.dedup.pvl" -lib "$PVD/handwritten_lib.pvl" -lib "$PVD/extraction/lib.pvl" -lib "$PVD/extraction/model.pvl")
+
+verdicts () { grep '^RESULT' "$1" | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
+
+rc=0
+
+# --- Active (Dolev-Yao) attacker: the 7 security queries (analysis.pv). ---
 LOG=$(mktemp)
-proverif -lib "$PRIM" -lib "$PVD/extraction/missingdecl.dedup.pvl" -lib "$PVD/handwritten_lib.pvl" -lib "$PVD/extraction/lib.pvl" "$PVD/extraction/analysis.pv" > "$LOG" 2>&1
-got=$(grep '^RESULT' "$LOG" | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' ')
+proverif "${LIBS[@]}" "$PVD/extraction/analysis.pv" > "$LOG" 2>&1
+got=$(verdicts "$LOG")
 exp="false false false true false true true "
-echo "  got: $got"
-echo "  exp: $exp"
-if [ "$got" = "$exp" ]; then echo "CHECK PASSED (7/7)"; else echo "CHECK FAILED"; grep -m1 Error "$LOG"; exit 1; fi
+echo "active  got: $got"
+echo "active  exp: $exp"
+if [ "$got" = "$exp" ]; then echo "ACTIVE CHECK PASSED (7/7)"; else echo "ACTIVE CHECK FAILED"; grep -m1 Error "$LOG"; rc=1; fi
+
+# --- Passive attacker: the honest handshake must run to completion without
+#     any help from the attacker, i.e. both completion events stay reachable
+#     (analysis-passive.pv). A `false` verdict means "reachable". ---
+PLOG=$(mktemp)
+proverif "${LIBS[@]}" "$PVD/extraction/analysis-passive.pv" > "$PLOG" 2>&1
+pgot=$(verdicts "$PLOG")
+pexp="false false "
+echo "passive got: $pgot"
+echo "passive exp: $pexp (ClientFinishedHandshake + ServerFinishedHandshake reachable)"
+if [ "$pgot" = "$pexp" ]; then echo "PASSIVE CHECK PASSED (2/2 reachable)"; else echo "PASSIVE CHECK FAILED"; grep -m1 Error "$PLOG"; rc=1; fi
+
+exit $rc
