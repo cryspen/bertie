@@ -1,11 +1,38 @@
-(* The terms defined in this file cannot be extracted by hax at the
-   moment, thus we provide them here.
+(*****************************************************************)
+(*  Bertie — handwritten ProVerif models (protocol-specific)      *)
+(*****************************************************************)
+(* Centralizes the protocol-specific crypto axioms that do NOT     *)
+(* fold onto the shared cryptolib (loaded separately).  Bertie's    *)
+(* raw cryptographic primitives (hash / hmac / sign / verify / kem) *)
+(* are modeled by `crypto__*` redirects into cryptolib.pvl; this    *)
+(* file holds only the things specific to Bertie's TLS 1.3 model    *)
+(* that are built ON TOP of those primitives.                       *)
+(*                                                                 *)
+(* Loaded after primitives.pvl + cryptolib.pvl.                     *)
+(*****************************************************************)
 
-   Under the uniform-bitstring ProVerif backend, every Rust type
-   collapses to ProVerif's [bitstring], so we no longer declare per-
-   Rust-type ProVerif type names. The standard `rust_primitives::*`,
-   `core::*`, `rand_core::*`, and `hax_lib::*` symbols are already
-   declared by hax's shipped `primitives.pvl`, which
-   `hax-driver.py typecheck-proverif` loads automatically. As of the
-   uniform-bitstring migration this file is empty — left in place so
-   future bertie-specific overrides have a home. *)
+(* ---------------------------------------------------------------- *)
+(* Signature verification (EUF-CMA).                                 *)
+(*                                                                   *)
+(* Bertie's `verify` is a multi-scheme wrapper (ECDSA / RSA / Ed25519)*)
+(* whose verification key arrives RAW as `crypto__vk_of(sk)` (the    *)
+(* certificate stores it and `cert_public_key` projects it back out).*)
+(* All schemes collapse onto cryptolib's single abstract EUF-CMA      *)
+(* signature (`crypto__sign` / `crypto__vk_of`): the scheme is a      *)
+(* public label, so an abstract unforgeable signature soundly over-   *)
+(* approximates every concrete scheme. Verification succeeds (returns *)
+(* unit) only for a genuine signature; a forgery has no value, so the *)
+(* `let .. = verify(..)` in the protocol blocks.                      *)
+(* ---------------------------------------------------------------- *)
+(* Scheme-agnostic: the signature scheme is a public label, and all schemes  *)
+(* collapse onto cryptolib's single abstract EUF-CMA signature. Quantifying    *)
+(* `scheme` (rather than naming each SignatureScheme constructor) also keeps    *)
+(* this lib self-contained — it need not load after the extracted enum ctors.   *)
+fun bertie__tls13crypto__verify(bitstring, bitstring, bitstring, bitstring): bitstring
+  reduc forall scheme: bitstring, sk: bitstring, input: bitstring;
+        bertie__tls13crypto__verify(
+            scheme,
+            crypto__vk_of(sk),
+            input,
+            crypto__sign(sk, input)
+        ) = rust_primitives__hax__Tuple0__Tuple0.

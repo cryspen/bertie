@@ -60,24 +60,16 @@ pub fn get_hs_type(t: u8) -> Result<HandshakeType, TLSError> {
 /// Hadshake data of the TLS handshake.
 pub struct HandshakeData(pub(crate) Bytes);
 
+// The handshake-message framing `HandshakeData::concat` builds is just message
+// concatenation (NOT cryptographic serialization), modelled as a `Tuple2`
+// pairing; the splitter inverts it by destructuring. A flight built by repeated
+// `concat` is a left-nested `Tuple2`, peeled one level per split. (Using the
+// cryptolib `crypto__serialize`/`deserialize` here instead blows up ProVerif's
+// saturation, since the framing is applied to every message.)
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        // The splitter must invert what `HandshakeData::concat` builds, i.e.
-        // a nested `${HandshakeData::concat}` term (see `to_four_inner` and
-        // the server flight construction). Inverting a `concat_inner` shape
-        // here instead would make honest flights unparseable, so the honest
-        // protocol could not run to completion (caught by the passive-attacker
-        // reachability analysis, proofs/proverif/extraction/analysis-passive.pv).
-        "reduc forall
-                   hs1: bitstring,
-                   hs2: bitstring;
-
-            ${to_two_inner}(
-                ${HandshakeData::concat}(hs1, hs2)
-            )
-            = rust_primitives__hax__Tuple2__Tuple2(hs1, hs2).
-    "
+    proverif::replace_body(
+        "let rust_primitives__hax__Tuple2__Tuple2(hs1, hs2) = hs_data in rust_primitives__hax__Tuple2__Tuple2(hs1, hs2)"
     )
 )]
 fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData), TLSError> {
@@ -91,29 +83,11 @@ fn to_two_inner(hs_data: &HandshakeData) -> Result<(HandshakeData, HandshakeData
 }
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "reduc forall
-                   hs1: bitstring,
-                   hs2: bitstring,
-                   hs3: bitstring,
-                   hs4: bitstring;
-
-            ${to_four_inner}(
-                ${HandshakeData::concat}(
-                    ${HandshakeData::concat}(
-                        ${HandshakeData::concat}(
-                            hs1,
-                            hs2
-                        ),
-                        hs3
-                    ),
-                    hs4
-                )
-            )
-            = rust_primitives__hax__Tuple4__Tuple4(hs1,
-               hs2,
-               hs3,
-               hs4)."
+    proverif::replace_body(
+        "let rust_primitives__hax__Tuple2__Tuple2(inner3, hs4) = hs_data in
+         let rust_primitives__hax__Tuple2__Tuple2(inner2, hs3) = inner3 in
+         let rust_primitives__hax__Tuple2__Tuple2(hs1, hs2) = inner2 in
+         rust_primitives__hax__Tuple4__Tuple4(hs1, hs2, hs3, hs4)"
     )
 )]
 fn to_four_inner(
@@ -176,7 +150,7 @@ impl HandshakeData {
 
     /// Returns a new [`HandshakeData`] that contains the bytes of
     /// `other` appended to the bytes of `self`.
-    #[hax_lib::pv_constructor]
+    #[cfg_attr(feature = "hax-pv", hax_lib::proverif::replace_body("rust_primitives__hax__Tuple2__Tuple2(self, other)"))]
     pub(crate) fn concat(self, other: &HandshakeData) -> HandshakeData {
         let mut message1 = self.to_bytes();
         let message2 = other.to_bytes();

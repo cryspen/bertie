@@ -328,7 +328,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
     proverif::replace(
         "
 (* This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
-fun extern__certificate(
+fun model__certificate(
             bitstring, (* server name *)
             bitstring,
             bitstring
@@ -341,13 +341,13 @@ reduc forall
             alg:         bitstring,
             vk:          bitstring;
 
-    ${verification_key_from_cert}(
-            extern__certificate(
+    bertie__tls13cert__verification_key_from_cert(
+            model__certificate(
                server_name,
                alg,
                vk
             )
-    ) = extern__certificate(
+    ) = model__certificate(
                server_name,
                alg,
                vk
@@ -472,8 +472,8 @@ reduc forall
             vk:          bitstring,
             spki:        bitstring;
 
-    ${cert_public_key}(
-            extern__certificate(
+    bertie__tls13cert__cert_public_key(
+            model__certificate(
                server_name,
                alg,
                vk

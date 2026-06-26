@@ -248,8 +248,8 @@ pub(crate) fn encrypt_handshake(
               sender_counter: bitstring,
               receiver_key_iv: bitstring,
               receiver_counter: bitstring;
-${decrypt_handshake}(
-           ${encrypt_handshake}(
+bertie__tls13record__decrypt_handshake(
+           bertie__tls13record__encrypt_handshake(
            payload,
            pad,
            bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(

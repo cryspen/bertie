@@ -79,14 +79,6 @@ pub struct RsaVerificationKey {
 
 /// Bertie public verification keys.
 #[derive(Debug, Clone)]
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace(
-        "fun ${PublicVerificationKey::EcDsa}(bitstring): bitstring [data].
-fun ${PublicVerificationKey::Rsa}(bitstring): bitstring [data].
-"
-    )
-)]
 pub enum PublicVerificationKey {
     EcDsa(VerificationKey),  // Uncompressed point 0x04...
     Rsa(RsaVerificationKey), // N, e
@@ -103,7 +95,10 @@ pub enum HashAlgorithm {
 /// Hash `data` with the given `algorithm`.
 ///
 /// Returns the digest or an [`TLSError`].
-#[cfg_attr(feature = "hax-pv", pv_constructor)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body("crypto__hash(data)")
+)]
 pub(crate) fn hash(ha: &HashAlgorithm, data: &Bytes) -> Result<Bytes, TLSError> {
     let hasher = ha.libcrux_algorithm()?;
 
@@ -154,7 +149,10 @@ impl HashAlgorithm {
 /// Compute the HMAC tag.
 ///
 /// Returns the tag [`Hmac`] or a [`TLSError`].
-#[hax_lib::pv_constructor]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::replace_body("crypto__mac(mk, input)")
+)]
 pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Result<Hmac, TLSError> {
     Ok(hmac(
         alg.hmac_algorithm()?,
@@ -170,20 +168,7 @@ pub(crate) fn hmac_tag(alg: &HashAlgorithm, mk: &MacKey, input: &Bytes) -> Resul
 /// Returns `()` if successful or a [`TLSError`].
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "
-reduc
-  forall
-        alg : bitstring,
-         mk : bitstring,
-      input : bitstring;
-        ${hmac_verify}(
-            alg,
-            mk,
-            input,
-            ${hmac_tag}(alg, mk, input)
-         ) = rust_primitives__hax__Tuple0__Tuple0."
-    )
+    proverif::replace_body("crypto__mac_verify(mk, input, tag)")
 )]
 pub(crate) fn hmac_verify(
     alg: &HashAlgorithm,
@@ -353,6 +338,10 @@ pub enum SignatureScheme {
 }
 
 /// Sign the `input` with the provided RSA key.
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body("crypto__sign(sk, input)")
+)]
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -400,25 +389,7 @@ pub(crate) fn sign_rsa(
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before(
-        "fun extern__sign_inner(
-         bitstring,
-         bitstring, (* sk *)
-         bitstring  (* input *)
-     )
-     : bitstring."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace_body(
-        "(extern__sign_inner(
-              algorithm,
-              sk,
-              input
-          )
-       )"
-    )
+    proverif::replace_body("crypto__sign(sk, input)")
 )]
 pub(crate) fn sign(
     algorithm: &SignatureScheme,
@@ -460,58 +431,10 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace(
-        "
-fun extern__vk_from_sk(bitstring): bitstring.
-
-fun extern__sign_inner_rsa(
-                 bitstring, (* sk *)
-                 bitstring  (* input *)
-             )
-             : bitstring.
-
-fun ${verify}(
-            bitstring,
-            bitstring,
-            bitstring, (* input *)
-            bitstring  (* sig *)
-        )
-    : bitstring
-
-  reduc forall
-                     sk: bitstring,
-                  input: bitstring;
-
-        ${verify}(
-            ${SignatureScheme::RsaPssRsaSha256},
-            extern__vk_from_sk(sk),
-            input,
-            extern__sign_inner_rsa(
-                sk,
-                input
-            )
-        )
-        = rust_primitives__hax__Tuple0__Tuple0
-
-  otherwise forall
-                sk                   : bitstring,
-                input                : bitstring;
-
-        ${verify}(
-            ${SignatureScheme::EcdsaSecp256r1Sha256},
-            extern__vk_from_sk(sk),
-            input,
-            extern__sign_inner(
-                ${SignatureScheme::EcdsaSecp256r1Sha256},
-                sk,
-                input
-            )
-        )
-        = rust_primitives__hax__Tuple0__Tuple0."
-    )
-)]
+// ProVerif model: the EUF-CMA signature-verification axiom is centralized in
+// proofs/proverif/handwritten_lib.pvl (a `reduc` over the cryptolib primitives
+// `crypto__vk_of` / `crypto__sign`), so this body is erased here.
+#[cfg_attr(feature = "hax-pv", proverif::replace(""))]
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
@@ -614,13 +537,9 @@ impl KemScheme {
 /// Generate a new KEM key pair.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before("fun extern__kem_pk_from_sk(bitstring): bitstring.")
-)]
-#[cfg_attr(
-    feature = "hax-pv",
     proverif::replace_body(
         "(new kem_sk: bitstring;
-       let kem_pk = extern__kem_pk_from_sk(kem_sk) in
+       let kem_pk = crypto__kem_pk(kem_sk) in
        rust_primitives__hax__Tuple2__Tuple2(kem_sk, kem_pk))"
     )
 )]
@@ -669,13 +588,9 @@ fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
 /// KEM encapsulation
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before("fun extern__kem_encapsulation(bitstring, bitstring): bitstring.")
-)]
-#[cfg_attr(
-    feature = "hax-pv",
     proverif::replace_body(
         "(new shared_secret: bitstring;
-          let ct = extern__kem_encapsulation(pk, shared_secret) in
+          let ct = crypto__kem_encaps(pk, shared_secret) in
           rust_primitives__hax__Tuple2__Tuple2(shared_secret, ct))"
     )
 )]
@@ -716,12 +631,7 @@ fn to_shared_secret(alg: KemScheme, shared_secret: Bytes) -> Bytes {
 /// KEM decapsulation
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace(
-        "reduc forall alg: bitstring, kem_sk: bitstring, shared_secret: bitstring;
-     ${kem_decap}(
-     alg, extern__kem_encapsulation(extern__kem_pk_from_sk(kem_sk), shared_secret), kem_sk
-     ) = shared_secret."
-    )
+    proverif::replace_body("crypto__kem_decaps(sk, ct)")
 )]
 pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes, TLSError> {
     // event!(Level::DEBUG, "KEM Decaps with {alg:?}");

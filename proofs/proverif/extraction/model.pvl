@@ -40,14 +40,14 @@ event ClientFinishedHandshake(bitstring, bitstring, bitstring).
 event ServerFinishedHandshake(bitstring, bitstring, bitstring).
 
 (* This is how we model external certificate validation. *)
-fun extern__validate_cert(bitstring, bitstring): bool
+fun model__validate_cert(bitstring, bitstring): bool
 reduc forall server_name: bitstring,
              alg: bitstring,
              vk: bitstring;
-      extern__validate_cert(server_name, extern__certificate(server_name, alg, vk)) = true
+      model__validate_cert(server_name, model__certificate(server_name, alg, vk)) = true
 otherwise forall server_name: bitstring,
                  invalid: bitstring;
-      extern__validate_cert(server_name, invalid) = false.
+      model__validate_cert(server_name, invalid) = false.
 
 (* Client and Server need to start from the same empty key schedule. *)
 const KS_EMPTY: bitstring.
@@ -156,7 +156,7 @@ let Client(algs: bitstring) =
     let Some(certificate) = certificate_opt in
 
     (* Verify that certificate is valid *)
-    if extern__validate_cert(server_name_info, certificate) = true then (
+    if model__validate_cert(server_name_info, certificate) = true then (
        event ClientFinishedHandshake(server_name,cipher,client_state);
        let finish_encrypted = bertie__tls13record__encrypt_handshake(client_finished, nat_lit(0), duplex_cipher_state_h) in
        out(c, finish_encrypted)
@@ -212,10 +212,10 @@ let CreateServer(algs: bitstring) =
     let bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256()
         = bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
         in
-        (let cert = extern__certificate(
+        (let cert = model__certificate(
                        server_name,
                        bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
-                       extern__vk_from_sk(cert_sk)
+                       crypto__vk_of(cert_sk)
                     )
         in
         let db = bertie__server__ServerDB__ServerDB(
@@ -228,10 +228,10 @@ let CreateServer(algs: bitstring) =
     else let bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256()
              = bertie__tls13crypto__Algorithms__Algorithms__signature(algs)
              in
-             (let cert = extern__certificate(
+             (let cert = model__certificate(
                          server_name,
                          bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256(),
-                         extern__vk_from_sk(cert_sk))
+                         crypto__vk_of(cert_sk))
              in
              let db = bertie__server__ServerDB__ServerDB(
                   server_name,

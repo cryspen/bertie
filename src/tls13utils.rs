@@ -196,7 +196,7 @@ impl From<Vec<u8>> for Bytes {
 
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace("fun ${concat_inner}(bitstring, bitstring): bitstring [data].")
+    proverif::replace("fun bertie__tls13utils__concat_inner(bitstring, bitstring): bitstring [data].")
 )]
 pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
     let mut result = bytes;
@@ -208,9 +208,9 @@ pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
     feature = "hax-pv",
     proverif::replace(
         "
-    fun ${eq_inner}( bitstring, bitstring ): bitstring
-       reduc forall b : bitstring; ${eq_inner}(b, b) = True().
-    (* No clause for unequal arguments: leaves ${eq_inner}(b1, b2) as a non-rewriting term, so the (=True()) pattern blocks. *)"
+    fun bertie__tls13utils__eq_inner( bitstring, bitstring ): bitstring
+       reduc forall b : bitstring; bertie__tls13utils__eq_inner(b, b) = True().
+    (* No clause for unequal arguments: leaves bertie__tls13utils__eq_inner(b1, b2) as a non-rewriting term, so the (=True()) pattern blocks. *)"
     )
 )]
 fn eq_inner(b1: &Bytes, b2: &Bytes) -> bool {
@@ -222,7 +222,7 @@ impl Bytes {
     /// Add a prefix to these bytes and return it.
     #[cfg_attr(
         feature = "hax-pv",
-        proverif::replace_body("${Bytes::concat}(prefix, self)")
+        proverif::replace_body("bertie__tls13utils__concat_inner(prefix, self)")
     )]
     #[hax_lib::ensures(|result| result.len() >= self.len() && result.len() - self.len() == prefix.len())]
     pub(crate) fn prefix(self, prefix: &[U8]) -> Self {
@@ -301,7 +301,7 @@ impl U32 {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "fun ${u16_as_be_bytes}(nat)
+        "fun bertie__tls13utils__u16_as_be_bytes(bitstring)
     : bitstring [data]."
     )
 )]
@@ -403,9 +403,9 @@ impl core::ops::Index<Range<usize>> for Bytes {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "fun ${check_eq_inner}( bitstring, bitstring): bitstring
+        "fun bertie__tls13utils__check_eq_inner( bitstring, bitstring): bitstring
 reduc forall b1 : bitstring;
-          ${check_eq_inner}(b1,b1) = rust_primitives__hax__Tuple0__Tuple0."
+          bertie__tls13utils__check_eq_inner(b1,b1) = rust_primitives__hax__Tuple0__Tuple0."
     )
 )]
 fn check_eq_inner(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {

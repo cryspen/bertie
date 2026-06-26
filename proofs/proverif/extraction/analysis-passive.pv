@@ -63,9 +63,9 @@ let HonestComplete(algs: bitstring) =
 
     (* Server long-term setup, exactly as CreateServer does for an ECDSA suite. *)
     new cert_sk: bitstring;
-    let cert = extern__certificate(sn,
+    let cert = model__certificate(sn,
                  bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(),
-                 extern__vk_from_sk(cert_sk)) in
+                 crypto__vk_of(cert_sk)) in
     let db = bertie__server__ServerDB__ServerDB(sn, cert, cert_sk, None()) in
 
     (* Client init -> ClientHello (nch). *)
@@ -103,7 +103,7 @@ let HonestComplete(algs: bitstring) =
     let certificate_opt = bertie__server__ServerPubInfo__ServerPubInfo__certificate(server_pub_info) in
     let server_name_info = bertie__server__ServerPubInfo__ServerPubInfo__server_name(server_pub_info) in
     let Some(certificate) = certificate_opt in
-    if extern__validate_cert(server_name_info, certificate) = true then
+    if model__validate_cert(server_name_info, certificate) = true then
         event ClientFinishedHandshake(sn, cipher, cstate3).
 
 (* Both queries should report `is false` = reachable: the honest handshake runs
