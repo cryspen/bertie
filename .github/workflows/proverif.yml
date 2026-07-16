@@ -51,9 +51,17 @@ jobs:
       - name: Install ProVerif
         run: |
           sudo apt-get update
-          sudo apt-get install -y opam libgtk2.0-dev
-          opam init -y --disable-sandboxing --bare
+          # `ocaml` gives opam a system compiler to adopt below, so creating the
+          # switch is instant instead of compiling one -- this lane is the fast one.
+          sudo apt-get install -y opam ocaml libgtk2.0-dev
+          # NOT `--bare`: that creates no switch, so the `opam install` below had
+          # nothing to install into and failed with "No switch is currently set"
+          # (exit 50). Plain `opam init` creates a default switch that adopts the
+          # system compiler installed above.
+          opam init -y --disable-sandboxing
+          eval "$(opam env)"
           opam install -y proverif
+          proverif -help >/dev/null 2>&1 || { echo "::error::proverif not on PATH after install"; exit 1; }
 
       - name: Verify committed extraction against expected verdicts
         run: |
@@ -136,7 +144,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y opam jq nodejs libgtk2.0-dev
+          # `--bare` creates no switch, so the `opam install` below used to fail
+          # with "No switch is currently set" (exit 50). Create the same switch
+          # setup-local.sh installs the engine into, and put ProVerif in it, so
+          # one active switch carries both. `--set-switch` is required -- without
+          # it, `opam env --switch=X` silently no-ops and keeps the old switch.
           opam init -y --disable-sandboxing --bare
+          opam switch create hax-proverif 5.3.0
+          eval "$(opam env --switch=hax-proverif --set-switch)"
           opam install -y proverif
 
       - name: Rust toolchain (pinned by hax)
@@ -164,6 +179,10 @@ jobs:
         env:
           HAX_PROVERIF_DIR: ${{ github.workspace }}/hax-engine
         run: |
+          # Fresh shell: opam does not touch the profile non-interactively, so
+          # re-enter the switch or neither cargo-hax nor proverif is on PATH.
+          # `--set-switch` is required; without it this line silently no-ops.
+          eval "$(opam env --switch=hax-proverif --set-switch)"
           HAX_PROVERIF_DIR="$GITHUB_WORKSPACE/hax-engine" bash proofs/proverif/check-pv.sh
 
       - name: Drift check (re-extraction must match the committed snapshot)
