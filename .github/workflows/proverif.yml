@@ -36,9 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Bertie does not vendor the engine's primitives.pvl. Fetch only that one
-      # file from the hax backend via a sparse checkout.
-      - name: Fetch hax primitives.pvl (sparse)
+      # Bertie does not vendor the engine's proof libs. Fetch the two the model
+      # loads -- primitives.pvl and cryptolib.pvl (the migration redirected the
+      # crypto primitives to the `crypto__*` names defined in cryptolib) -- via a
+      # sparse checkout.
+      - name: Fetch hax proof libs (sparse)
         uses: actions/checkout@v4
         with:
           repository: cryspen/hax
@@ -46,6 +48,7 @@ jobs:
           path: hax-engine
           sparse-checkout: |
             hax-lib/proof-libs/proverif/primitives.pvl
+            hax-lib/proof-libs/proverif/cryptolib.pvl
           sparse-checkout-cone-mode: false
 
       - name: Install ProVerif
@@ -69,23 +72,25 @@ jobs:
           set -uo pipefail
 
           PRIM="$GITHUB_WORKSPACE/hax-engine/hax-lib/proof-libs/proverif/primitives.pvl"
+          CRYPTO="$GITHUB_WORKSPACE/hax-engine/hax-lib/proof-libs/proverif/cryptolib.pvl"
           PVD=proofs/proverif
 
           # (1) Regenerate the de-duplicated missingdecl (the exact python pass
           #     that lives inside check-pv.sh): drop constructors that are really
-          #     defined in PRIM / handwritten_lib / lib.pvl, and mark the
+          #     defined in PRIM / CRYPTO / handwritten_lib / lib.pvl, and mark the
           #     surviving opaque constructors [data] so they are matchable in
-          #     patterns.
-          python3 - "$PRIM" "$PVD/handwritten_lib.pvl" "$PVD/extraction/lib.pvl" "$PVD/extraction/missingdecl.pvl" > "$PVD/extraction/missingdecl.dedup.pvl" <<'PY'
+          #     patterns. CRYPTO must be among the def sources or the `crypto__*`
+          #     names would be re-stubbed here and clash with cryptolib.pvl.
+          python3 - "$PRIM" "$CRYPTO" "$PVD/handwritten_lib.pvl" "$PVD/extraction/lib.pvl" "$PVD/extraction/missingdecl.pvl" > "$PVD/extraction/missingdecl.dedup.pvl" <<'PY'
           import re,sys
           defs=set()
-          for f in sys.argv[1:4]:
+          for f in sys.argv[1:5]:
               try: t=open(f).read()
               except: continue
               for m in re.finditer(r'^(?:fun|letfun|const)\s+([A-Za-z0-9_]+)', t, re.M): defs.add(m.group(1))
               for m in re.finditer(r';\s*([A-Za-z0-9_]+)\s*\(', t.replace('\n',' ')): defs.add(m.group(1))
           out=[]
-          for l in open(sys.argv[4]):
+          for l in open(sys.argv[5]):
               m=re.match(r'^(fun|const)\s+([A-Za-z0-9_]+)', l)
               if m and m.group(2) in defs: continue
               if l.startswith('fun ') and l.rstrip().endswith(': bitstring.'): l=l.rstrip()[:-1]+' [data].\n'
@@ -94,8 +99,8 @@ jobs:
           PY
 
           # (2) Run ProVerif. Library order matters (mirrors check-pv.sh):
-          #     PRIM -> missingdecl.dedup -> handwritten_lib -> lib -> model.
-          LIBS=(-lib "$PRIM" -lib "$PVD/extraction/missingdecl.dedup.pvl" -lib "$PVD/handwritten_lib.pvl" -lib "$PVD/extraction/lib.pvl" -lib "$PVD/extraction/model.pvl")
+          #     PRIM -> CRYPTO -> missingdecl.dedup -> handwritten_lib -> lib -> model.
+          LIBS=(-lib "$PRIM" -lib "$CRYPTO" -lib "$PVD/extraction/missingdecl.dedup.pvl" -lib "$PVD/handwritten_lib.pvl" -lib "$PVD/extraction/lib.pvl" -lib "$PVD/extraction/model.pvl")
 
           verdicts () { grep '^RESULT' "$1" | grep -oE 'is (true|false)' | awk '{print $2}' | tr '\n' ' '; }
 
