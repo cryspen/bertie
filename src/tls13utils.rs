@@ -196,7 +196,9 @@ impl From<Vec<u8>> for Bytes {
 
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::replace("fun bertie__tls13utils__concat_inner(bitstring, bitstring): bitstring [data].")
+    proverif::replace(
+        "fun bertie__tls13utils__concat_inner(bitstring, bitstring): bitstring [data]."
+    )
 )]
 pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
     let mut result = bytes;

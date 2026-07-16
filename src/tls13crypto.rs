@@ -338,10 +338,7 @@ pub enum SignatureScheme {
 }
 
 /// Sign the `input` with the provided RSA key.
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace_body("crypto__sign(sk, input)")
-)]
+#[cfg_attr(feature = "hax-pv", proverif::replace_body("crypto__sign(sk, input)"))]
 pub(crate) fn sign_rsa(
     sk: &Bytes,
     pk_modulus: &Bytes,
@@ -387,10 +384,7 @@ pub(crate) fn sign_rsa(
 }
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::replace_body("crypto__sign(sk, input)")
-)]
+#[cfg_attr(feature = "hax-pv", proverif::replace_body("crypto__sign(sk, input)"))]
 pub(crate) fn sign(
     algorithm: &SignatureScheme,
     sk: &Bytes,
