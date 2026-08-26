@@ -19,7 +19,7 @@
 (* already in scope) and hax's shipped     *)
 (* `primitives.pvl` (which declares the    *)
 (* public channel `c`, `None`/`Some`,      *)
-(* `nat_lit`, `False`, ...).               *)
+(* `nat_0`, `False`, ...).                 *)
 (*                                        *)
 (* Under hax's uniform-bitstring ProVerif *)
 (* backend every Rust type collapses to   *)
@@ -158,7 +158,7 @@ let Client(algs: bitstring) =
     (* Verify that certificate is valid *)
     if model__validate_cert(server_name_info, certificate) = true then (
        event ClientFinishedHandshake(server_name,cipher,client_state);
-       let finish_encrypted = bertie__tls13record__encrypt_handshake(client_finished, nat_lit(0), duplex_cipher_state_h) in
+       let finish_encrypted = bertie__tls13record__encrypt_handshake(client_finished, nat_0, duplex_cipher_state_h) in
        out(c, finish_encrypted)
     ).
 
@@ -190,7 +190,7 @@ let Server() =
 
     out(c, server_hello);
 
-    let flight_encrypted = bertie__tls13record__encrypt_handshake(flight, nat_lit(0), cipher_hs) in
+    let flight_encrypted = bertie__tls13record__encrypt_handshake(flight, nat_0, cipher_hs) in
     out(c, flight_encrypted);
 
     in(c, finish_encrypted: bitstring);

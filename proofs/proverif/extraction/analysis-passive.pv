@@ -90,7 +90,7 @@ let HonestComplete(algs: bitstring) =
 
     (* Record layer: the server encrypts its flight, the client decrypts it.
        This only succeeds if the two sides agree on the handshake keys. *)
-    let flight_enc = bertie__tls13record__encrypt_handshake(flight, nat_lit(0), cipher_hs) in
+    let flight_enc = bertie__tls13record__encrypt_handshake(flight, nat_0, cipher_hs) in
     let flight_dec = bertie__tls13record__decrypt_handshake(flight_enc, dcs_h) in
 
     (* Client finishes on the honest flight (parse, verify signature + Finished). *)

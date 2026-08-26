@@ -3,17 +3,73 @@
 (*                                                               *)
 (* DIAGNOSTIC, not part of the model. Each symbol below is       *)
 (* referenced by lib.pvl but has no definition (and is not in    *)
-(* primitives.pvl). Supply a real one by hand, or by extracting  *)
-(* the crate that owns it (e.g. a separately-extracted           *)
-(* dependency). Declared WITHOUT `[data]` because the real       *)
-(* nature (one-way fun / data constructor / letfun) is unknown.  *)
-(* GOAL: this file is EMPTY.                                     *)
+(* primitives.pvl). Define it — by hand or by extracting the     *)
+(* crate that owns it — or deliberately leave it abstract, as an *)
+(* ideal-functionality boundary; a permanent residue can be      *)
+(* correct. Declared WITHOUT `[data]` because the real nature    *)
+(* (one-way fun / data constructor / letfun) is unknown.         *)
 (*****************************************************************)
+(* referenced by: bertie__tls13handshake__put_server_signature *)
+(* result destructured as: core__result__Result__Err(_); core__result__Result__Ok(_) *)
 fun bertie__tls13crypto__verify(bitstring, bitstring, bitstring, bitstring): bitstring.
+(* referenced by: bertie__tls13keyscheduler__key_schedule__get_by_handle *)
 fun bertie__tls13keyscheduler__key_schedule__KeySchedule__get_kw(bitstring, bitstring, bitstring, bitstring): bitstring.
+(* referenced by: bertie__tls13keyscheduler__key_schedule__set_by_handle *)
 fun bertie__tls13keyscheduler__key_schedule__KeySchedule__set_kw(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring.
+(* referenced by: bertie__tls13keyscheduler__derive_0rtt_keys *)
+(* result destructured as: rust_primitives__hax__Tuple2__Tuple2(_, _) *)
 fun bertie__tls13keyscheduler__next_keys_c_2(bitstring, bitstring, bitstring, bitstring): bitstring.
+(* referenced by: bertie__tls13keyscheduler__key_schedule__get_by_handle *)
 const bertie__tls13utils__INCORRECT_STATE: bitstring.
+(* referenced by: bertie__tls13formats__Impl_20__transcript_hash_without_client_hello *)
 fun bertie__tls13utils__Impl_23__slice_range(bitstring, bitstring): bitstring.
+(* referenced by: bertie__tls13utils__Impl_23__zeroes *)
 fun bertie__tls13utils__U8(bitstring): bitstring.
+(* referenced by: bertie__tls13keyscheduler__key_schedule__get_by_handle *)
 fun core__option__Impl__ok_or(bitstring, bitstring): bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_101: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_102: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_105: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_114: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_115: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_116: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_118: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_121: bitstring.
+(* referenced by: bertie__tls13utils__PSK_MODE_MISMATCH *)
+const nat_131: bitstring.
+(* referenced by: bertie__tls13utils__PARSE_FAILED *)
+const nat_133: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE, bertie__tls13handshake__build_client_hello, bertie__tls13handshake__get_server_hello *)
+const nat_32: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_44: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_46: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_49: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_51: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_67: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_76: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_83: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_84: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_86: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_97: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE, bertie__tls13handshake__get_server_signature_no_psk, bertie__tls13handshake__put_server_signature *)
+const nat_98: bitstring.
+(* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+const nat_99: bitstring.

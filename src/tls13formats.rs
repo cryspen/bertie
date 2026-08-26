@@ -560,8 +560,8 @@ fn get_psk_extensions(
          kem_pk,
          session_ticket,
          None(),
-         nat_lit(0)),
-     nat_lit(0))"
+         nat_0),
+     nat_0)"
     )
 )]
 #[hax_lib::requires(client_random.len() == 32)]
@@ -678,7 +678,7 @@ pub(crate) fn client_hello(
                                   kem_pk,
                                   tkto,
                                   binder,
-                                  nat_lit(0))"
+                                  nat_0)"
     )
 )]
 #[hax_lib::requires(match trunc_len {
