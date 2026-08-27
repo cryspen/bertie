@@ -81,11 +81,11 @@ default-members = [
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(bench)', 'cfg(hax)'] }
 
-# Use the proverif-rust-backend hax-lib so the new pv_extern/pv_stub/
+# Use the proverif-rust-backend hax-lib so the pv_extern/pv_stub/
 # pv_constructor/replace_body macros are available before they ship to crates.io.
-# Drop once published. (hax-lib/{src,macros} at this rev are byte-identical to the
-# proverif-rust-backend HEAD that the extraction was generated with.)
+# Drop once published. This rev is the proverif-rust-backend HEAD the extraction
+# was generated with.
 [patch.crates-io]
-hax-lib = { git = "https://github.com/cryspen/hax.git", rev = "1a99a1948d5931026fd0be4e322fbd1b7149927b" }
-hax-lib-macros = { git = "https://github.com/cryspen/hax.git", rev = "1a99a1948d5931026fd0be4e322fbd1b7149927b" }
-hax-lib-macros-types = { git = "https://github.com/cryspen/hax.git", rev = "1a99a1948d5931026fd0be4e322fbd1b7149927b" }
+hax-lib = { git = "https://github.com/cryspen/hax.git", rev = "5cdb74443a1eeebd34f7bae057ead44bc8a25107" }
+hax-lib-macros = { git = "https://github.com/cryspen/hax.git", rev = "5cdb74443a1eeebd34f7bae057ead44bc8a25107" }
+hax-lib-macros-types = { git = "https://github.com/cryspen/hax.git", rev = "5cdb74443a1eeebd34f7bae057ead44bc8a25107" }

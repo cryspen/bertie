@@ -550,6 +550,22 @@ fn get_psk_extensions(
 
 /// Build a ClientHello message.
 
+// Declared here (on the first emitted user) so the `fun model__client_hello_c`
+// declaration precedes every use in the extracted model.
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::before(
+        "fun model__client_hello_c(
+      bitstring, (* client_randomness *)
+      bitstring, (* session_id *)
+      bitstring, (*server name /sni*)
+      bitstring, (*kem_pk / gx*)
+      bitstring, (*tkto*)
+      bitstring, (*bindero*)
+      bitstring) (*trunc_len*)
+      : bitstring [data]."
+    )
+)]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(
@@ -646,20 +662,6 @@ pub(crate) fn client_hello(
     Ok((client_hello, trunc_len))
 }
 
-#[cfg_attr(
-    feature = "hax-pv",
-    proverif::before(
-        "fun model__client_hello_c(
-      bitstring, (* client_randomness *)
-      bitstring, (* session_id *)
-      bitstring, (*server name /sni*)
-      bitstring, (*kem_pk / gx*)
-      bitstring, (*tkto*)
-      bitstring, (*bindero*)
-      bitstring) (*trunc_len*)
-      : bitstring [data]."
-    )
-)]
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(

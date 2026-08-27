@@ -16,39 +16,39 @@
   ideal-functionality boundary.
 *)
 
-(* src: src/tls13utils.rs:24 bertie__tls13utils__UNSUPPORTED_ALGORITHM *)
+(* src: src/tls13utils.rs:24:0-24:48 bertie__tls13utils__UNSUPPORTED_ALGORITHM *)
 const bertie__tls13utils__UNSUPPORTED_ALGORITHM: bitstring.
-(* src: src/tls13utils.rs:32 bertie__tls13utils__PSK_MODE_MISMATCH *)
+(* src: src/tls13utils.rs:32:0-32:46 bertie__tls13utils__PSK_MODE_MISMATCH *)
 const bertie__tls13utils__PSK_MODE_MISMATCH: bitstring.
-(* src: src/tls13utils.rs:34 bertie__tls13utils__PARSE_FAILED *)
+(* src: src/tls13utils.rs:34:0-34:41 bertie__tls13utils__PARSE_FAILED *)
 const bertie__tls13utils__PARSE_FAILED: bitstring.
-(* src: src/tls13utils.rs:9 bertie__tls13utils__parse_failed *)
+(* src: src/tls13utils.rs:9:0-13:1 bertie__tls13utils__parse_failed *)
 letfun bertie__tls13utils__parse_failed(wildcard: bitstring) = bertie__tls13utils__PARSE_FAILED.
-(* src: src/tls13utils.rs:174 bertie__tls13utils__Bytes *)
+(* src: src/tls13utils.rs:174:0-174:26 bertie__tls13utils__Bytes *)
 (*  Bytes used in Bertie. *)
 fun bertie__tls13utils__Bytes__Bytes(bitstring): bitstring [data].
 reduc forall v_0: bitstring;
   bertie__tls13utils__Bytes__Bytes__0(bertie__tls13utils__Bytes__Bytes(v_0)) = v_0.
 
-(* src: src/tls13utils.rs:192 bertie__tls13utils__Impl_2__from *)
+(* src: src/tls13utils.rs:192:4-194:5 bertie__tls13utils__Impl_2__from *)
 letfun bertie__tls13utils__Impl_2__from(x: bitstring) = bertie__tls13utils__Bytes__Bytes(x).
-(* src: src/tls13utils.rs:284 bertie__tls13utils__Impl_19__from *)
+(* src: src/tls13utils.rs:284:4-286:5 bertie__tls13utils__Impl_19__from *)
 letfun bertie__tls13utils__Impl_19__from(x: bitstring) = alloc__slice__Impl__to_vec(x).
-(* src: src/tls13utils.rs:341 bertie__tls13utils__bytes *)
+(* src: src/tls13utils.rs:341:0-343:1 bertie__tls13utils__bytes *)
 letfun bertie__tls13utils__bytes(x: bitstring) = x.
-(* src: src/tls13utils.rs:421 bertie__tls13utils__Impl_23__new_kw *)
+(* src: src/tls13utils.rs:421:4-423:5 bertie__tls13utils__Impl_23__new_kw *)
 (*  Create new [`Bytes`]. *)
 (* marked as constructor *)
 fun bertie__tls13utils__Impl_23__new_kw(bitstring): bitstring [data].
-(* src: src/tls13utils.rs:461 bertie__tls13utils__Impl_23__from_slice *)
-(*  Generate a new [`Bytes`] struct from slice `s`. *)
-letfun bertie__tls13utils__Impl_23__from_slice(s: bitstring) = s.
-(* src: src/tls13utils.rs:434 bertie__tls13utils__Impl_23__zeroes *)
+(* src: src/tls13utils.rs:434:4-436:5 bertie__tls13utils__Impl_23__zeroes *)
 (*  Generate `len` bytes of `0`. *)
 (* marked as constructor *)
 fun bertie__tls13utils__Impl_23__zeroes(bitstring): bitstring [data].
+(* src: src/tls13utils.rs:461:4-463:5 bertie__tls13utils__Impl_23__from_slice *)
+(*  Generate a new [`Bytes`] struct from slice `s`. *)
+letfun bertie__tls13utils__Impl_23__from_slice(s: bitstring) = s.
 fun bertie__tls13utils__concat_inner(bitstring, bitstring): bitstring [data].
-(* src: src/tls13utils.rs:508 bertie__tls13utils__Impl_23__concat *)
+(* src: src/tls13utils.rs:508:4-510:5 bertie__tls13utils__Impl_23__concat *)
 (*  Concatenate `other` with these bytes and return a copy as [`Bytes`]. *)
 letfun bertie__tls13utils__Impl_23__concat(self: bitstring, other: bitstring) =
   bertie__tls13utils__concat_inner(self, other).
@@ -56,46 +56,43 @@ letfun bertie__tls13utils__Impl_23__concat(self: bitstring, other: bitstring) =
     fun bertie__tls13utils__eq_inner( bitstring, bitstring ): bitstring
        reduc forall b : bitstring; bertie__tls13utils__eq_inner(b, b) = True().
     (* No clause for unequal arguments: leaves bertie__tls13utils__eq_inner(b1, b2) as a non-rewriting term, so the (=True()) pattern blocks. *)
-(* src: src/tls13utils.rs:622 bertie__tls13utils__eq *)
+(* src: src/tls13utils.rs:622:0-624:1 bertie__tls13utils__eq *)
 (*  Check if [Bytes] slices `b1` and `b2` are of the same *)
 (*  length and agree on all positions. *)
 letfun bertie__tls13utils__eq(b1: bitstring, b2: bitstring) = bertie__tls13utils__eq_inner(b1, b2).
 fun bertie__tls13utils__check_eq_inner( bitstring, bitstring): bitstring
 reduc forall b1 : bitstring;
           bertie__tls13utils__check_eq_inner(b1,b1) = rust_primitives__hax__Tuple0__Tuple0.
-(* src: src/tls13utils.rs:668 bertie__tls13utils__check_eq *)
+(* src: src/tls13utils.rs:668:0-670:1 bertie__tls13utils__check_eq *)
 (*  Parse function to check if [Bytes] slices `b1` and `b2` are of the same *)
 (*  length and agree on all positions, returning a [TLSError] otherwise. *)
 letfun bertie__tls13utils__check_eq(b1: bitstring, b2: bitstring) =
   bertie__tls13utils__check_eq_inner(b1, b2).
-(* src: src/tls13formats/handshake_data.rs:61 bertie__tls13formats__handshake_data__HandshakeData *)
+(* src: src/tls13formats/handshake_data.rs:61:0-61:43 bertie__tls13formats__handshake_data__HandshakeData *)
 (*  Hadshake data of the TLS handshake. *)
 fun bertie__tls13formats__handshake_data__HandshakeData__HandshakeData(bitstring): bitstring [data].
 reduc forall v_0: bitstring;
   bertie__tls13formats__handshake_data__HandshakeData__HandshakeData__0(
     bertie__tls13formats__handshake_data__HandshakeData__HandshakeData(v_0)
   ) = v_0.
-(* src: src/tls13formats/handshake_data.rs:71 bertie__tls13formats__handshake_data__to_two_inner *)
+(* src: src/tls13formats/handshake_data.rs:71:4-73:5 bertie__tls13formats__handshake_data__to_two_inner *)
 letfun bertie__tls13formats__handshake_data__to_two_inner(hs_data: bitstring) =
   let rust_primitives__hax__Tuple2__Tuple2(hs1, hs2) = hs_data in rust_primitives__hax__Tuple2__Tuple2(hs1, hs2).
-(* src: src/tls13formats/handshake_data.rs:86 bertie__tls13formats__handshake_data__to_four_inner *)
+(* src: src/tls13formats/handshake_data.rs:86:4-91:5 bertie__tls13formats__handshake_data__to_four_inner *)
 letfun bertie__tls13formats__handshake_data__to_four_inner(hs_data: bitstring) =
   let rust_primitives__hax__Tuple2__Tuple2(inner3, hs4) = hs_data in
            let rust_primitives__hax__Tuple2__Tuple2(inner2, hs3) = inner3 in
            let rust_primitives__hax__Tuple2__Tuple2(hs1, hs2) = inner2 in
            rust_primitives__hax__Tuple4__Tuple4(hs1, hs2, hs3, hs4).
-(* src: src/tls13formats/handshake_data.rs:122 bertie__tls13formats__handshake_data__to_bytes_inner *)
+(* src: src/tls13formats/handshake_data.rs:122:0-124:1 bertie__tls13formats__handshake_data__to_bytes_inner *)
 (* marked as constructor *)
 fun bertie__tls13formats__handshake_data__to_bytes_inner(bitstring): bitstring [data].
-(* src: src/tls13formats/handshake_data.rs:141 bertie__tls13formats__handshake_data__Impl_5__len *)
-(*  Returns the length, in bytes. *)
-letfun bertie__tls13formats__handshake_data__Impl_5__len(self: bitstring) = nat_0.
-(* src: src/tls13formats/handshake_data.rs:155 bertie__tls13formats__handshake_data__Impl_5__concat *)
+(* src: src/tls13formats/handshake_data.rs:155:8-155:92 bertie__tls13formats__handshake_data__Impl_5__concat *)
 (*  Returns a new [`HandshakeData`] that contains the bytes of *)
 (*  `other` appended to the bytes of `self`. *)
 letfun bertie__tls13formats__handshake_data__Impl_5__concat(self: bitstring, other: bitstring) =
   rust_primitives__hax__Tuple2__Tuple2(self, other).
-(* src: src/tls13formats/handshake_data.rs:215 bertie__tls13formats__handshake_data__Impl_5__to_two *)
+(* src: src/tls13formats/handshake_data.rs:215:4-217:5 bertie__tls13formats__handshake_data__Impl_5__to_two *)
 (*  Attempt to parse exactly two handshake messages from `payload`. *)
 (* *)
 (*  If successful, returns the parsed handshake messages. Returns a [TLSError] *)
@@ -103,7 +100,7 @@ letfun bertie__tls13formats__handshake_data__Impl_5__concat(self: bitstring, oth
 (*  by parsing two messages. *)
 letfun bertie__tls13formats__handshake_data__Impl_5__to_two(self: bitstring) =
   bertie__tls13formats__handshake_data__to_two_inner(self).
-(* src: src/tls13formats/handshake_data.rs:224 bertie__tls13formats__handshake_data__Impl_5__to_four *)
+(* src: src/tls13formats/handshake_data.rs:224:4-228:5 bertie__tls13formats__handshake_data__Impl_5__to_four *)
 (*  Attempt to parse exactly four handshake messages from `payload`. *)
 (* *)
 (*  If successful, returns the parsed handshake messages. Returns a [TLSError] *)
@@ -112,7 +109,7 @@ letfun bertie__tls13formats__handshake_data__Impl_5__to_two(self: bitstring) =
 letfun bertie__tls13formats__handshake_data__Impl_5__to_four(self: bitstring) =
   bertie__tls13formats__handshake_data__to_four_inner(self).
 
-(* src: src/tls13crypto.rs:82 bertie__tls13crypto__PublicVerificationKey *)
+(* src: src/tls13crypto.rs:82:0-85:1 bertie__tls13crypto__PublicVerificationKey *)
 (*  Bertie public verification keys. *)
 fun bertie__tls13crypto__PublicVerificationKey__EcDsa(bitstring): bitstring [data].
 reduc forall v_0: bitstring;
@@ -124,26 +121,26 @@ reduc forall v_0: bitstring;
   bertie__tls13crypto__PublicVerificationKey__Rsa__0(
     bertie__tls13crypto__PublicVerificationKey__Rsa(v_0)
   ) = v_0.
-(* src: src/tls13crypto.rs:89 bertie__tls13crypto__HashAlgorithm *)
+(* src: src/tls13crypto.rs:89:0-93:1 bertie__tls13crypto__HashAlgorithm *)
 (*  Bertie hash algorithms. *)
 fun bertie__tls13crypto__HashAlgorithm__SHA256(): bitstring [data].
 fun bertie__tls13crypto__HashAlgorithm__SHA384(): bitstring [data].
 fun bertie__tls13crypto__HashAlgorithm__SHA512(): bitstring [data].
-(* src: src/tls13crypto.rs:100 bertie__tls13crypto__hash *)
+(* src: src/tls13crypto.rs:100:4-100:57 bertie__tls13crypto__hash *)
 (*  Hash `data` with the given `algorithm`. *)
 (* *)
 (*  Returns the digest or an [`TLSError`]. *)
 letfun bertie__tls13crypto__hash(ha: bitstring, data: bitstring) = crypto__hash(data).
-(* src: src/tls13crypto.rs:124 bertie__tls13crypto__Impl_16__hash_len *)
+(* src: src/tls13crypto.rs:124:4-124:62 bertie__tls13crypto__Impl_16__hash_len *)
 (*  Get the size of the hash digest. *)
 letfun bertie__tls13crypto__Impl_16__hash_len(self: bitstring) = nat_0.
-(* src: src/tls13crypto.rs:154 bertie__tls13crypto__hmac_tag *)
+(* src: src/tls13crypto.rs:154:4-154:61 bertie__tls13crypto__hmac_tag *)
 (*  Compute the HMAC tag. *)
 (* *)
 (*  Returns the tag [`Hmac`] or a [`TLSError`]. *)
 letfun bertie__tls13crypto__hmac_tag(alg: bitstring, mk: bitstring, input: bitstring) =
   crypto__mac(mk, input).
-(* src: src/tls13crypto.rs:171 bertie__tls13crypto__hmac_verify *)
+(* src: src/tls13crypto.rs:171:4-171:64 bertie__tls13crypto__hmac_verify *)
 (*  Verify a given HMAC `tag`. *)
 (* *)
 (*  Returns `()` if successful or a [`TLSError`]. *)
@@ -153,12 +150,12 @@ letfun bertie__tls13crypto__hmac_verify(
   input: bitstring,
   tag: bitstring
 ) = crypto__mac_verify(mk, input, tag).
-(* src: src/tls13crypto.rs:237 bertie__tls13crypto__AeadAlgorithm *)
+(* src: src/tls13crypto.rs:237:0-241:1 bertie__tls13crypto__AeadAlgorithm *)
 (*  AEAD Algorithms for Bertie *)
 fun bertie__tls13crypto__AeadAlgorithm__Chacha20Poly1305(): bitstring [data].
 fun bertie__tls13crypto__AeadAlgorithm__Aes128Gcm(): bitstring [data].
 fun bertie__tls13crypto__AeadAlgorithm__Aes256Gcm(): bitstring [data].
-(* src: src/tls13crypto.rs:54 bertie__tls13crypto__AeadKey *)
+(* src: src/tls13crypto.rs:54:0-57:1 bertie__tls13crypto__AeadKey *)
 (*  An AEAD key. *)
 fun bertie__tls13crypto__AeadKey__AeadKey(bitstring, bitstring): bitstring [data].
 reduc forall v_0: bitstring, v_1: bitstring;
@@ -169,7 +166,7 @@ reduc forall v_0: bitstring, v_1: bitstring;
   bertie__tls13crypto__AeadKey__AeadKey__u_alg(
     bertie__tls13crypto__AeadKey__AeadKey(v_0, v_1)
   ) = v_1.
-(* src: src/tls13crypto.rs:41 bertie__tls13crypto__AeadKeyIV *)
+(* src: src/tls13crypto.rs:41:0-44:1 bertie__tls13crypto__AeadKeyIV *)
 (*  An AEAD key and iv package. *)
 fun bertie__tls13crypto__AeadKeyIV__AeadKeyIV(bitstring, bitstring): bitstring [data].
 reduc forall v_0: bitstring, v_1: bitstring;
@@ -180,12 +177,12 @@ reduc forall v_0: bitstring, v_1: bitstring;
   bertie__tls13crypto__AeadKeyIV__AeadKeyIV__iv(
     bertie__tls13crypto__AeadKeyIV__AeadKeyIV(v_0, v_1)
   ) = v_1.
-(* src: src/tls13crypto.rs:334 bertie__tls13crypto__SignatureScheme *)
+(* src: src/tls13crypto.rs:334:0-338:1 bertie__tls13crypto__SignatureScheme *)
 (*  Signature schemes for Bertie. *)
 fun bertie__tls13crypto__SignatureScheme__RsaPssRsaSha256(): bitstring [data].
 fun bertie__tls13crypto__SignatureScheme__EcdsaSecp256r1Sha256(): bitstring [data].
 fun bertie__tls13crypto__SignatureScheme__ED25519(): bitstring [data].
-(* src: src/tls13crypto.rs:387 bertie__tls13crypto__sign *)
+(* src: src/tls13crypto.rs:387:31-387:80 bertie__tls13crypto__sign *)
 (*  Sign the bytes in `input` with the signature key `sk` and `algorithm`. *)
 letfun bertie__tls13crypto__sign(
   algorithm: bitstring,
@@ -196,7 +193,7 @@ letfun bertie__tls13crypto__sign(
   let hax_temp_output = (crypto__sign(sk, input)) in
   rust_primitives__hax__Tuple2__Tuple2(rng, hax_temp_output).
 
-(* src: src/tls13crypto.rs:508 bertie__tls13crypto__KemScheme *)
+(* src: src/tls13crypto.rs:508:0-516:1 bertie__tls13crypto__KemScheme *)
 (*  Bertie KEM schemes. *)
 (* *)
 (*  This includes ECDH curves. *)
@@ -207,25 +204,25 @@ fun bertie__tls13crypto__KemScheme__Secp384r1(): bitstring [data].
 fun bertie__tls13crypto__KemScheme__Secp521r1(): bitstring [data].
 fun bertie__tls13crypto__KemScheme__X25519Kyber768Draft00(): bitstring [data].
 fun bertie__tls13crypto__KemScheme__X25519MlKem768(): bitstring [data].
-(* src: src/tls13crypto.rs:534 bertie__tls13crypto__kem_keygen *)
+(* src: src/tls13crypto.rs:534:4-538:5 bertie__tls13crypto__kem_keygen *)
 (*  Generate a new KEM key pair. *)
 letfun bertie__tls13crypto__kem_keygen(alg: bitstring, rng: bitstring) =
   let hax_temp_output = ((new kem_sk: bitstring;
          let kem_pk = crypto__kem_pk(kem_sk) in
          rust_primitives__hax__Tuple2__Tuple2(kem_sk, kem_pk))) in
   rust_primitives__hax__Tuple2__Tuple2(rng, hax_temp_output).
-(* src: src/tls13crypto.rs:585 bertie__tls13crypto__kem_encap *)
+(* src: src/tls13crypto.rs:585:4-589:5 bertie__tls13crypto__kem_encap *)
 (*  KEM encapsulation *)
 letfun bertie__tls13crypto__kem_encap(alg: bitstring, pk: bitstring, rng: bitstring) =
   let hax_temp_output = ((new shared_secret: bitstring;
             let ct = crypto__kem_encaps(pk, shared_secret) in
             rust_primitives__hax__Tuple2__Tuple2(shared_secret, ct))) in
   rust_primitives__hax__Tuple2__Tuple2(rng, hax_temp_output).
-(* src: src/tls13crypto.rs:628 bertie__tls13crypto__kem_decap *)
+(* src: src/tls13crypto.rs:628:4-628:56 bertie__tls13crypto__kem_decap *)
 (*  KEM decapsulation *)
 letfun bertie__tls13crypto__kem_decap(alg: bitstring, ct: bitstring, sk: bitstring) =
   crypto__kem_decaps(sk, ct).
-(* src: src/tls13crypto.rs:655 bertie__tls13crypto__Algorithms *)
+(* src: src/tls13crypto.rs:655:0-662:1 bertie__tls13crypto__Algorithms *)
 (*  The algorithms for Bertie. *)
 (* *)
 (*  Note that this is more than the TLS 1.3 ciphersuite. It contains all *)
@@ -292,23 +289,23 @@ reduc forall v_0: bitstring,
   bertie__tls13crypto__Algorithms__Algorithms__zero_rtt(
     bertie__tls13crypto__Algorithms__Algorithms(v_0, v_1, v_2, v_3, v_4, v_5)
   ) = v_5.
-(* src: src/tls13crypto.rs:686 bertie__tls13crypto__Impl_38__hash *)
+(* src: src/tls13crypto.rs:686:4-688:5 bertie__tls13crypto__Impl_38__hash *)
 (*  Get the [`HashAlgorithm`]. *)
 letfun bertie__tls13crypto__Impl_38__hash(self: bitstring) =
   bertie__tls13crypto__Algorithms__Algorithms__hash(self).
-(* src: src/tls13crypto.rs:696 bertie__tls13crypto__Impl_38__signature *)
+(* src: src/tls13crypto.rs:696:4-698:5 bertie__tls13crypto__Impl_38__signature *)
 (*  Get the [`SignatureAlgorithm`]. *)
 letfun bertie__tls13crypto__Impl_38__signature(self: bitstring) =
   bertie__tls13crypto__Algorithms__Algorithms__signature(self).
-(* src: src/tls13crypto.rs:701 bertie__tls13crypto__Impl_38__kem *)
+(* src: src/tls13crypto.rs:701:4-703:5 bertie__tls13crypto__Impl_38__kem *)
 (*  Get the [`KemScheme`]. *)
 letfun bertie__tls13crypto__Impl_38__kem(self: bitstring) =
   bertie__tls13crypto__Algorithms__Algorithms__kem(self).
-(* src: src/tls13crypto.rs:706 bertie__tls13crypto__Impl_38__psk_mode *)
+(* src: src/tls13crypto.rs:706:4-708:5 bertie__tls13crypto__Impl_38__psk_mode *)
 (*  Returns `true` when using the PSK mode and `false` otherwise. *)
 letfun bertie__tls13crypto__Impl_38__psk_mode(self: bitstring) =
   bertie__tls13crypto__Algorithms__Algorithms__psk_mode(self).
-(* src: src/tls13keyscheduler/key_schedule.rs:87 bertie__tls13keyscheduler__key_schedule__TLSnames *)
+(* src: src/tls13keyscheduler/key_schedule.rs:87:0-108:1 bertie__tls13keyscheduler__key_schedule__TLSnames *)
 fun bertie__tls13keyscheduler__key_schedule__TLSnames__ES(): bitstring [data].
 fun bertie__tls13keyscheduler__key_schedule__TLSnames__EEM(): bitstring [data].
 fun bertie__tls13keyscheduler__key_schedule__TLSnames__CET(): bitstring [data].
@@ -328,7 +325,7 @@ fun bertie__tls13keyscheduler__key_schedule__TLSnames__ZeroSalt(): bitstring [da
 fun bertie__tls13keyscheduler__key_schedule__TLSnames__ESalt(): bitstring [data].
 fun bertie__tls13keyscheduler__key_schedule__TLSnames__KEM(): bitstring [data].
 fun bertie__tls13keyscheduler__key_schedule__TLSnames__ZeroIKM(): bitstring [data].
-(* src: src/tls13keyscheduler/key_schedule.rs:81 bertie__tls13keyscheduler__key_schedule__TLSkeyscheduler *)
+(* src: src/tls13keyscheduler/key_schedule.rs:81:0-83:1 bertie__tls13keyscheduler__key_schedule__TLSkeyscheduler *)
 fun bertie__tls13keyscheduler__key_schedule__TLSkeyscheduler__TLSkeyscheduler(
   bitstring
 ): bitstring [data].
@@ -336,7 +333,7 @@ reduc forall v_0: bitstring;
   bertie__tls13keyscheduler__key_schedule__TLSkeyscheduler__TLSkeyscheduler__keys(
     bertie__tls13keyscheduler__key_schedule__TLSkeyscheduler__TLSkeyscheduler(v_0)
   ) = v_0.
-(* src: src/tls13keyscheduler/key_schedule.rs:238 bertie__tls13keyscheduler__key_schedule__TagKey *)
+(* src: src/tls13keyscheduler/key_schedule.rs:238:0-242:1 bertie__tls13keyscheduler__key_schedule__TagKey *)
 fun bertie__tls13keyscheduler__key_schedule__TagKey__TagKey(
   bitstring,
   bitstring,
@@ -354,7 +351,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring;
   bertie__tls13keyscheduler__key_schedule__TagKey__TagKey__val(
     bertie__tls13keyscheduler__key_schedule__TagKey__TagKey(v_0, v_1, v_2)
   ) = v_2.
-(* src: src/tls13keyscheduler/key_schedule.rs:285 bertie__tls13keyscheduler__key_schedule__Handle *)
+(* src: src/tls13keyscheduler/key_schedule.rs:285:0-289:1 bertie__tls13keyscheduler__key_schedule__Handle *)
 fun bertie__tls13keyscheduler__key_schedule__Handle__Handle(
   bitstring,
   bitstring,
@@ -373,14 +370,14 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring;
     bertie__tls13keyscheduler__key_schedule__Handle__Handle(v_0, v_1, v_2)
   ) = v_2.
 
-(* src: src/tls13keyscheduler/key_schedule.rs:314 bertie__tls13keyscheduler__key_schedule__set_by_handle *)
+(* src: src/tls13keyscheduler/key_schedule.rs:314:0-321:1 bertie__tls13keyscheduler__key_schedule__set_by_handle *)
 (* marked as constructor *)
 fun bertie__tls13keyscheduler__key_schedule__set_by_handle(
   bitstring,
   bitstring,
   bitstring
 ): bitstring [data].
-(* src: src/tls13keyscheduler/key_schedule.rs:33 bertie__tls13keyscheduler__key_schedule__zero_salt *)
+(* src: src/tls13keyscheduler/key_schedule.rs:33:0-45:1 bertie__tls13keyscheduler__key_schedule__zero_salt *)
 (*  Get an empty key of the correct size. *)
 letfun bertie__tls13keyscheduler__key_schedule__zero_salt(ks: bitstring, alg: bitstring) =
   let handle = bertie__tls13keyscheduler__key_schedule__Handle__Handle(
@@ -396,7 +393,7 @@ letfun bertie__tls13keyscheduler__key_schedule__zero_salt(ks: bitstring, alg: bi
     ),
     handle
   ).
-(* src: src/tls13keyscheduler/key_schedule.rs:48 bertie__tls13keyscheduler__key_schedule__no_psk *)
+(* src: src/tls13keyscheduler/key_schedule.rs:48:0-57:1 bertie__tls13keyscheduler__key_schedule__no_psk *)
 (*  Get an empty key of the correct size. *)
 letfun bertie__tls13keyscheduler__key_schedule__no_psk(ks: bitstring, alg: bitstring) =
   let handle = bertie__tls13keyscheduler__key_schedule__Handle__Handle(
@@ -412,7 +409,7 @@ letfun bertie__tls13keyscheduler__key_schedule__no_psk(ks: bitstring, alg: bitst
     ),
     handle
   ).
-(* src: src/tls13keyscheduler/key_schedule.rs:60 bertie__tls13keyscheduler__key_schedule__zero_ikm *)
+(* src: src/tls13keyscheduler/key_schedule.rs:60:0-68:1 bertie__tls13keyscheduler__key_schedule__zero_ikm *)
 (*  Get an empty key of the correct size. *)
 letfun bertie__tls13keyscheduler__key_schedule__zero_ikm(ks: bitstring, alg: bitstring) =
   let handle = bertie__tls13keyscheduler__key_schedule__Handle__Handle(
@@ -428,17 +425,17 @@ letfun bertie__tls13keyscheduler__key_schedule__zero_ikm(ks: bitstring, alg: bit
     ),
     handle
   ).
-(* src: src/tls13keyscheduler/key_schedule.rs:324 bertie__tls13keyscheduler__key_schedule__get_by_handle *)
+(* src: src/tls13keyscheduler/key_schedule.rs:324:0-331:1 bertie__tls13keyscheduler__key_schedule__get_by_handle *)
 (* marked as constructor *)
 fun bertie__tls13keyscheduler__key_schedule__get_by_handle(bitstring, bitstring): bitstring [data].
-(* src: src/tls13keyscheduler/key_schedule.rs:305 bertie__tls13keyscheduler__key_schedule__tagkey_from_handle *)
+(* src: src/tls13keyscheduler/key_schedule.rs:305:0-311:1 bertie__tls13keyscheduler__key_schedule__tagkey_from_handle *)
 (* marked as constructor *)
 fun bertie__tls13keyscheduler__key_schedule__tagkey_from_handle(
   bitstring,
   bitstring
 ): bitstring [data].
 fun model__XPD(bitstring, bitstring, bitstring, bitstring, bitstring): bitstring [data].
-(* src: src/tls13keyscheduler/key_schedule.rs:341 bertie__tls13keyscheduler__key_schedule__XPD *)
+(* src: src/tls13keyscheduler/key_schedule.rs:341:0-353:2 bertie__tls13keyscheduler__key_schedule__XPD *)
 letfun bertie__tls13keyscheduler__key_schedule__XPD(
   ks: bitstring,
   n: bitstring,
@@ -457,7 +454,7 @@ letfun bertie__tls13keyscheduler__key_schedule__XPD(
          )) in
   rust_primitives__hax__Tuple2__Tuple2(ks, hax_temp_output).
 fun model__XTR(bitstring, bitstring, bitstring, bitstring): bitstring [data].
-(* src: src/tls13keyscheduler/key_schedule.rs:414 bertie__tls13keyscheduler__key_schedule__XTR *)
+(* src: src/tls13keyscheduler/key_schedule.rs:414:0-425:2 bertie__tls13keyscheduler__key_schedule__XTR *)
 letfun bertie__tls13keyscheduler__key_schedule__XTR(
   ks: bitstring,
   level: bitstring,
@@ -473,7 +470,7 @@ letfun bertie__tls13keyscheduler__key_schedule__XTR(
             )
          )) in
   rust_primitives__hax__Tuple2__Tuple2(ks, hax_temp_output).
-(* src: src/tls13formats.rs:48 bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
+(* src: src/tls13formats.rs:48:0-56:2 bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
 const bertie__tls13formats__PREFIX_SERVER_SIGNATURE: bitstring.
 fun model__client_hello_c(
       bitstring, (* client_randomness *)
@@ -484,7 +481,25 @@ fun model__client_hello_c(
       bitstring, (*bindero*)
       bitstring) (*trunc_len*)
       : bitstring [data].
-(* src: src/tls13formats.rs:663 bertie__tls13formats__set_client_hello_binder *)
+(* src: src/tls13formats.rs:569:0-582:2 bertie__tls13formats__client_hello *)
+(*  Build a ClientHello message. *)
+letfun bertie__tls13formats__client_hello(
+  algorithms: bitstring,
+  client_random: bitstring,
+  kem_pk: bitstring,
+  server_name: bitstring,
+  session_ticket: bitstring
+) =
+  rust_primitives__hax__Tuple2__Tuple2(model__client_hello_c(
+           client_random,
+           bitstring_default(),
+           server_name,
+           kem_pk,
+           session_ticket,
+           None(),
+           nat_0),
+       nat_0).
+(* src: src/tls13formats.rs:667:4-684:5 bertie__tls13formats__set_client_hello_binder *)
 letfun bertie__tls13formats__set_client_hello_binder(
   ciphersuite: bitstring,
   binder: bitstring,
@@ -536,24 +551,6 @@ reduc forall
                             session_ticket,
                             binder,
                             trunc_len).
-(* src: src/tls13formats.rs:555 bertie__tls13formats__client_hello *)
-(*  Build a ClientHello message. *)
-letfun bertie__tls13formats__client_hello(
-  algorithms: bitstring,
-  client_random: bitstring,
-  kem_pk: bitstring,
-  server_name: bitstring,
-  session_ticket: bitstring
-) =
-  rust_primitives__hax__Tuple2__Tuple2(model__client_hello_c(
-           client_random,
-           bitstring_default(),
-           server_name,
-           kem_pk,
-           session_ticket,
-           None(),
-           nat_0),
-       nat_0).
 
 fun bertie__tls13formats__server_hello(bitstring, bitstring, bitstring, bitstring): bitstring [data].
 reduc forall algs: bitstring, server_random: bitstring, sid: bitstring, gy: bitstring;
@@ -574,7 +571,7 @@ reduc forall algs: bitstring, cert: bitstring;
 fun bertie__tls13formats__finished(bitstring): bitstring [data].
 reduc forall vd: bitstring;
    bertie__tls13formats__parse_finished(bertie__tls13formats__finished(vd)) = vd.
-(* src: src/tls13formats.rs:1354 bertie__tls13formats__Transcript *)
+(* src: src/tls13formats.rs:1356:0-1359:1 bertie__tls13formats__Transcript *)
 (*  Incremental Transcript Construction *)
 (*  For simplicity, we store the full transcript, but an internal Digest state would suffice. *)
 fun bertie__tls13formats__Transcript__Transcript(bitstring, bitstring): bitstring [data].
@@ -586,7 +583,7 @@ reduc forall v_0: bitstring, v_1: bitstring;
   bertie__tls13formats__Transcript__Transcript__transcript(
     bertie__tls13formats__Transcript__Transcript(v_0, v_1)
   ) = v_1.
-(* src: src/tls13formats.rs:1361 bertie__tls13formats__Impl_20__new_kw *)
+(* src: src/tls13formats.rs:1363:4-1368:5 bertie__tls13formats__Impl_20__new_kw *)
 letfun bertie__tls13formats__Impl_20__new_kw(hash_algorithm: bitstring) =
   bertie__tls13formats__Transcript__Transcript(
     hash_algorithm,
@@ -594,7 +591,7 @@ letfun bertie__tls13formats__Impl_20__new_kw(hash_algorithm: bitstring) =
       bertie__tls13utils__Impl_23__new_kw(rust_primitives__hax__Tuple0__Tuple0)
     )
   ).
-(* src: src/tls13formats.rs:1371 bertie__tls13formats__Impl_20__add *)
+(* src: src/tls13formats.rs:1373:8-1389:9 bertie__tls13formats__Impl_20__add *)
 (*  Add the [`HandshakeData`] `msg` to this transcript. *)
 letfun bertie__tls13formats__Impl_20__add(self: bitstring, msg: bitstring) =
   let bertie__tls13formats__Transcript__Transcript(
@@ -612,7 +609,7 @@ letfun bertie__tls13formats__Impl_20__add(self: bitstring, msg: bitstring) =
               )
           )
       ).
-(* src: src/tls13formats.rs:1395 bertie__tls13formats__Impl_20__transcript_hash *)
+(* src: src/tls13formats.rs:1397:4-1400:5 bertie__tls13formats__Impl_20__transcript_hash *)
 (*  Get the hash of this transcript *)
 letfun bertie__tls13formats__Impl_20__transcript_hash(self: bitstring) =
   let th = bertie__tls13crypto__hash(
@@ -621,7 +618,7 @@ letfun bertie__tls13formats__Impl_20__transcript_hash(self: bitstring) =
       bertie__tls13formats__Transcript__Transcript__transcript(self)
     )
   ) in th.
-(* src: src/tls13formats.rs:1403 bertie__tls13formats__Impl_20__transcript_hash_without_client_hello *)
+(* src: src/tls13formats.rs:1405:4-1420:5 bertie__tls13formats__Impl_20__transcript_hash_without_client_hello *)
 (*  Get the hash of this transcript without the client hello *)
 (* marked as constructor *)
 fun bertie__tls13formats__Impl_20__transcript_hash_without_client_hello(
@@ -629,7 +626,7 @@ fun bertie__tls13formats__Impl_20__transcript_hash_without_client_hello(
   bitstring,
   bitstring
 ): bitstring [data].
-(* src: src/tls13record.rs:12 bertie__tls13record__ClientCipherState0 *)
+(* src: src/tls13record.rs:12:0-12:69 bertie__tls13record__ClientCipherState0 *)
 fun bertie__tls13record__ClientCipherState0__ClientCipherState0(
   bitstring,
   bitstring,
@@ -652,7 +649,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring, v_3: bitstring;
   bertie__tls13record__ClientCipherState0__ClientCipherState0__3(
     bertie__tls13record__ClientCipherState0__ClientCipherState0(v_0, v_1, v_2, v_3)
   ) = v_3.
-(* src: src/tls13record.rs:15 bertie__tls13record__client_cipher_state0 *)
+(* src: src/tls13record.rs:15:0-22:1 bertie__tls13record__client_cipher_state0 *)
 (*  Build the initial client cipher state. *)
 letfun bertie__tls13record__client_cipher_state0(
   ae: bitstring,
@@ -660,7 +657,7 @@ letfun bertie__tls13record__client_cipher_state0(
   c: bitstring,
   k: bitstring
 ) = bertie__tls13record__ClientCipherState0__ClientCipherState0(ae, kiv, c, k).
-(* src: src/tls13record.rs:25 bertie__tls13record__ServerCipherState0 *)
+(* src: src/tls13record.rs:25:0-29:1 bertie__tls13record__ServerCipherState0 *)
 (*  The AEAD state of the server with the key, iv, and counter. *)
 fun bertie__tls13record__ServerCipherState0__ServerCipherState0(
   bitstring,
@@ -679,14 +676,14 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring;
   bertie__tls13record__ServerCipherState0__ServerCipherState0__early_exporter_ms(
     bertie__tls13record__ServerCipherState0__ServerCipherState0(v_0, v_1, v_2)
   ) = v_2.
-(* src: src/tls13record.rs:32 bertie__tls13record__server_cipher_state0 *)
+(* src: src/tls13record.rs:32:0-42:1 bertie__tls13record__server_cipher_state0 *)
 (*  Create the initial cipher state for the server. *)
 letfun bertie__tls13record__server_cipher_state0(
   key_iv: bitstring,
   counter: bitstring,
   early_exporter_ms: bitstring
 ) = bertie__tls13record__ServerCipherState0__ServerCipherState0(key_iv, counter, early_exporter_ms).
-(* src: src/tls13record.rs:45 bertie__tls13record__DuplexCipherStateH *)
+(* src: src/tls13record.rs:45:0-50:1 bertie__tls13record__DuplexCipherStateH *)
 (*  Duplex cipher state with hello keys. *)
 fun bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(
   bitstring,
@@ -710,7 +707,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring, v_3: bitstring;
   bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH__receiver_counter(
     bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(v_0, v_1, v_2, v_3)
   ) = v_3.
-(* src: src/tls13record.rs:54 bertie__tls13record__Impl__new_kw *)
+(* src: src/tls13record.rs:54:4-66:5 bertie__tls13record__Impl__new_kw *)
 (*  Create a new state *)
 letfun bertie__tls13record__Impl__new_kw(
   sender_key_iv: bitstring,
@@ -724,7 +721,7 @@ letfun bertie__tls13record__Impl__new_kw(
     receiver_key_iv,
     receiver_counter
   ).
-(* src: src/tls13record.rs:69 bertie__tls13record__DuplexCipherState1 *)
+(* src: src/tls13record.rs:69:0-69:85 bertie__tls13record__DuplexCipherState1 *)
 fun bertie__tls13record__DuplexCipherState1__DuplexCipherState1(
   bitstring,
   bitstring,
@@ -787,7 +784,7 @@ reduc forall v_0: bitstring,
   bertie__tls13record__DuplexCipherState1__DuplexCipherState1__5(
     bertie__tls13record__DuplexCipherState1__DuplexCipherState1(v_0, v_1, v_2, v_3, v_4, v_5)
   ) = v_5.
-(* src: src/tls13record.rs:72 bertie__tls13record__duplex_cipher_state1 *)
+(* src: src/tls13record.rs:72:0-81:1 bertie__tls13record__duplex_cipher_state1 *)
 (*  Create the next cipher state. *)
 letfun bertie__tls13record__duplex_cipher_state1(
   ae: bitstring,
@@ -828,15 +825,15 @@ bertie__tls13record__DuplexCipherStateH__DuplexCipherStateH(
       receiver_counter
     )
 ) = payload.
-(* src: src/tls13keyscheduler.rs:12 bertie__tls13keyscheduler__hash_empty *)
+(* src: src/tls13keyscheduler.rs:12:0-14:1 bertie__tls13keyscheduler__hash_empty *)
 (*  Get the hash of an empty byte slice. *)
 (* marked as constructor *)
 fun bertie__tls13keyscheduler__hash_empty(bitstring): bitstring [data].
-(* src: src/tls13keyscheduler.rs:17 bertie__tls13keyscheduler__derive_binder_key *)
+(* src: src/tls13keyscheduler.rs:17:0-25:1 bertie__tls13keyscheduler__derive_binder_key *)
 (* marked as constructor *)
 fun bertie__tls13keyscheduler__derive_binder_key(bitstring, bitstring, bitstring): bitstring [data].
 fun extern__derive_aead_key_iv(bitstring, bitstring, bitstring, bitstring): bitstring.
-(* src: src/tls13keyscheduler.rs:29 bertie__tls13keyscheduler__derive_aead_key_iv *)
+(* src: src/tls13keyscheduler.rs:29:31-29:49 bertie__tls13keyscheduler__derive_aead_key_iv *)
 (*  Derive an AEAD key and iv. *)
 letfun bertie__tls13keyscheduler__derive_aead_key_iv(
   hash_algorithm: bitstring,
@@ -846,7 +843,7 @@ letfun bertie__tls13keyscheduler__derive_aead_key_iv(
 ) =
   let hax_temp_output = (extern__derive_aead_key_iv(hash_algorithm, aead_algorithm, handle, ks)) in
   rust_primitives__hax__Tuple2__Tuple2(ks, hax_temp_output).
-(* src: src/tls13keyscheduler.rs:79 bertie__tls13keyscheduler__derive_0rtt_keys *)
+(* src: src/tls13keyscheduler.rs:79:0-95:1 bertie__tls13keyscheduler__derive_0rtt_keys *)
 (*  Derive 0-RTT AEAD keys. *)
 (* marked as constructor *)
 fun bertie__tls13keyscheduler__derive_0rtt_keys(
@@ -857,7 +854,7 @@ fun bertie__tls13keyscheduler__derive_0rtt_keys(
   bitstring
 ): bitstring [data].
 fun extern__derive_finished_key(bitstring, bitstring, bitstring): bitstring.
-(* src: src/tls13keyscheduler.rs:97 bertie__tls13keyscheduler__derive_finished_key *)
+(* src: src/tls13keyscheduler.rs:97:31-97:49 bertie__tls13keyscheduler__derive_finished_key *)
 letfun bertie__tls13keyscheduler__derive_finished_key(
   ha: bitstring,
   handle: bitstring,
@@ -865,7 +862,7 @@ letfun bertie__tls13keyscheduler__derive_finished_key(
 ) =
   let hax_temp_output = (extern__derive_finished_key(ha, handle, ks)) in
   rust_primitives__hax__Tuple2__Tuple2(ks, hax_temp_output).
-(* src: src/tls13keyscheduler.rs:114 bertie__tls13keyscheduler__derive_hk_handles *)
+(* src: src/tls13keyscheduler.rs:114:0-146:1 bertie__tls13keyscheduler__derive_hk_handles *)
 (*  Derive the handshake keys and master secret. *)
 letfun bertie__tls13keyscheduler__derive_hk_handles(
   ha: bitstring,
@@ -989,7 +986,7 @@ letfun bertie__tls13keyscheduler__derive_hk_handles(
                       master_secret
                     )
                   )) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13keyscheduler.rs:148 bertie__tls13keyscheduler__derive_hk_ms *)
+(* src: src/tls13keyscheduler.rs:148:0-166:1 bertie__tls13keyscheduler__derive_hk_ms *)
 letfun bertie__tls13keyscheduler__derive_hk_ms(
   ha: bitstring,
   ae: bitstring,
@@ -1044,7 +1041,7 @@ letfun bertie__tls13keyscheduler__derive_hk_ms(
               server_finished_key
             )
           )) else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13keyscheduler.rs:169 bertie__tls13keyscheduler__derive_app_handles *)
+(* src: src/tls13keyscheduler.rs:169:0-184:1 bertie__tls13keyscheduler__derive_app_handles *)
 (*  Derive the application keys and master secret. *)
 letfun bertie__tls13keyscheduler__derive_app_handles(
   ha: bitstring,
@@ -1096,7 +1093,7 @@ letfun bertie__tls13keyscheduler__derive_app_handles(
             exporter_master_secret
           )
         )) else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13keyscheduler.rs:186 bertie__tls13keyscheduler__derive_app_keys *)
+(* src: src/tls13keyscheduler.rs:186:0-197:1 bertie__tls13keyscheduler__derive_app_keys *)
 letfun bertie__tls13keyscheduler__derive_app_keys(
   ha: bitstring,
   ae: bitstring,
@@ -1128,7 +1125,7 @@ letfun bertie__tls13keyscheduler__derive_app_keys(
         ks_2,
         rust_primitives__hax__Tuple2__Tuple2(client_write_key_iv, server_write_key_iv)
       )) else bitstring_err()) else bitstring_err().
-(* src: src/tls13keyscheduler.rs:199 bertie__tls13keyscheduler__derive_rms *)
+(* src: src/tls13keyscheduler.rs:199:0-206:1 bertie__tls13keyscheduler__derive_rms *)
 letfun bertie__tls13keyscheduler__derive_rms(
   ha: bitstring,
   master_secret: bitstring,
@@ -1146,7 +1143,7 @@ letfun bertie__tls13keyscheduler__derive_rms(
     True(),
     tx
   ) in rust_primitives__hax__Tuple2__Tuple2(tmp0, out_kw) else bitstring_err().
-(* src: src/tls13cert.rs:30 bertie__tls13cert__CertificateKey *)
+(* src: src/tls13cert.rs:30:0-30:47 bertie__tls13cert__CertificateKey *)
 (*  Certificate key start and length within the certificate DER. *)
 fun bertie__tls13cert__CertificateKey__CertificateKey(bitstring, bitstring): bitstring [data].
 reduc forall v_0: bitstring, v_1: bitstring;
@@ -1200,7 +1197,7 @@ reduc forall
             ),
             spki
     ) = vk.
-(* src: src/server.rs:16 bertie__server__ServerDB *)
+(* src: src/server.rs:16:0-21:1 bertie__server__ServerDB *)
 (*  The Server Database *)
 fun bertie__server__ServerDB__ServerDB(
   bitstring,
@@ -1224,7 +1221,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring, v_3: bitstring;
   bertie__server__ServerDB__ServerDB__psk_opt(
     bertie__server__ServerDB__ServerDB(v_0, v_1, v_2, v_3)
   ) = v_3.
-(* src: src/server.rs:43 bertie__server__ServerInfo *)
+(* src: src/server.rs:43:0-47:1 bertie__server__ServerInfo *)
 (*  Global server information. *)
 fun bertie__server__ServerInfo__ServerInfo(bitstring, bitstring, bitstring): bitstring [data].
 reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring;
@@ -1239,7 +1236,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring;
   bertie__server__ServerInfo__ServerInfo__psk_opt(
     bertie__server__ServerInfo__ServerInfo(v_0, v_1, v_2)
   ) = v_2.
-(* src: src/server.rs:50 bertie__server__ServerPubInfo *)
+(* src: src/server.rs:50:0-55:1 bertie__server__ServerPubInfo *)
 fun bertie__server__ServerPubInfo__ServerPubInfo(
   bitstring,
   bitstring,
@@ -1263,7 +1260,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring, v_3: bitstring;
     bertie__server__ServerPubInfo__ServerPubInfo(v_0, v_1, v_2, v_3)
   ) = v_3.
 
-(* src: src/server.rs:60 bertie__server__lookup_db *)
+(* src: src/server.rs:60:0-92:1 bertie__server__lookup_db *)
 (*  Look up a server for the given `ciphersuite`. *)
 (* *)
 (*  The function returns a server with the first algorithm it finds. *)
@@ -1306,7 +1303,7 @@ letfun bertie__server__lookup_db(
     else bitstring_err())
     else bitstring_err().
 
-(* src: src/tls13handshake.rs:26 bertie__tls13handshake__ClientPostClientHello *)
+(* src: src/tls13handshake.rs:26:0-33:2 bertie__tls13handshake__ClientPostClientHello *)
 fun bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(
   bitstring,
   bitstring,
@@ -1411,7 +1408,7 @@ reduc forall v_0: bitstring,
       v_5
     )
   ) = v_5.
-(* src: src/tls13handshake.rs:34 bertie__tls13handshake__ClientPostServerHello *)
+(* src: src/tls13handshake.rs:34:0-43:2 bertie__tls13handshake__ClientPostServerHello *)
 fun bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello(
   bitstring,
   bitstring,
@@ -1582,7 +1579,7 @@ reduc forall v_0: bitstring,
       v_7
     )
   ) = v_7.
-(* src: src/tls13handshake.rs:44 bertie__tls13handshake__ClientPostCertificateVerify *)
+(* src: src/tls13handshake.rs:44:0-53:2 bertie__tls13handshake__ClientPostCertificateVerify *)
 fun bertie__tls13handshake__ClientPostCertificateVerify__ClientPostCertificateVerify(
   bitstring,
   bitstring,
@@ -1753,7 +1750,7 @@ reduc forall v_0: bitstring,
       v_7
     )
   ) = v_7.
-(* src: src/tls13handshake.rs:54 bertie__tls13handshake__ClientPostServerFinished *)
+(* src: src/tls13handshake.rs:54:0-62:2 bertie__tls13handshake__ClientPostServerFinished *)
 fun bertie__tls13handshake__ClientPostServerFinished__ClientPostServerFinished(
   bitstring,
   bitstring,
@@ -1889,7 +1886,7 @@ reduc forall v_0: bitstring,
       v_6
     )
   ) = v_6.
-(* src: src/tls13handshake.rs:65 bertie__tls13handshake__ClientPostClientFinished *)
+(* src: src/tls13handshake.rs:65:0-72:2 bertie__tls13handshake__ClientPostClientFinished *)
 fun bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished(
   bitstring,
   bitstring,
@@ -1994,25 +1991,25 @@ reduc forall v_0: bitstring,
       v_5
     )
   ) = v_5.
-(* src: src/tls13handshake.rs:74 bertie__tls13handshake__algs_post_client_hello *)
+(* src: src/tls13handshake.rs:74:0-76:1 bertie__tls13handshake__algs_post_client_hello *)
 letfun bertie__tls13handshake__algs_post_client_hello(st: bitstring) =
   bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello__1(st).
-(* src: src/tls13handshake.rs:77 bertie__tls13handshake__algs_post_server_hello *)
+(* src: src/tls13handshake.rs:77:0-79:1 bertie__tls13handshake__algs_post_server_hello *)
 letfun bertie__tls13handshake__algs_post_server_hello(st: bitstring) =
   bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello__2(st).
-(* src: src/tls13handshake.rs:80 bertie__tls13handshake__algs_post_client_finished *)
+(* src: src/tls13handshake.rs:80:0-82:1 bertie__tls13handshake__algs_post_client_finished *)
 letfun bertie__tls13handshake__algs_post_client_finished(st: bitstring) =
   bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished__2(st).
-(* src: src/tls13handshake.rs:84 bertie__tls13handshake__server_info_post_client_hello *)
+(* src: src/tls13handshake.rs:84:0-86:1 bertie__tls13handshake__server_info_post_client_hello *)
 letfun bertie__tls13handshake__server_info_post_client_hello(st: bitstring) =
   bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello__2(st).
-(* src: src/tls13handshake.rs:87 bertie__tls13handshake__server_info_post_server_hello *)
+(* src: src/tls13handshake.rs:87:0-89:1 bertie__tls13handshake__server_info_post_server_hello *)
 letfun bertie__tls13handshake__server_info_post_server_hello(st: bitstring) =
   bertie__tls13handshake__ClientPostServerHello__ClientPostServerHello__3(st).
-(* src: src/tls13handshake.rs:90 bertie__tls13handshake__server_info_post_client_finished *)
+(* src: src/tls13handshake.rs:90:0-92:1 bertie__tls13handshake__server_info_post_client_finished *)
 letfun bertie__tls13handshake__server_info_post_client_finished(st: bitstring) =
   bertie__tls13handshake__ClientPostClientFinished__ClientPostClientFinished__3(st).
-(* src: src/tls13handshake.rs:95 bertie__tls13handshake__ServerPostClientHello *)
+(* src: src/tls13handshake.rs:95:0-102:1 bertie__tls13handshake__ServerPostClientHello *)
 (*  Server state after processing the client hello. *)
 fun bertie__tls13handshake__ServerPostClientHello__ServerPostClientHello(
   bitstring,
@@ -2118,7 +2115,7 @@ reduc forall v_0: bitstring,
       v_5
     )
   ) = v_5.
-(* src: src/tls13handshake.rs:105 bertie__tls13handshake__ServerPostServerHello *)
+(* src: src/tls13handshake.rs:105:0-114:1 bertie__tls13handshake__ServerPostServerHello *)
 (*  Server state after generating the server hello. *)
 fun bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(
   bitstring,
@@ -2290,7 +2287,7 @@ reduc forall v_0: bitstring,
       v_7
     )
   ) = v_7.
-(* src: src/tls13handshake.rs:116 bertie__tls13handshake__ServerPostCertificateVerify *)
+(* src: src/tls13handshake.rs:116:0-124:2 bertie__tls13handshake__ServerPostCertificateVerify *)
 fun bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVerify(
   bitstring,
   bitstring,
@@ -2426,7 +2423,7 @@ reduc forall v_0: bitstring,
       v_6
     )
   ) = v_6.
-(* src: src/tls13handshake.rs:125 bertie__tls13handshake__ServerPostServerFinished *)
+(* src: src/tls13handshake.rs:125:0-125:92 bertie__tls13handshake__ServerPostServerFinished *)
 fun bertie__tls13handshake__ServerPostServerFinished__ServerPostServerFinished(
   bitstring,
   bitstring,
@@ -2531,7 +2528,7 @@ reduc forall v_0: bitstring,
       v_5
     )
   ) = v_5.
-(* src: src/tls13handshake.rs:128 bertie__tls13handshake__ServerPostClientFinished *)
+(* src: src/tls13handshake.rs:128:0-128:84 bertie__tls13handshake__ServerPostClientFinished *)
 fun bertie__tls13handshake__ServerPostClientFinished__ServerPostClientFinished(
   bitstring,
   bitstring,
@@ -2589,7 +2586,7 @@ reduc forall v_0: bitstring, v_1: bitstring, v_2: bitstring, v_3: bitstring, v_4
       v_4
     )
   ) = v_4.
-(* src: src/tls13handshake.rs:183 bertie__tls13handshake__compute_psk_binder_zero_rtt *)
+(* src: src/tls13handshake.rs:183:0-232:1 bertie__tls13handshake__compute_psk_binder_zero_rtt *)
 letfun bertie__tls13handshake__compute_psk_binder_zero_rtt(
   algs0: bitstring,
   ch: bitstring,
@@ -2692,7 +2689,7 @@ letfun bertie__tls13handshake__compute_psk_binder_zero_rtt(
       rust_primitives__hax__Tuple3__Tuple3(ch, None(), bertie__tls13formats__Impl_20__add(tx, ch))
     )
   else rust_primitives__hax__Tuple2__Tuple2(ks, bitstring_err())) else bitstring_err().
-(* src: src/tls13handshake.rs:135 bertie__tls13handshake__build_client_hello *)
+(* src: src/tls13handshake.rs:135:0-180:1 bertie__tls13handshake__build_client_hello *)
 letfun bertie__tls13handshake__build_client_hello(
   ciphersuite: bitstring,
   server_name: bitstring,
@@ -2768,7 +2765,7 @@ letfun bertie__tls13handshake__build_client_hello(
       else bitstring_err()) else bitstring_err())
     else bitstring_err())
   else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:234 bertie__tls13handshake__put_server_hello *)
+(* src: src/tls13handshake.rs:234:0-297:1 bertie__tls13handshake__put_server_hello *)
 letfun bertie__tls13handshake__put_server_hello(
   handshake: bitstring,
   state: bitstring,
@@ -2866,7 +2863,7 @@ letfun bertie__tls13handshake__put_server_hello(
           else bitstring_err()) else bitstring_err())
         else bitstring_err()) else bitstring_err()) else bitstring_err())
   else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:299 bertie__tls13handshake__put_server_signature *)
+(* src: src/tls13handshake.rs:299:0-351:1 bertie__tls13handshake__put_server_signature *)
 letfun bertie__tls13handshake__put_server_signature(
   encrypted_extensions: bitstring,
   server_certificate: bitstring,
@@ -2928,7 +2925,7 @@ letfun bertie__tls13handshake__put_server_signature(
                     bertie__tls13formats__Impl_20__add(transcript_2, server_certificate_verify)
                   ))
     else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:353 bertie__tls13handshake__put_psk_skip_server_signature *)
+(* src: src/tls13handshake.rs:353:0-383:1 bertie__tls13handshake__put_psk_skip_server_signature *)
 letfun bertie__tls13handshake__put_psk_skip_server_signature(
   encrypted_extensions: bitstring,
   handshake_state: bitstring
@@ -2958,7 +2955,7 @@ letfun bertie__tls13handshake__put_psk_skip_server_signature(
         bertie__tls13formats__Impl_20__add(transcript, encrypted_extensions)
       ))
     else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:385 bertie__tls13handshake__put_server_finished *)
+(* src: src/tls13handshake.rs:385:0-435:1 bertie__tls13handshake__put_server_finished *)
 letfun bertie__tls13handshake__put_server_finished(
   server_finished: bitstring,
   handshake_state: bitstring,
@@ -3040,7 +3037,7 @@ letfun bertie__tls13handshake__put_server_finished(
                 ))
             else bitstring_err()) else bitstring_err())
           else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:437 bertie__tls13handshake__get_client_finished *)
+(* src: src/tls13handshake.rs:437:0-472:1 bertie__tls13handshake__get_client_finished *)
 letfun bertie__tls13handshake__get_client_finished(handshake_state: bitstring, ks: bitstring) =
   let bertie__tls13handshake__ClientPostServerFinished__ClientPostServerFinished(
     client_random: bitstring,
@@ -3085,7 +3082,7 @@ letfun bertie__tls13handshake__get_client_finished(handshake_state: bitstring, k
                 )
               )
             )) else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:479 bertie__tls13handshake__client_init *)
+(* src: src/tls13handshake.rs:479:0-495:1 bertie__tls13handshake__client_init *)
 letfun bertie__tls13handshake__client_init(
   algs: bitstring,
   sn: bitstring,
@@ -3106,7 +3103,7 @@ letfun bertie__tls13handshake__client_init(
     rng,
     ks
   ) in rust_primitives__hax__Tuple3__Tuple3(tmp0, tmp1, out_kw) else bitstring_err().
-(* src: src/tls13handshake.rs:498 bertie__tls13handshake__client_set_params *)
+(* src: src/tls13handshake.rs:498:0-504:1 bertie__tls13handshake__client_set_params *)
 (*  Update the client state after generating the client hello message. *)
 letfun bertie__tls13handshake__client_set_params(payload: bitstring, st: bitstring, ks: bitstring) =
   let rust_primitives__hax__Tuple2__Tuple2(
@@ -3117,7 +3114,7 @@ letfun bertie__tls13handshake__client_set_params(payload: bitstring, st: bitstri
     st,
     ks
   ) in rust_primitives__hax__Tuple2__Tuple2(tmp0, out_kw) else bitstring_err().
-(* src: src/tls13handshake.rs:506 bertie__tls13handshake__client_finish *)
+(* src: src/tls13handshake.rs:506:0-542:1 bertie__tls13handshake__client_finish *)
 letfun bertie__tls13handshake__client_finish(
   payload: bitstring,
   handshake_state: bitstring,
@@ -3210,7 +3207,7 @@ letfun bertie__tls13handshake__client_finish(
         else bitstring_err()) else bitstring_err())
     else bitstring_err())
   else bitstring_err().
-(* src: src/tls13handshake.rs:575 bertie__tls13handshake__process_psk_binder_zero_rtt *)
+(* src: src/tls13handshake.rs:575:0-611:1 bertie__tls13handshake__process_psk_binder_zero_rtt *)
 (*  Process the PSK binder for 0-RTT *)
 letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
   ciphersuite: bitstring,
@@ -3309,7 +3306,7 @@ letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
     bindero
   ) in rust_primitives__hax__Tuple2__Tuple2(ks, None())
   else rust_primitives__hax__Tuple2__Tuple2(ks, bitstring_err()).
-(* src: src/tls13handshake.rs:546 bertie__tls13handshake__put_client_hello *)
+(* src: src/tls13handshake.rs:546:0-572:1 bertie__tls13handshake__put_client_hello *)
 letfun bertie__tls13handshake__put_client_hello(
   ciphersuite: bitstring,
   ch: bitstring,
@@ -3363,7 +3360,7 @@ letfun bertie__tls13handshake__put_client_hello(
               )
             )) else bitstring_err())
   else bitstring_err().
-(* src: src/tls13handshake.rs:613 bertie__tls13handshake__get_server_hello *)
+(* src: src/tls13handshake.rs:613:0-683:1 bertie__tls13handshake__get_server_hello *)
 letfun bertie__tls13handshake__get_server_hello(state: bitstring, rng: bitstring, ks: bitstring) =
   let rust_primitives__hax__Tuple2__Tuple2(
     tmp0: bitstring,
@@ -3497,7 +3494,7 @@ letfun bertie__tls13handshake__get_server_hello(state: bitstring, rng: bitstring
           else bitstring_err()) else bitstring_err())
         else bitstring_err()) else bitstring_err()) else bitstring_err())
   else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:687 bertie__tls13handshake__get_rsa_signature *)
+(* src: src/tls13handshake.rs:687:4-694:5 bertie__tls13handshake__get_rsa_signature *)
 letfun bertie__tls13handshake__get_rsa_signature(
   cert: bitstring,
   sk: bitstring,
@@ -3511,7 +3508,7 @@ letfun bertie__tls13handshake__get_rsa_signature(
                  )
            )) in
   rust_primitives__hax__Tuple2__Tuple2(rng, hax_temp_output).
-(* src: src/tls13handshake.rs:710 bertie__tls13handshake__get_server_signature_no_psk *)
+(* src: src/tls13handshake.rs:710:0-756:1 bertie__tls13handshake__get_server_signature_no_psk *)
 letfun bertie__tls13handshake__get_server_signature_no_psk(state: bitstring, rng: bitstring) =
   let ee = bertie__tls13formats__encrypted_extensions(
     bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(state)
@@ -3604,7 +3601,7 @@ letfun bertie__tls13handshake__get_server_signature_no_psk(state: bitstring, rng
                 )
               )
             )) else bitstring_err().
-(* src: src/tls13handshake.rs:758 bertie__tls13handshake__get_server_signature *)
+(* src: src/tls13handshake.rs:758:0-775:1 bertie__tls13handshake__get_server_signature *)
 letfun bertie__tls13handshake__get_server_signature(state: bitstring, rng: bitstring) =
   let rust_primitives__hax__Tuple2__Tuple2(
     rng_2: bitstring,
@@ -3625,7 +3622,7 @@ letfun bertie__tls13handshake__get_server_signature(state: bitstring, rng: bitst
       rng,
       bitstring_err()
     )) in rust_primitives__hax__Tuple2__Tuple2(rng_2, hax_temp_output) else bitstring_err().
-(* src: src/tls13handshake.rs:777 bertie__tls13handshake__get_skip_server_signature_no_psk *)
+(* src: src/tls13handshake.rs:777:0-796:1 bertie__tls13handshake__get_skip_server_signature_no_psk *)
 letfun bertie__tls13handshake__get_skip_server_signature_no_psk(st: bitstring) =
   let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(
     cr: bitstring,
@@ -3649,7 +3646,7 @@ letfun bertie__tls13handshake__get_skip_server_signature_no_psk(st: bitstring) =
         bertie__tls13formats__Impl_20__add(tx, ee)
       )
     )) else bitstring_err().
-(* src: src/tls13handshake.rs:798 bertie__tls13handshake__get_skip_server_signature *)
+(* src: src/tls13handshake.rs:798:0-816:1 bertie__tls13handshake__get_skip_server_signature *)
 letfun bertie__tls13handshake__get_skip_server_signature(st: bitstring) =
   let bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello(
     cr: bitstring,
@@ -3663,7 +3660,7 @@ letfun bertie__tls13handshake__get_skip_server_signature(st: bitstring) =
   ) = st in (let (=True()) = bertie__tls13crypto__Impl_38__psk_mode(algs)
     in bertie__tls13handshake__get_skip_server_signature_no_psk(st)
     else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:818 bertie__tls13handshake__get_server_finished *)
+(* src: src/tls13handshake.rs:818:0-845:1 bertie__tls13handshake__get_server_finished *)
 letfun bertie__tls13handshake__get_server_finished(st: bitstring, ks: bitstring) =
   let bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVerify(
     cr: bitstring,
@@ -3731,7 +3728,7 @@ letfun bertie__tls13handshake__get_server_finished(st: bitstring, ks: bitstring)
                 ))
             else bitstring_err()) else bitstring_err())
           else bitstring_err()) else bitstring_err()) else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:847 bertie__tls13handshake__put_client_finished *)
+(* src: src/tls13handshake.rs:847:0-860:1 bertie__tls13handshake__put_client_finished *)
 letfun bertie__tls13handshake__put_client_finished(cfin: bitstring, st: bitstring, ks: bitstring) =
   let bertie__tls13handshake__ServerPostServerFinished__ServerPostServerFinished(
     cr: bitstring,
@@ -3770,7 +3767,7 @@ letfun bertie__tls13handshake__put_client_finished(cfin: bitstring, st: bitstrin
                 tx_1
               )
             )) else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:867 bertie__tls13handshake__server_init_no_psk *)
+(* src: src/tls13handshake.rs:867:0-891:1 bertie__tls13handshake__server_init_no_psk *)
 letfun bertie__tls13handshake__server_init_no_psk(
   algs: bitstring,
   ch: bitstring,
@@ -3835,7 +3832,7 @@ letfun bertie__tls13handshake__server_init_no_psk(
       else bitstring_err()) else bitstring_err())
     else bitstring_err()) else bitstring_err())
   else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:894 bertie__tls13handshake__server_init_psk *)
+(* src: src/tls13handshake.rs:894:0-919:1 bertie__tls13handshake__server_init_psk *)
 letfun bertie__tls13handshake__server_init_psk(
   algs: bitstring,
   ch: bitstring,
@@ -3888,7 +3885,7 @@ letfun bertie__tls13handshake__server_init_psk(
       else bitstring_err())
     else bitstring_err()) else bitstring_err())
   else bitstring_err()) else bitstring_err().
-(* src: src/tls13handshake.rs:922 bertie__tls13handshake__server_init *)
+(* src: src/tls13handshake.rs:922:0-943:1 bertie__tls13handshake__server_init *)
 letfun bertie__tls13handshake__server_init(
   algs: bitstring,
   ch: bitstring,
@@ -3934,7 +3931,7 @@ letfun bertie__tls13handshake__server_init(
     ks_3,
     hax_temp_output
   ) else bitstring_err().
-(* src: src/tls13handshake.rs:945 bertie__tls13handshake__server_finish *)
+(* src: src/tls13handshake.rs:945:0-951:1 bertie__tls13handshake__server_finish *)
 letfun bertie__tls13handshake__server_finish(cf: bitstring, st: bitstring, ks: bitstring) =
   let rust_primitives__hax__Tuple2__Tuple2(
     tmp0: bitstring,
