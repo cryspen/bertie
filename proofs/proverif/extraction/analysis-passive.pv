@@ -1,36 +1,11 @@
-(*****************************************)
-(* Passive-attacker reachability analysis  *)
-(*                                        *)
-(* Goal: check that the honest Bertie TLS  *)
-(* 1.3 handshake runs to completion        *)
-(* *without any help from the attacker* -  *)
-(* i.e. that both `ServerFinishedHandshake`*)
-(* and `ClientFinishedHandshake` stay      *)
-(* reachable when the attacker is a passive*)
-(* eavesdropper that can observe traffic   *)
-(* but neither inject nor modify messages. *)
-(*                                        *)
-(* This is a liveness / sanity check: if   *)
-(* a completion event were unreachable     *)
-(* here, the corresponding active-attacker *)
-(* query in analysis.pv would be vacuously *)
-(* true and hence meaningless. It also     *)
-(* guards against extraction regressions   *)
-(* that break honest interoperability      *)
-(* (e.g. a builder/parser representation   *)
-(* mismatch such as the HandshakeData      *)
-(* concat / to_two / to_four issue): such  *)
-(* a regression makes a completion event   *)
-(* provably unreachable (`is true`) here   *)
-(* while the active analysis still passes.  *)
-(*                                        *)
-(* The protocol functions (client_init,    *)
-(* server_init, client_set_params,         *)
-(* client_finish, the record layer, ...)   *)
-(* are the *same* extracted letfuns used by *)
-(* the active analysis (loaded via the      *)
-(* shared model.pvl / lib.pvl).            *)
-(*****************************************)
+(* Passive-attacker reachability: check that both ServerFinishedHandshake and
+   ClientFinishedHandshake stay reachable when the attacker is a passive
+   eavesdropper (observes traffic, cannot inject or modify). A liveness/sanity
+   check: if a completion event were unreachable here, the corresponding
+   active-attacker query in analysis.pv would be vacuously true. The protocol
+   functions (client_init, server_init, client_set_params, client_finish, the
+   record layer) are the same extracted letfuns the active analysis loads via
+   model.pvl / lib.pvl. *)
 
 set attacker = passive.
 
@@ -42,7 +17,7 @@ set attacker = passive.
    honest parties' messages are therefore delivered to each other unmodified.
 
    We model the honest run as a single straight-line process that feeds each
-   party's *real* output directly into the next party's *real* input
+   party's real output directly into the next party's real input
    (ClientHello -> server_init; ServerHello -> client_set_params; the encrypted
    server flight -> decrypt_handshake -> client_finish). This is behaviourally
    equivalent, for reachability, to routing the same messages over the public

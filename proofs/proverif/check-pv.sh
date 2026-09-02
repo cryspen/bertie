@@ -3,9 +3,8 @@
 # backend, compose it with the de-duplicated missingdecl, run ProVerif, and
 # assert the 7 expected query verdicts.
 #
-#   HAX_PROVERIF_DIR : a hax checkout @ proverif-rust-backend (>= commit with the
-#                      Result::Err / all-wild-pattern / reductive-nat-add fixes).
-#                      Its target/release must be built (or the hax-proverif opam
+#   HAX_PROVERIF_DIR : a hax checkout @ proverif-rust-backend, with its
+#                      target/release built (or the hax-proverif opam
 #                      switch installed via setup-local.sh).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
