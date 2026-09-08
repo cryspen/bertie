@@ -161,7 +161,7 @@ impl HandshakeData {
     }
 
     /// Returns the length, in bytes.
-    #[hax_lib::ensures(|result| fstar!("v result == Seq.length self._0._0"))]
+    #[hax_lib::ensures(|result| result == self.0.len())]
     #[hax_lib::proverif::replace_body("(0)")]
     pub(crate) fn len(&self) -> usize {
         self.0.len()

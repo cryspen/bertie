@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hacspec/hax-actions@main
         with: 
-          fstar: v2025.02.17
+          fstar: v2025.10.06
 
       - name: Update dependencies
         run: cargo update
