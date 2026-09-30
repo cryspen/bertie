@@ -26,7 +26,15 @@ pub fn derive_binder_key(
 
 /// Derive an AEAD key and iv.
 #[allow(clippy::assign_op_pattern)]
-#[cfg_attr(feature = "hax-pv", hax_lib::pv_extern)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::before(
+        "fun extern__derive_aead_key_iv(bitstring, bitstring, bitstring, bitstring): bitstring."
+    ),
+    hax_lib::proverif::replace_body(
+        "extern__derive_aead_key_iv(${hash_algorithm}, ${aead_algorithm}, ${handle}, ${ks})"
+    )
+)]
 pub(crate) fn derive_aead_key_iv(
     hash_algorithm: &HashAlgorithm,
     aead_algorithm: &AeadAlgorithm,
@@ -94,7 +102,11 @@ pub(crate) fn derive_0rtt_keys(
     Ok((sender_write_key_iv, early_exporter_master_secret))
 }
 
-#[cfg_attr(feature = "hax-pv", hax_lib::pv_extern)]
+#[cfg_attr(
+    feature = "hax-pv",
+    hax_lib::proverif::before("fun extern__derive_finished_key(bitstring, bitstring, bitstring): bitstring."),
+    hax_lib::proverif::replace_body("extern__derive_finished_key(${ha}, ${handle}, ${ks})")
+)]
 pub fn derive_finished_key(
     ha: &HashAlgorithm,
     handle: &Handle,
