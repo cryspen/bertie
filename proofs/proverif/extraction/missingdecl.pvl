@@ -1,17 +1,13 @@
 (*****************************************************************)
 (* missingdecl.pvl — UNDEFINED externals referenced by lib.pvl   *)
 (*                                                               *)
-(* DIAGNOSTIC, not part of the model. Each symbol below is       *)
-(* referenced by lib.pvl but has no definition (and is not in    *)
-(* primitives.pvl). Define it — by hand or by extracting the     *)
-(* crate that owns it — or deliberately leave it abstract, as an *)
-(* ideal-functionality boundary; a permanent residue can be      *)
-(* correct. Declared WITHOUT `[data]` because the real nature    *)
-(* (one-way fun / data constructor / letfun) is unknown.         *)
+(* Each symbol below is referenced by lib.pvl but defined by     *)
+(* none of the hax libraries, so it is declared abstract here.   *)
+(* Define it — by hand or by extracting the crate that owns it — *)
+(* or deliberately leave it abstract, as an ideal-functionality  *)
+(* boundary. Only Rust constructors are declared `[data]`: any   *)
+(* other function may be one-way.                                *)
 (*****************************************************************)
-(* referenced by: bertie__tls13handshake__put_server_signature *)
-(* result destructured as: core__result__Result__Err(_); core__result__Result__Ok(_) *)
-fun bertie__tls13crypto__verify(bitstring, bitstring, bitstring, bitstring): bitstring.
 (* referenced by: bertie__tls13keyscheduler__key_schedule__get_by_handle *)
 fun bertie__tls13keyscheduler__key_schedule__KeySchedule__get_kw(bitstring, bitstring, bitstring, bitstring): bitstring.
 (* referenced by: bertie__tls13keyscheduler__key_schedule__set_by_handle *)
@@ -25,8 +21,6 @@ const bertie__tls13utils__INCORRECT_STATE: bitstring.
 fun bertie__tls13utils__Impl_23__slice_range(bitstring, bitstring): bitstring.
 (* referenced by: bertie__tls13utils__Impl_23__zeroes *)
 fun bertie__tls13utils__U8(bitstring): bitstring.
-(* referenced by: bertie__tls13keyscheduler__key_schedule__get_by_handle *)
-fun core__option__Impl__ok_or(bitstring, bitstring): bitstring.
 (* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
 const nat_101: bitstring.
 (* referenced by: bertie__tls13formats__PREFIX_SERVER_SIGNATURE *)
