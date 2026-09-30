@@ -193,6 +193,7 @@ elif options.sub == "extract-proverif":
                     "+!**::tls13formats::handshake_data::to_two_inner",
                     "+!**::tls13formats::handshake_data::to_four_inner",
                     "+!**::tls13crypto::hash",
+                    "+**::tls13crypto::verify",
                     "+~**::tls13keyscheduler::derive_hk_ms",
                     "+~**::tls13keyscheduler::derive_finished_key",
                     "+~**::tls13keyscheduler::derive_hk_handles",

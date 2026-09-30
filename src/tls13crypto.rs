@@ -425,10 +425,12 @@ pub(crate) fn sign(
 /// Verify the `input` bytes against the provided `signature`.
 ///
 /// Return `Ok(())` if the verification succeeds, and a [`TLSError`] otherwise.
-// ProVerif model: the EUF-CMA signature-verification axiom is centralized in
-// proofs/proverif/handwritten_lib.pvl (a `reduc` over the cryptolib primitives
-// `crypto__vk_of` / `crypto__sign`), so this body is erased here.
-#[cfg_attr(feature = "hax-pv", proverif::replace(""))]
+// All schemes collapse onto cryptolib's single abstract EUF-CMA signature: the
+// scheme is a public label, and `pk` is the raw `crypto__vk_of(sk)`.
+#[cfg_attr(
+    feature = "hax-pv",
+    proverif::replace_body("crypto__sig_verify_result(${pk}, ${input}, ${sig})")
+)]
 pub(crate) fn verify(
     alg: &SignatureScheme,
     pk: &PublicVerificationKey,
