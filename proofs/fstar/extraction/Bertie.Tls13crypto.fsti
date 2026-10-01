@@ -8,7 +8,6 @@ let _ =
   (* The implicit dependencies arise from typeclasses instances. *)
   let open Bertie.Tls13utils in
   let open Libcrux_ecdsa.P256.Conversions in
-  let open Libcrux_kem in
   let open Libcrux_rsa.Impl_hacl in
   let open Rand.Rng in
   let open Rand_core in
@@ -301,6 +300,14 @@ val impl_KemScheme__libcrux_kem_algorithm (self: t_KemScheme)
     : Prims.Pure (Core_models.Result.t_Result Libcrux_kem.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
+
+/// Length of a raw public key, without the [`encoding_prefix`].
+val raw_public_key_len (alg: t_KemScheme)
+    : Prims.Pure (Core_models.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Length of a private key.
+val private_key_len (alg: t_KemScheme)
+    : Prims.Pure (Core_models.Result.t_Result usize u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Note that the `encode` in libcrux currently returns the raw
 /// concatenation of bytes. We have to prepend the 0x04 for

@@ -339,6 +339,9 @@ pub(crate) fn aead_decrypt(
 ) -> Result<Bytes, TLSError> {
     // event!(Level::DEBUG, "AEAD decrypt with {:?}", k.alg);
 
+    if cip.len() < 16 {
+        return tlserr(CRYPTO_ERROR);
+    }
     let tag = cip.slice(cip.len() - 16, 16);
     let ctxt = cip.slice(0, cip.len() - 16);
     let tag: [u8; 16] = tag.declassify_array()?;
@@ -470,9 +473,7 @@ pub(crate) fn sign(
         .map_err(|_| CRYPTO_ERROR)
         .map(|s| s.into()),
 
-        SignatureScheme::RsaPssRsaSha256 => {
-            panic!("wrong function, use sign_rsa")
-        }
+        SignatureScheme::RsaPssRsaSha256 => tlserr(UNSUPPORTED_ALGORITHM),
     }
 }
 
@@ -630,6 +631,25 @@ impl KemScheme {
     }
 }
 
+/// Length of a raw public key, without the [`encoding_prefix`].
+fn raw_public_key_len(alg: KemScheme) -> Result<usize, TLSError> {
+    match alg {
+        KemScheme::X25519 => Ok(32),
+        KemScheme::Secp256r1 => Ok(64),
+        KemScheme::X25519Kyber768Draft00 | KemScheme::X25519MlKem768 => Ok(1216),
+        _ => tlserr(UNSUPPORTED_ALGORITHM),
+    }
+}
+
+/// Length of a private key.
+fn private_key_len(alg: KemScheme) -> Result<usize, TLSError> {
+    match alg {
+        KemScheme::X25519 | KemScheme::Secp256r1 => Ok(32),
+        KemScheme::X25519Kyber768Draft00 | KemScheme::X25519MlKem768 => Ok(2432),
+        _ => tlserr(UNSUPPORTED_ALGORITHM),
+    }
+}
+
 /// Generate a new KEM key pair.
 #[cfg_attr(
     feature = "hax-pv",
@@ -678,7 +698,9 @@ fn encoding_prefix(alg: KemScheme) -> Bytes {
 /// Note that the `encode` in libcrux operates on the raw
 /// concatenation of bytes. We have to work with uncompressed NIST points here.
 fn into_raw(alg: KemScheme, point: Bytes) -> Bytes {
-    if alg == KemScheme::Secp256r1 || alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1 {
+    if (alg == KemScheme::Secp256r1 || alg == KemScheme::Secp384r1 || alg == KemScheme::Secp521r1)
+        && point.len() >= 1
+    {
         point.slice_range(1..point.len())
     } else {
         point
@@ -707,7 +729,11 @@ pub(crate) fn kem_encap(
     // event!(Level::TRACE, "  pk:  {}", pk.as_hex());
 
     let pk = into_raw(alg, pk.clone());
-    let pk = PublicKey::decode(alg.libcrux_kem_algorithm()?, &pk.declassify()).unwrap();
+    if pk.len() != raw_public_key_len(alg)? {
+        return tlserr(CRYPTO_ERROR);
+    }
+    let pk = PublicKey::decode(alg.libcrux_kem_algorithm()?, &pk.declassify())
+        .map_err(|_| CRYPTO_ERROR)?;
     let res = pk.encapsulate(rng);
     match res {
         Ok((shared_secret, ct)) => {
@@ -747,9 +773,12 @@ pub(crate) fn kem_decap(alg: KemScheme, ct: &Bytes, sk: &Bytes) -> Result<Bytes,
     // event!(Level::TRACE, "  with ciphertext: {}", ct.as_hex());
 
     let librux_algorithm = alg.libcrux_kem_algorithm()?;
-    let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).unwrap();
+    if sk.len() != private_key_len(alg)? {
+        return tlserr(CRYPTO_ERROR);
+    }
+    let sk = PrivateKey::decode(librux_algorithm, &sk.declassify()).map_err(|_| CRYPTO_ERROR)?;
     let ct = into_raw(alg, ct.clone()).declassify();
-    let ct = Ct::decode(librux_algorithm, &ct).unwrap();
+    let ct = Ct::decode(librux_algorithm, &ct).map_err(|_| CRYPTO_ERROR)?;
     let res = ct.decapsulate(&sk);
     match res {
         Ok(shared_secret) => {
@@ -1133,3 +1162,49 @@ pub const SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256: Algorithms = Algorithms:
 //     false,
 //     false,
 // );
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const KEMS: [KemScheme; 4] = [
+        KemScheme::X25519,
+        KemScheme::Secp256r1,
+        KemScheme::X25519Kyber768Draft00,
+        KemScheme::X25519MlKem768,
+    ];
+
+    #[test]
+    fn kem_rejects_malformed_inputs() {
+        let mut rng = rand::rng();
+        for alg in KEMS {
+            let (sk, pk) = kem_keygen(alg, &mut rng).unwrap();
+            for len in [0, 1, 31, 33, 1183, 1184, 1217] {
+                let short: Bytes = vec![U8(4); len].into();
+                assert!(kem_encap(alg, &short, &mut rng).is_err());
+                assert!(kem_decap(alg, &short, &sk).is_err());
+            }
+            let (ss, ct) = kem_encap(alg, &pk, &mut rng).unwrap();
+            assert!(eq(&kem_decap(alg, &ct, &sk).unwrap(), &ss));
+            assert!(kem_decap(alg, &ct, &Bytes::new()).is_err());
+        }
+    }
+
+    #[test]
+    fn aead_decrypt_rejects_short_ciphertext() {
+        let key = AeadKey::new(vec![U8(0); 32].into(), AeadAlgorithm::Chacha20Poly1305);
+        let iv: Bytes = vec![U8(0); 12].into();
+        for len in [0, 1, 15] {
+            let cip: Bytes = vec![U8(0); len].into();
+            assert!(aead_decrypt(&key, &iv, &cip, &Bytes::new()).is_err());
+        }
+    }
+
+    #[test]
+    fn sign_rejects_rsa() {
+        let mut rng = rand::rng();
+        let sk: Bytes = vec![U8(0); 32].into();
+        let input: Bytes = vec![U8(0); 32].into();
+        assert!(sign(&SignatureScheme::RsaPssRsaSha256, &sk, &input, &mut rng).is_err());
+    }
+}
