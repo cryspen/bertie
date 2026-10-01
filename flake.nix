@@ -6,7 +6,7 @@
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hax.url = "github:hacspec/hax";
+    hax.url = "github:hacspec/hax/cargo-hax-v0.4.2";
   };
   outputs = inputs: inputs.flake-utils.lib.eachDefaultSystem (system:
     let

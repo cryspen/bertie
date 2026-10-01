@@ -1,7 +1,7 @@
 module Bertie.Tls13formats.Handshake_data
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -63,23 +63,25 @@ let anon_const_HandshakeType_MessageHash__anon_const_0: u8 = mk_u8 254
 val t_HandshakeType_cast_to_repr (x: t_HandshakeType)
     : Prims.Pure u8 Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl:Core.Clone.t_Clone t_HandshakeType
+let impl: Core_models.Clone.t_Clone t_HandshakeType =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_1:Core.Marker.t_Copy t_HandshakeType
+val impl_1:Core_models.Marker.t_Copy t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_2:Core.Fmt.t_Debug t_HandshakeType
+val impl_2:Core_models.Fmt.t_Debug t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_3:Core.Marker.t_StructuralPartialEq t_HandshakeType
+val impl_3:Core_models.Marker.t_StructuralPartialEq t_HandshakeType
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_4:Core.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
+val impl_4:Core_models.Cmp.t_PartialEq t_HandshakeType t_HandshakeType
 
 val get_hs_type (t: u8)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeType u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result t_HandshakeType u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 /// Hadshake data of the TLS handshake.
 type t_HandshakeData = | HandshakeData : Bertie.Tls13utils.t_Bytes -> t_HandshakeData
@@ -98,7 +100,7 @@ val impl_HandshakeData__len (self: t_HandshakeData)
       (ensures
         fun result ->
           let result:usize = result in
-          v result == Seq.length self._0._0)
+          result =. (Bertie.Tls13utils.impl_Bytes__len self._0 <: usize))
 
 /// Attempt to parse a handshake message from the beginning of the payload.
 /// If successful, returns the parsed message and the unparsed rest of the
@@ -106,13 +108,13 @@ val impl_HandshakeData__len (self: t_HandshakeData)
 /// handshake message or if the payload is shorter than the expected length
 /// encoded in its first three bytes.
 val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
-    : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
+    : Prims.Pure (Core_models.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
-          match result <: Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
-          | Core.Result.Result_Ok (m, r) ->
+          let result:Core_models.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 = result in
+          match result <: Core_models.Result.t_Result (t_HandshakeData & t_HandshakeData) u8 with
+          | Core_models.Result.Result_Ok (m, r) ->
             (impl_HandshakeData__len m <: usize) >=. mk_usize 4 &&
             (impl_HandshakeData__len self <: usize) >=. (impl_HandshakeData__len m <: usize) &&
             ((impl_HandshakeData__len self <: usize) -! (impl_HandshakeData__len m <: usize)
@@ -122,14 +124,16 @@ val impl_HandshakeData__next_handshake_message (self: t_HandshakeData)
           | _ -> true)
 
 val to_two_inner (hs_data: t_HandshakeData)
-    : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
+    : Prims.Pure (Core_models.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val to_four_inner (hs_data: t_HandshakeData)
     : Prims.Pure
-      (Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
+      (Core_models.Result.t_Result
+          (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 /// Attempt to parse exactly one handshake message of the `expected_type` from
 /// `payload`.
@@ -139,13 +143,13 @@ val to_four_inner (hs_data: t_HandshakeData)
 val impl_HandshakeData__as_handshake_message
       (self: t_HandshakeData)
       (expected_type: t_HandshakeType)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+    : Prims.Pure (Core_models.Result.t_Result t_HandshakeData u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result t_HandshakeData u8 = result in
-          match result <: Core.Result.t_Result t_HandshakeData u8 with
-          | Core.Result.Result_Ok d ->
+          let result:Core_models.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core_models.Result.t_Result t_HandshakeData u8 with
+          | Core_models.Result.Result_Ok d ->
             (impl_HandshakeData__len self <: usize) >=. mk_usize 4 &&
             ((impl_HandshakeData__len self <: usize) -! mk_usize 4 <: usize) =.
             (impl_HandshakeData__len d <: usize)
@@ -156,7 +160,7 @@ val impl_HandshakeData__as_handshake_message
 /// if parsing of either message fails or if the payload is not fully consumed
 /// by parsing two messages.
 val impl_HandshakeData__to_two (self: t_HandshakeData)
-    : Prims.Pure (Core.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
+    : Prims.Pure (Core_models.Result.t_Result (t_HandshakeData & t_HandshakeData) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -166,20 +170,22 @@ val impl_HandshakeData__to_two (self: t_HandshakeData)
 /// by parsing four messages.
 val impl_HandshakeData__to_four (self: t_HandshakeData)
     : Prims.Pure
-      (Core.Result.t_Result (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
+      (Core_models.Result.t_Result
+          (t_HandshakeData & t_HandshakeData & t_HandshakeData & t_HandshakeData) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
+val impl_6:Core_models.Convert.t_From t_HandshakeData Bertie.Tls13utils.t_Bytes
 
 val from_bytes_inner (handshake_type: t_HandshakeType) (handshake_bytes: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+    : Prims.Pure (Core_models.Result.t_Result t_HandshakeData u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result t_HandshakeData u8 = result in
-          match result <: Core.Result.t_Result t_HandshakeData u8 with
-          | Core.Result.Result_Ok hd ->
+          let result:Core_models.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core_models.Result.t_Result t_HandshakeData u8 with
+          | Core_models.Result.Result_Ok hd ->
             (impl_HandshakeData__len hd <: usize) >=. mk_usize 4 &&
             ((impl_HandshakeData__len hd <: usize) -! mk_usize 4 <: usize) =.
             (Bertie.Tls13utils.impl_Bytes__len handshake_bytes <: usize)
@@ -189,13 +195,13 @@ val from_bytes_inner (handshake_type: t_HandshakeType) (handshake_bytes: Bertie.
 val impl_HandshakeData__from_bytes
       (handshake_type: t_HandshakeType)
       (handshake_bytes: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_HandshakeData u8)
+    : Prims.Pure (Core_models.Result.t_Result t_HandshakeData u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result t_HandshakeData u8 = result in
-          match result <: Core.Result.t_Result t_HandshakeData u8 with
-          | Core.Result.Result_Ok hd ->
+          let result:Core_models.Result.t_Result t_HandshakeData u8 = result in
+          match result <: Core_models.Result.t_Result t_HandshakeData u8 with
+          | Core_models.Result.Result_Ok hd ->
             (impl_HandshakeData__len hd <: usize) >=. mk_usize 4 &&
             ((impl_HandshakeData__len hd <: usize) -! mk_usize 4 <: usize) =.
             (Bertie.Tls13utils.impl_Bytes__len handshake_bytes <: usize)

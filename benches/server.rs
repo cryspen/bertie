@@ -22,7 +22,7 @@ use bertie::{
     tls13utils::Bytes,
     Client, Server, TLSkeyscheduler,
 };
-use rand::RngCore;
+use rand::Rng;
 
 fn hs_per_second(d: Duration) -> f64 {
     // ITERATIONS per d

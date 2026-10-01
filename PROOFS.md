@@ -18,7 +18,7 @@ verification of the proof artifacts, so an installation of Python 3 is
 required.
 
 ### Setting up F*
-We use F* version 2025.03.25 to prove runtime safety and transcript
+We use F* version 2026.03.24 to prove runtime safety and transcript
 unambiguity as described in section 7 of the paper submission. To
 reproduce these results for yourself, please install F* following the
 instructions at:
@@ -121,7 +121,7 @@ typechecks in "lax" mode, that is all its functions are well-typed when ignoring
 the pre- and post-conditions. This is a basic well-formedness check akin
 to typechecking the code in a language like Rust or OCaml. It also ensures
 that all the dependencies of the code have been defined and correctly extracted.
-The code in the `proofs/fstar/extraction-lax` directory has been lax-typechecked.
+`./hax-driver.py typecheck --lax` runs this check.
 
 Then, the main correctness guarantee we prove for the Rust code is
 that it never panics and that each function meets its specificaiton.
@@ -153,10 +153,16 @@ proofs are when we try to prove that the formatting and parsing functions
 do not overflow. Indeed, by typechecking in F*, we found a number of
 bugs in our packet parsing code.
 
-The code in the `proofs/fstar/extraction-panic-free` directory has
-been verified for panic freedom on all possible inputs. This means that
-even in the presence of an attacker sending Bertie malformed messages,
-the verified code will never create a panic. Of course, there is other
+The code in the `proofs/fstar/extraction` directory is verified for
+panic freedom on all possible inputs. This means that even in the
+presence of an attacker sending Bertie malformed messages, the verified
+code will never create a panic. Functions marked
+`hax_lib::fstar::verification_status(lax)` in the Rust source are not
+verified. The calls into libcrux are the `#[hax_lib::opaque]`
+`libcrux_*` functions in `src/tls13crypto.rs`; their contracts are
+assumed. Growing a `Bytes` value assumes that
+the new length fits in `usize` (`assume_no_alloc_overflow` in
+`src/tls13utils.rs`); in Rust, the allocation fails first. Of course, there is other
 code outside the verification boundary that may yet panic and we intend
 to expand the scope of our verification ocer time.
 

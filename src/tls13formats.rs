@@ -180,15 +180,12 @@ fn check_server_key_share(algs: &Algorithms, b: &[U8]) -> Result<Bytes, TLSError
     }
 }
 
-fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<(Bytes, usize), TLSError> {
+fn pre_shared_key(algs: &Algorithms, session_ticket: &Bytes) -> Result<Bytes, TLSError> {
     let identities = encode_length_u16(
         encode_length_u16(session_ticket.clone())?.concat_array(u32_as_be_bytes(U32(0xffffffff))),
     )?;
     let binders = encode_length_u16(encode_length_u8(zero_key(&algs.hash()).as_raw())?)?;
-    let binders_len = binders.len();
-    let ext = bytes2(0, 41).concat(encode_length_u16(identities.concat(binders))?);
-    let ext_len = ext.len();
-    Ok((ext, ext_len + binders_len + 199 - 16 - 82)) // binders_len+199-76+41))
+    Ok(bytes2(0, 41).concat(encode_length_u16(identities.concat(binders))?))
 }
 
 // Return ticket (tkt) and binder
@@ -201,9 +198,10 @@ fn check_psk_shared_key(algs: &Algorithms, ch: &[U8]) -> Result<(Bytes, Bytes), 
         if ch.len() - 5 - len_id != algs.hash().hash_len() {
             tlserr(parse_failed())
         } else {
-            // let len_other_u16 = length_u16_encoded(&ch[2 + len_id..ch.len()])?;
-            // let len_other_u8 = length_u8_encoded(&ch[4 + len_id..4+len_id+len_other_u16])?;
-            Ok((Bytes::from(&ch[4..4 + len_tkt]), Bytes::from([0; 0])))
+            Ok((
+                Bytes::from(&ch[4..4 + len_tkt]),
+                Bytes::from(&ch[5 + len_id..ch.len()]),
+            ))
         }
     } else {
         tlserr(parse_failed())
@@ -533,19 +531,33 @@ pub fn bench_client_hello(
     )
 }
 
-#[hax_lib::fstar::verification_status(lax)]
+/// Offset of the binders list in a PSK ClientHello, i.e. the length of the
+/// truncated ClientHello the binder is computed over (RFC 8446, 4.2.11.2).
+/// Returns 0 if PSK mode is off.
 #[hax_lib::ensures(|result| match result {
-                            Ok((len, extensions)) => len <= extensions.len(),
+                            Ok(len) => len <= client_hello.len(),
                             _ => true})]
+fn binders_offset(
+    algorithms: &Algorithms,
+    client_hello: &HandshakeData,
+) -> Result<usize, TLSError> {
+    if algorithms.psk_mode() {
+        let binders_len = algorithms.hash().hash_len() + 3;
+        check(client_hello.len() >= binders_len)?;
+        Ok(client_hello.len() - binders_len)
+    } else {
+        Ok(0)
+    }
+}
+
 fn get_psk_extensions(
     algorithms: &Algorithms,
     session_ticket: &Bytes,
-    mut extensions: Bytes,
-) -> Result<(usize, Bytes), TLSError> {
+    extensions: Bytes,
+) -> Result<Bytes, TLSError> {
     let pskm = psk_key_exchange_modes()?;
-    let (psk, len) = pre_shared_key(algorithms, session_ticket)?;
-    extensions = extensions.concat(pskm).concat(psk);
-    Ok((len, extensions))
+    let psk = pre_shared_key(algorithms, session_ticket)?;
+    Ok(extensions.concat(pskm).concat(psk))
 }
 
 /// Build a ClientHello message.
@@ -564,6 +576,7 @@ fn get_psk_extensions(
      0)"
     )
 )]
+#[hax_lib::fstar::options("--z3rlimit 60")]
 #[hax_lib::requires(client_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
                                 Result::Ok((ch,trunc_len)) => {
@@ -607,9 +620,9 @@ pub(crate) fn client_hello(
         signature_algorithms,
         key_shares
     );
-    let (trunc_len, extensions) = (match (algorithms.psk_mode(), session_ticket) {
+    let extensions = (match (algorithms.psk_mode(), session_ticket) {
         (true, Some(session_ticket)) => get_psk_extensions(algorithms, session_ticket, extensions),
-        (false, None) => Ok((0, extensions)),
+        (false, None) => Ok(extensions),
         _ => tlserr(PSK_MODE_MISMATCH),
     })?;
 
@@ -624,6 +637,7 @@ pub(crate) fn client_hello(
         encoded_extensions
     );
     let client_hello = HandshakeData::from_bytes(HandshakeType::ClientHello, &handshake_bytes)?;
+    let trunc_len = binders_offset(algorithms, &client_hello)?;
 
     // Defensively checking if the serialization is correct
     #[cfg(feature = "defensive")]
@@ -641,6 +655,7 @@ pub(crate) fn client_hello(
         check_eq(&parsed_server_name, server_name)?;
         check_eq(&parsed_gx, kem_pk)?;
         check_eq_option(&parsed_session_ticket, session_ticket)?;
+        check(parsed_trunc_len == trunc_len)?;
     }
 
     Ok((client_hello, trunc_len))
@@ -695,8 +710,8 @@ pub(crate) fn set_client_hello_binder(
     let hlen = ciphersuite.hash().hash_len();
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
-            if chlen - trunc_len == hlen {
-                Ok(HandshakeData(ch.update_slice(trunc_len, m, 0, hlen)))
+            if chlen - trunc_len == hlen + 3 && m.len() == hlen {
+                Ok(HandshakeData(ch.update_slice(trunc_len + 3, m, 0, hlen)))
             } else {
                 tlserr(parse_failed())
             }
@@ -825,8 +840,7 @@ pub(super) fn parse_client_hello(
                 binder: Some(binder),
             },
         ) => {
-            check(ch.len() >= ciphersuite.hash().hash_len() + 3)?;
-            let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+            let trunc_len = binders_offset(ciphersuite, client_hello)?;
             Ok((crand, sid, sn, gx, Some(tkt), Some(binder), trunc_len))
         }
         (
@@ -838,8 +852,7 @@ pub(super) fn parse_client_hello(
                 binder: Some(binder),
             },
         ) => {
-            check(ch.len() >= ciphersuite.hash().hash_len() + 3)?;
-            let trunc_len = ch.len() - ciphersuite.hash().hash_len() - 3;
+            let trunc_len = binders_offset(ciphersuite, client_hello)?;
             Ok((
                 crand,
                 sid,

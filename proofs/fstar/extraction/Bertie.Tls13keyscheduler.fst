@@ -1,7 +1,7 @@
 module Bertie.Tls13keyscheduler
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -18,14 +18,16 @@ let derive_binder_key
       (handle: Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
     Bertie.Tls13keyscheduler.Key_schedule.zero_salt ks ha
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
   let zero_salt_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle = out in
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
     Bertie.Tls13keyscheduler.Key_schedule.v_XTR ks
       (mk_u8 0)
       (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_ES
@@ -35,12 +37,13 @@ let derive_binder_key
       zero_salt_handle
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-  | Core.Result.Result_Ok early_secret ->
-    (match hash_empty ha <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-      | Core.Result.Result_Ok hoist137 ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  match out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
+  | Core_models.Result.Result_Ok early_secret ->
+    (match hash_empty ha <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+      | Core_models.Result.Result_Ok hoist138 ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
           Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
             (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_Bind
               <:
@@ -48,32 +51,33 @@ let derive_binder_key
             (mk_u8 0)
             early_secret
             true
-            hoist137
+            hoist138
         in
         let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-        let hax_temp_output:Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 =
+        let hax_temp_output:Core_models.Result.t_Result
+          Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 =
           out
         in
         ks, hax_temp_output
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
-      | Core.Result.Result_Err err ->
+          Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+          Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8))
-  | Core.Result.Result_Err err ->
+          Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8))
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+      Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+      Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
 
 let derive_aead_key_iv
       (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
@@ -84,10 +88,10 @@ let derive_aead_key_iv
   match
     Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks handle
     <:
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
+    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
   with
-  | Core.Result.Result_Ok hoist138 ->
-    let key:Bertie.Tls13utils.t_Bytes = hoist138.Bertie.Tls13keyscheduler.Key_schedule.f_val in
+  | Core_models.Result.Result_Ok hoist139 ->
+    let key:Bertie.Tls13utils.t_Bytes = hoist139.Bertie.Tls13keyscheduler.Key_schedule.f_val in
     (match
         Bertie.Tls13keyscheduler.Key_schedule.hkdf_expand_label hash_algorithm
           key
@@ -97,9 +101,9 @@ let derive_aead_key_iv
           (Bertie.Tls13utils.impl_Bytes__new () <: Bertie.Tls13utils.t_Bytes)
           (Bertie.Tls13crypto.impl_AeadAlgorithm__key_len aead_algorithm <: usize)
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok sender_write_key ->
+      | Core_models.Result.Result_Ok sender_write_key ->
         (match
             Bertie.Tls13keyscheduler.Key_schedule.hkdf_expand_label hash_algorithm
               key
@@ -109,39 +113,47 @@ let derive_aead_key_iv
               (Bertie.Tls13utils.impl_Bytes__new () <: Bertie.Tls13utils.t_Bytes)
               (Bertie.Tls13crypto.impl_AeadAlgorithm__iv_len aead_algorithm <: usize)
             <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core.Result.Result_Ok sender_write_iv ->
-            let hax_temp_output:Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 =
-              Core.Result.Result_Ok
+          | Core_models.Result.Result_Ok sender_write_iv ->
+            let hax_temp_output:Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 =
+              Core_models.Result.Result_Ok
               (Bertie.Tls13crypto.impl_AeadKeyIV__new (Bertie.Tls13crypto.impl_AeadKey__new sender_write_key
                       aead_algorithm
                     <:
                     Bertie.Tls13crypto.t_AeadKey)
                   sender_write_iv)
               <:
-              Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8
+              Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8
             in
             ks, hax_temp_output
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
-          | Core.Result.Result_Err err ->
+              Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
+            (Core_models.Result.Result_Err err
+              <:
+              Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8))
-      | Core.Result.Result_Err err ->
-        ks, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
+              Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8))
+      | Core_models.Result.Result_Err err ->
+        ks,
+        (Core_models.Result.Result_Err err
+          <:
+          Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8))
-  | Core.Result.Result_Err err ->
-    ks, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
+          Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8))
+  | Core_models.Result.Result_Err err ->
+    ks,
+    (Core_models.Result.Result_Err err
+      <:
+      Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
+      Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
 
 let next_keys_c_2_
       (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
@@ -149,14 +161,16 @@ let next_keys_c_2_
       (tx: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
     Bertie.Tls13keyscheduler.Key_schedule.zero_salt ks hash_algorithm
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
   let zero_salt_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle = out in
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
     Bertie.Tls13keyscheduler.Key_schedule.v_XTR ks
       (mk_u8 0)
       (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_ES
@@ -166,12 +180,15 @@ let next_keys_c_2_
       zero_salt_handle
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-  | Core.Result.Result_Ok early_secret ->
-    (match hash_empty hash_algorithm <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-      | Core.Result.Result_Ok digest_emp ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  match out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
+  | Core_models.Result.Result_Ok early_secret ->
+    (match
+        hash_empty hash_algorithm <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+      with
+      | Core_models.Result.Result_Ok digest_emp ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
           Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
             (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_ESalt
               <:
@@ -182,10 +199,13 @@ let next_keys_c_2_
             digest_emp
         in
         let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-        (match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-          | Core.Result.Result_Ok derived_secret ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+        (match
+            out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+          with
+          | Core_models.Result.Result_Ok derived_secret ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
               Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
                 (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_CET
                   <:
@@ -197,11 +217,13 @@ let next_keys_c_2_
             in
             let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
             (match
-                out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
               with
-              | Core.Result.Result_Ok client_early_traffic_secret ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+              | Core_models.Result.Result_Ok client_early_traffic_secret ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+                =
                   Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
                     (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_EEM
                       <:
@@ -213,21 +235,23 @@ let next_keys_c_2_
                 in
                 let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
                 (match
-                    out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                    out
+                    <:
+                    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
                   with
-                  | Core.Result.Result_Ok early_exporter_master_secret ->
-                    let hax_temp_output:Core.Result.t_Result
+                  | Core_models.Result.Result_Ok early_exporter_master_secret ->
+                    let hax_temp_output:Core_models.Result.t_Result
                       (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                         Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                         Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8 =
-                      Core.Result.Result_Ok
+                      Core_models.Result.Result_Ok
                       (early_exporter_master_secret, client_early_traffic_secret, derived_secret
                         <:
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle))
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
@@ -235,77 +259,77 @@ let next_keys_c_2_
                     ks, hax_temp_output
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
@@ -317,8 +341,10 @@ let derive_0rtt_keys
       (tx: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out:
+    Core_models.Result.t_Result
       (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
         Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
         Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
@@ -328,54 +354,55 @@ let derive_0rtt_keys
   match
     out
     <:
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
         Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
         Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
   with
-  | Core.Result.Result_Ok
+  | Core_models.Result.Result_Ok
     (early_exporter_master_secret, client_early_traffic_secret, derived_secret) ->
-    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
+    let
+    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
       derive_aead_key_iv hash_algorithm aead_algorithm client_early_traffic_secret ks
     in
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-    (match out <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
-      | Core.Result.Result_Ok sender_write_key_iv ->
-        let hax_temp_output:Core.Result.t_Result
+    (match out <: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
+      | Core_models.Result.Result_Ok sender_write_key_iv ->
+        let hax_temp_output:Core_models.Result.t_Result
           (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8 =
-          Core.Result.Result_Ok
+          Core_models.Result.Result_Ok
           (sender_write_key_iv, early_exporter_master_secret
             <:
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle))
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
         in
         ks, hax_temp_output
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
 
 let derive_finished_key
@@ -386,10 +413,10 @@ let derive_finished_key
   match
     Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks handle
     <:
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
+    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
   with
-  | Core.Result.Result_Ok k ->
-    let hax_temp_output:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
+  | Core_models.Result.Result_Ok k ->
+    let hax_temp_output:Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 =
       Bertie.Tls13keyscheduler.Key_schedule.hkdf_expand_label ha
         k.Bertie.Tls13keyscheduler.Key_schedule.f_val
         (Bertie.Tls13utils.bytes (Bertie.Tls13formats.v_LABEL_FINISHED <: t_Slice u8)
@@ -401,34 +428,37 @@ let derive_finished_key
     ks, hax_temp_output
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    ks, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+  | Core_models.Result.Result_Err err ->
+    ks,
+    (Core_models.Result.Result_Err err <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
 
 let derive_hk_handles
       (ha: Bertie.Tls13crypto.t_HashAlgorithm)
       (shared_secret: Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
-      (psko: Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+      (psko: Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
       (transcript_hash: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let ks, psk_handle:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
-    match psko <: Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle with
-    | Core.Option.Option_Some k ->
+  let
+  (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (psk_handle: Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
+    match psko <: Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle with
+    | Core_models.Option.Option_Some k ->
       ks,
-      Core.Clone.f_clone #Bertie.Tls13keyscheduler.Key_schedule.t_Handle
+      Core_models.Clone.f_clone #Bertie.Tls13keyscheduler.Key_schedule.t_Handle
         #FStar.Tactics.Typeclasses.solve
         k
       <:
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
         Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
     | _ ->
-      let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
+      let
+      (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+      (out: Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
         Bertie.Tls13keyscheduler.Key_schedule.no_psk ks ha
       in
       let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
@@ -437,14 +467,16 @@ let derive_hk_handles
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
         Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
   in
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
     Bertie.Tls13keyscheduler.Key_schedule.zero_salt ks ha
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
   let zero_salt_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle = out in
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
     Bertie.Tls13keyscheduler.Key_schedule.v_XTR ks
       (mk_u8 0)
       (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_ES
@@ -454,12 +486,13 @@ let derive_hk_handles
       zero_salt_handle
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-  | Core.Result.Result_Ok early_secret ->
-    (match hash_empty ha <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-      | Core.Result.Result_Ok digest_emp ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  match out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
+  | Core_models.Result.Result_Ok early_secret ->
+    (match hash_empty ha <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+      | Core_models.Result.Result_Ok digest_emp ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
           Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
             (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_ESalt
               <:
@@ -470,10 +503,13 @@ let derive_hk_handles
             digest_emp
         in
         let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-        (match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-          | Core.Result.Result_Ok derived_secret ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+        (match
+            out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+          with
+          | Core_models.Result.Result_Ok derived_secret ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
               Bertie.Tls13keyscheduler.Key_schedule.v_XTR ks
                 (mk_u8 0)
                 (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_HS
@@ -484,11 +520,13 @@ let derive_hk_handles
             in
             let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
             (match
-                out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
               with
-              | Core.Result.Result_Ok handshake_secret ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+              | Core_models.Result.Result_Ok handshake_secret ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+                =
                   Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
                     (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_CHT
                       <:
@@ -500,11 +538,16 @@ let derive_hk_handles
                 in
                 let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
                 (match
-                    out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                    out
+                    <:
+                    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
                   with
-                  | Core.Result.Result_Ok client_handshake_traffic_secret ->
-                    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+                  | Core_models.Result.Result_Ok client_handshake_traffic_secret ->
+                    let
+                    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                    (out:
+                      Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+                    =
                       Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
                         (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_SHT
                           <:
@@ -518,11 +561,15 @@ let derive_hk_handles
                     (match
                         out
                         <:
-                        Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                        Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle
+                          u8
                       with
-                      | Core.Result.Result_Ok server_handshake_traffic_secret ->
-                        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+                      | Core_models.Result.Result_Ok server_handshake_traffic_secret ->
+                        let
+                        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                        (out:
+                          Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle
+                            u8) =
                           Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
                             (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_HSalt
                               <:
@@ -536,20 +583,24 @@ let derive_hk_handles
                         (match
                             out
                             <:
-                            Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                            Core_models.Result.t_Result
+                              Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
                           with
-                          | Core.Result.Result_Ok master_secret_ ->
-                            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
+                          | Core_models.Result.Result_Ok master_secret_ ->
+                            let
+                            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                            (out: Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
                               Bertie.Tls13keyscheduler.Key_schedule.zero_ikm ks ha
                             in
                             let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
                             let zero_ikm_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
                               out
                             in
-                            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
-                            ) =
+                            let
+                            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                            (out:
+                              Core_models.Result.t_Result
+                                Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
                               Bertie.Tls13keyscheduler.Key_schedule.v_XTR ks
                                 (mk_u8 0)
                                 (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_AS
@@ -562,15 +613,15 @@ let derive_hk_handles
                             (match
                                 out
                                 <:
-                                Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle
-                                  u8
+                                Core_models.Result.t_Result
+                                  Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
                               with
-                              | Core.Result.Result_Ok master_secret ->
-                                let hax_temp_output:Core.Result.t_Result
+                              | Core_models.Result.Result_Ok master_secret ->
+                                let hax_temp_output:Core_models.Result.t_Result
                                   (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8 =
-                                  Core.Result.Result_Ok
+                                  Core_models.Result.Result_Ok
                                   (client_handshake_traffic_secret,
                                     server_handshake_traffic_secret,
                                     master_secret
@@ -579,7 +630,7 @@ let derive_hk_handles
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle))
                                   <:
-                                  Core.Result.t_Result
+                                  Core_models.Result.t_Result
                                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
@@ -587,119 +638,119 @@ let derive_hk_handles
                                 ks, hax_temp_output
                                 <:
                                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                  Core.Result.t_Result
+                                  Core_models.Result.t_Result
                                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
-                              | Core.Result.Result_Err err ->
+                              | Core_models.Result.Result_Err err ->
                                 ks,
-                                (Core.Result.Result_Err err
+                                (Core_models.Result.Result_Err err
                                   <:
-                                  Core.Result.t_Result
+                                  Core_models.Result.t_Result
                                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                                 <:
                                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                  Core.Result.t_Result
+                                  Core_models.Result.t_Result
                                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-                          | Core.Result.Result_Err err ->
+                          | Core_models.Result.Result_Err err ->
                             ks,
-                            (Core.Result.Result_Err err
+                            (Core_models.Result.Result_Err err
                               <:
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                             <:
                             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-                      | Core.Result.Result_Err err ->
+                      | Core_models.Result.Result_Err err ->
                         ks,
-                        (Core.Result.Result_Err err
+                        (Core_models.Result.Result_Err err
                           <:
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                         <:
                         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
@@ -711,39 +762,43 @@ let derive_hk_ms
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
     derive_finished_key ha client_handshake_traffic_secret ks
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  match out <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-  | Core.Result.Result_Ok client_finished_key ->
-    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
+  match out <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+  | Core_models.Result.Result_Ok client_finished_key ->
+    let
+    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
       derive_finished_key ha server_handshake_traffic_secret ks
     in
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-    (match out <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-      | Core.Result.Result_Ok server_finished_key ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
+    (match out <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+      | Core_models.Result.Result_Ok server_finished_key ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
           derive_aead_key_iv ha ae client_handshake_traffic_secret ks
         in
         let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-        (match out <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
-          | Core.Result.Result_Ok client_write_key_iv ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
+        (match out <: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
+          | Core_models.Result.Result_Ok client_write_key_iv ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
               derive_aead_key_iv ha ae server_handshake_traffic_secret ks
             in
             let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-            (match out <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
-              | Core.Result.Result_Ok server_write_key_iv ->
-                let hax_temp_output:Core.Result.t_Result
+            (match out <: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
+              | Core_models.Result.Result_Ok server_write_key_iv ->
+                let hax_temp_output:Core_models.Result.t_Result
                   (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                     Bertie.Tls13utils.t_Bytes &
                     Bertie.Tls13utils.t_Bytes) u8 =
-                  Core.Result.Result_Ok
+                  Core_models.Result.Result_Ok
                   (client_write_key_iv,
                     server_write_key_iv,
                     client_finished_key,
@@ -753,7 +808,7 @@ let derive_hk_ms
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes))
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes) u8
@@ -761,62 +816,62 @@ let derive_hk_ms
                 ks, hax_temp_output
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes) u8)
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                   Bertie.Tls13utils.t_Bytes &
                   Bertie.Tls13utils.t_Bytes) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                   Bertie.Tls13utils.t_Bytes &
                   Bertie.Tls13utils.t_Bytes) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
               Bertie.Tls13utils.t_Bytes &
               Bertie.Tls13utils.t_Bytes) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
               Bertie.Tls13utils.t_Bytes &
               Bertie.Tls13utils.t_Bytes) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13utils.t_Bytes &
           Bertie.Tls13utils.t_Bytes) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13utils.t_Bytes &
           Bertie.Tls13utils.t_Bytes) u8)
 
@@ -826,8 +881,9 @@ let derive_app_handles
       (tx: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
     Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
       (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_CAT
         <:
@@ -838,10 +894,11 @@ let derive_app_handles
       tx
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-  | Core.Result.Result_Ok client_application_traffic_secret_0_ ->
-    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  match out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
+  | Core_models.Result.Result_Ok client_application_traffic_secret_0_ ->
+    let
+    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
       Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
         (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_SAT
           <:
@@ -852,10 +909,11 @@ let derive_app_handles
         tx
     in
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-    (match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-      | Core.Result.Result_Ok server_application_traffic_secret_0_ ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+    (match out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
+      | Core_models.Result.Result_Ok server_application_traffic_secret_0_ ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
           Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
             (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_EAM
               <:
@@ -866,13 +924,15 @@ let derive_app_handles
             tx
         in
         let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-        (match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-          | Core.Result.Result_Ok exporter_master_secret ->
-            let hax_temp_output:Core.Result.t_Result
+        (match
+            out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+          with
+          | Core_models.Result.Result_Ok exporter_master_secret ->
+            let hax_temp_output:Core_models.Result.t_Result
               (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                 Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                 Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8 =
-              Core.Result.Result_Ok
+              Core_models.Result.Result_Ok
               (client_application_traffic_secret_0_,
                 server_application_traffic_secret_0_,
                 exporter_master_secret
@@ -881,7 +941,7 @@ let derive_app_handles
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle))
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
@@ -889,49 +949,49 @@ let derive_app_handles
             ks, hax_temp_output
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
               Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
@@ -943,50 +1003,57 @@ let derive_app_keys
           Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
     derive_aead_key_iv ha ae client_application_traffic_secret_0_ ks
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  match out <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
-  | Core.Result.Result_Ok client_write_key_iv ->
-    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
+  match out <: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
+  | Core_models.Result.Result_Ok client_write_key_iv ->
+    let
+    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) =
       derive_aead_key_iv ha ae server_application_traffic_secret_0_ ks
     in
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-    (match out <: Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
-      | Core.Result.Result_Ok server_write_key_iv ->
-        let hax_temp_output:Core.Result.t_Result
+    (match out <: Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8 with
+      | Core_models.Result.Result_Ok server_write_key_iv ->
+        let hax_temp_output:Core_models.Result.t_Result
           (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8 =
-          Core.Result.Result_Ok
+          Core_models.Result.Result_Ok
           (client_write_key_iv, server_write_key_iv
             <:
             (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV))
           <:
-          Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8
+          Core_models.Result.t_Result
+            (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8
         in
         ks, hax_temp_output
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
-      | Core.Result.Result_Err err ->
+          Core_models.Result.t_Result
+            (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
+          Core_models.Result.t_Result
+            (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
-    )
-  | Core.Result.Result_Err err ->
+          Core_models.Result.t_Result
+            (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8))
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
+      Core_models.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV)
+        u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
+      Core_models.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV)
+        u8)
 
 let derive_rms
       (ha: Bertie.Tls13crypto.t_HashAlgorithm)
@@ -994,8 +1061,9 @@ let derive_rms
       (tx: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
     Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
       (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_RM
         <:
@@ -1006,10 +1074,11 @@ let derive_rms
       tx
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  let hax_temp_output:Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 =
+  let hax_temp_output:Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+  =
     out
   in
   ks, hax_temp_output
   <:
   (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)

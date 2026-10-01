@@ -1,7 +1,7 @@
 module Bertie.Tls13api
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -15,11 +15,11 @@ let _ =
 type t_Client =
   | Client_Client0 :
       Bertie.Tls13handshake.t_ClientPostClientHello ->
-      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0
+      Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0
     -> t_Client
   | Client_ClientH :
       Bertie.Tls13handshake.t_ClientPostServerHello ->
-      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 ->
+      Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 ->
       Bertie.Tls13record.t_DuplexCipherStateH ->
       Bertie.Tls13formats.Handshake_data.t_HandshakeData
     -> t_Client
@@ -31,6 +31,16 @@ type t_Client =
 /// Check if the client is using a PSK mode or not.
 /// Returns `true` if the client is in PSK mode and `false` otherwise.
 val in_psk_mode (c: t_Client) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+
+/// Retrieves the Servers' public information (name, certificate, public key, ticket)
+/// The application MUST call this function to retrieve and validate the (optional)
+/// certificate, and check that it correspods to the server name and the public key,
+/// before reading or writing any sensitive data on the channel.
+/// If the connection has no certificate, then `in_psk_mode` above will return true,
+/// and the session ticket in the server info is the one used for the connection.
+/// Returns a `ServerPubInfo`
+val get_server_info (c: t_Client)
+    : Prims.Pure Bertie.Server.t_ServerPubInfo Prims.l_True (fun _ -> Prims.l_True)
 
 /// Start a TLS handshake as client.
 /// Note that Bertie clients only support a single ciphersuite at a time and
@@ -47,15 +57,15 @@ val in_psk_mode (c: t_Client) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_T
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Client__connect
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (server_name: Bertie.Tls13utils.t_Bytes)
-      (session_ticket psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (session_ticket psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -74,7 +84,8 @@ val impl_Client__read_handshake
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_Bytes & t_Client) u8)
+        Core_models.Result.t_Result
+          (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -90,7 +101,8 @@ val impl_Client__read_handshake
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Client__read (self: t_Client) (message_bytes: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
-      (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_AppData & t_Client) u8)
+      (Core_models.Result.t_Result
+          (Core_models.Option.t_Option Bertie.Tls13utils.t_AppData & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -100,7 +112,7 @@ val impl_Client__read (self: t_Client) (message_bytes: Bertie.Tls13utils.t_Bytes
 /// encrypted `application_data` as bytes, and the new [`Client`] state as the second element.
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Client__write (self: t_Client) (application_data: Bertie.Tls13utils.t_AppData)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
+    : Prims.Pure (Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Client) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -108,7 +120,7 @@ val impl_Client__write (self: t_Client) (application_data: Bertie.Tls13utils.t_A
 type t_Server =
   | Server_ServerH :
       Bertie.Tls13handshake.t_ServerPostServerFinished ->
-      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 ->
+      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 ->
       Bertie.Tls13record.t_DuplexCipherStateH ->
       Bertie.Tls13record.t_DuplexCipherState1
     -> t_Server
@@ -128,9 +140,8 @@ val impl_Server__read_handshake
       (handshake_bytes: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
-      (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler & Core.Result.t_Result t_Server u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+      (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
+        Core_models.Result.t_Result t_Server u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Send application data to the client.
 /// The function returns a [`Result`].
@@ -138,7 +149,7 @@ val impl_Server__read_handshake
 /// encrypted `application_data` as bytes, and the new [`Server`] state as the second element.
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Server__write (self: t_Server) (application_data: Bertie.Tls13utils.t_AppData)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Server) u8)
+    : Prims.Pure (Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_Server) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -154,7 +165,8 @@ val impl_Server__write (self: t_Server) (application_data: Bertie.Tls13utils.t_A
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Server__read (self: t_Server) (application_data: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
-      (Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13utils.t_AppData & t_Server) u8)
+      (Core_models.Result.t_Result
+          (Core_models.Option.t_Option Bertie.Tls13utils.t_AppData & t_Server) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -173,7 +185,7 @@ val impl_Server__read (self: t_Server) (application_data: Bertie.Tls13utils.t_By
 /// If an error occurs, it returns a [`TLSError`].
 val impl_Server__accept
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (db: Bertie.Server.t_ServerDB)
       (client_hello: Bertie.Tls13utils.t_Bytes)
@@ -181,6 +193,7 @@ val impl_Server__accept
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8)
+        Core_models.Result.t_Result
+          (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & t_Server) u8)
       (requires (Bertie.Tls13utils.impl_Bytes__len client_hello <: usize) >=. mk_usize 5)
       (fun _ -> Prims.l_True)

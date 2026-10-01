@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 base64 = "0.20.0"
 bertie = { path = "../" }
-rand = "0.9"
+rand = "0.10"
 tracing = "*"
 tracing-subscriber = "*"

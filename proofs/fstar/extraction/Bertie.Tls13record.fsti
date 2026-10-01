@@ -1,7 +1,7 @@
 module Bertie.Tls13record
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -90,14 +90,14 @@ val encrypt_record_payload
       (ct: Bertie.Tls13formats.t_ContentType)
       (payload: Bertie.Tls13utils.t_Bytes)
       (pad: usize)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Encrypt 0-RTT `payload`.
 /// TODO: Implement 0-RTT
 val encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
+    : Prims.Pure (Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -108,12 +108,12 @@ val encrypt_handshake
       (payload: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (pad: usize)
       (state: t_DuplexCipherStateH)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
+    : Prims.Pure (Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+    : Prims.Pure (Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -132,33 +132,34 @@ val decrypt_record_payload
       (n: u64)
       (ciphertext: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure
-      (Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
+      (Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
+          u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Decrypt 0-RTT `ciphertext`.
 /// TODO: Implement 0-RTT
 val decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
+    : Prims.Pure
+      (Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Decrypt a handshake message.
 val decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCipherStateH)
     : Prims.Pure
-      (Core.Result.t_Result
+      (Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
     : Prims.Pure
-      (Core.Result.t_Result
+      (Core_models.Result.t_Result
           (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1)
-    : Prims.Pure (Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
+    : Prims.Pure
+      (Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)

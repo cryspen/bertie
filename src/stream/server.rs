@@ -115,7 +115,6 @@ impl BertieStream<ServerState<TcpStream>> {
     /// ```
     /// use std::{net::{TcpStream, TcpListener}, thread};
     /// use bertie::{stream::BertieStream, tls13crypto::SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519};
-    /// use rand::thread_rng;
     ///
     /// let host = "localhost";
     /// let port = 3443;
@@ -123,7 +122,7 @@ impl BertieStream<ServerState<TcpStream>> {
     /// // Run a client
     /// eprintln!("[Client] Starting ...");
     /// let client_handle = thread::spawn(move || {
-    ///     let mut stream = BertieStream::client(host, port, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, &mut thread_rng()).expect("Error connecting to server");
+    ///     let mut stream = BertieStream::client(host, port, SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519, &mut rand::rng()).expect("Error connecting to server");
     ///     stream.write(b"Hello, I'm the Bertie test client.").unwrap();
     ///     let server_msg = stream.read().unwrap();
     ///     assert_eq!(
@@ -146,7 +145,7 @@ impl BertieStream<ServerState<TcpStream>> {
     ///     "tests/assets/p256_key.der",
     /// )
     /// .expect("Error starting server");
-    /// server.connect(&mut thread_rng()).unwrap();
+    /// server.connect(&mut rand::rng()).unwrap();
     ///
     /// // Handshake finished.
     ///

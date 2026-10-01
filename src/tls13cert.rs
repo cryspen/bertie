@@ -54,7 +54,9 @@ pub(crate) fn asn1_error<T>(err: Asn1Error) -> Result<T, Asn1Error> {
 fn long_length(b: &Bytes, offset: usize, len: usize) -> Result<usize, Asn1Error> {
     if len > 4 {
         asn1_error(ASN1_SEQUENCE_TOO_LONG)
-    } else if b.len() >= offset + len {
+    } else if len == 0 {
+        asn1_error(ASN1_ERROR)
+    } else if offset <= b.len() && len <= b.len() - offset {
         let mut u32word = [U8(0); 4];
         u32word[0..len].copy_from_slice(&b[offset..offset + len]);
         Ok(u32_from_be_bytes(u32word).declassify() as usize >> ((4 - len) * 8))
@@ -104,18 +106,23 @@ fn short_length(b: &Bytes, offset: usize) -> Result<usize, Asn1Error> {
 ///
 /// Returns: (offset, length)
 #[hax_lib::ensures(|result| match result {
-    Result::Ok(_) => b.len() > offset,
+    Result::Ok(res) => b.len() > offset && res.0 <= b.len() && res.1 <= b.len() - res.0,
     _ => true })]
 fn length(b: &Bytes, mut offset: usize) -> Result<(usize, usize), Asn1Error> {
     if b.len() > offset {
-        if b[offset].declassify() & 0x80 == 0 {
+        let (content_offset, content_len) = if b[offset].declassify() & 0x80 == 0 {
             let len = short_length(b, offset)?;
-            Ok((offset + 1, len))
+            (offset + 1, len)
         } else {
             let len = length_length(b, offset)?;
             offset += 1;
             let end = long_length(b, offset, len)?;
-            Ok((offset + len, end))
+            (offset + len, end)
+        };
+        if content_offset <= b.len() && content_len <= b.len() - content_offset {
+            Ok((content_offset, content_len))
+        } else {
+            asn1_error(ASN1_ERROR)
         }
     } else {
         asn1_error(ASN1_ERROR)
@@ -130,6 +137,7 @@ fn read_sequence_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error
     offset += 1;
 
     let length_length = length_length(b, offset)?;
+    check_success(length_length < b.len() - offset)?;
     offset = offset + length_length + 1; // 1 byte is always used for length
 
     Ok(offset)
@@ -143,6 +151,7 @@ fn read_octet_header(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error> {
     offset += 1;
 
     let length_length = length_length(b, offset)?;
+    check_success(length_length < b.len() - offset)?;
     offset = offset + length_length + 1; // 1 byte is always used for length
 
     Ok(offset)
@@ -189,6 +198,7 @@ fn read_version_number(b: &Bytes, mut offset: usize) -> Result<usize, Asn1Error>
             offset += 1;
 
             let length = short_length(b, offset)?;
+            check_success(length < b.len() - offset)?;
             Ok(offset + 1 + length)
         }
         Err(_) => Ok(offset),
@@ -251,7 +261,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
     // OID Tag
     check_tag(cert, offset, 0x06u8)?;
     // OID length
-    let (mut oid_offset, oid_len) = length(cert, offset + 1)?;
+    let (oid_offset, oid_len) = length(cert, offset + 1)?;
     let (mut ec_pk_oid, mut ecdsa_p256, mut rsa_pk_oid) = (false, false, false);
     let ec_oid = x962_ec_public_key_oid();
     let rsa_oid = rsa_pkcs1_encryption_oid();
@@ -263,15 +273,15 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
             ec_pk_oid = ec_pk_oid && oid_byte_equal;
         }
         if ec_pk_oid {
-            oid_offset += oid_len;
-            check_tag(cert, oid_offset, 0x06u8)?;
-            oid_offset += 1;
-            let (oid_offset, _oid_len) = length(cert, oid_offset)?;
+            let curve_offset = oid_offset + oid_len;
+            check_tag(cert, curve_offset, 0x06u8)?;
+            let (curve_offset, curve_oid_len) = length(cert, curve_offset + 1)?;
             ecdsa_p256 = true;
             // In this case we also need to read the curve OID.
             let ec_oid = ecdsa_secp256r1_sha256_oid();
+            check_success(curve_oid_len == ec_oid.len())?;
             for i in 0..ec_oid.len() {
-                let oid_byte_equal = cert[oid_offset + i].declassify() == ec_oid[i].declassify();
+                let oid_byte_equal = cert[curve_offset + i].declassify() == ec_oid[i].declassify();
                 ecdsa_p256 = ecdsa_p256 && oid_byte_equal;
             }
             check_success(ecdsa_p256)?;
@@ -295,6 +305,7 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
     check_tag(cert, offset, 0x03u8)?;
     offset += 1;
     let (mut offset, bit_string_len) = length(cert, offset)?;
+    check_success(bit_string_len >= 1)?;
     if cert[offset].declassify() == 0x00 {
         offset += 1; // There's a 0x00 at the end of the length
     }
@@ -377,12 +388,13 @@ pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error
 
 /// Read the EC PK from the cert as uncompressed point.
 #[hax_lib::pv_constructor]
-#[hax_lib::requires(indices.1 > 0 && cert.len().lift() >= indices.0.lift() + indices.1.lift())]
 pub(crate) fn ecdsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,
 ) -> Result<VerificationKey, Asn1Error> {
     let CertificateKey(offset, len) = indices;
+
+    check_success(len >= 1 && offset <= cert.len() && len <= cert.len() - offset)?;
 
     check_tag(cert, offset, 0x04u8)?; // We only support uncompressed
 
@@ -549,6 +561,56 @@ mod unit_test {
             f.read_to_end(&mut bytes)
                 .unwrap_or_else(|_| panic!("Error reading file {}", file.display()));
             test(&bytes.into());
+        }
+    }
+
+    #[test]
+    fn length_rejects_overrun() {
+        // `05 00` claims 5 content bytes but only 1 follows.
+        let b: Bytes = [0x05u8, 0x00].into();
+        assert!(length(&b, 0).is_err());
+    }
+
+    #[test]
+    fn read_spki_rejects_empty_bit_string() {
+        let cert: Bytes = [
+            0x30u8, 0x0F, // SEQUENCE (SubjectPublicKeyInfo)
+            0x30, 0x0B, //   SEQUENCE (AlgorithmIdentifier)
+            0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01,
+            0x01, //   rsaEncryption OID
+            0x03, 0x00, //   BIT STRING, length 0
+        ]
+        .into();
+        assert!(read_spki(&cert, 0).is_err());
+    }
+
+    #[test]
+    fn ecdsa_public_key_rejects_bad_indices() {
+        let cert: Bytes = [0x04u8, 0xAA, 0xBB].into();
+        assert!(ecdsa_public_key(&cert, CertificateKey(0, 0)).is_err());
+        assert!(ecdsa_public_key(&cert, CertificateKey(0, 100)).is_err());
+    }
+
+    #[test]
+    fn rsa_public_key_rejects_overrun_integer() {
+        // `02 05 00` claims a 5-byte INTEGER with 1 byte present.
+        let cert: Bytes = [0x30u8, 0x03, 0x02, 0x05, 0x00].into();
+        assert!(rsa_public_key(&cert, CertificateKey(0, 0)).is_err());
+    }
+
+    #[test]
+    fn no_panic_on_truncated_certs() {
+        for full in [
+            GOO_GL_DER.as_slice(),
+            CLOUDFLARE_COM_DER.as_slice(),
+            OTHER_ECDSA_P256_SHA256_CERT.as_slice(),
+        ] {
+            for n in 0..=full.len() {
+                let cert: Bytes = full[..n].into();
+                if let Ok(spki) = verification_key_from_cert(&cert) {
+                    let _ = cert_public_key(&cert, &spki);
+                }
+            }
         }
     }
 

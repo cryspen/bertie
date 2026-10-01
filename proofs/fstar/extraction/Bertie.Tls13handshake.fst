@@ -1,11 +1,12 @@
 module Bertie.Tls13handshake
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
   (* The implicit dependencies arise from typeclasses instances. *)
+  let open Bertie.Server in
   let open Bertie.Tls13utils in
   let open Rand_core in
   ()
@@ -16,11 +17,20 @@ let algs_post_server_hello (st: t_ClientPostServerHello) = st._2
 
 let algs_post_client_finished (st: t_ClientPostClientFinished) = st._2
 
+let server_info_post_client_hello (st: t_ClientPostClientHello) =
+  Core_models.Clone.f_clone #Bertie.Server.t_ServerPubInfo #FStar.Tactics.Typeclasses.solve st._2
+
+let server_info_post_server_hello (st: t_ClientPostServerHello) =
+  Core_models.Clone.f_clone #Bertie.Server.t_ServerPubInfo #FStar.Tactics.Typeclasses.solve st._3
+
+let server_info_post_client_finished (st: t_ClientPostClientFinished) =
+  Core_models.Clone.f_clone #Bertie.Server.t_ServerPubInfo #FStar.Tactics.Typeclasses.solve st._3
+
 let compute_psk_binder_zero_rtt
       (algs0: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (trunc_len: usize)
-      (psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (tx: Bertie.Tls13formats.t_Transcript)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
@@ -36,9 +46,9 @@ let compute_psk_binder_zero_rtt
   match
     psk_mode, psk, (cast (trunc_len <: usize) <: u8)
     <:
-    (bool & Core.Option.t_Option Bertie.Tls13utils.t_Bytes & u8)
+    (bool & Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes & u8)
   with
-  | true, Core.Option.Option_Some k, _ ->
+  | true, Core_models.Option.Option_Some k, _ ->
     let psk_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
       {
         Bertie.Tls13keyscheduler.Key_schedule.f_name
@@ -55,25 +65,29 @@ let compute_psk_binder_zero_rtt
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler =
       Bertie.Tls13keyscheduler.Key_schedule.set_by_handle ks
         psk_handle
-        (Core.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve k
+        (Core_models.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve k
           <:
           Bertie.Tls13utils.t_Bytes)
     in
     (match
         Bertie.Tls13formats.impl_Transcript__transcript_hash_without_client_hello tx ch trunc_len
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok th_trunc ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+      | Core_models.Result.Result_Ok th_trunc ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
           Bertie.Tls13keyscheduler.derive_binder_key ha psk_handle ks
         in
         let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-        (match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-          | Core.Result.Result_Ok mk_handle ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+        (match
+            out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+          with
+          | Core_models.Result.Result_Ok mk_handle ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
               Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
                 (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_Binder
                   <:
@@ -85,29 +99,32 @@ let compute_psk_binder_zero_rtt
             in
             let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
             (match
-                out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
               with
-              | Core.Result.Result_Ok binder_handle ->
+              | Core_models.Result.Result_Ok binder_handle ->
                 (match
                     Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks binder_handle
                     <:
-                    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
+                    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
                   with
-                  | Core.Result.Result_Ok hoist98 ->
+                  | Core_models.Result.Result_Ok hoist99 ->
                     let binder:Bertie.Tls13utils.t_Bytes =
-                      hoist98.Bertie.Tls13keyscheduler.Key_schedule.f_val
+                      hoist99.Bertie.Tls13keyscheduler.Key_schedule.f_val
                     in
                     (match
                         Bertie.Tls13formats.set_client_hello_binder algs0
-                          (Core.Option.Option_Some binder
+                          (Core_models.Option.Option_Some binder
                             <:
-                            Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+                            Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
                           ch
-                          (Core.Option.Option_Some trunc_len <: Core.Option.t_Option usize)
+                          (Core_models.Option.Option_Some trunc_len
+                            <:
+                            Core_models.Option.t_Option usize)
                         <:
-                        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+                        Core_models.Result.t_Result
+                          Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
                       with
-                      | Core.Result.Result_Ok nch ->
+                      | Core_models.Result.Result_Ok nch ->
                         let tx_ch:Bertie.Tls13formats.t_Transcript =
                           Bertie.Tls13formats.impl_Transcript__add tx nch
                         in
@@ -116,11 +133,13 @@ let compute_psk_binder_zero_rtt
                           match
                             Bertie.Tls13formats.impl_Transcript__transcript_hash tx_ch
                             <:
-                            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                           with
-                          | Core.Result.Result_Ok th ->
-                            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                          | Core_models.Result.Result_Ok th ->
+                            let
+                            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                            (out:
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13crypto.t_AeadKeyIV &
                                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
                               Bertie.Tls13keyscheduler.derive_0rtt_keys ha ae psk_handle th ks
@@ -129,228 +148,235 @@ let compute_psk_binder_zero_rtt
                             (match
                                 out
                                 <:
-                                Core.Result.t_Result
+                                Core_models.Result.t_Result
                                   (Bertie.Tls13crypto.t_AeadKeyIV &
                                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
                               with
-                              | Core.Result.Result_Ok (aek, handle) ->
+                              | Core_models.Result.Result_Ok (aek, handle) ->
                                 (match
                                     Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks
                                       handle
                                     <:
-                                    Core.Result.t_Result
+                                    Core_models.Result.t_Result
                                       Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
                                   with
-                                  | Core.Result.Result_Ok key ->
-                                    let cipher0:Core.Option.t_Option
+                                  | Core_models.Result.Result_Ok key ->
+                                    let cipher0:Core_models.Option.t_Option
                                     Bertie.Tls13record.t_ClientCipherState0 =
-                                      Core.Option.Option_Some
+                                      Core_models.Option.Option_Some
                                       (Bertie.Tls13record.client_cipher_state0 ae aek (mk_u64 0) key
                                       )
                                       <:
-                                      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0
+                                      Core_models.Option.t_Option
+                                      Bertie.Tls13record.t_ClientCipherState0
                                     in
                                     ks,
-                                    (Core.Result.Result_Ok
+                                    (Core_models.Result.Result_Ok
                                       (nch, cipher0, tx_ch
                                         <:
                                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                          Core.Option.t_Option
+                                          Core_models.Option.t_Option
                                           Bertie.Tls13record.t_ClientCipherState0 &
                                           Bertie.Tls13formats.t_Transcript))
                                       <:
-                                      Core.Result.t_Result
+                                      Core_models.Result.t_Result
                                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                          Core.Option.t_Option
+                                          Core_models.Option.t_Option
                                           Bertie.Tls13record.t_ClientCipherState0 &
                                           Bertie.Tls13formats.t_Transcript) u8)
                                     <:
                                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                      Core.Result.t_Result
+                                      Core_models.Result.t_Result
                                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                          Core.Option.t_Option
+                                          Core_models.Option.t_Option
                                           Bertie.Tls13record.t_ClientCipherState0 &
                                           Bertie.Tls13formats.t_Transcript) u8)
-                                  | Core.Result.Result_Err err ->
+                                  | Core_models.Result.Result_Err err ->
                                     ks,
-                                    (Core.Result.Result_Err err
+                                    (Core_models.Result.Result_Err err
                                       <:
-                                      Core.Result.t_Result
+                                      Core_models.Result.t_Result
                                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                          Core.Option.t_Option
+                                          Core_models.Option.t_Option
                                           Bertie.Tls13record.t_ClientCipherState0 &
                                           Bertie.Tls13formats.t_Transcript) u8)
                                     <:
                                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                      Core.Result.t_Result
+                                      Core_models.Result.t_Result
                                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                          Core.Option.t_Option
+                                          Core_models.Option.t_Option
                                           Bertie.Tls13record.t_ClientCipherState0 &
                                           Bertie.Tls13formats.t_Transcript) u8))
-                              | Core.Result.Result_Err err ->
+                              | Core_models.Result.Result_Err err ->
                                 ks,
-                                (Core.Result.Result_Err err
+                                (Core_models.Result.Result_Err err
                                   <:
-                                  Core.Result.t_Result
+                                  Core_models.Result.t_Result
                                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                      Core_models.Option.t_Option
+                                      Bertie.Tls13record.t_ClientCipherState0 &
                                       Bertie.Tls13formats.t_Transcript) u8)
                                 <:
                                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                  Core.Result.t_Result
+                                  Core_models.Result.t_Result
                                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                      Core_models.Option.t_Option
+                                      Bertie.Tls13record.t_ClientCipherState0 &
                                       Bertie.Tls13formats.t_Transcript) u8))
-                          | Core.Result.Result_Err err ->
+                          | Core_models.Result.Result_Err err ->
                             ks,
-                            (Core.Result.Result_Err err
+                            (Core_models.Result.Result_Err err
                               <:
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                  Core_models.Option.t_Option
+                                  Bertie.Tls13record.t_ClientCipherState0 &
                                   Bertie.Tls13formats.t_Transcript) u8)
                             <:
                             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                  Core_models.Option.t_Option
+                                  Bertie.Tls13record.t_ClientCipherState0 &
                                   Bertie.Tls13formats.t_Transcript) u8)
                         else
                           ks,
-                          (Core.Result.Result_Ok
+                          (Core_models.Result.Result_Ok
                             (nch,
-                              (Core.Option.Option_None
+                              (Core_models.Option.Option_None
                                 <:
-                                Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0),
+                                Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0),
                               tx_ch
                               <:
                               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                                 Bertie.Tls13formats.t_Transcript))
                             <:
-                            Core.Result.t_Result
+                            Core_models.Result.t_Result
                               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                                 Bertie.Tls13formats.t_Transcript) u8)
                           <:
                           (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                            Core.Result.t_Result
+                            Core_models.Result.t_Result
                               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                                Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                                 Bertie.Tls13formats.t_Transcript) u8)
-                      | Core.Result.Result_Err err ->
+                      | Core_models.Result.Result_Err err ->
                         ks,
-                        (Core.Result.Result_Err err
+                        (Core_models.Result.Result_Err err
                           <:
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                               Bertie.Tls13formats.t_Transcript) u8)
                         <:
                         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                               Bertie.Tls13formats.t_Transcript) u8))
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                           Bertie.Tls13formats.t_Transcript) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                           Bertie.Tls13formats.t_Transcript) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                       Bertie.Tls13formats.t_Transcript) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                       Bertie.Tls13formats.t_Transcript) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   Bertie.Tls13formats.t_Transcript) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   Bertie.Tls13formats.t_Transcript) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               Bertie.Tls13formats.t_Transcript) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               Bertie.Tls13formats.t_Transcript) u8))
-  | false, Core.Option.Option_None , Rust_primitives.Integers.MkInt 0 ->
+  | false, Core_models.Option.Option_None , Rust_primitives.Integers.MkInt 0 ->
     let tx_ch:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.impl_Transcript__add tx ch in
     ks,
-    (Core.Result.Result_Ok
+    (Core_models.Result.Result_Ok
       (ch,
-        (Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0),
+        (Core_models.Option.Option_None
+          <:
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0),
         tx_ch
         <:
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           Bertie.Tls13formats.t_Transcript))
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           Bertie.Tls13formats.t_Transcript) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           Bertie.Tls13formats.t_Transcript) u8)
   | _ ->
     ks,
-    (Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
+    (Core_models.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           Bertie.Tls13formats.t_Transcript) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           Bertie.Tls13formats.t_Transcript) u8)
 
 let build_client_hello
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
-      (sn: Bertie.Tls13utils.t_Bytes)
-      (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (server_name: Bertie.Tls13utils.t_Bytes)
+      (session_ticket psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
@@ -360,35 +386,40 @@ let build_client_hello
         Bertie.Tls13crypto.t_HashAlgorithm)
   in
   let client_random:t_Array u8 (mk_usize 32) = Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 32) in
-  let tmp0, tmp1:(iimpl_447424039_ & t_Array u8 (mk_usize 32)) =
+  let (tmp0: iimpl_447424039_), (tmp1: t_Array u8 (mk_usize 32)) =
     Rand_core.f_fill_bytes #iimpl_447424039_ #FStar.Tactics.Typeclasses.solve rng client_random
   in
   let rng:iimpl_447424039_ = tmp0 in
   let client_random:t_Array u8 (mk_usize 32) = tmp1 in
   let _:Prims.unit = () in
-  let tmp0, out:(iimpl_447424039_ &
-    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
+  let
+  (tmp0: iimpl_447424039_),
+  (out: Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
     Bertie.Tls13crypto.kem_keygen #iimpl_447424039_
       (Bertie.Tls13crypto.impl_Algorithms__kem ciphersuite <: Bertie.Tls13crypto.t_KemScheme)
       rng
   in
   let rng:iimpl_447424039_ = tmp0 in
-  match out <: Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 with
-  | Core.Result.Result_Ok (kem_sk, kem_pk) ->
+  match
+    out <: Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+  with
+  | Core_models.Result.Result_Ok (kem_sk, kem_pk) ->
     (match
         Bertie.Tls13formats.client_hello ciphersuite
           (Bertie.Tls13utils.bytes (client_random <: t_Slice u8) <: Bertie.Tls13utils.t_Bytes)
           kem_pk
-          sn
-          tkt
+          server_name
+          session_ticket
         <:
-        Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
+        Core_models.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & usize) u8
       with
-      | Core.Result.Result_Ok (client_hello, trunc_len) ->
-        let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+      | Core_models.Result.Result_Ok (client_hello, trunc_len) ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out:
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               Bertie.Tls13formats.t_Transcript) u8) =
           compute_psk_binder_zero_rtt ciphersuite client_hello trunc_len psk tx ks
         in
@@ -396,87 +427,111 @@ let build_client_hello
         (match
             out
             <:
-            Core.Result.t_Result
+            Core_models.Result.t_Result
               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                 Bertie.Tls13formats.t_Transcript) u8
           with
-          | Core.Result.Result_Ok (nch, cipher0, tx_ch) ->
-            let hax_temp_output:Core.Result.t_Result
+          | Core_models.Result.Result_Ok (nch, cipher0, tx_ch) ->
+            let hax_temp_output:Core_models.Result.t_Result
               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                 t_ClientPostClientHello) u8 =
-              Core.Result.Result_Ok
+              Core_models.Result.Result_Ok
               (nch,
                 cipher0,
                 (ClientPostClientHello
-                    (Core.Convert.f_into #(t_Array u8 (mk_usize 32))
+                    (Core_models.Convert.f_into #(t_Array u8 (mk_usize 32))
                         #Bertie.Tls13utils.t_Bytes
                         #FStar.Tactics.Typeclasses.solve
-                        client_random) ciphersuite kem_sk psk tx_ch
+                        client_random)
+                    ciphersuite
+                    ({
+                        Bertie.Server.f_server_name
+                        =
+                        Core_models.Clone.f_clone #Bertie.Tls13utils.t_Bytes
+                          #FStar.Tactics.Typeclasses.solve
+                          server_name;
+                        Bertie.Server.f_certificate
+                        =
+                        Core_models.Option.Option_None
+                        <:
+                        Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes;
+                        Bertie.Server.f_public_key
+                        =
+                        Core_models.Option.Option_None
+                        <:
+                        Core_models.Option.t_Option Bertie.Tls13crypto.t_PublicVerificationKey;
+                        Bertie.Server.f_session_ticket = session_ticket
+                      }
+                      <:
+                      Bertie.Server.t_ServerPubInfo)
+                    kem_sk
+                    psk
+                    tx_ch
                   <:
                   t_ClientPostClientHello)
                 <:
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   t_ClientPostClientHello))
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   t_ClientPostClientHello) u8
             in
             rng, ks, hax_temp_output
             <:
             (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   t_ClientPostClientHello) u8)
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             rng,
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   t_ClientPostClientHello) u8)
             <:
             (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
                   t_ClientPostClientHello) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         rng,
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               t_ClientPostClientHello) u8)
         <:
         (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
               t_ClientPostClientHello) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     rng,
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           t_ClientPostClientHello) u8)
     <:
     (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
           t_ClientPostClientHello) u8)
 
 let put_server_hello
@@ -484,28 +539,31 @@ let put_server_hello
       (state: t_ClientPostClientHello)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let ClientPostClientHello client_random ciphersuite sk psk tx:t_ClientPostClientHello = state in
+  let ClientPostClientHello client_random ciphersuite server_info sk psk tx:t_ClientPostClientHello
+  =
+    state
+  in
   match
     Bertie.Tls13formats.parse_server_hello ciphersuite handshake
     <:
-    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
   with
-  | Core.Result.Result_Ok (sr, ct) ->
+  | Core_models.Result.Result_Ok (sr, ct) ->
     let tx:Bertie.Tls13formats.t_Transcript =
       Bertie.Tls13formats.impl_Transcript__add tx handshake
     in
     (match
         Bertie.Tls13crypto.kem_decap ciphersuite.Bertie.Tls13crypto.f_kem ct sk
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok shared_secret ->
+      | Core_models.Result.Result_Ok shared_secret ->
         (match
             Bertie.Tls13formats.impl_Transcript__transcript_hash tx
             <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core.Result.Result_Ok th ->
+          | Core_models.Result.Result_Ok th ->
             let shared_secret_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
               {
                 Bertie.Tls13keyscheduler.Key_schedule.f_name
@@ -524,10 +582,12 @@ let put_server_hello
                 shared_secret_handle
                 shared_secret
             in
-            let ks, psk_handle:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
-              match psk <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes with
-              | Core.Option.Option_Some bytes ->
+            let
+            (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (psk_handle: Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+            =
+              match psk <: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes with
+              | Core_models.Option.Option_Some bytes ->
                 let handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
                   {
                     Bertie.Tls13keyscheduler.Key_schedule.f_name
@@ -547,23 +607,25 @@ let put_server_hello
                   Bertie.Tls13keyscheduler.Key_schedule.set_by_handle ks handle bytes
                 in
                 ks,
-                (Core.Option.Option_Some handle
+                (Core_models.Option.Option_Some handle
                   <:
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
-              | Core.Option.Option_None  ->
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+              | Core_models.Option.Option_None  ->
                 ks,
-                (Core.Option.Option_None
+                (Core_models.Option.Option_None
                   <:
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
             in
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out:
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
@@ -577,14 +639,16 @@ let put_server_hello
             (match
                 out
                 <:
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
               with
-              | Core.Result.Result_Ok (ch_handle, sh_handle, ms_handle) ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+              | Core_models.Result.Result_Ok (ch_handle, sh_handle, ms_handle) ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out:
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes) u8) =
@@ -598,78 +662,87 @@ let put_server_hello
                 (match
                     out
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                         Bertie.Tls13utils.t_Bytes &
                         Bertie.Tls13utils.t_Bytes) u8
                   with
-                  | Core.Result.Result_Ok (chk, shk, cfk, sfk) ->
-                    let hax_temp_output:Core.Result.t_Result
+                  | Core_models.Result.Result_Ok (chk, shk, cfk, sfk) ->
+                    let hax_temp_output:Core_models.Result.t_Result
                       (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8 =
-                      Core.Result.Result_Ok
+                      Core_models.Result.Result_Ok
                       (Bertie.Tls13record.impl_DuplexCipherStateH__new chk (mk_u64 0) shk (mk_u64 0),
-                        (ClientPostServerHello client_random sr ciphersuite ms_handle cfk sfk tx
+                        (ClientPostServerHello client_random
+                            sr
+                            ciphersuite
+                            server_info
+                            ms_handle
+                            cfk
+                            sfk
+                            tx
                           <:
                           t_ClientPostServerHello)
                         <:
                         (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello))
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8
                     in
                     ks, hax_temp_output
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello)
-            u8)
+          Core_models.Result.t_Result
+            (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello)
-            u8))
-  | Core.Result.Result_Err err ->
+          Core_models.Result.t_Result
+            (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8))
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
+      Core_models.Result.t_Result
+        (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
+      Core_models.Result.t_Result
+        (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
 
 let put_server_signature
       (encrypted_extensions server_certificate server_certificate_verify:
@@ -681,6 +754,7 @@ let put_server_signature
     client_random
     server_random
     algorithms
+    server_info
     master_secret_handle
     client_finished_key
     server_finished_key
@@ -692,47 +766,47 @@ let put_server_signature
     match
       Bertie.Tls13formats.parse_encrypted_extensions algorithms encrypted_extensions
       <:
-      Core.Result.t_Result Prims.unit u8
+      Core_models.Result.t_Result Prims.unit u8
     with
-    | Core.Result.Result_Ok _ ->
+    | Core_models.Result.Result_Ok _ ->
       let transcript:Bertie.Tls13formats.t_Transcript =
         Bertie.Tls13formats.impl_Transcript__add transcript encrypted_extensions
       in
       (match
           Bertie.Tls13formats.parse_server_certificate server_certificate
           <:
-          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+          Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
         with
-        | Core.Result.Result_Ok certificate ->
+        | Core_models.Result.Result_Ok certificate ->
           let transcript:Bertie.Tls13formats.t_Transcript =
             Bertie.Tls13formats.impl_Transcript__add transcript server_certificate
           in
           (match
               Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
               <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
             with
-            | Core.Result.Result_Ok transcript_hash_server_certificate ->
+            | Core_models.Result.Result_Ok transcript_hash_server_certificate ->
               (match
                   Bertie.Tls13cert.verification_key_from_cert certificate
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_SignatureScheme & Bertie.Tls13cert.t_CertificateKey) u8
                 with
-                | Core.Result.Result_Ok spki ->
+                | Core_models.Result.Result_Ok spki ->
                   (match
                       Bertie.Tls13cert.cert_public_key certificate spki
                       <:
-                      Core.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8
+                      Core_models.Result.t_Result Bertie.Tls13crypto.t_PublicVerificationKey u8
                     with
-                    | Core.Result.Result_Ok cert_pk ->
+                    | Core_models.Result.Result_Ok public_key ->
                       (match
                           Bertie.Tls13formats.parse_certificate_verify algorithms
                             server_certificate_verify
                           <:
-                          Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                          Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                         with
-                        | Core.Result.Result_Ok cert_signature ->
+                        | Core_models.Result.Result_Ok cert_signature ->
                           let sigval:Bertie.Tls13utils.t_Bytes =
                             Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__from_slice
                                   (Bertie.Tls13formats.v_PREFIX_SERVER_SIGNATURE <: t_Slice u8)
@@ -745,21 +819,42 @@ let put_server_signature
                                     algorithms
                                   <:
                                   Bertie.Tls13crypto.t_SignatureScheme)
-                                cert_pk
+                                public_key
                                 sigval
                                 cert_signature
                               <:
-                              Core.Result.t_Result Prims.unit u8
+                              Core_models.Result.t_Result Prims.unit u8
                             with
-                            | Core.Result.Result_Ok _ ->
+                            | Core_models.Result.Result_Ok _ ->
                               let transcript:Bertie.Tls13formats.t_Transcript =
                                 Bertie.Tls13formats.impl_Transcript__add transcript
                                   server_certificate_verify
                               in
-                              Core.Result.Result_Ok
+                              Core_models.Result.Result_Ok
                               (ClientPostCertificateVerify client_random
                                   server_random
                                   algorithms
+                                  ({
+                                      Bertie.Server.f_server_name
+                                      =
+                                      server_info.Bertie.Server.f_server_name;
+                                      Bertie.Server.f_certificate
+                                      =
+                                      Core_models.Option.Option_Some certificate
+                                      <:
+                                      Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes;
+                                      Bertie.Server.f_public_key
+                                      =
+                                      Core_models.Option.Option_Some public_key
+                                      <:
+                                      Core_models.Option.t_Option
+                                      Bertie.Tls13crypto.t_PublicVerificationKey;
+                                      Bertie.Server.f_session_ticket
+                                      =
+                                      server_info.Bertie.Server.f_session_ticket
+                                    }
+                                    <:
+                                    Bertie.Server.t_ServerPubInfo)
                                   master_secret_handle
                                   client_finished_key
                                   server_finished_key
@@ -767,33 +862,39 @@ let put_server_signature
                                 <:
                                 t_ClientPostCertificateVerify)
                               <:
-                              Core.Result.t_Result t_ClientPostCertificateVerify u8
-                            | Core.Result.Result_Err err ->
-                              Core.Result.Result_Err err
+                              Core_models.Result.t_Result t_ClientPostCertificateVerify u8
+                            | Core_models.Result.Result_Err err ->
+                              Core_models.Result.Result_Err err
                               <:
-                              Core.Result.t_Result t_ClientPostCertificateVerify u8)
-                        | Core.Result.Result_Err err ->
-                          Core.Result.Result_Err err
+                              Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
+                        | Core_models.Result.Result_Err err ->
+                          Core_models.Result.Result_Err err
                           <:
-                          Core.Result.t_Result t_ClientPostCertificateVerify u8)
-                    | Core.Result.Result_Err err ->
-                      Core.Result.Result_Err err
+                          Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
+                    | Core_models.Result.Result_Err err ->
+                      Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result t_ClientPostCertificateVerify u8)
-                | Core.Result.Result_Err err ->
-                  Core.Result.Result_Err err
+                      Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
+                | Core_models.Result.Result_Err err ->
+                  Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result t_ClientPostCertificateVerify u8)
-            | Core.Result.Result_Err err ->
-              Core.Result.Result_Err err <: Core.Result.t_Result t_ClientPostCertificateVerify u8)
-        | Core.Result.Result_Err err ->
-          Core.Result.Result_Err err <: Core.Result.t_Result t_ClientPostCertificateVerify u8)
-    | Core.Result.Result_Err err ->
-      Core.Result.Result_Err err <: Core.Result.t_Result t_ClientPostCertificateVerify u8
+                  Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
+            | Core_models.Result.Result_Err err ->
+              Core_models.Result.Result_Err err
+              <:
+              Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
+        | Core_models.Result.Result_Err err ->
+          Core_models.Result.Result_Err err
+          <:
+          Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
+    | Core_models.Result.Result_Err err ->
+      Core_models.Result.Result_Err err
+      <:
+      Core_models.Result.t_Result t_ClientPostCertificateVerify u8
   else
-    Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
+    Core_models.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
     <:
-    Core.Result.t_Result t_ClientPostCertificateVerify u8
+    Core_models.Result.t_Result t_ClientPostCertificateVerify u8
 
 let put_psk_skip_server_signature
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -804,6 +905,7 @@ let put_psk_skip_server_signature
     client_random
     server_random
     algorithms
+    server_info
     master_secret_handle
     client_finished_key
     server_finished_key
@@ -815,16 +917,17 @@ let put_psk_skip_server_signature
     match
       Bertie.Tls13formats.parse_encrypted_extensions algorithms encrypted_extensions
       <:
-      Core.Result.t_Result Prims.unit u8
+      Core_models.Result.t_Result Prims.unit u8
     with
-    | Core.Result.Result_Ok _ ->
+    | Core_models.Result.Result_Ok _ ->
       let transcript:Bertie.Tls13formats.t_Transcript =
         Bertie.Tls13formats.impl_Transcript__add transcript encrypted_extensions
       in
-      Core.Result.Result_Ok
+      Core_models.Result.Result_Ok
       (ClientPostCertificateVerify client_random
           server_random
           algorithms
+          server_info
           master_secret_handle
           client_finished_key
           server_finished_key
@@ -832,13 +935,15 @@ let put_psk_skip_server_signature
         <:
         t_ClientPostCertificateVerify)
       <:
-      Core.Result.t_Result t_ClientPostCertificateVerify u8
-    | Core.Result.Result_Err err ->
-      Core.Result.Result_Err err <: Core.Result.t_Result t_ClientPostCertificateVerify u8
+      Core_models.Result.t_Result t_ClientPostCertificateVerify u8
+    | Core_models.Result.Result_Err err ->
+      Core_models.Result.Result_Err err
+      <:
+      Core_models.Result.t_Result t_ClientPostCertificateVerify u8
   else
-    Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
+    Core_models.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
     <:
-    Core.Result.t_Result t_ClientPostCertificateVerify u8
+    Core_models.Result.t_Result t_ClientPostCertificateVerify u8
 
 let put_server_finished
       (server_finished: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -850,6 +955,7 @@ let put_server_finished
     client_random
     server_random
     algorithms
+    server_info
     master_secret_handle
     client_finished_key
     server_finished_key
@@ -868,32 +974,34 @@ let put_server_finished
   match
     Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok transcript_hash ->
+  | Core_models.Result.Result_Ok transcript_hash ->
     (match
         Bertie.Tls13formats.parse_finished server_finished
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok verify_data ->
+      | Core_models.Result.Result_Ok verify_data ->
         (match
             Bertie.Tls13crypto.hmac_verify hash server_finished_key transcript_hash verify_data
             <:
-            Core.Result.t_Result Prims.unit u8
+            Core_models.Result.t_Result Prims.unit u8
           with
-          | Core.Result.Result_Ok _ ->
+          | Core_models.Result.Result_Ok _ ->
             let transcript:Bertie.Tls13formats.t_Transcript =
               Bertie.Tls13formats.impl_Transcript__add transcript server_finished
             in
             (match
                 Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
               with
-              | Core.Result.Result_Ok transcript_hash_server_finished ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+              | Core_models.Result.Result_Ok transcript_hash_server_finished ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out:
+                  Core_models.Result.t_Result
                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
@@ -906,14 +1014,16 @@ let put_server_finished
                 (match
                     out
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                         Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                         Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
                   with
-                  | Core.Result.Result_Ok (ca_handle, sa_handle, exp_handle) ->
-                    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                  | Core_models.Result.Result_Ok (ca_handle, sa_handle, exp_handle) ->
+                    let
+                    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                    (out:
+                      Core_models.Result.t_Result
                         (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8) =
                       Bertie.Tls13keyscheduler.derive_app_keys hash aead ca_handle sa_handle ks
                     in
@@ -921,16 +1031,17 @@ let put_server_finished
                     (match
                         out
                         <:
-                        Core.Result.t_Result
+                        Core_models.Result.t_Result
                           (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8
                       with
-                      | Core.Result.Result_Ok (cak, sak) ->
+                      | Core_models.Result.Result_Ok (cak, sak) ->
                         (match
                             Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks exp_handle
                             <:
-                            Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
+                            Core_models.Result.t_Result
+                              Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
                           with
-                          | Core.Result.Result_Ok exp ->
+                          | Core_models.Result.Result_Ok exp ->
                             let cipher1:Bertie.Tls13record.t_DuplexCipherState1 =
                               Bertie.Tls13record.duplex_cipher_state1 aead
                                 cak
@@ -939,14 +1050,15 @@ let put_server_finished
                                 (mk_u64 0)
                                 exp
                             in
-                            let hax_temp_output:Core.Result.t_Result
+                            let hax_temp_output:Core_models.Result.t_Result
                               (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
                               u8 =
-                              Core.Result.Result_Ok
+                              Core_models.Result.Result_Ok
                               (cipher1,
                                 (ClientPostServerFinished client_random
                                     server_random
                                     algorithms
+                                    server_info
                                     master_secret_handle
                                     client_finished_key
                                     transcript
@@ -956,90 +1068,90 @@ let put_server_finished
                                 (Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ClientPostServerFinished))
                               <:
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ClientPostServerFinished) u8
                             in
                             ks, hax_temp_output
                             <:
                             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ClientPostServerFinished) u8)
-                          | Core.Result.Result_Err err ->
+                          | Core_models.Result.Result_Err err ->
                             ks,
-                            (Core.Result.Result_Err err
+                            (Core_models.Result.Result_Err err
                               <:
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ClientPostServerFinished) u8)
                             <:
                             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ClientPostServerFinished) u8))
-                      | Core.Result.Result_Err err ->
+                      | Core_models.Result.Result_Err err ->
                         ks,
-                        (Core.Result.Result_Err err
+                        (Core_models.Result.Result_Err err
                           <:
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
                             u8)
                         <:
                         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
                             u8))
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
-    )
+      Core_models.Result.t_Result
+        (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
-    )
+      Core_models.Result.t_Result
+        (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
 
 let get_client_finished
       (handshake_state: t_ClientPostServerFinished)
@@ -1050,6 +1162,7 @@ let get_client_finished
     client_random
     server_random
     algorithms
+    server_info
     master_secret_handle
     client_finished_key
     transcript:t_ClientPostServerFinished =
@@ -1058,9 +1171,9 @@ let get_client_finished
   match
     Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok transcript_hash ->
+  | Core_models.Result.Result_Ok transcript_hash ->
     (match
         Bertie.Tls13crypto.hmac_tag (Bertie.Tls13crypto.impl_Algorithms__hash algorithms
             <:
@@ -1068,26 +1181,28 @@ let get_client_finished
           client_finished_key
           transcript_hash
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok verify_data ->
+      | Core_models.Result.Result_Ok verify_data ->
         (match
             Bertie.Tls13formats.finished verify_data
             <:
-            Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+            Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
           with
-          | Core.Result.Result_Ok client_finished ->
+          | Core_models.Result.Result_Ok client_finished ->
             let transcript:Bertie.Tls13formats.t_Transcript =
               Bertie.Tls13formats.impl_Transcript__add transcript client_finished
             in
             (match
                 Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
               with
-              | Core.Result.Result_Ok transcript_hash ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+              | Core_models.Result.Result_Ok transcript_hash ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+                =
                   Bertie.Tls13keyscheduler.derive_rms (Bertie.Tls13crypto.impl_Algorithms__hash algorithms
 
                       <:
@@ -1098,17 +1213,20 @@ let get_client_finished
                 in
                 let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
                 (match
-                    out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                    out
+                    <:
+                    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
                   with
-                  | Core.Result.Result_Ok resumption_master_secret ->
-                    let hax_temp_output:Core.Result.t_Result
+                  | Core_models.Result.Result_Ok resumption_master_secret ->
+                    let hax_temp_output:Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         t_ClientPostClientFinished) u8 =
-                      Core.Result.Result_Ok
+                      Core_models.Result.Result_Ok
                       (client_finished,
                         (ClientPostClientFinished client_random
                             server_random
                             algorithms
+                            server_info
                             resumption_master_secret
                             transcript
                           <:
@@ -1117,103 +1235,106 @@ let get_client_finished
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ClientPostClientFinished))
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ClientPostClientFinished) u8
                     in
                     ks, hax_temp_output
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ClientPostClientFinished) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ClientPostClientFinished) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ClientPostClientFinished) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished
                     ) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished
                     ) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8
             )
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8
             ))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8)
 
 let client_init
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (sn: Bertie.Tls13utils.t_Bytes)
-      (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (tkt psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, tmp1, out:(iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result
+  let
+  (tmp0: iimpl_447424039_),
+  (tmp1: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out:
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-        Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+        Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
         t_ClientPostClientHello) u8) =
     build_client_hello #iimpl_447424039_ algs sn tkt psk rng ks
   in
   let rng:iimpl_447424039_ = tmp0 in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp1 in
-  let hax_temp_output:Core.Result.t_Result
+  let hax_temp_output:Core_models.Result.t_Result
     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-      Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+      Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
       t_ClientPostClientHello) u8 =
     out
   in
   rng, ks, hax_temp_output
   <:
   (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-        Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+        Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
         t_ClientPostClientHello) u8)
 
 let client_set_params
@@ -1221,19 +1342,23 @@ let client_set_params
       (st: t_ClientPostClientHello)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out:
+    Core_models.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello)
+      u8) =
     put_server_hello payload st ks
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  let hax_temp_output:Core.Result.t_Result
+  let hax_temp_output:Core_models.Result.t_Result
     (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8 =
     out
   in
   ks, hax_temp_output
   <:
   (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
+    Core_models.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello)
+      u8)
 
 let client_finish
       (payload: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -1251,13 +1376,13 @@ let client_finish
     (match
         Bertie.Tls13formats.Handshake_data.impl_HandshakeData__to_four payload
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData) u8
       with
-      | Core.Result.Result_Ok
+      | Core_models.Result.Result_Ok
         (encrypted_extensions, server_certificate, server_certificate_verify, server_finished) ->
         (match
             put_server_signature encrypted_extensions
@@ -1265,11 +1390,13 @@ let client_finish
               server_certificate_verify
               handshake_state
             <:
-            Core.Result.t_Result t_ClientPostCertificateVerify u8
+            Core_models.Result.t_Result t_ClientPostCertificateVerify u8
           with
-          | Core.Result.Result_Ok client_state_certificate_verify ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+          | Core_models.Result.Result_Ok client_state_certificate_verify ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out:
+              Core_models.Result.t_Result
                 (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8) =
               put_server_finished server_finished client_state_certificate_verify ks
             in
@@ -1277,12 +1404,14 @@ let client_finish
             (match
                 out
                 <:
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
               with
-              | Core.Result.Result_Ok (cipher, client_state_server_finished) ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+              | Core_models.Result.Result_Ok (cipher, client_state_server_finished) ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out:
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished
                     ) u8) =
                   get_client_finished client_state_server_finished ks
@@ -1291,82 +1420,82 @@ let client_finish
                 (match
                     out
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         t_ClientPostClientFinished) u8
                   with
-                  | Core.Result.Result_Ok (client_finished, client_state) ->
+                  | Core_models.Result.Result_Ok (client_finished, client_state) ->
                     ks,
-                    (Core.Result.Result_Ok
+                    (Core_models.Result.Result_Ok
                       (client_finished, cipher, client_state
                         <:
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ClientPostClientFinished))
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ClientPostClientFinished) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ClientPostClientFinished) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ClientPostClientFinished) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ClientPostClientFinished) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ClientPostClientFinished) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ClientPostClientFinished) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ClientPostClientFinished) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ClientPostClientFinished) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ClientPostClientFinished) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ClientPostClientFinished) u8))
@@ -1374,19 +1503,21 @@ let client_finish
     match
       Bertie.Tls13formats.Handshake_data.impl_HandshakeData__to_two payload
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData) u8
     with
-    | Core.Result.Result_Ok (encrypted_extensions, server_finished) ->
+    | Core_models.Result.Result_Ok (encrypted_extensions, server_finished) ->
       (match
           put_psk_skip_server_signature encrypted_extensions handshake_state
           <:
-          Core.Result.t_Result t_ClientPostCertificateVerify u8
+          Core_models.Result.t_Result t_ClientPostCertificateVerify u8
         with
-        | Core.Result.Result_Ok client_state_certificate_verify ->
-          let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-            Core.Result.t_Result
+        | Core_models.Result.Result_Ok client_state_certificate_verify ->
+          let
+          (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+          (out:
+            Core_models.Result.t_Result
               (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8) =
             put_server_finished server_finished client_state_certificate_verify ks
           in
@@ -1394,12 +1525,14 @@ let client_finish
           (match
               out
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8
             with
-            | Core.Result.Result_Ok (cipher, client_state_server_finished) ->
-              let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                Core.Result.t_Result
+            | Core_models.Result.Result_Ok (cipher, client_state_server_finished) ->
+              let
+              (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+              (out:
+                Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished)
                   u8) =
                 get_client_finished client_state_server_finished ks
@@ -1408,82 +1541,82 @@ let client_finish
               (match
                   out
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished
                     ) u8
                 with
-                | Core.Result.Result_Ok (client_finished, client_state) ->
+                | Core_models.Result.Result_Ok (client_finished, client_state) ->
                   ks,
-                  (Core.Result.Result_Ok
+                  (Core_models.Result.Result_Ok
                     (client_finished, cipher, client_state
                       <:
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13record.t_DuplexCipherState1 &
                         t_ClientPostClientFinished))
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13record.t_DuplexCipherState1 &
                         t_ClientPostClientFinished) u8)
                   <:
                   (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13record.t_DuplexCipherState1 &
                         t_ClientPostClientFinished) u8)
-                | Core.Result.Result_Err err ->
+                | Core_models.Result.Result_Err err ->
                   ks,
-                  (Core.Result.Result_Err err
+                  (Core_models.Result.Result_Err err
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13record.t_DuplexCipherState1 &
                         t_ClientPostClientFinished) u8)
                   <:
                   (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13record.t_DuplexCipherState1 &
                         t_ClientPostClientFinished) u8))
-            | Core.Result.Result_Err err ->
+            | Core_models.Result.Result_Err err ->
               ks,
-              (Core.Result.Result_Err err
+              (Core_models.Result.Result_Err err
                 <:
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                     Bertie.Tls13record.t_DuplexCipherState1 &
                     t_ClientPostClientFinished) u8)
               <:
               (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                     Bertie.Tls13record.t_DuplexCipherState1 &
                     t_ClientPostClientFinished) u8))
-        | Core.Result.Result_Err err ->
+        | Core_models.Result.Result_Err err ->
           ks,
-          (Core.Result.Result_Err err
+          (Core_models.Result.Result_Err err
             <:
-            Core.Result.t_Result
+            Core_models.Result.t_Result
               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                 Bertie.Tls13record.t_DuplexCipherState1 &
                 t_ClientPostClientFinished) u8)
           <:
           (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-            Core.Result.t_Result
+            Core_models.Result.t_Result
               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                 Bertie.Tls13record.t_DuplexCipherState1 &
                 t_ClientPostClientFinished) u8))
-    | Core.Result.Result_Err err ->
+    | Core_models.Result.Result_Err err ->
       ks,
-      (Core.Result.Result_Err err
+      (Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ClientPostClientFinished) u8)
       <:
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ClientPostClientFinished) u8)
@@ -1491,16 +1624,16 @@ let client_finish
 let process_psk_binder_zero_rtt
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (th_trunc th: Bertie.Tls13utils.t_Bytes)
-      (psko bindero: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (psko bindero: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
   match
     ciphersuite.Bertie.Tls13crypto.f_psk_mode, psko, bindero
     <:
-    (bool & Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-      Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+    (bool & Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes &
+      Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
   with
-  | true, Core.Option.Option_Some k, Core.Option.Option_Some binder ->
+  | true, Core_models.Option.Option_Some k, Core_models.Option.Option_Some binder ->
     let psk_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
       {
         Bertie.Tls13keyscheduler.Key_schedule.f_name
@@ -1517,207 +1650,192 @@ let process_psk_binder_zero_rtt
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler =
       Bertie.Tls13keyscheduler.Key_schedule.set_by_handle ks
         psk_handle
-        (Core.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve k
+        (Core_models.Clone.f_clone #Bertie.Tls13utils.t_Bytes #FStar.Tactics.Typeclasses.solve k
           <:
           Bertie.Tls13utils.t_Bytes)
     in
-    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+    let
+    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
       Bertie.Tls13keyscheduler.derive_binder_key ciphersuite.Bertie.Tls13crypto.f_hash psk_handle ks
     in
     let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-    (match out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
-      | Core.Result.Result_Ok mk_handle ->
+    (match out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8 with
+      | Core_models.Result.Result_Ok mk_handle ->
+        let
+        (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+        (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+          Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
+            (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_Binder
+              <:
+              Bertie.Tls13keyscheduler.Key_schedule.t_TLSnames)
+            (mk_u8 0)
+            mk_handle
+            true
+            th_trunc
+        in
+        let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
         (match
-            Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks mk_handle
-            <:
-            Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
+            out <: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
           with
-          | Core.Result.Result_Ok hoist111 ->
-            let mk:Bertie.Tls13utils.t_Bytes =
-              hoist111.Bertie.Tls13keyscheduler.Key_schedule.f_val
-            in
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
-              Bertie.Tls13keyscheduler.Key_schedule.v_XPD ks
-                (Bertie.Tls13keyscheduler.Key_schedule.TLSnames_Binder
-                  <:
-                  Bertie.Tls13keyscheduler.Key_schedule.t_TLSnames)
-                (mk_u8 0)
-                mk_handle
-                true
-                th_trunc
-            in
-            let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
+          | Core_models.Result.Result_Ok binder_handle ->
             (match
-                out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks binder_handle
+                <:
+                Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
               with
-              | Core.Result.Result_Ok binder_handle ->
-                (match
-                    Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks binder_handle
-                    <:
-                    Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
-                  with
-                  | Core.Result.Result_Ok hoist113 ->
-                    let binder:Bertie.Tls13utils.t_Bytes =
-                      hoist113.Bertie.Tls13keyscheduler.Key_schedule.f_val
+              | Core_models.Result.Result_Ok hoist113 ->
+                let expected_binder:Bertie.Tls13utils.t_Bytes =
+                  hoist113.Bertie.Tls13keyscheduler.Key_schedule.f_val
+                in
+                if ~.(Bertie.Tls13utils.eq expected_binder binder <: bool)
+                then
+                  ks,
+                  Bertie.Tls13utils.tlserr #(Core_models.Option.t_Option
+                      Bertie.Tls13record.t_ServerCipherState0)
+                    Bertie.Tls13utils.v_CRYPTO_ERROR
+                  <:
+                  (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
+                    Core_models.Result.t_Result
+                      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+                else
+                  if ciphersuite.Bertie.Tls13crypto.f_zero_rtt
+                  then
+                    let
+                    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                    (out:
+                      Core_models.Result.t_Result
+                        (Bertie.Tls13crypto.t_AeadKeyIV &
+                          Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
+                      Bertie.Tls13keyscheduler.derive_0rtt_keys ciphersuite
+                          .Bertie.Tls13crypto.f_hash
+                        ciphersuite.Bertie.Tls13crypto.f_aead
+                        psk_handle
+                        th
+                        ks
                     in
-                    (match
-                        Bertie.Tls13crypto.hmac_verify ciphersuite.Bertie.Tls13crypto.f_hash
-                          mk
-                          th_trunc
-                          binder
-                        <:
-                        Core.Result.t_Result Prims.unit u8
-                      with
-                      | Core.Result.Result_Ok _ ->
-                        if ciphersuite.Bertie.Tls13crypto.f_zero_rtt
-                        then
-                          let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                            Core.Result.t_Result
-                              (Bertie.Tls13crypto.t_AeadKeyIV &
-                                Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
-                            Bertie.Tls13keyscheduler.derive_0rtt_keys ciphersuite
-                                .Bertie.Tls13crypto.f_hash
-                              ciphersuite.Bertie.Tls13crypto.f_aead
-                              psk_handle
-                              th
-                              ks
-                          in
-                          let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-                          match
-                            out
-                            <:
-                            Core.Result.t_Result
-                              (Bertie.Tls13crypto.t_AeadKeyIV &
-                                Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
-                          with
-                          | Core.Result.Result_Ok (key_iv, early_exporter_ms_handle) ->
-                            (match
-                                Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks
-                                  early_exporter_ms_handle
-                                <:
-                                Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
-                                  u8
-                              with
-                              | Core.Result.Result_Ok early_exporter_ms ->
-                                ks,
-                                (Core.Result.Result_Ok
-                                  (Core.Option.Option_Some
-                                    (Bertie.Tls13record.server_cipher_state0 key_iv
-                                        (mk_u64 0)
-                                        early_exporter_ms)
-                                    <:
-                                    Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
-                                  <:
-                                  Core.Result.t_Result
-                                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
-                                    u8)
-                                <:
-                                (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                  Core.Result.t_Result
-                                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
-                                    u8)
-                              | Core.Result.Result_Err err ->
-                                ks,
-                                (Core.Result.Result_Err err
-                                  <:
-                                  Core.Result.t_Result
-                                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
-                                    u8)
-                                <:
-                                (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                                  Core.Result.t_Result
-                                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
-                                    u8))
-                          | Core.Result.Result_Err err ->
-                            ks,
-                            (Core.Result.Result_Err err
-                              <:
-                              Core.Result.t_Result
-                                (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
-                            <:
-                            (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
-                                (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
-                        else
+                    let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
+                    match
+                      out
+                      <:
+                      Core_models.Result.t_Result
+                        (Bertie.Tls13crypto.t_AeadKeyIV &
+                          Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
+                    with
+                    | Core_models.Result.Result_Ok (key_iv, early_exporter_ms_handle) ->
+                      (match
+                          Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks
+                            early_exporter_ms_handle
+                          <:
+                          Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey
+                            u8
+                        with
+                        | Core_models.Result.Result_Ok early_exporter_ms ->
                           ks,
-                          (Core.Result.Result_Ok
-                            (Core.Option.Option_None
+                          (Core_models.Result.Result_Ok
+                            (Core_models.Option.Option_Some
+                              (Bertie.Tls13record.server_cipher_state0 key_iv
+                                  (mk_u64 0)
+                                  early_exporter_ms)
                               <:
-                              Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+                              Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
                             <:
-                            Core.Result.t_Result
-                              (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+                            Core_models.Result.t_Result
+                              (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+                              u8)
                           <:
                           (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                            Core.Result.t_Result
-                              (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
-                      | Core.Result.Result_Err err ->
-                        ks,
-                        (Core.Result.Result_Err err
+                            Core_models.Result.t_Result
+                              (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+                              u8)
+                        | Core_models.Result.Result_Err err ->
+                          ks,
+                          (Core_models.Result.Result_Err err
+                            <:
+                            Core_models.Result.t_Result
+                              (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+                              u8)
                           <:
-                          Core.Result.t_Result
-                            (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+                          (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
+                            Core_models.Result.t_Result
+                              (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+                              u8))
+                    | Core_models.Result.Result_Err err ->
+                      ks,
+                      (Core_models.Result.Result_Err err
                         <:
-                        (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                          Core.Result.t_Result
-                            (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
-                  | Core.Result.Result_Err err ->
-                    ks,
-                    (Core.Result.Result_Err err
+                        Core_models.Result.t_Result
+                          (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
                       <:
-                      Core.Result.t_Result
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+                      (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
+                        Core_models.Result.t_Result
+                          (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+                  else
+                    ks,
+                    (Core_models.Result.Result_Ok
+                      (Core_models.Option.Option_None
+                        <:
+                        Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+                      <:
+                      Core_models.Result.t_Result
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
-              | Core.Result.Result_Err err ->
+                      Core_models.Result.t_Result
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
-                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+                  Core_models.Result.t_Result
+                    (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
-                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
-          | Core.Result.Result_Err err ->
+                  Core_models.Result.t_Result
+                    (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8
-            )
+              Core_models.Result.t_Result
+                (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8
-            ))
-      | Core.Result.Result_Err err ->
+              Core_models.Result.t_Result
+                (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+          Core_models.Result.t_Result
+            (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
-  | false, Core.Option.Option_None , Core.Option.Option_None  ->
+          Core_models.Result.t_Result
+            (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8))
+  | false, Core_models.Option.Option_None , Core_models.Option.Option_None  ->
     ks,
-    (Core.Result.Result_Ok
-      (Core.Option.Option_None <: Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
+    (Core_models.Result.Result_Ok
+      (Core_models.Option.Option_None
+        <:
+        Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0)
       <:
-      Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+      Core_models.Result.t_Result
+        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+      Core_models.Result.t_Result
+        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
   | _ ->
     ks,
-    (Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
+    (Core_models.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
       <:
-      Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+      Core_models.Result.t_Result
+        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+      Core_models.Result.t_Result
+        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
 
 let put_client_hello
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
@@ -1728,14 +1846,14 @@ let put_client_hello
   match
     Bertie.Tls13formats.parse_client_hello ciphersuite ch
     <:
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes &
         Bertie.Tls13utils.t_Bytes &
-        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
-        Core.Option.t_Option Bertie.Tls13utils.t_Bytes &
+        Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes &
+        Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes &
         usize) u8
   with
-  | Core.Result.Result_Ok (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) ->
+  | Core_models.Result.Result_Ok (client_randomness, session_id, sni, gx, tkto, bindero, trunc_len) ->
     let tx:Bertie.Tls13formats.t_Transcript =
       Bertie.Tls13formats.impl_Transcript__new (Bertie.Tls13crypto.impl_Algorithms__hash ciphersuite
           <:
@@ -1744,27 +1862,29 @@ let put_client_hello
     (match
         Bertie.Tls13formats.impl_Transcript__transcript_hash_without_client_hello tx ch trunc_len
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok th_trunc ->
+      | Core_models.Result.Result_Ok th_trunc ->
         let transcript:Bertie.Tls13formats.t_Transcript =
           Bertie.Tls13formats.impl_Transcript__add tx ch
         in
         (match
             Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
             <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core.Result.Result_Ok th ->
+          | Core_models.Result.Result_Ok th ->
             (match
                 Bertie.Server.lookup_db ciphersuite db sni tkto
                 <:
-                Core.Result.t_Result Bertie.Server.t_ServerInfo u8
+                Core_models.Result.t_Result Bertie.Server.t_ServerInfo u8
               with
-              | Core.Result.Result_Ok server ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
-                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8) =
+              | Core_models.Result.Result_Ok server ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out:
+                  Core_models.Result.t_Result
+                    (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8) =
                   process_psk_binder_zero_rtt ciphersuite
                     th_trunc
                     th
@@ -1776,14 +1896,14 @@ let put_client_hello
                 (match
                     out
                     <:
-                    Core.Result.t_Result
-                      (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8
+                    Core_models.Result.t_Result
+                      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8
                   with
-                  | Core.Result.Result_Ok cipher0 ->
-                    let hax_temp_output:Core.Result.t_Result
-                      (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  | Core_models.Result.Result_Ok cipher0 ->
+                    let hax_temp_output:Core_models.Result.t_Result
+                      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                         t_ServerPostClientHello) u8 =
-                      Core.Result.Result_Ok
+                      Core_models.Result.Result_Ok
                       (cipher0,
                         ({
                             f_client_randomness = client_randomness;
@@ -1796,102 +1916,107 @@ let put_client_hello
                           <:
                           t_ServerPostClientHello)
                         <:
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                           t_ServerPostClientHello))
                       <:
-                      Core.Result.t_Result
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Result.t_Result
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                           t_ServerPostClientHello) u8
                     in
                     ks, hax_temp_output
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Result.t_Result
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                           t_ServerPostClientHello) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Result.t_Result
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                           t_ServerPostClientHello) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
-                        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Result.t_Result
+                        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                           t_ServerPostClientHello) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
-                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  Core_models.Result.t_Result
+                    (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       t_ServerPostClientHello) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
-                    (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  Core_models.Result.t_Result
+                    (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       t_ServerPostClientHello) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
-                (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              Core_models.Result.t_Result
+                (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   t_ServerPostClientHello) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
-                (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              Core_models.Result.t_Result
+                (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   t_ServerPostClientHello) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
-            (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello)
-            u8)
+          Core_models.Result.t_Result
+            (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              t_ServerPostClientHello) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
-            (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello)
-            u8))
-  | Core.Result.Result_Err err ->
+          Core_models.Result.t_Result
+            (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              t_ServerPostClientHello) u8))
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
-        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8)
+      Core_models.Result.t_Result
+        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+          t_ServerPostClientHello) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
-        (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8)
+      Core_models.Result.t_Result
+        (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+          t_ServerPostClientHello) u8)
 
 let get_server_hello
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (state: t_ServerPostClientHello)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
   let server_random:t_Array u8 (mk_usize 32) = Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 32) in
-  let tmp0, tmp1:(iimpl_447424039_ & t_Array u8 (mk_usize 32)) =
+  let (tmp0: iimpl_447424039_), (tmp1: t_Array u8 (mk_usize 32)) =
     Rand_core.f_fill_bytes #iimpl_447424039_ #FStar.Tactics.Typeclasses.solve rng server_random
   in
   let rng:iimpl_447424039_ = tmp0 in
   let server_random:t_Array u8 (mk_usize 32) = tmp1 in
   let _:Prims.unit = () in
-  let tmp0, out:(iimpl_447424039_ &
-    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
+  let
+  (tmp0: iimpl_447424039_),
+  (out: Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8) =
     Bertie.Tls13crypto.kem_encap #iimpl_447424039_
       state.f_ciphersuite.Bertie.Tls13crypto.f_kem
       state.f_gx
       rng
   in
   let rng:iimpl_447424039_ = tmp0 in
-  match out <: Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8 with
-  | Core.Result.Result_Ok (shared_secret, gy) ->
+  match
+    out <: Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8
+  with
+  | Core_models.Result.Result_Ok (shared_secret, gy) ->
     let shared_secret_handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
       {
         Bertie.Tls13keyscheduler.Key_schedule.f_name
@@ -1914,27 +2039,29 @@ let get_server_hello
           state.f_session_id
           gy
         <:
-        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+        Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
       with
-      | Core.Result.Result_Ok sh ->
+      | Core_models.Result.Result_Ok sh ->
         let transcript:Bertie.Tls13formats.t_Transcript =
           Bertie.Tls13formats.impl_Transcript__add state.f_transcript sh
         in
         (match
             Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
             <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core.Result.Result_Ok transcript_hash ->
-            let psk_handle:Core.Option.t_Option Bertie.Tls13utils.t_Bytes =
-              Core.Clone.f_clone #(Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+          | Core_models.Result.Result_Ok transcript_hash ->
+            let psk_handle:Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes =
+              Core_models.Clone.f_clone #(Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
                 #FStar.Tactics.Typeclasses.solve
                 state.f_server.Bertie.Server.f_psk_opt
             in
-            let ks, psk_handle:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle) =
-              match psk_handle <: Core.Option.t_Option Bertie.Tls13utils.t_Bytes with
-              | Core.Option.Option_Some bytes ->
+            let
+            (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (psk_handle: Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+            =
+              match psk_handle <: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes with
+              | Core_models.Option.Option_Some bytes ->
                 let handle:Bertie.Tls13keyscheduler.Key_schedule.t_Handle =
                   {
                     Bertie.Tls13keyscheduler.Key_schedule.f_name
@@ -1954,23 +2081,25 @@ let get_server_hello
                   Bertie.Tls13keyscheduler.Key_schedule.set_by_handle ks handle bytes
                 in
                 ks,
-                (Core.Option.Option_Some handle
+                (Core_models.Option.Option_Some handle
                   <:
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
-              | Core.Option.Option_None  ->
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+              | Core_models.Option.Option_None  ->
                 ks,
-                (Core.Option.Option_None
+                (Core_models.Option.Option_None
                   <:
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+                  Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
             in
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out:
+              Core_models.Result.t_Result
                 (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                   Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
@@ -1985,14 +2114,16 @@ let get_server_hello
             (match
                 out
                 <:
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                     Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
               with
-              | Core.Result.Result_Ok (ch_handle, sh_handle, ms_handle) ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+              | Core_models.Result.Result_Ok (ch_handle, sh_handle, ms_handle) ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out:
+                  Core_models.Result.t_Result
                     (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                       Bertie.Tls13utils.t_Bytes &
                       Bertie.Tls13utils.t_Bytes) u8) =
@@ -2007,17 +2138,17 @@ let get_server_hello
                 (match
                     out
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
                         Bertie.Tls13utils.t_Bytes &
                         Bertie.Tls13utils.t_Bytes) u8
                   with
-                  | Core.Result.Result_Ok (chk, shk, cfk, sfk) ->
-                    let hax_temp_output:Core.Result.t_Result
+                  | Core_models.Result.Result_Ok (chk, shk, cfk, sfk) ->
+                    let hax_temp_output:Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13record.t_DuplexCipherStateH &
                         t_ServerPostServerHello) u8 =
-                      Core.Result.Result_Ok
+                      Core_models.Result.Result_Ok
                       (sh,
                         Bertie.Tls13record.impl_DuplexCipherStateH__new shk
                           (mk_u64 0)
@@ -2027,7 +2158,7 @@ let get_server_hello
                             f_client_random = state.f_client_randomness;
                             f_server_random
                             =
-                            Core.Convert.f_into #(t_Array u8 (mk_usize 32))
+                            Core_models.Convert.f_into #(t_Array u8 (mk_usize 32))
                               #Bertie.Tls13utils.t_Bytes
                               #FStar.Tactics.Typeclasses.solve
                               server_random;
@@ -2045,7 +2176,7 @@ let get_server_hello
                           Bertie.Tls13record.t_DuplexCipherStateH &
                           t_ServerPostServerHello))
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherStateH &
                           t_ServerPostServerHello) u8
@@ -2053,106 +2184,107 @@ let get_server_hello
                     rng, ks, hax_temp_output
                     <:
                     (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherStateH &
                           t_ServerPostServerHello) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     rng,
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherStateH &
                           t_ServerPostServerHello) u8)
                     <:
                     (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherStateH &
                           t_ServerPostServerHello) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 rng,
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       t_ServerPostServerHello) u8)
                 <:
                 (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       t_ServerPostServerHello) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             rng,
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   t_ServerPostServerHello) u8)
             <:
             (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   t_ServerPostServerHello) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         rng,
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherStateH &
               t_ServerPostServerHello) u8)
         <:
         (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherStateH &
               t_ServerPostServerHello) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     rng,
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8)
     <:
     (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8)
 
 let get_rsa_signature
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (cert sk sigval: Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
      =
   match
     Bertie.Tls13cert.verification_key_from_cert cert
     <:
-    Core.Result.t_Result (Bertie.Tls13crypto.t_SignatureScheme & Bertie.Tls13cert.t_CertificateKey)
-      u8
+    Core_models.Result.t_Result
+      (Bertie.Tls13crypto.t_SignatureScheme & Bertie.Tls13cert.t_CertificateKey) u8
   with
-  | Core.Result.Result_Ok (cert_scheme, cert_slice) ->
+  | Core_models.Result.Result_Ok (cert_scheme, cert_slice) ->
     (match
         Bertie.Tls13cert.rsa_public_key cert cert_slice
         <:
-        Core.Result.t_Result Bertie.Tls13crypto.t_RsaVerificationKey u8
+        Core_models.Result.t_Result Bertie.Tls13crypto.t_RsaVerificationKey u8
       with
-      | Core.Result.Result_Ok pk ->
-        let tmp0, out:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
+      | Core_models.Result.Result_Ok pk ->
+        let
+        (tmp0: iimpl_447424039_), (out: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
           Bertie.Tls13crypto.sign_rsa #iimpl_447424039_
             sk
             pk.Bertie.Tls13crypto.f_modulus
@@ -2162,31 +2294,35 @@ let get_rsa_signature
             rng
         in
         let rng:iimpl_447424039_ = tmp0 in
-        let hax_temp_output:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = out in
+        let hax_temp_output:Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = out in
         rng, hax_temp_output
         <:
-        (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      | Core.Result.Result_Err err ->
-        rng, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      | Core_models.Result.Result_Err err ->
+        rng,
+        (Core_models.Result.Result_Err err
+          <:
+          Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         <:
-        (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
-  | Core.Result.Result_Err err ->
-    rng, (Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+        (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8))
+  | Core_models.Result.Result_Err err ->
+    rng,
+    (Core_models.Result.Result_Err err <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
     <:
-    (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
 
 let get_server_signature_no_psk
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (state: t_ServerPostServerHello)
       (rng: iimpl_447424039_)
      =
   match
     Bertie.Tls13formats.encrypted_extensions state.f_ciphersuite
     <:
-    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+    Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
   with
-  | Core.Result.Result_Ok ee ->
+  | Core_models.Result.Result_Ok ee ->
     let transcript:Bertie.Tls13formats.t_Transcript =
       Bertie.Tls13formats.impl_Transcript__add state.f_transcript ee
     in
@@ -2194,18 +2330,18 @@ let get_server_signature_no_psk
         Bertie.Tls13formats.server_certificate state.f_ciphersuite
           state.f_server.Bertie.Server.f_cert
         <:
-        Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+        Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
       with
-      | Core.Result.Result_Ok sc ->
+      | Core_models.Result.Result_Ok sc ->
         let transcript:Bertie.Tls13formats.t_Transcript =
           Bertie.Tls13formats.impl_Transcript__add transcript sc
         in
         (match
             Bertie.Tls13formats.impl_Transcript__transcript_hash transcript
             <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core.Result.Result_Ok transcript_hash ->
+          | Core_models.Result.Result_Ok transcript_hash ->
             let sigval:Bertie.Tls13utils.t_Bytes =
               Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__from_slice (Bertie.Tls13formats.v_PREFIX_SERVER_SIGNATURE
                       <:
@@ -2214,16 +2350,18 @@ let get_server_signature_no_psk
                   Bertie.Tls13utils.t_Bytes)
                 transcript_hash
             in
-            let rng, hoist118:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-            =
+            let
+            (rng: iimpl_447424039_),
+            (hoist119: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
               match
                 Bertie.Tls13crypto.impl_Algorithms__signature state.f_ciphersuite
                 <:
                 Bertie.Tls13crypto.t_SignatureScheme
               with
               | Bertie.Tls13crypto.SignatureScheme_EcdsaSecp256r1Sha256  ->
-                let tmp0, out:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-                =
+                let
+                (tmp0: iimpl_447424039_),
+                (out: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
                   Bertie.Tls13crypto.sign #iimpl_447424039_
                     (Bertie.Tls13crypto.impl_Algorithms__signature state.f_ciphersuite
                       <:
@@ -2233,10 +2371,13 @@ let get_server_signature_no_psk
                     rng
                 in
                 let rng:iimpl_447424039_ = tmp0 in
-                rng, out <: (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                rng, out
+                <:
+                (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               | Bertie.Tls13crypto.SignatureScheme_RsaPssRsaSha256  ->
-                let tmp0, out:(iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-                =
+                let
+                (tmp0: iimpl_447424039_),
+                (out: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8) =
                   get_rsa_signature #iimpl_447424039_
                     state.f_server.Bertie.Server.f_cert
                     state.f_server.Bertie.Server.f_sk
@@ -2244,32 +2385,35 @@ let get_server_signature_no_psk
                     rng
                 in
                 let rng:iimpl_447424039_ = tmp0 in
-                rng, out <: (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                rng, out
+                <:
+                (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               | Bertie.Tls13crypto.SignatureScheme_ED25519  ->
                 rng,
-                (Core.Result.Result_Err Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
+                (Core_models.Result.Result_Err Bertie.Tls13utils.v_UNSUPPORTED_ALGORITHM
                   <:
-                  Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                  Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
                 <:
-                (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+                (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
             in
-            (match hoist118 <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-              | Core.Result.Result_Ok sig ->
+            (match hoist119 <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+              | Core_models.Result.Result_Ok sig ->
                 (match
                     Bertie.Tls13formats.certificate_verify state.f_ciphersuite sig
                     <:
-                    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+                    Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData
+                      u8
                   with
-                  | Core.Result.Result_Ok scv ->
+                  | Core_models.Result.Result_Ok scv ->
                     let transcript:Bertie.Tls13formats.t_Transcript =
                       Bertie.Tls13formats.impl_Transcript__add transcript scv
                     in
-                    let hax_temp_output:Core.Result.t_Result
+                    let hax_temp_output:Core_models.Result.t_Result
                       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                         t_ServerPostCertificateVerify) u8 =
-                      Core.Result.Result_Ok
+                      Core_models.Result.Result_Ok
                       (ee,
                         sc,
                         scv,
@@ -2288,7 +2432,7 @@ let get_server_signature_no_psk
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ServerPostCertificateVerify))
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2297,87 +2441,87 @@ let get_server_signature_no_psk
                     rng, hax_temp_output
                     <:
                     (iimpl_447424039_ &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ServerPostCertificateVerify) u8)
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     rng,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ServerPostCertificateVerify) u8)
                     <:
                     (iimpl_447424039_ &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           t_ServerPostCertificateVerify) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 rng,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       t_ServerPostCertificateVerify) u8)
                 <:
                 (iimpl_447424039_ &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       t_ServerPostCertificateVerify) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             rng,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   t_ServerPostCertificateVerify) u8)
             <:
             (iimpl_447424039_ &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   t_ServerPostCertificateVerify) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         rng,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               t_ServerPostCertificateVerify) u8)
         <:
         (iimpl_447424039_ &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               t_ServerPostCertificateVerify) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     rng,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           t_ServerPostCertificateVerify) u8)
     <:
     (iimpl_447424039_ &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2385,20 +2529,24 @@ let get_server_signature_no_psk
 
 let get_server_signature
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (state: t_ServerPostServerHello)
       (rng: iimpl_447424039_)
      =
-  let rng, hax_temp_output:(iimpl_447424039_ &
-    Core.Result.t_Result
+  let
+  (rng: iimpl_447424039_),
+  (hax_temp_output:
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         t_ServerPostCertificateVerify) u8) =
     if ~.(Bertie.Tls13crypto.impl_Algorithms__psk_mode state.f_ciphersuite <: bool)
     then
-      let tmp0, out:(iimpl_447424039_ &
-        Core.Result.t_Result
+      let
+      (tmp0: iimpl_447424039_),
+      (out:
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2409,23 +2557,23 @@ let get_server_signature
       rng, out
       <:
       (iimpl_447424039_ &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             t_ServerPostCertificateVerify) u8)
     else
       rng,
-      (Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
+      (Core_models.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             t_ServerPostCertificateVerify) u8)
       <:
       (iimpl_447424039_ &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2434,7 +2582,7 @@ let get_server_signature
   rng, hax_temp_output
   <:
   (iimpl_447424039_ &
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2455,21 +2603,21 @@ let get_skip_server_signature_no_psk (st: t_ServerPostServerHello) =
   match
     Bertie.Tls13formats.encrypted_extensions algs
     <:
-    Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+    Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
   with
-  | Core.Result.Result_Ok ee ->
+  | Core_models.Result.Result_Ok ee ->
     let tx:Bertie.Tls13formats.t_Transcript = Bertie.Tls13formats.impl_Transcript__add tx ee in
-    Core.Result.Result_Ok
+    Core_models.Result.Result_Ok
     (ee, (ServerPostCertificateVerify cr sr algs ms cfk sfk tx <: t_ServerPostCertificateVerify)
       <:
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify))
     <:
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8
 
 let get_skip_server_signature (st: t_ServerPostServerHello) =
@@ -2487,9 +2635,9 @@ let get_skip_server_signature (st: t_ServerPostServerHello) =
   if Bertie.Tls13crypto.impl_Algorithms__psk_mode algs
   then get_skip_server_signature_no_psk st
   else
-    Core.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
+    Core_models.Result.Result_Err Bertie.Tls13utils.v_PSK_MODE_MISMATCH
     <:
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8
 
 let get_server_finished
@@ -2511,32 +2659,34 @@ let get_server_finished
   match
     Bertie.Tls13formats.impl_Transcript__transcript_hash tx
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok th_scv ->
+  | Core_models.Result.Result_Ok th_scv ->
     (match
         Bertie.Tls13crypto.hmac_tag ha sfk th_scv
         <:
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok vd ->
+      | Core_models.Result.Result_Ok vd ->
         (match
             Bertie.Tls13formats.finished vd
             <:
-            Core.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
+            Core_models.Result.t_Result Bertie.Tls13formats.Handshake_data.t_HandshakeData u8
           with
-          | Core.Result.Result_Ok sfin ->
+          | Core_models.Result.Result_Ok sfin ->
             let tx:Bertie.Tls13formats.t_Transcript =
               Bertie.Tls13formats.impl_Transcript__add tx sfin
             in
             (match
                 Bertie.Tls13formats.impl_Transcript__transcript_hash tx
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
               with
-              | Core.Result.Result_Ok th_sfin ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+              | Core_models.Result.Result_Ok th_sfin ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out:
+                  Core_models.Result.t_Result
                     (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                       Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) =
@@ -2546,14 +2696,16 @@ let get_server_finished
                 (match
                     out
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                         Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
                         Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8
                   with
-                  | Core.Result.Result_Ok (ca_handle, sa_handle, exp_handle) ->
-                    let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                  | Core_models.Result.Result_Ok (ca_handle, sa_handle, exp_handle) ->
+                    let
+                    (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                    (out:
+                      Core_models.Result.t_Result
                         (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8) =
                       Bertie.Tls13keyscheduler.derive_app_keys ha ae ca_handle sa_handle ks
                     in
@@ -2561,16 +2713,17 @@ let get_server_finished
                     (match
                         out
                         <:
-                        Core.Result.t_Result
+                        Core_models.Result.t_Result
                           (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8
                       with
-                      | Core.Result.Result_Ok (cak, sak) ->
+                      | Core_models.Result.Result_Ok (cak, sak) ->
                         (match
                             Bertie.Tls13keyscheduler.Key_schedule.tagkey_from_handle ks exp_handle
                             <:
-                            Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
+                            Core_models.Result.t_Result
+                              Bertie.Tls13keyscheduler.Key_schedule.t_TagKey u8
                           with
-                          | Core.Result.Result_Ok exp ->
+                          | Core_models.Result.Result_Ok exp ->
                             let cipher1:Bertie.Tls13record.t_DuplexCipherState1 =
                               Bertie.Tls13record.duplex_cipher_state1 ae
                                 sak
@@ -2579,11 +2732,11 @@ let get_server_finished
                                 (mk_u64 0)
                                 exp
                             in
-                            let hax_temp_output:Core.Result.t_Result
+                            let hax_temp_output:Core_models.Result.t_Result
                               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                                 Bertie.Tls13record.t_DuplexCipherState1 &
                                 t_ServerPostServerFinished) u8 =
-                              Core.Result.Result_Ok
+                              Core_models.Result.Result_Ok
                               (sfin,
                                 cipher1,
                                 (ServerPostServerFinished cr sr algs ms_handle cfk tx
@@ -2594,7 +2747,7 @@ let get_server_finished
                                   Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ServerPostServerFinished))
                               <:
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                                   Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ServerPostServerFinished) u8
@@ -2602,105 +2755,105 @@ let get_server_finished
                             ks, hax_temp_output
                             <:
                             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                                   Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ServerPostServerFinished) u8)
-                          | Core.Result.Result_Err err ->
+                          | Core_models.Result.Result_Err err ->
                             ks,
-                            (Core.Result.Result_Err err
+                            (Core_models.Result.Result_Err err
                               <:
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                                   Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ServerPostServerFinished) u8)
                             <:
                             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                              Core.Result.t_Result
+                              Core_models.Result.t_Result
                                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                                   Bertie.Tls13record.t_DuplexCipherState1 &
                                   t_ServerPostServerFinished) u8))
-                      | Core.Result.Result_Err err ->
+                      | Core_models.Result.Result_Err err ->
                         ks,
-                        (Core.Result.Result_Err err
+                        (Core_models.Result.Result_Err err
                           <:
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                               Bertie.Tls13record.t_DuplexCipherState1 &
                               t_ServerPostServerFinished) u8)
                         <:
                         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                          Core.Result.t_Result
+                          Core_models.Result.t_Result
                             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                               Bertie.Tls13record.t_DuplexCipherState1 &
                               t_ServerPostServerFinished) u8))
-                  | Core.Result.Result_Err err ->
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ServerPostServerFinished) u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result
+                      Core_models.Result.t_Result
                         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                           Bertie.Tls13record.t_DuplexCipherState1 &
                           t_ServerPostServerFinished) u8))
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
@@ -2714,13 +2867,15 @@ let put_client_finished
   match
     Bertie.Tls13formats.impl_Transcript__transcript_hash tx
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok th ->
+  | Core_models.Result.Result_Ok th ->
     (match
-        Bertie.Tls13formats.parse_finished cfin <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+        Bertie.Tls13formats.parse_finished cfin
+        <:
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core.Result.Result_Ok vd ->
+      | Core_models.Result.Result_Ok vd ->
         (match
             Bertie.Tls13crypto.hmac_verify (Bertie.Tls13crypto.impl_Algorithms__hash algs
                 <:
@@ -2729,20 +2884,22 @@ let put_client_finished
               th
               vd
             <:
-            Core.Result.t_Result Prims.unit u8
+            Core_models.Result.t_Result Prims.unit u8
           with
-          | Core.Result.Result_Ok _ ->
+          | Core_models.Result.Result_Ok _ ->
             let tx:Bertie.Tls13formats.t_Transcript =
               Bertie.Tls13formats.impl_Transcript__add tx cfin
             in
             (match
                 Bertie.Tls13formats.impl_Transcript__transcript_hash tx
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
               with
-              | Core.Result.Result_Ok th ->
-                let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8) =
+              | Core_models.Result.Result_Ok th ->
+                let
+                (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+                (out: Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+                =
                   Bertie.Tls13keyscheduler.derive_rms (Bertie.Tls13crypto.impl_Algorithms__hash algs
                       <:
                       Bertie.Tls13crypto.t_HashAlgorithm)
@@ -2752,73 +2909,91 @@ let put_client_finished
                 in
                 let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
                 (match
-                    out <: Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
+                    out
+                    <:
+                    Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8
                   with
-                  | Core.Result.Result_Ok rms ->
-                    let hax_temp_output:Core.Result.t_Result t_ServerPostClientFinished u8 =
-                      Core.Result.Result_Ok
+                  | Core_models.Result.Result_Ok rms ->
+                    let hax_temp_output:Core_models.Result.t_Result t_ServerPostClientFinished u8 =
+                      Core_models.Result.Result_Ok
                       (ServerPostClientFinished cr sr algs rms tx <: t_ServerPostClientFinished)
                       <:
-                      Core.Result.t_Result t_ServerPostClientFinished u8
+                      Core_models.Result.t_Result t_ServerPostClientFinished u8
                     in
                     ks, hax_temp_output
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result t_ServerPostClientFinished u8)
-                  | Core.Result.Result_Err err ->
+                      Core_models.Result.t_Result t_ServerPostClientFinished u8)
+                  | Core_models.Result.Result_Err err ->
                     ks,
-                    (Core.Result.Result_Err err
+                    (Core_models.Result.Result_Err err
                       <:
-                      Core.Result.t_Result t_ServerPostClientFinished u8)
+                      Core_models.Result.t_Result t_ServerPostClientFinished u8)
                     <:
                     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                      Core.Result.t_Result t_ServerPostClientFinished u8))
-              | Core.Result.Result_Err err ->
+                      Core_models.Result.t_Result t_ServerPostClientFinished u8))
+              | Core_models.Result.Result_Err err ->
                 ks,
-                (Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+                (Core_models.Result.Result_Err err
+                  <:
+                  Core_models.Result.t_Result t_ServerPostClientFinished u8)
                 <:
                 (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result t_ServerPostClientFinished u8))
-          | Core.Result.Result_Err err ->
-            ks, (Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+                  Core_models.Result.t_Result t_ServerPostClientFinished u8))
+          | Core_models.Result.Result_Err err ->
+            ks,
+            (Core_models.Result.Result_Err err
+              <:
+              Core_models.Result.t_Result t_ServerPostClientFinished u8)
             <:
             (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result t_ServerPostClientFinished u8))
-      | Core.Result.Result_Err err ->
-        ks, (Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+              Core_models.Result.t_Result t_ServerPostClientFinished u8))
+      | Core_models.Result.Result_Err err ->
+        ks,
+        (Core_models.Result.Result_Err err
+          <:
+          Core_models.Result.t_Result t_ServerPostClientFinished u8)
         <:
         (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result t_ServerPostClientFinished u8))
-  | Core.Result.Result_Err err ->
-    ks, (Core.Result.Result_Err err <: Core.Result.t_Result t_ServerPostClientFinished u8)
+          Core_models.Result.t_Result t_ServerPostClientFinished u8))
+  | Core_models.Result.Result_Err err ->
+    ks,
+    (Core_models.Result.Result_Err err <: Core_models.Result.t_Result t_ServerPostClientFinished u8)
     <:
     (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result t_ServerPostClientFinished u8)
+      Core_models.Result.t_Result t_ServerPostClientFinished u8)
 
 let server_init_no_psk
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result
-      (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out:
+    Core_models.Result.t_Result
+      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello
+      ) u8) =
     put_client_hello algs ch db ks
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
   match
     out
     <:
-    Core.Result.t_Result
-      (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8
+    Core_models.Result.t_Result
+      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello
+      ) u8
   with
-  | Core.Result.Result_Ok (cipher0, st) ->
-    let tmp0, tmp1, out:(iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+  | Core_models.Result.Result_Ok (cipher0, st) ->
+    let
+    (tmp0: iimpl_447424039_),
+    (tmp1: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out:
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8) =
@@ -2829,14 +3004,16 @@ let server_init_no_psk
     (match
         out
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherStateH &
             t_ServerPostServerHello) u8
       with
-      | Core.Result.Result_Ok (sh, cipher_hs, st) ->
-        let tmp0, out:(iimpl_447424039_ &
-          Core.Result.t_Result
+      | Core_models.Result.Result_Ok (sh, cipher_hs, st) ->
+        let
+        (tmp0: iimpl_447424039_),
+        (out:
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -2847,15 +3024,17 @@ let server_init_no_psk
         (match
             out
             <:
-            Core.Result.t_Result
+            Core_models.Result.t_Result
               (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                 Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                 Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                 t_ServerPostCertificateVerify) u8
           with
-          | Core.Result.Result_Ok (ee, sc, scv, st) ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+          | Core_models.Result.Result_Ok (ee, sc, scv, st) ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out:
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8) =
@@ -2865,12 +3044,12 @@ let server_init_no_psk
             (match
                 out
                 <:
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                     Bertie.Tls13record.t_DuplexCipherState1 &
                     t_ServerPostServerFinished) u8
               with
-              | Core.Result.Result_Ok (sfin, cipher1, st) ->
+              | Core_models.Result.Result_Ok (sfin, cipher1, st) ->
                 let flight:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
                   Bertie.Tls13formats.Handshake_data.impl_HandshakeData__concat (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__concat
                         (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__concat ee sc
@@ -2881,27 +3060,27 @@ let server_init_no_psk
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData)
                     sfin
                 in
-                let hax_temp_output:Core.Result.t_Result
+                let hax_temp_output:Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                     Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                    Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                    Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                     Bertie.Tls13record.t_DuplexCipherStateH &
                     Bertie.Tls13record.t_DuplexCipherState1 &
                     t_ServerPostServerFinished) u8 =
-                  Core.Result.Result_Ok
+                  Core_models.Result.Result_Ok
                   (sh, flight, cipher0, cipher_hs, cipher1, st
                     <:
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished))
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8
@@ -2909,122 +3088,129 @@ let server_init_no_psk
                 rng, ks, hax_temp_output
                 <:
                 (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 rng,
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
                 <:
                 (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             rng,
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8)
             <:
             (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         rng,
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
               Bertie.Tls13record.t_DuplexCipherStateH &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8)
         <:
         (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
               Bertie.Tls13record.t_DuplexCipherStateH &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     rng,
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
           Bertie.Tls13record.t_DuplexCipherStateH &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
     <:
     (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
           Bertie.Tls13record.t_DuplexCipherStateH &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
 
 let server_init_psk
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result
-      (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out:
+    Core_models.Result.t_Result
+      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello
+      ) u8) =
     put_client_hello algs ch db ks
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
   match
     out
     <:
-    Core.Result.t_Result
-      (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello) u8
+    Core_models.Result.t_Result
+      (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello
+      ) u8
   with
-  | Core.Result.Result_Ok (cipher0, st) ->
-    let tmp0, tmp1, out:(iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+  | Core_models.Result.Result_Ok (cipher0, st) ->
+    let
+    (tmp0: iimpl_447424039_),
+    (tmp1: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+    (out:
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13record.t_DuplexCipherStateH &
           t_ServerPostServerHello) u8) =
@@ -3035,22 +3221,24 @@ let server_init_psk
     (match
         out
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherStateH &
             t_ServerPostServerHello) u8
       with
-      | Core.Result.Result_Ok (sh, cipher_hs, st) ->
+      | Core_models.Result.Result_Ok (sh, cipher_hs, st) ->
         (match
             get_skip_server_signature st
             <:
-            Core.Result.t_Result
+            Core_models.Result.t_Result
               (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify)
               u8
           with
-          | Core.Result.Result_Ok (ee, st) ->
-            let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+          | Core_models.Result.Result_Ok (ee, st) ->
+            let
+            (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+            (out:
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8) =
@@ -3060,36 +3248,36 @@ let server_init_psk
             (match
                 out
                 <:
-                Core.Result.t_Result
+                Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                     Bertie.Tls13record.t_DuplexCipherState1 &
                     t_ServerPostServerFinished) u8
               with
-              | Core.Result.Result_Ok (sfin, cipher1, st) ->
+              | Core_models.Result.Result_Ok (sfin, cipher1, st) ->
                 let flight:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
                   Bertie.Tls13formats.Handshake_data.impl_HandshakeData__concat ee sfin
                 in
-                let hax_temp_output:Core.Result.t_Result
+                let hax_temp_output:Core_models.Result.t_Result
                   (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                     Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                    Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                    Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                     Bertie.Tls13record.t_DuplexCipherStateH &
                     Bertie.Tls13record.t_DuplexCipherState1 &
                     t_ServerPostServerFinished) u8 =
-                  Core.Result.Result_Ok
+                  Core_models.Result.Result_Ok
                   (sh, flight, cipher0, cipher_hs, cipher1, st
                     <:
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished))
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8
@@ -3097,124 +3285,127 @@ let server_init_psk
                 rng, ks, hax_temp_output
                 <:
                 (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
-              | Core.Result.Result_Err err ->
+              | Core_models.Result.Result_Err err ->
                 rng,
                 ks,
-                (Core.Result.Result_Err err
+                (Core_models.Result.Result_Err err
                   <:
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8)
                 <:
                 (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-                  Core.Result.t_Result
+                  Core_models.Result.t_Result
                     (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                       Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                      Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                      Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                       Bertie.Tls13record.t_DuplexCipherStateH &
                       Bertie.Tls13record.t_DuplexCipherState1 &
                       t_ServerPostServerFinished) u8))
-          | Core.Result.Result_Err err ->
+          | Core_models.Result.Result_Err err ->
             rng,
             ks,
-            (Core.Result.Result_Err err
+            (Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8)
             <:
             (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
                   Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                  Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+                  Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
                   Bertie.Tls13record.t_DuplexCipherStateH &
                   Bertie.Tls13record.t_DuplexCipherState1 &
                   t_ServerPostServerFinished) u8))
-      | Core.Result.Result_Err err ->
+      | Core_models.Result.Result_Err err ->
         rng,
         ks,
-        (Core.Result.Result_Err err
+        (Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
               Bertie.Tls13record.t_DuplexCipherStateH &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8)
         <:
         (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
               Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-              Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+              Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
               Bertie.Tls13record.t_DuplexCipherStateH &
               Bertie.Tls13record.t_DuplexCipherState1 &
               t_ServerPostServerFinished) u8))
-  | Core.Result.Result_Err err ->
+  | Core_models.Result.Result_Err err ->
     rng,
     ks,
-    (Core.Result.Result_Err err
+    (Core_models.Result.Result_Err err
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
           Bertie.Tls13record.t_DuplexCipherStateH &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
     <:
     (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
           Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-          Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+          Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
           Bertie.Tls13record.t_DuplexCipherStateH &
           Bertie.Tls13record.t_DuplexCipherState1 &
           t_ServerPostServerFinished) u8)
 
 let server_init
       (#iimpl_447424039_: Type0)
-      (#[FStar.Tactics.Typeclasses.tcresolve ()] i1: Rand_core.t_CryptoRng iimpl_447424039_)
+      (#[FStar.Tactics.Typeclasses.tcresolve ()] i0: Rand_core.t_CryptoRng iimpl_447424039_)
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let (ks, rng), hax_temp_output:((Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-      iimpl_447424039_) &
-    Core.Result.t_Result
+  let
+  ((ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler), (rng: iimpl_447424039_)),
+  (hax_temp_output:
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-        Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+        Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
         Bertie.Tls13record.t_DuplexCipherStateH &
         Bertie.Tls13record.t_DuplexCipherState1 &
         t_ServerPostServerFinished) u8) =
     match Bertie.Tls13crypto.impl_Algorithms__psk_mode algs <: bool with
     | false ->
-      let tmp0, tmp1, out:(iimpl_447424039_ &
-        Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+      let
+      (tmp0: iimpl_447424039_),
+      (tmp1: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+      (out:
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) =
@@ -3225,20 +3416,22 @@ let server_init
       (ks, rng <: (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler & iimpl_447424039_)), out
       <:
       ((Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler & iimpl_447424039_) &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8)
     | true ->
-      let tmp0, tmp1, out:(iimpl_447424039_ &
-        Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+      let
+      (tmp0: iimpl_447424039_),
+      (tmp1: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+      (out:
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) =
@@ -3249,10 +3442,10 @@ let server_init
       (ks, rng <: (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler & iimpl_447424039_)), out
       <:
       ((Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler & iimpl_447424039_) &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8)
@@ -3260,10 +3453,10 @@ let server_init
   rng, ks, hax_temp_output
   <:
   (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
         Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-        Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+        Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
         Bertie.Tls13record.t_DuplexCipherStateH &
         Bertie.Tls13record.t_DuplexCipherState1 &
         t_ServerPostServerFinished) u8)
@@ -3273,13 +3466,14 @@ let server_finish
       (st: t_ServerPostServerFinished)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
      =
-  let tmp0, out:(Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result t_ServerPostClientFinished u8) =
+  let
+  (tmp0: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler),
+  (out: Core_models.Result.t_Result t_ServerPostClientFinished u8) =
     put_client_finished cf st ks
   in
   let ks:Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler = tmp0 in
-  let hax_temp_output:Core.Result.t_Result t_ServerPostClientFinished u8 = out in
+  let hax_temp_output:Core_models.Result.t_Result t_ServerPostClientFinished u8 = out in
   ks, hax_temp_output
   <:
   (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-    Core.Result.t_Result t_ServerPostClientFinished u8)
+    Core_models.Result.t_Result t_ServerPostClientFinished u8)

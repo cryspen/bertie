@@ -253,7 +253,14 @@ pub(crate) fn xpd_alg(
 ) -> Result<Bytes, TLSError> {
     let kvt = convert_label(label.clone());
     if kvt == Some(____________) {
-        hmac_tag(alg, k1, d)
+        let finished_key = hkdf_expand_label(
+            alg,
+            k1,
+            bytes(&LABEL_FINISHED),
+            &Bytes::new(),
+            alg.hmac_tag_len(),
+        )?;
+        hmac_tag(alg, &finished_key, d)
     } else {
         hkdf_expand_label(alg, k1, label, d, alg.hash_len())
     }
@@ -436,7 +443,6 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
        )"
     )
 )]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn XTR(
     ks: &mut TLSkeyscheduler,
     level: u8,

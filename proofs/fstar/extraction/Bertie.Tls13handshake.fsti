@@ -1,11 +1,12 @@
 module Bertie.Tls13handshake
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
   (* The implicit dependencies arise from typeclasses instances. *)
+  let open Bertie.Server in
   let open Bertie.Tls13utils in
   let open Rand_core in
   ()
@@ -14,8 +15,9 @@ type t_ClientPostClientHello =
   | ClientPostClientHello :
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13crypto.t_Algorithms ->
+      Bertie.Server.t_ServerPubInfo ->
       Bertie.Tls13utils.t_Bytes ->
-      Core.Option.t_Option Bertie.Tls13utils.t_Bytes ->
+      Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13formats.t_Transcript
     -> t_ClientPostClientHello
 
@@ -24,6 +26,7 @@ type t_ClientPostServerHello =
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13crypto.t_Algorithms ->
+      Bertie.Server.t_ServerPubInfo ->
       Bertie.Tls13keyscheduler.Key_schedule.t_Handle ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13utils.t_Bytes ->
@@ -35,6 +38,7 @@ type t_ClientPostCertificateVerify =
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13crypto.t_Algorithms ->
+      Bertie.Server.t_ServerPubInfo ->
       Bertie.Tls13keyscheduler.Key_schedule.t_Handle ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13utils.t_Bytes ->
@@ -46,6 +50,7 @@ type t_ClientPostServerFinished =
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13crypto.t_Algorithms ->
+      Bertie.Server.t_ServerPubInfo ->
       Bertie.Tls13keyscheduler.Key_schedule.t_Handle ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13formats.t_Transcript
@@ -56,6 +61,7 @@ type t_ClientPostClientFinished =
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13utils.t_Bytes ->
       Bertie.Tls13crypto.t_Algorithms ->
+      Bertie.Server.t_ServerPubInfo ->
       Bertie.Tls13keyscheduler.Key_schedule.t_Handle ->
       Bertie.Tls13formats.t_Transcript
     -> t_ClientPostClientFinished
@@ -68,6 +74,15 @@ val algs_post_server_hello (st: t_ClientPostServerHello)
 
 val algs_post_client_finished (st: t_ClientPostClientFinished)
     : Prims.Pure Bertie.Tls13crypto.t_Algorithms Prims.l_True (fun _ -> Prims.l_True)
+
+val server_info_post_client_hello (st: t_ClientPostClientHello)
+    : Prims.Pure Bertie.Server.t_ServerPubInfo Prims.l_True (fun _ -> Prims.l_True)
+
+val server_info_post_server_hello (st: t_ClientPostServerHello)
+    : Prims.Pure Bertie.Server.t_ServerPubInfo Prims.l_True (fun _ -> Prims.l_True)
+
+val server_info_post_client_finished (st: t_ClientPostClientFinished)
+    : Prims.Pure Bertie.Server.t_ServerPubInfo Prims.l_True (fun _ -> Prims.l_True)
 
 /// Server state after processing the client hello.
 type t_ServerPostClientHello = {
@@ -125,14 +140,14 @@ val compute_psk_binder_zero_rtt
       (algs0: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (trunc_len: usize)
-      (psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (tx: Bertie.Tls13formats.t_Transcript)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
             Bertie.Tls13formats.t_Transcript) u8)
       (requires
         trunc_len <=. (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len ch <: usize))
@@ -140,17 +155,17 @@ val compute_psk_binder_zero_rtt
 
 val build_client_hello
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
-      (sn: Bertie.Tls13utils.t_Bytes)
-      (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (server_name: Bertie.Tls13utils.t_Bytes)
+      (session_ticket psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
             t_ClientPostClientHello) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val put_server_hello
@@ -159,7 +174,8 @@ val put_server_hello
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
+        Core_models.Result.t_Result
+          (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -167,14 +183,14 @@ val put_server_signature
       (encrypted_extensions server_certificate server_certificate_verify:
           Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (handshake_state: t_ClientPostServerHello)
-    : Prims.Pure (Core.Result.t_Result t_ClientPostCertificateVerify u8)
+    : Prims.Pure (Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val put_psk_skip_server_signature
       (encrypted_extensions: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (handshake_state: t_ClientPostServerHello)
-    : Prims.Pure (Core.Result.t_Result t_ClientPostCertificateVerify u8)
+    : Prims.Pure (Core_models.Result.t_Result t_ClientPostCertificateVerify u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -184,32 +200,34 @@ val put_server_finished
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
+        Core_models.Result.t_Result
+          (Bertie.Tls13record.t_DuplexCipherState1 & t_ClientPostServerFinished) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val get_client_finished
       (handshake_state: t_ClientPostServerFinished)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ClientPostClientFinished) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val client_init
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (sn: Bertie.Tls13utils.t_Bytes)
-      (tkt psk: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (tkt psk: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ClientCipherState0 &
             t_ClientPostClientHello) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Update the client state after generating the client hello message.
@@ -219,7 +237,8 @@ val client_set_params
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
+        Core_models.Result.t_Result
+          (Bertie.Tls13record.t_DuplexCipherStateH & t_ClientPostServerHello) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -229,7 +248,7 @@ val client_finish
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ClientPostClientFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -238,11 +257,12 @@ val client_finish
 val process_psk_binder_zero_rtt
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
       (th_trunc th: Bertie.Tls13utils.t_Bytes)
-      (psko bindero: Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+      (psko bindero: Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
+        Core_models.Result.t_Result
+          (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -253,40 +273,40 @@ val put_client_hello
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
-          (Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 & t_ServerPostClientHello)
-          u8) Prims.l_True (fun _ -> Prims.l_True)
+        Core_models.Result.t_Result
+          (Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            t_ServerPostClientHello) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val get_server_hello
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (state: t_ServerPostClientHello)
       (rng: iimpl_447424039_)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherStateH &
             t_ServerPostServerHello) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val get_rsa_signature
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (cert sk sigval: Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
-    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val get_server_signature_no_psk
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (state: t_ServerPostServerHello)
       (rng: iimpl_447424039_)
     : Prims.Pure
       (iimpl_447424039_ &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -294,12 +314,12 @@ val get_server_signature_no_psk
 
 val get_server_signature
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (state: t_ServerPostServerHello)
       (rng: iimpl_447424039_)
     : Prims.Pure
       (iimpl_447424039_ &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
@@ -307,14 +327,14 @@ val get_server_signature
 
 val get_skip_server_signature_no_psk (st: t_ServerPostServerHello)
     : Prims.Pure
-      (Core.Result.t_Result
+      (Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val get_skip_server_signature (st: t_ServerPostServerHello)
     : Prims.Pure
-      (Core.Result.t_Result
+      (Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_ServerPostCertificateVerify) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
@@ -324,7 +344,7 @@ val get_server_finished
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -335,11 +355,13 @@ val put_client_finished
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result t_ServerPostClientFinished u8) Prims.l_True (fun _ -> Prims.l_True)
+        Core_models.Result.t_Result t_ServerPostClientFinished u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val server_init_no_psk
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
@@ -347,17 +369,17 @@ val server_init_no_psk
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val server_init_psk
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
@@ -365,17 +387,17 @@ val server_init_psk
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val server_init
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (ch: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       (db: Bertie.Server.t_ServerDB)
@@ -383,10 +405,10 @@ val server_init
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (iimpl_447424039_ & Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
             Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-            Core.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
+            Core_models.Option.t_Option Bertie.Tls13record.t_ServerCipherState0 &
             Bertie.Tls13record.t_DuplexCipherStateH &
             Bertie.Tls13record.t_DuplexCipherState1 &
             t_ServerPostServerFinished) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -397,4 +419,6 @@ val server_finish
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result t_ServerPostClientFinished u8) Prims.l_True (fun _ -> Prims.l_True)
+        Core_models.Result.t_Result t_ServerPostClientFinished u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
