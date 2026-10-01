@@ -1,7 +1,7 @@
 module Bertie.Tls13crypto
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -21,7 +21,10 @@ type t_RsaVerificationKey = {
 }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Fmt.t_Debug t_RsaVerificationKey
+val impl_5:Core_models.Fmt.t_Debug t_RsaVerificationKey
+
+let impl_6: Core_models.Clone.t_Clone t_RsaVerificationKey =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 /// Bertie public verification keys.
 type t_PublicVerificationKey =
@@ -29,7 +32,10 @@ type t_PublicVerificationKey =
   | PublicVerificationKey_Rsa : t_RsaVerificationKey -> t_PublicVerificationKey
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Fmt.t_Debug t_PublicVerificationKey
+val impl_7:Core_models.Fmt.t_Debug t_PublicVerificationKey
+
+let impl_8: Core_models.Clone.t_Clone t_PublicVerificationKey =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 /// Bertie hash algorithms.
 type t_HashAlgorithm =
@@ -40,45 +46,43 @@ type t_HashAlgorithm =
 val t_HashAlgorithm_cast_to_repr (x: t_HashAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Clone.t_Clone t_HashAlgorithm
+let impl_9: Core_models.Clone.t_Clone t_HashAlgorithm =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8:Core.Marker.t_Copy t_HashAlgorithm
+val impl_10:Core_models.Marker.t_Copy t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Marker.t_StructuralPartialEq t_HashAlgorithm
+val impl_12:Core_models.Marker.t_StructuralPartialEq t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
+val impl_13:Core_models.Cmp.t_PartialEq t_HashAlgorithm t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Cmp.t_Eq t_HashAlgorithm
+val impl_11:Core_models.Cmp.t_Eq t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Fmt.t_Debug t_HashAlgorithm
+val impl_14:Core_models.Fmt.t_Debug t_HashAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Hash.t_Hash t_HashAlgorithm
-
-val hash_len_inner (h: t_HashAlgorithm) : Prims.Pure usize Prims.l_True (fun _ -> Prims.l_True)
+val impl_15:Core_models.Hash.t_Hash t_HashAlgorithm
 
 /// Get the libcrux hash algorithm
 val impl_HashAlgorithm__libcrux_algorithm (self: t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Libcrux_sha2.Impl_hacl.t_Algorithm u8)
+    : Prims.Pure (Core_models.Result.t_Result Libcrux_sha2.Impl_hacl.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Hash `data` with the given `algorithm`.
 /// Returns the digest or an [`TLSError`].
 val hash (ha: t_HashAlgorithm) (data: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Get the libcrux hmac algorithm.
 val impl_HashAlgorithm__hmac_algorithm (self: t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Libcrux_hmac.t_Algorithm u8)
+    : Prims.Pure (Core_models.Result.t_Result Libcrux_hmac.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -98,14 +102,14 @@ val impl_HashAlgorithm__hmac_tag_len (self: t_HashAlgorithm)
 /// Compute the HMAC tag.
 /// Returns the tag [`Hmac`] or a [`TLSError`].
 val hmac_tag (alg: t_HashAlgorithm) (mk input: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Verify a given HMAC `tag`.
 /// Returns `()` if successful or a [`TLSError`].
 val hmac_verify (alg: t_HashAlgorithm) (mk input tag: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Get an empty key of the correct size.
 val zero_key (alg: t_HashAlgorithm)
@@ -113,21 +117,21 @@ val zero_key (alg: t_HashAlgorithm)
 
 /// Get the libcrux HKDF algorithm.
 val hkdf_algorithm (alg: t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Libcrux_hkdf.t_Algorithm u8)
+    : Prims.Pure (Core_models.Result.t_Result Libcrux_hkdf.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// HKDF Extract.
 /// Returns the result as [`Bytes`] or a [`TLSError`].
 val hkdf_extract (alg: t_HashAlgorithm) (ikm salt: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// HKDF Expand.
 /// Returns the result as [`Bytes`] or a [`TLSError`].
 val hkdf_expand (alg: t_HashAlgorithm) (prk info: Bertie.Tls13utils.t_Bytes) (len: usize)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -160,20 +164,20 @@ val impl_AeadKey__new (bytes: Bertie.Tls13utils.t_Bytes) (e_alg: t_AeadAlgorithm
 val t_AeadAlgorithm_cast_to_repr (x: t_AeadAlgorithm)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_15:Core.Clone.t_Clone t_AeadAlgorithm
+let impl_17: Core_models.Clone.t_Clone t_AeadAlgorithm =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_16:Core.Marker.t_Copy t_AeadAlgorithm
+val impl_18:Core_models.Marker.t_Copy t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_17:Core.Marker.t_StructuralPartialEq t_AeadAlgorithm
+val impl_19:Core_models.Marker.t_StructuralPartialEq t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_18:Core.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
+val impl_20:Core_models.Cmp.t_PartialEq t_AeadAlgorithm t_AeadAlgorithm
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_19:Core.Fmt.t_Debug t_AeadAlgorithm
+val impl_21:Core_models.Fmt.t_Debug t_AeadAlgorithm
 
 /// Get the key length of the AEAD algorithm in bytes.
 val impl_AeadAlgorithm__key_len (self: t_AeadAlgorithm)
@@ -185,13 +189,13 @@ val impl_AeadAlgorithm__iv_len (self: t_AeadAlgorithm)
 
 /// AEAD encrypt
 val aead_encrypt (k: t_AeadKey) (iv plain aad: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// AEAD decrypt.
 val aead_decrypt (k: t_AeadKey) (iv cip aad: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -204,36 +208,36 @@ type t_SignatureScheme =
 val t_SignatureScheme_cast_to_repr (x: t_SignatureScheme)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_20:Core.Clone.t_Clone t_SignatureScheme
+let impl_22: Core_models.Clone.t_Clone t_SignatureScheme =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_21:Core.Marker.t_Copy t_SignatureScheme
+val impl_23:Core_models.Marker.t_Copy t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_22:Core.Marker.t_StructuralPartialEq t_SignatureScheme
+val impl_24:Core_models.Marker.t_StructuralPartialEq t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_23:Core.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
+val impl_25:Core_models.Cmp.t_PartialEq t_SignatureScheme t_SignatureScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_24:Core.Fmt.t_Debug t_SignatureScheme
+val impl_26:Core_models.Fmt.t_Debug t_SignatureScheme
 
 /// Sign the bytes in `input` with the signature key `sk` and `algorithm`.
 val sign
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (algorithm: t_SignatureScheme)
       (sk input: Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
-    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// Determine if given modulus conforms to one of the key sizes supported by
 /// `libcrux`.
 val supported_rsa_key_size (n: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Determine if given public exponent is supported by `libcrux`, i.e. whether
 ///  `e == 0x010001`.
@@ -243,12 +247,12 @@ val valid_rsa_exponent (e: Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 /// Sign the `input` with the provided RSA key.
 val sign_rsa
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (sk pk_modulus pk_exponent: Bertie.Tls13utils.t_Bytes)
       (cert_scheme: t_SignatureScheme)
       (input: Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
-    : Prims.Pure (iimpl_447424039_ & Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (iimpl_447424039_ & Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -258,7 +262,7 @@ val verify
       (alg: t_SignatureScheme)
       (pk: t_PublicVerificationKey)
       (input sig: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
 
 /// Bertie KEM schemes.
 /// This includes ECDH curves.
@@ -274,27 +278,27 @@ type t_KemScheme =
 val t_KemScheme_cast_to_repr (x: t_KemScheme)
     : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_25:Core.Clone.t_Clone t_KemScheme
+let impl_27: Core_models.Clone.t_Clone t_KemScheme =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_26:Core.Marker.t_Copy t_KemScheme
+val impl_28:Core_models.Marker.t_Copy t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_27:Core.Marker.t_StructuralPartialEq t_KemScheme
+val impl_29:Core_models.Marker.t_StructuralPartialEq t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_28:Core.Cmp.t_PartialEq t_KemScheme t_KemScheme
+val impl_30:Core_models.Cmp.t_PartialEq t_KemScheme t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_29:Core.Cmp.t_Eq t_KemScheme
+val impl_31:Core_models.Cmp.t_Eq t_KemScheme
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_30:Core.Fmt.t_Debug t_KemScheme
+val impl_32:Core_models.Fmt.t_Debug t_KemScheme
 
 /// Get the libcrux algorithm for this [`KemScheme`].
 val impl_KemScheme__libcrux_kem_algorithm (self: t_KemScheme)
-    : Prims.Pure (Core.Result.t_Result Libcrux_kem.t_Algorithm u8)
+    : Prims.Pure (Core_models.Result.t_Result Libcrux_kem.t_Algorithm u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -307,12 +311,12 @@ val encoding_prefix (alg: t_KemScheme)
 /// Generate a new KEM key pair.
 val kem_keygen
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (alg: t_KemScheme)
       (rng: iimpl_447424039_)
     : Prims.Pure
       (iimpl_447424039_ &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -328,19 +332,19 @@ val to_shared_secret (alg: t_KemScheme) (shared_secret: Bertie.Tls13utils.t_Byte
 /// KEM encapsulation
 val kem_encap
       (#iimpl_447424039_: Type0)
-      {| i1: Rand_core.t_CryptoRng iimpl_447424039_ |}
+      {| i0: Rand_core.t_CryptoRng iimpl_447424039_ |}
       (alg: t_KemScheme)
       (pk: Bertie.Tls13utils.t_Bytes)
       (rng: iimpl_447424039_)
     : Prims.Pure
       (iimpl_447424039_ &
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 /// KEM decapsulation
 val kem_decap (alg: t_KemScheme) (ct sk: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -356,20 +360,20 @@ type t_Algorithms = {
   f_zero_rtt:bool
 }
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_31:Core.Clone.t_Clone t_Algorithms
+let impl_33: Core_models.Clone.t_Clone t_Algorithms =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_32:Core.Marker.t_Copy t_Algorithms
+val impl_34:Core_models.Marker.t_Copy t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_33:Core.Marker.t_StructuralPartialEq t_Algorithms
+val impl_35:Core_models.Marker.t_StructuralPartialEq t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_34:Core.Cmp.t_PartialEq t_Algorithms t_Algorithms
+val impl_36:Core_models.Cmp.t_PartialEq t_Algorithms t_Algorithms
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_35:Core.Fmt.t_Debug t_Algorithms
+val impl_37:Core_models.Fmt.t_Debug t_Algorithms
 
 /// Create a new [`Algorithms`] object for the TLS 1.3 ciphersuite.
 val impl_Algorithms__new
@@ -407,56 +411,59 @@ val impl_Algorithms__zero_rtt (self: t_Algorithms)
 /// Returns the TLS ciphersuite for the given algorithm when it is supported, or
 /// a [`TLSError`] otherwise.
 val impl_Algorithms__ciphersuite (self: t_Algorithms)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
-          match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-          | Core.Result.Result_Ok b -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
-          | Core.Result.Result_Err _ -> true)
+          let result:Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
+          match result <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+          | Core_models.Result.Result_Ok b ->
+            (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
+          | Core_models.Result.Result_Err _ -> true)
 
 /// Returns the curve id for the given algorithm when it is supported, or a [`TLSError`]
 /// otherwise.
 val impl_Algorithms__supported_group (self: t_Algorithms)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
-          match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-          | Core.Result.Result_Ok b -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
-          | Core.Result.Result_Err _ -> true)
+          let result:Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
+          match result <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+          | Core_models.Result.Result_Ok b ->
+            (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
+          | Core_models.Result.Result_Err _ -> true)
 
 /// Returns the signature id for the given algorithm when it is supported, or a
 ///  [`TLSError`] otherwise.
 val impl_Algorithms__signature_algorithm (self: t_Algorithms)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
-          match result <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-          | Core.Result.Result_Ok b -> (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
-          | Core.Result.Result_Err _ -> true)
+          let result:Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 = result in
+          match result <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
+          | Core_models.Result.Result_Ok b ->
+            (Bertie.Tls13utils.impl_Bytes__len b <: usize) =. mk_usize 2
+          | Core_models.Result.Result_Err _ -> true)
 
 /// Check the ciphersuite in `bytes` against this ciphersuite.
 val impl_Algorithms__check (self: t_Algorithms) (bytes: t_Slice u8)
-    : Prims.Pure (Core.Result.t_Result usize u8)
+    : Prims.Pure (Core_models.Result.t_Result usize u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core.Result.t_Result usize u8 = result in
-          match result <: Core.Result.t_Result usize u8 with
-          | Core.Result.Result_Ok len ->
-            (Core.Slice.impl__len #u8 bytes <: usize) >=. len && len <. mk_usize 65538
+          let result:Core_models.Result.t_Result usize u8 = result in
+          match result <: Core_models.Result.t_Result usize u8 with
+          | Core_models.Result.Result_Ok len ->
+            (Core_models.Slice.impl__len #u8 bytes <: usize) >=. len && len <. mk_usize 65538
           | _ -> true)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_37:Core.Convert.t_TryFrom t_Algorithms string
+val impl_39:Core_models.Convert.t_TryFrom t_Algorithms string
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_4:Core.Fmt.t_Display t_Algorithms
+val impl_4:Core_models.Fmt.t_Display t_Algorithms
 
 /// `TLS_CHACHA20_POLY1305_SHA256`
 /// with

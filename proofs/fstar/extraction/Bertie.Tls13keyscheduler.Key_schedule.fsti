@@ -1,13 +1,14 @@
 module Bertie.Tls13keyscheduler.Key_schedule
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
   (* The implicit dependencies arise from typeclasses instances. *)
   let open Bertie.Tls13crypto in
   let open Bertie.Tls13utils in
+  let open Std.Hash.Random in
   ()
 
 /// HKDF expand with a `label`.
@@ -15,21 +16,21 @@ val hkdf_expand_label
       (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
       (key label context: Bertie.Tls13utils.t_Bytes)
       (len: usize)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 class t_KeySchedule (v_Self: Type0) (v_N: Type0) = {
   f_labels_pre:v_N -> bool -> Type0;
-  f_labels_post:v_N -> bool -> Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8 -> Type0;
+  f_labels_post:v_N -> bool -> Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 -> Type0;
   f_labels:x0: v_N -> x1: bool
-    -> Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    -> Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
         (f_labels_pre x0 x1)
         (fun result -> f_labels_post x0 x1 result);
   f_prnt_n_pre:v_N -> Type0;
-  f_prnt_n_post:v_N -> (Core.Option.t_Option v_N & Core.Option.t_Option v_N) -> Type0;
+  f_prnt_n_post:v_N -> (Core_models.Option.t_Option v_N & Core_models.Option.t_Option v_N) -> Type0;
   f_prnt_n:x0: v_N
-    -> Prims.Pure (Core.Option.t_Option v_N & Core.Option.t_Option v_N)
+    -> Prims.Pure (Core_models.Option.t_Option v_N & Core_models.Option.t_Option v_N)
         (f_prnt_n_pre x0)
         (fun result -> f_prnt_n_post x0 result);
   f_get_pre:v_Self -> v_N -> u8 -> (v_N & Bertie.Tls13crypto.t_HashAlgorithm & u8) -> Type0;
@@ -38,10 +39,10 @@ class t_KeySchedule (v_Self: Type0) (v_N: Type0) = {
       v_N ->
       u8 ->
       (v_N & Bertie.Tls13crypto.t_HashAlgorithm & u8) ->
-      Core.Option.t_Option Bertie.Tls13utils.t_Bytes
+      Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes
     -> Type0;
   f_get:x0: v_Self -> x1: v_N -> x2: u8 -> x3: (v_N & Bertie.Tls13crypto.t_HashAlgorithm & u8)
-    -> Prims.Pure (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+    -> Prims.Pure (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
         (f_get_pre x0 x1 x2 x3)
         (fun result -> f_get_post x0 x1 x2 x3 result);
   f_set_pre:
@@ -101,26 +102,26 @@ type t_TLSkeyscheduler = {
 
 val t_TLSnames_cast_to_repr (x: t_TLSnames) : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_2:Core.Clone.t_Clone t_TLSnames
+let impl_2: Core_models.Clone.t_Clone t_TLSnames =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_1:Core.Marker.t_Copy t_TLSnames
+val impl_1:Core_models.Marker.t_Copy t_TLSnames
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_3:Core.Marker.t_StructuralPartialEq t_TLSnames
+val impl_3:Core_models.Marker.t_StructuralPartialEq t_TLSnames
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_4:Core.Cmp.t_PartialEq t_TLSnames t_TLSnames
+val impl_4:Core_models.Cmp.t_PartialEq t_TLSnames t_TLSnames
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_5:Core.Cmp.t_Eq t_TLSnames
+val impl_5:Core_models.Cmp.t_Eq t_TLSnames
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_6:Core.Hash.t_Hash t_TLSnames
+val impl_6:Core_models.Hash.t_Hash t_TLSnames
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_7:Core.Fmt.t_Debug t_TLSnames
+val impl_7:Core_models.Fmt.t_Debug t_TLSnames
 
 type t_Label =
   | Label_e__e__e__e__e__e__ : t_Label
@@ -140,19 +141,19 @@ type t_Label =
 val t_Label_cast_to_repr (x: t_Label) : Prims.Pure isize Prims.l_True (fun _ -> Prims.l_True)
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_8:Core.Fmt.t_Debug t_Label
+val impl_8:Core_models.Fmt.t_Debug t_Label
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_9:Core.Marker.t_StructuralPartialEq t_Label
+val impl_9:Core_models.Marker.t_StructuralPartialEq t_Label
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_10:Core.Cmp.t_PartialEq t_Label t_Label
+val impl_10:Core_models.Cmp.t_PartialEq t_Label t_Label
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_11:Core.Cmp.t_Eq t_Label
+val impl_11:Core_models.Cmp.t_Eq t_Label
 
 val convert_label (label: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Option.t_Option t_Label) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Option.t_Option t_Label) Prims.l_True (fun _ -> Prims.l_True)
 
 val label_to_bytes (label: t_Label)
     : Prims.Pure Bertie.Tls13utils.t_Bytes Prims.l_True (fun _ -> Prims.l_True)
@@ -166,24 +167,24 @@ type t_TagKey = {
   f_val:Bertie.Tls13utils.t_Bytes
 }
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_12:Core.Clone.t_Clone t_TagKey
+let impl_12: Core_models.Clone.t_Clone t_TagKey =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 val xtr_alg (alg: Bertie.Tls13crypto.t_HashAlgorithm) (k1 k2: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val xpd_alg (alg: Bertie.Tls13crypto.t_HashAlgorithm) (k1 label d: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val xtr (k1 k2: t_TagKey)
-    : Prims.Pure (Core.Result.t_Result t_TagKey u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result t_TagKey u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val xpd (k1: t_TagKey) (label d: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_TagKey u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result t_TagKey u8) Prims.l_True (fun _ -> Prims.l_True)
 
 type t_Handle = {
   f_name:t_TLSnames;
@@ -191,18 +192,18 @@ type t_Handle = {
   f_level:u8
 }
 
-[@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_13:Core.Clone.t_Clone t_Handle
+let impl_13: Core_models.Clone.t_Clone t_Handle =
+  { f_clone = (fun x -> x); f_clone_pre = (fun _ -> True); f_clone_post = (fun _ _ -> True) }
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
-val impl_14:Core.Fmt.t_Debug t_Handle
+val impl_14:Core_models.Fmt.t_Debug t_Handle
 
 val xpd_angle
       (name: t_TLSnames)
       (label: Bertie.Tls13utils.t_Bytes)
       (parrent_handle: t_Handle)
       (args: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core.Result.t_Result t_Handle u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result t_Handle u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val set_by_handle (ks: t_TLSkeyscheduler) (handle: t_Handle) (key: Bertie.Tls13utils.t_Bytes)
     : Prims.Pure t_TLSkeyscheduler Prims.l_True (fun _ -> Prims.l_True)
@@ -220,12 +221,12 @@ val zero_ikm (ks: t_TLSkeyscheduler) (alg: Bertie.Tls13crypto.t_HashAlgorithm)
     : Prims.Pure (t_TLSkeyscheduler & t_Handle) Prims.l_True (fun _ -> Prims.l_True)
 
 val get_by_handle (ks: t_TLSkeyscheduler) (handle: t_Handle)
-    : Prims.Pure (Core.Option.t_Option Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val tagkey_from_handle (ks: t_TLSkeyscheduler) (handle: t_Handle)
-    : Prims.Pure (Core.Result.t_Result t_TagKey u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result t_TagKey u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val v_XPD
       (ks: t_TLSkeyscheduler)
@@ -234,14 +235,14 @@ val v_XPD
       (h1: t_Handle)
       (r: bool)
       (args: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (t_TLSkeyscheduler & Core.Result.t_Result t_Handle u8)
+    : Prims.Pure (t_TLSkeyscheduler & Core_models.Result.t_Result t_Handle u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
 val xtr_angle (name: t_TLSnames) (left right: t_Handle)
-    : Prims.Pure (Core.Result.t_Result t_Handle u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result t_Handle u8) Prims.l_True (fun _ -> Prims.l_True)
 
 val v_XTR (ks: t_TLSkeyscheduler) (level: u8) (name: t_TLSnames) (h1 h2: t_Handle)
-    : Prims.Pure (t_TLSkeyscheduler & Core.Result.t_Result t_Handle u8)
+    : Prims.Pure (t_TLSkeyscheduler & Core_models.Result.t_Result t_Handle u8)
       Prims.l_True
       (fun _ -> Prims.l_True)

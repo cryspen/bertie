@@ -1,7 +1,7 @@
 module Bertie.Tls13keyscheduler
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -11,7 +11,7 @@ let _ =
 
 /// Get the hash of an empty byte slice.
 val hash_empty (algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
-    : Prims.Pure (Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -21,7 +21,7 @@ val derive_binder_key
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+        Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -33,7 +33,9 @@ val derive_aead_key_iv
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8) Prims.l_True (fun _ -> Prims.l_True)
+        Core_models.Result.t_Result Bertie.Tls13crypto.t_AeadKeyIV u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val next_keys_c_2_
       (hash_algorithm: Bertie.Tls13crypto.t_HashAlgorithm)
@@ -42,7 +44,7 @@ val next_keys_c_2_
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
             Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
             Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -56,7 +58,7 @@ val derive_0rtt_keys
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
@@ -67,18 +69,20 @@ val derive_finished_key
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8) Prims.l_True (fun _ -> Prims.l_True)
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 /// Derive the handshake keys and master secret.
 val derive_hk_handles
       (ha: Bertie.Tls13crypto.t_HashAlgorithm)
       (shared_secret: Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
-      (psko: Core.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
+      (psko: Core_models.Option.t_Option Bertie.Tls13keyscheduler.Key_schedule.t_Handle)
       (transcript_hash: Bertie.Tls13utils.t_Bytes)
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
             Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
             Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -91,7 +95,7 @@ val derive_hk_ms
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV &
             Bertie.Tls13utils.t_Bytes &
             Bertie.Tls13utils.t_Bytes) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -104,7 +108,7 @@ val derive_app_handles
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
             Bertie.Tls13keyscheduler.Key_schedule.t_Handle &
             Bertie.Tls13keyscheduler.Key_schedule.t_Handle) u8) Prims.l_True (fun _ -> Prims.l_True)
@@ -117,7 +121,8 @@ val derive_app_keys
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
+        Core_models.Result.t_Result
+          (Bertie.Tls13crypto.t_AeadKeyIV & Bertie.Tls13crypto.t_AeadKeyIV) u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -128,6 +133,6 @@ val derive_rms
       (ks: Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler)
     : Prims.Pure
       (Bertie.Tls13keyscheduler.Key_schedule.t_TLSkeyscheduler &
-        Core.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
+        Core_models.Result.t_Result Bertie.Tls13keyscheduler.Key_schedule.t_Handle u8)
       Prims.l_True
       (fun _ -> Prims.l_True)

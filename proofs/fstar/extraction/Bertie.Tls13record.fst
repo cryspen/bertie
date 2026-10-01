@@ -1,7 +1,7 @@
 module Bertie.Tls13record
 #set-options "--fuel 0 --ifuel 1 --z3rlimit 15"
-open Core
 open FStar.Mul
+open Core_models
 
 let _ =
   (* This module has implicit dependencies, here we make them explicit. *)
@@ -53,7 +53,7 @@ let duplex_cipher_state1
 
 let derive_iv_ctr (iv: Bertie.Tls13utils.t_Bytes) (n: u64) =
   let (counter: Bertie.Tls13utils.t_Bytes):Bertie.Tls13utils.t_Bytes =
-    Bertie.Tls13utils.bytes (Core.Num.impl_u64__to_be_bytes n <: t_Slice u8)
+    Bertie.Tls13utils.bytes (Core_models.Num.impl_u64__to_be_bytes n <: t_Slice u8)
   in
   let iv_ctr:Bertie.Tls13utils.t_Bytes =
     Bertie.Tls13utils.impl_Bytes__zeroes (Bertie.Tls13utils.impl_Bytes__len iv <: usize)
@@ -124,24 +124,24 @@ let encrypt_record_payload
         <:
         bool)
     <:
-    Core.Result.t_Result Prims.unit u8
+    Core_models.Result.t_Result Prims.unit u8
   with
-  | Core.Result.Result_Ok _ ->
+  | Core_models.Result.Result_Ok _ ->
     (match
         Bertie.Tls13utils.check ((Bertie.Tls13utils.impl_Bytes__len payload <: usize) <=.
             mk_usize 16384
             <:
             bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
+      | Core_models.Result.Result_Ok _ ->
         (match
             Bertie.Tls13utils.check (pad <=. mk_usize 16384 <: bool)
             <:
-            Core.Result.t_Result Prims.unit u8
+            Core_models.Result.t_Result Prims.unit u8
           with
-          | Core.Result.Result_Ok _ ->
+          | Core_models.Result.Result_Ok _ ->
             let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr key_iv.Bertie.Tls13crypto.f_iv n in
             let inner_plaintext:Bertie.Tls13utils.t_Bytes =
               Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat payload
@@ -160,10 +160,10 @@ let encrypt_record_payload
             if clen <=. mk_usize 65536
             then
               let clenb:t_Array u8 (mk_usize 2) =
-                Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
+                Core_models.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
               in
               let ad:Bertie.Tls13utils.t_Bytes =
-                Core.Convert.f_into #(t_Array u8 (mk_usize 5))
+                Core_models.Convert.f_into #(t_Array u8 (mk_usize 5))
                   #Bertie.Tls13utils.t_Bytes
                   #FStar.Tactics.Typeclasses.solve
                   (let list =
@@ -184,23 +184,31 @@ let encrypt_record_payload
                   inner_plaintext
                   ad
                 <:
-                Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
               with
-              | Core.Result.Result_Ok cip ->
+              | Core_models.Result.Result_Ok cip ->
                 let v_rec:Bertie.Tls13utils.t_Bytes = Bertie.Tls13utils.impl_Bytes__concat ad cip in
-                Core.Result.Result_Ok v_rec <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-              | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+                Core_models.Result.Result_Ok v_rec
+                <:
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              | Core_models.Result.Result_Err err ->
+                Core_models.Result.Result_Err err
+                <:
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
             else
-              Core.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
+              Core_models.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
               <:
-              Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err <: Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+              Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+          | Core_models.Result.Result_Err err ->
+            Core_models.Result.Result_Err err
+            <:
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
+        <:
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_ClientCipherState0) =
   let ClientCipherState0 ae kiv n exp:t_ClientCipherState0 = st in
@@ -211,29 +219,29 @@ let encrypt_zerortt (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_C
       (Bertie.Tls13utils.impl_AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
       pad
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok v_rec ->
+  | Core_models.Result.Result_Ok v_rec ->
     (match
-        Bertie.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+        Bertie.Tls13utils.check (n <. Core_models.Num.impl_u64__MAX <: bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
-        Core.Result.Result_Ok
+      | Core_models.Result.Result_Ok _ ->
+        Core_models.Result.Result_Ok
         (v_rec, (ClientCipherState0 ae kiv (n +! mk_u64 1) exp <: t_ClientCipherState0)
           <:
           (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0))
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8)
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8
+    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_ClientCipherState0) u8
 
 let encrypt_handshake
       (payload: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
@@ -250,31 +258,32 @@ let encrypt_handshake
       payload
       pad
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok v_rec ->
+  | Core_models.Result.Result_Ok v_rec ->
     (match
-        Bertie.Tls13utils.check (state.f_sender_counter <. Core.Num.impl_u64__MAX <: bool)
+        Bertie.Tls13utils.check (state.f_sender_counter <. Core_models.Num.impl_u64__MAX <: bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
+      | Core_models.Result.Result_Ok _ ->
         let state:t_DuplexCipherStateH =
           { state with f_sender_counter = state.f_sender_counter +! mk_u64 1 }
           <:
           t_DuplexCipherStateH
         in
-        Core.Result.Result_Ok (v_rec, state <: (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH))
+        Core_models.Result.Result_Ok
+        (v_rec, state <: (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH))
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8)
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8
+    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherStateH) u8
 
 let encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_DuplexCipherState1) =
   let DuplexCipherState1 ae kiv n x y exp:t_DuplexCipherState1 = st in
@@ -285,29 +294,29 @@ let encrypt_data (payload: Bertie.Tls13utils.t_AppData) (pad: usize) (st: t_Dupl
       (Bertie.Tls13utils.impl_AppData__into_raw payload <: Bertie.Tls13utils.t_Bytes)
       pad
     <:
-    Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core.Result.Result_Ok v_rec ->
+  | Core_models.Result.Result_Ok v_rec ->
     (match
-        Bertie.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+        Bertie.Tls13utils.check (n <. Core_models.Num.impl_u64__MAX <: bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
-        Core.Result.Result_Ok
+      | Core_models.Result.Result_Ok _ ->
+        Core_models.Result.Result_Ok
         (v_rec, (DuplexCipherState1 ae kiv (n +! mk_u64 1) x y exp <: t_DuplexCipherState1)
           <:
           (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1))
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
+    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
 
 let rec padlen (b: Bertie.Tls13utils.t_Bytes) (n: usize) =
   if
@@ -334,9 +343,9 @@ let decrypt_record_payload
         <:
         bool)
     <:
-    Core.Result.t_Result Prims.unit u8
+    Core_models.Result.t_Result Prims.unit u8
   with
-  | Core.Result.Result_Ok _ ->
+  | Core_models.Result.Result_Ok _ ->
     let iv_ctr:Bertie.Tls13utils.t_Bytes = derive_iv_ctr kiv.Bertie.Tls13crypto.f_iv n in
     if
       (Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize) <=. mk_usize 65541 &&
@@ -344,10 +353,10 @@ let decrypt_record_payload
     then
       let clen:usize = (Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize) -! mk_usize 5 in
       let clen_bytes:t_Array u8 (mk_usize 2) =
-        Core.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
+        Core_models.Num.impl_u16__to_be_bytes (cast (clen <: usize) <: u16)
       in
       let ad:Bertie.Tls13utils.t_Bytes =
-        Core.Convert.f_into #(t_Array u8 (mk_usize 5))
+        Core_models.Convert.f_into #(t_Array u8 (mk_usize 5))
           #Bertie.Tls13utils.t_Bytes
           #FStar.Tactics.Typeclasses.solve
           (let list =
@@ -365,30 +374,33 @@ let decrypt_record_payload
       match
         Bertie.Tls13utils.check_eq ad
           (Bertie.Tls13utils.impl_Bytes__slice_range ciphertext
-              ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = mk_usize 5 }
+              ({
+                  Core_models.Ops.Range.f_start = mk_usize 0;
+                  Core_models.Ops.Range.f_end = mk_usize 5
+                }
                 <:
-                Core.Ops.Range.t_Range usize)
+                Core_models.Ops.Range.t_Range usize)
             <:
             Bertie.Tls13utils.t_Bytes)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
+      | Core_models.Result.Result_Ok _ ->
         let cip:Bertie.Tls13utils.t_Bytes =
           Bertie.Tls13utils.impl_Bytes__slice_range ciphertext
             ({
-                Core.Ops.Range.f_start = mk_usize 5;
-                Core.Ops.Range.f_end = Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize
+                Core_models.Ops.Range.f_start = mk_usize 5;
+                Core_models.Ops.Range.f_end = Bertie.Tls13utils.impl_Bytes__len ciphertext <: usize
               }
               <:
-              Core.Ops.Range.t_Range usize)
+              Core_models.Ops.Range.t_Range usize)
         in
         (match
             Bertie.Tls13crypto.aead_decrypt kiv.Bertie.Tls13crypto.f_key iv_ctr cip ad
             <:
-            Core.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core.Result.Result_Ok plain ->
+          | Core_models.Result.Result_Ok plain ->
             let padding:usize = padlen plain (Bertie.Tls13utils.impl_Bytes__len plain <: usize) in
             (match
                 Bertie.Tls13utils.check (padding <.
@@ -396,9 +408,9 @@ let decrypt_record_payload
                     <:
                     bool)
                 <:
-                Core.Result.t_Result Prims.unit u8
+                Core_models.Result.t_Result Prims.unit u8
               with
-              | Core.Result.Result_Ok _ ->
+              | Core_models.Result.Result_Ok _ ->
                 let payload_len:usize =
                   ((Bertie.Tls13utils.impl_Bytes__len plain <: usize) -! padding <: usize) -!
                   mk_usize 1
@@ -412,70 +424,75 @@ let decrypt_record_payload
                         <:
                         u8)
                     <:
-                    Core.Result.t_Result Bertie.Tls13formats.t_ContentType u8
+                    Core_models.Result.t_Result Bertie.Tls13formats.t_ContentType u8
                   with
-                  | Core.Result.Result_Ok ct ->
+                  | Core_models.Result.Result_Ok ct ->
                     let payload:Bertie.Tls13utils.t_Bytes =
                       Bertie.Tls13utils.impl_Bytes__slice_range plain
-                        ({ Core.Ops.Range.f_start = mk_usize 0; Core.Ops.Range.f_end = payload_len }
+                        ({
+                            Core_models.Ops.Range.f_start = mk_usize 0;
+                            Core_models.Ops.Range.f_end = payload_len
+                          }
                           <:
-                          Core.Ops.Range.t_Range usize)
+                          Core_models.Ops.Range.t_Range usize)
                     in
-                    Core.Result.Result_Ok
+                    Core_models.Result.Result_Ok
                     (ct, payload <: (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes))
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
-                  | Core.Result.Result_Err err ->
-                    Core.Result.Result_Err err
+                  | Core_models.Result.Result_Err err ->
+                    Core_models.Result.Result_Err err
                     <:
-                    Core.Result.t_Result
+                    Core_models.Result.t_Result
                       (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-              | Core.Result.Result_Err err ->
-                Core.Result.Result_Err err
+              | Core_models.Result.Result_Err err ->
+                Core_models.Result.Result_Err err
                 <:
-                Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
-                  u8)
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err
+                Core_models.Result.t_Result
+                  (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+          | Core_models.Result.Result_Err err ->
+            Core_models.Result.Result_Err err
             <:
-            Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+            Core_models.Result.t_Result
+              (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8)
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+        Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes)
+          u8
     else
-      Core.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
+      Core_models.Result.Result_Err Bertie.Tls13utils.v_PAYLOAD_TOO_LONG
       <:
-      Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+      Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+    Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
 
 let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCipherState0) =
   match
     decrypt_record_payload state.f_key_iv state.f_counter ciphertext
     <:
-    Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+    Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
   with
-  | Core.Result.Result_Ok (ct, payload) ->
+  | Core_models.Result.Result_Ok (ct, payload) ->
     (match
         Bertie.Tls13utils.check (ct =.
             (Bertie.Tls13formats.ContentType_ApplicationData <: Bertie.Tls13formats.t_ContentType)
             <:
             bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
+      | Core_models.Result.Result_Ok _ ->
         (match
-            Bertie.Tls13utils.check (state.f_counter <. Core.Num.impl_u64__MAX <: bool)
+            Bertie.Tls13utils.check (state.f_counter <. Core_models.Num.impl_u64__MAX <: bool)
             <:
-            Core.Result.t_Result Prims.unit u8
+            Core_models.Result.t_Result Prims.unit u8
           with
-          | Core.Result.Result_Ok _ ->
-            Core.Result.Result_Ok
+          | Core_models.Result.Result_Ok _ ->
+            Core_models.Result.Result_Ok
             (Bertie.Tls13utils.impl_AppData__new payload,
               ({
                   f_key_iv = state.f_key_iv;
@@ -487,32 +504,32 @@ let decrypt_zerortt (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_ServerCiph
               <:
               (Bertie.Tls13utils.t_AppData & t_ServerCipherState0))
             <:
-            Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err
+            Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8
+          | Core_models.Result.Result_Err err ->
+            Core_models.Result.Result_Err err
             <:
-            Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+            Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8)
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8
+    Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_ServerCipherState0) u8
 
 let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCipherStateH) =
   match
     decrypt_record_payload state.f_receiver_key_iv state.f_receiver_counter ciphertext
     <:
-    Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+    Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
   with
-  | Core.Result.Result_Ok (ct, payload) ->
+  | Core_models.Result.Result_Ok (ct, payload) ->
     if ct =. (Bertie.Tls13formats.ContentType_Alert <: Bertie.Tls13formats.t_ContentType)
     then
-      Core.Result.Result_Err Bertie.Tls13utils.v_GOT_HANDSHAKE_FAILURE_ALERT
+      Core_models.Result.Result_Err Bertie.Tls13utils.v_GOT_HANDSHAKE_FAILURE_ALERT
       <:
-      Core.Result.t_Result
+      Core_models.Result.t_Result
         (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8
     else
       (match
@@ -521,22 +538,24 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
               <:
               bool)
           <:
-          Core.Result.t_Result Prims.unit u8
+          Core_models.Result.t_Result Prims.unit u8
         with
-        | Core.Result.Result_Ok _ ->
+        | Core_models.Result.Result_Ok _ ->
           (match
-              Bertie.Tls13utils.check (state.f_receiver_counter <. Core.Num.impl_u64__MAX <: bool)
+              Bertie.Tls13utils.check (state.f_receiver_counter <. Core_models.Num.impl_u64__MAX
+                  <:
+                  bool)
               <:
-              Core.Result.t_Result Prims.unit u8
+              Core_models.Result.t_Result Prims.unit u8
             with
-            | Core.Result.Result_Ok _ ->
+            | Core_models.Result.Result_Ok _ ->
               let state:t_DuplexCipherStateH =
                 { state with f_receiver_counter = state.f_receiver_counter +! mk_u64 1 }
                 <:
                 t_DuplexCipherStateH
               in
-              Core.Result.Result_Ok
-              (Core.Convert.f_from #Bertie.Tls13formats.Handshake_data.t_HandshakeData
+              Core_models.Result.Result_Ok
+              (Core_models.Convert.f_from #Bertie.Tls13formats.Handshake_data.t_HandshakeData
                   #Bertie.Tls13utils.t_Bytes
                   #FStar.Tactics.Typeclasses.solve
                   payload,
@@ -544,54 +563,54 @@ let decrypt_handshake (ciphertext: Bertie.Tls13utils.t_Bytes) (state: t_DuplexCi
                 <:
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH))
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8
-            | Core.Result.Result_Err err ->
-              Core.Result.Result_Err err
+            | Core_models.Result.Result_Err err ->
+              Core_models.Result.Result_Err err
               <:
-              Core.Result.t_Result
+              Core_models.Result.t_Result
                 (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-        | Core.Result.Result_Err err ->
-          Core.Result.Result_Err err
+        | Core_models.Result.Result_Err err ->
+          Core_models.Result.Result_Err err
           <:
-          Core.Result.t_Result
+          Core_models.Result.t_Result
             (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH)
-      u8
+    Core_models.Result.t_Result
+      (Bertie.Tls13formats.Handshake_data.t_HandshakeData & t_DuplexCipherStateH) u8
 
 let decrypt_data_or_hs (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1) =
   let DuplexCipherState1 ae x y kiv n exp:t_DuplexCipherState1 = st in
   match
     decrypt_record_payload kiv n ciphertext
     <:
-    Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+    Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
   with
-  | Core.Result.Result_Ok (ct, payload) ->
+  | Core_models.Result.Result_Ok (ct, payload) ->
     (match
-        Bertie.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+        Bertie.Tls13utils.check (n <. Core_models.Num.impl_u64__MAX <: bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
-        Core.Result.Result_Ok
+      | Core_models.Result.Result_Ok _ ->
+        Core_models.Result.Result_Ok
         (ct, payload, (DuplexCipherState1 ae x y kiv (n +! mk_u64 1) exp <: t_DuplexCipherState1)
           <:
           (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1))
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result
+        Core_models.Result.t_Result
           (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result
+    Core_models.Result.t_Result
       (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes & t_DuplexCipherState1) u8
 
 let decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherState1) =
@@ -599,40 +618,40 @@ let decrypt_data (ciphertext: Bertie.Tls13utils.t_Bytes) (st: t_DuplexCipherStat
   match
     decrypt_record_payload kiv n ciphertext
     <:
-    Core.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
+    Core_models.Result.t_Result (Bertie.Tls13formats.t_ContentType & Bertie.Tls13utils.t_Bytes) u8
   with
-  | Core.Result.Result_Ok (ct, payload) ->
+  | Core_models.Result.Result_Ok (ct, payload) ->
     (match
         Bertie.Tls13utils.check (ct =.
             (Bertie.Tls13formats.ContentType_ApplicationData <: Bertie.Tls13formats.t_ContentType)
             <:
             bool)
         <:
-        Core.Result.t_Result Prims.unit u8
+        Core_models.Result.t_Result Prims.unit u8
       with
-      | Core.Result.Result_Ok _ ->
+      | Core_models.Result.Result_Ok _ ->
         (match
-            Bertie.Tls13utils.check (n <. Core.Num.impl_u64__MAX <: bool)
+            Bertie.Tls13utils.check (n <. Core_models.Num.impl_u64__MAX <: bool)
             <:
-            Core.Result.t_Result Prims.unit u8
+            Core_models.Result.t_Result Prims.unit u8
           with
-          | Core.Result.Result_Ok _ ->
-            Core.Result.Result_Ok
+          | Core_models.Result.Result_Ok _ ->
+            Core_models.Result.Result_Ok
             (Bertie.Tls13utils.impl_AppData__new payload,
               (DuplexCipherState1 ae x y kiv (n +! mk_u64 1) exp <: t_DuplexCipherState1)
               <:
               (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1))
             <:
-            Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8
-          | Core.Result.Result_Err err ->
-            Core.Result.Result_Err err
+            Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8
+          | Core_models.Result.Result_Err err ->
+            Core_models.Result.Result_Err err
             <:
-            Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-      | Core.Result.Result_Err err ->
-        Core.Result.Result_Err err
+            Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
+      | Core_models.Result.Result_Err err ->
+        Core_models.Result.Result_Err err
         <:
-        Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
-  | Core.Result.Result_Err err ->
-    Core.Result.Result_Err err
+        Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8)
+  | Core_models.Result.Result_Err err ->
+    Core_models.Result.Result_Err err
     <:
-    Core.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8
+    Core_models.Result.t_Result (Bertie.Tls13utils.t_AppData & t_DuplexCipherState1) u8
