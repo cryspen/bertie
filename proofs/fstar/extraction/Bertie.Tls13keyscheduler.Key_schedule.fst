@@ -1137,8 +1137,6 @@ let xtr_angle (name: t_TLSnames) (left right: t_Handle) =
   <:
   Core_models.Result.t_Result t_Handle u8
 
-#push-options "--admit_smt_queries true"
-
 let v_XTR (ks: t_TLSkeyscheduler) (level: u8) (name: t_TLSnames) (h1 h2: t_Handle) =
   let (n1: Core_models.Option.t_Option t_TLSnames), (n2: Core_models.Option.t_Option t_TLSnames) =
     f_prnt_n #t_TLSkeyscheduler #t_TLSnames #FStar.Tactics.Typeclasses.solve name
@@ -1254,5 +1252,3 @@ let v_XTR (ks: t_TLSkeyscheduler) (level: u8) (name: t_TLSnames) (h1 h2: t_Handl
     ks, (Core_models.Result.Result_Err err <: Core_models.Result.t_Result t_Handle u8)
     <:
     (t_TLSkeyscheduler & Core_models.Result.t_Result t_Handle u8)
-
-#pop-options

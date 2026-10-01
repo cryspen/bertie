@@ -436,7 +436,6 @@ pub(crate) fn xtr_angle(name: TLSnames, left: Handle, right: Handle) -> Result<H
        )"
     )
 )]
-#[hax_lib::fstar::verification_status(lax)]
 pub(crate) fn XTR(
     ks: &mut TLSkeyscheduler,
     level: u8,
