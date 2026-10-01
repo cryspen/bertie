@@ -5,7 +5,6 @@
 # sophisticated build system.
 #
 # We expect FSTAR_HOME to be set to your FSTAR repo/install directory
-# We expect HACL_HOME to be set to your HACL* repo location
 # We expect HAX_HOME to be set to the folder containing core, rust_primitives etc.
 #
 # ROOTS contains all the top-level F* files you wish to verify
@@ -37,7 +36,6 @@ HAX_LIBS_HOME       ?= $(HAX_HOME)/hax-lib/proofs/fstar/extraction
 LIBCRUX_MODELS_HOME ?= ../libcrux-models
 
 FSTAR_HOME    ?= $(WORKSPACE_ROOT)/FStar
-HACL_HOME     ?= $(WORKSPACE_ROOT)/hacl-star
 FSTAR_BIN     ?= $(shell command -v fstar.exe 1>&2 2> /dev/null && echo "fstar.exe" || echo "$(FSTAR_HOME)/bin/fstar.exe")
 
 CACHE_DIR     ?= .cache
@@ -55,7 +53,7 @@ ROOTS = $(wildcard *.fst)
 
 
 
-FSTAR_INCLUDE_DIRS = $(HACL_HOME)/lib $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME) $(LIBCRUX_MODELS_HOME)
+FSTAR_INCLUDE_DIRS = $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME) $(LIBCRUX_MODELS_HOME)
 
 FSTAR_FLAGS = --cmi \
   --warn_error -331 \

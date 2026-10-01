@@ -564,6 +564,7 @@ fn get_psk_extensions(
      0)"
     )
 )]
+#[hax_lib::fstar::options("--z3rlimit 60")]
 #[hax_lib::requires(client_random.len() == 32)]
 #[hax_lib::ensures(|result| match result {
                                 Result::Ok((ch,trunc_len)) => {
