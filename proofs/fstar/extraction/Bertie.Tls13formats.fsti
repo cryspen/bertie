@@ -168,7 +168,7 @@ val check_server_key_share (algs: Bertie.Tls13crypto.t_Algorithms) (b: t_Slice u
 val pre_shared_key
       (algs: Bertie.Tls13crypto.t_Algorithms)
       (session_ticket: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       Prims.l_True
       (fun _ -> Prims.l_True)
 
@@ -535,18 +535,29 @@ let impl_3: Core_models.Convert.t_TryFrom t_AlertDescription u8 =
       | _ -> Bertie.Tls13utils.tlserr #t_AlertDescription (Bertie.Tls13utils.parse_failed () <: u8)
   }
 
-val get_psk_extensions
+/// Offset of the binders list in a PSK ClientHello, i.e. the length of the
+/// truncated ClientHello the binder is computed over (RFC 8446, 4.2.11.2).
+/// Returns 0 if PSK mode is off.
+val binders_offset
       (algorithms: Bertie.Tls13crypto.t_Algorithms)
-      (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
-    : Prims.Pure (Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
+      (client_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+    : Prims.Pure (Core_models.Result.t_Result usize u8)
       Prims.l_True
       (ensures
         fun result ->
-          let result:Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8 = result in
-          match result <: Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8 with
-          | Core_models.Result.Result_Ok (len, extensions) ->
-            len <=. (Bertie.Tls13utils.impl_Bytes__len extensions <: usize)
+          let result:Core_models.Result.t_Result usize u8 = result in
+          match result <: Core_models.Result.t_Result usize u8 with
+          | Core_models.Result.Result_Ok len ->
+            len <=.
+            (Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len client_hello <: usize)
           | _ -> true)
+
+val get_psk_extensions
+      (algorithms: Bertie.Tls13crypto.t_Algorithms)
+      (session_ticket extensions: Bertie.Tls13utils.t_Bytes)
+    : Prims.Pure (Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)

@@ -555,7 +555,6 @@ let pre_shared_key
                 Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
               with
               | Core_models.Result.Result_Ok binders ->
-                let binders_len:usize = Bertie.Tls13utils.impl_Bytes__len binders in
                 (match
                     Bertie.Tls13utils.encode_length_u16 (Bertie.Tls13utils.impl_Bytes__concat identities
                           binders
@@ -565,44 +564,32 @@ let pre_shared_key
                     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                   with
                   | Core_models.Result.Result_Ok hoist56 ->
-                    let ext:Bertie.Tls13utils.t_Bytes =
-                      Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.bytes2 (mk_u8 0)
+                    Core_models.Result.Result_Ok
+                    (Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.bytes2 (mk_u8 0)
                             (mk_u8 41)
                           <:
                           Bertie.Tls13utils.t_Bytes)
-                        hoist56
-                    in
-                    let ext_len:usize = Bertie.Tls13utils.impl_Bytes__len ext in
-                    Core_models.Result.Result_Ok
-                    (ext,
-                      (((ext_len +! binders_len <: usize) +! mk_usize 199 <: usize) -! mk_usize 16
-                        <:
-                        usize) -!
-                      mk_usize 82
-                      <:
-                      (Bertie.Tls13utils.t_Bytes & usize))
+                        hoist56)
                     <:
-                    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8
+                    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                   | Core_models.Result.Result_Err err ->
                     Core_models.Result.Result_Err err
                     <:
-                    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
+                    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
               | Core_models.Result.Result_Err err ->
                 Core_models.Result.Result_Err err
                 <:
-                Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
+                Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
           | Core_models.Result.Result_Err err ->
             Core_models.Result.Result_Err err
             <:
-            Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
+            Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
       | Core_models.Result.Result_Err err ->
         Core_models.Result.Result_Err err
         <:
-        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8)
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
   | Core_models.Result.Result_Err err ->
-    Core_models.Result.Result_Err err
-    <:
-    Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8
+    Core_models.Result.Result_Err err <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8) =
   match Bertie.Tls13utils.length_u16_encoded ch <: Core_models.Result.t_Result usize u8 with
@@ -675,9 +662,18 @@ let check_psk_shared_key (algs: Bertie.Tls13crypto.t_Algorithms) (ch: t_Slice u8
                         <:
                         t_Slice u8),
                     Core_models.Convert.f_from #Bertie.Tls13utils.t_Bytes
-                      #(t_Array u8 (mk_usize 0))
+                      #(t_Slice u8)
                       #FStar.Tactics.Typeclasses.solve
-                      (Rust_primitives.Hax.repeat (mk_u8 0) (mk_usize 0) <: t_Array u8 (mk_usize 0))
+                      (ch.[ {
+                            Core_models.Ops.Range.f_start = mk_usize 5 +! len_id <: usize;
+                            Core_models.Ops.Range.f_end
+                            =
+                            Core_models.Slice.impl__len #u8 ch <: usize
+                          }
+                          <:
+                          Core_models.Ops.Range.t_Range usize ]
+                        <:
+                        t_Slice u8)
                     <:
                     (Bertie.Tls13utils.t_Bytes & Bertie.Tls13utils.t_Bytes))
                   <:
@@ -712,12 +708,12 @@ let server_pre_shared_key (e_algs: Bertie.Tls13crypto.t_Algorithms) =
     <:
     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core_models.Result.Result_Ok hoist57 ->
+  | Core_models.Result.Result_Ok hoist58 ->
     Core_models.Result.Result_Ok
     (Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.bytes2 (mk_u8 0) (mk_u8 41)
           <:
           Bertie.Tls13utils.t_Bytes)
-        hoist57)
+        hoist58)
     <:
     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   | Core_models.Result.Result_Err err ->
@@ -759,28 +755,28 @@ let impl_Extensions__merge (self e2: t_Extensions) =
     <:
     Core_models.Result.t_Result (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
   with
-  | Core_models.Result.Result_Ok hoist62 ->
+  | Core_models.Result.Result_Ok hoist63 ->
     (match
         merge_opts #Bertie.Tls13utils.t_Bytes self.f_key_share e2.f_key_share
         <:
         Core_models.Result.t_Result (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
       with
-      | Core_models.Result.Result_Ok hoist61 ->
+      | Core_models.Result.Result_Ok hoist62 ->
         (match
             merge_opts #Bertie.Tls13utils.t_Bytes self.f_ticket e2.f_ticket
             <:
             Core_models.Result.t_Result (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes) u8
           with
-          | Core_models.Result.Result_Ok hoist60 ->
+          | Core_models.Result.Result_Ok hoist61 ->
             (match
                 merge_opts #Bertie.Tls13utils.t_Bytes self.f_binder e2.f_binder
                 <:
                 Core_models.Result.t_Result (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes)
                   u8
               with
-              | Core_models.Result.Result_Ok hoist59 ->
+              | Core_models.Result.Result_Ok hoist60 ->
                 Core_models.Result.Result_Ok
-                ({ f_sni = hoist62; f_key_share = hoist61; f_ticket = hoist60; f_binder = hoist59 }
+                ({ f_sni = hoist63; f_key_share = hoist62; f_ticket = hoist61; f_binder = hoist60 }
                   <:
                   t_Extensions)
                 <:
@@ -1031,7 +1027,41 @@ val impl_14': Core_models.Cmp.t_PartialEq t_AlertDescription t_AlertDescription
 
 let impl_14 = impl_14'
 
-#push-options "--admit_smt_queries true"
+let binders_offset
+      (algorithms: Bertie.Tls13crypto.t_Algorithms)
+      (client_hello: Bertie.Tls13formats.Handshake_data.t_HandshakeData)
+     =
+  if Bertie.Tls13crypto.impl_Algorithms__psk_mode algorithms
+  then
+    let binders_len:usize =
+      (Bertie.Tls13crypto.impl_HashAlgorithm__hash_len (Bertie.Tls13crypto.impl_Algorithms__hash algorithms
+
+            <:
+            Bertie.Tls13crypto.t_HashAlgorithm)
+        <:
+        usize) +!
+      mk_usize 3
+    in
+    match
+      Bertie.Tls13utils.check ((Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len client_hello
+
+            <:
+            usize) >=.
+          binders_len
+          <:
+          bool)
+      <:
+      Core_models.Result.t_Result Prims.unit u8
+    with
+    | Core_models.Result.Result_Ok _ ->
+      Core_models.Result.Result_Ok
+      ((Bertie.Tls13formats.Handshake_data.impl_HandshakeData__len client_hello <: usize) -!
+        binders_len)
+      <:
+      Core_models.Result.t_Result usize u8
+    | Core_models.Result.Result_Err err ->
+      Core_models.Result.Result_Err err <: Core_models.Result.t_Result usize u8
+  else Core_models.Result.Result_Ok (mk_usize 0) <: Core_models.Result.t_Result usize u8
 
 let get_psk_extensions
       (algorithms: Bertie.Tls13crypto.t_Algorithms)
@@ -1042,28 +1072,22 @@ let get_psk_extensions
     (match
         pre_shared_key algorithms session_ticket
         <:
-        Core_models.Result.t_Result (Bertie.Tls13utils.t_Bytes & usize) u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core_models.Result.Result_Ok (psk, len) ->
-        let extensions:Bertie.Tls13utils.t_Bytes =
-          Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat extensions pskm
+      | Core_models.Result.Result_Ok psk ->
+        Core_models.Result.Result_Ok
+        (Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat extensions pskm
               <:
               Bertie.Tls13utils.t_Bytes)
-            psk
-        in
-        Core_models.Result.Result_Ok (len, extensions <: (usize & Bertie.Tls13utils.t_Bytes))
+            psk)
         <:
-        Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       | Core_models.Result.Result_Err err ->
         Core_models.Result.Result_Err err
         <:
-        Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8)
+        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8)
   | Core_models.Result.Result_Err err ->
-    Core_models.Result.Result_Err err
-    <:
-    Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes) u8
-
-#pop-options
+    Core_models.Result.Result_Err err <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
 
 let set_client_hello_binder
       (ciphersuite: Bertie.Tls13crypto.t_Algorithms)
@@ -1088,11 +1112,15 @@ let set_client_hello_binder
     (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes & Core_models.Option.t_Option usize)
   with
   | Core_models.Option.Option_Some m, Core_models.Option.Option_Some trunc_len ->
-    if (chlen -! trunc_len <: usize) =. hlen
+    if (chlen -! trunc_len <: usize) =. (hlen +! mk_usize 3 <: usize)
     then
       Core_models.Result.Result_Ok
       (Bertie.Tls13formats.Handshake_data.HandshakeData
-        (Bertie.Tls13utils.impl_Bytes__update_slice ch trunc_len m (mk_usize 0) hlen)
+        (Bertie.Tls13utils.impl_Bytes__update_slice ch
+            (trunc_len +! mk_usize 3 <: usize)
+            m
+            (mk_usize 0)
+            hlen)
         <:
         Bertie.Tls13formats.Handshake_data.t_HandshakeData)
       <:
@@ -1142,16 +1170,16 @@ let encrypted_extensions (e_algs: Bertie.Tls13crypto.t_Algorithms) =
     <:
     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core_models.Result.Result_Ok hoist74 ->
+  | Core_models.Result.Result_Ok hoist75 ->
     (match
-        Bertie.Tls13utils.encode_length_u24 hoist74
+        Bertie.Tls13utils.encode_length_u24 hoist75
         <:
         Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core_models.Result.Result_Ok hoist76 ->
+      | Core_models.Result.Result_Ok hoist77 ->
         let enc_extensions_msg:Bertie.Tls13formats.Handshake_data.t_HandshakeData =
           Bertie.Tls13formats.Handshake_data.HandshakeData
-          (Bertie.Tls13utils.impl_Bytes__concat handshake_type hoist76)
+          (Bertie.Tls13utils.impl_Bytes__concat handshake_type hoist77)
           <:
           Bertie.Tls13formats.Handshake_data.t_HandshakeData
         in
@@ -1465,13 +1493,13 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes) =
       <:
       Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
     with
-    | Core_models.Result.Result_Ok hoist78 ->
+    | Core_models.Result.Result_Ok hoist79 ->
       (match
           Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.impl_Bytes__as_raw s <: t_Slice u8)
           <:
           Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
         with
-        | Core_models.Result.Result_Ok hoist80 ->
+        | Core_models.Result.Result_Ok hoist81 ->
           (match
               Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.impl_Bytes__as_raw (Bertie.Tls13utils.impl_Bytes__concat
                         (Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat (
@@ -1480,13 +1508,13 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes) =
                                     b2
                                   <:
                                   Bertie.Tls13utils.t_Bytes)
-                                hoist78
+                                hoist79
                               <:
                               Bertie.Tls13utils.t_Bytes)
                             b2
                           <:
                           Bertie.Tls13utils.t_Bytes)
-                        hoist80
+                        hoist81
                       <:
                       Bertie.Tls13utils.t_Bytes)
                   <:
@@ -1494,8 +1522,8 @@ let ecdsa_signature (sv: Bertie.Tls13utils.t_Bytes) =
               <:
               Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
             with
-            | Core_models.Result.Result_Ok hoist85 ->
-              Core_models.Result.Result_Ok (Bertie.Tls13utils.impl_Bytes__concat b1 hoist85)
+            | Core_models.Result.Result_Ok hoist86 ->
+              Core_models.Result.Result_Ok (Bertie.Tls13utils.impl_Bytes__concat b1 hoist86)
               <:
               Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
             | Core_models.Result.Result_Err err ->
@@ -1695,9 +1723,9 @@ let parse_certificate_verify
         <:
         Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core_models.Result.Result_Ok hoist89 ->
+      | Core_models.Result.Result_Ok hoist90 ->
         (match
-            Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl_Bytes__as_raw hoist89
+            Bertie.Tls13utils.check_eq_with_slice (Bertie.Tls13utils.impl_Bytes__as_raw hoist90
                 <:
                 t_Slice u8)
               (Bertie.Tls13utils.impl_Bytes__as_raw cv <: t_Slice u8)
@@ -1814,15 +1842,15 @@ let certificate_verify (algs: Bertie.Tls13crypto.t_Algorithms) (cv: Bertie.Tls13
         <:
         Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core_models.Result.Result_Ok hoist88 ->
+      | Core_models.Result.Result_Ok hoist89 ->
         (match
             Bertie.Tls13utils.encode_length_u16 sv
             <:
             Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
-          | Core_models.Result.Result_Ok hoist87 ->
+          | Core_models.Result.Result_Ok hoist88 ->
             let sig:Bertie.Tls13utils.t_Bytes =
-              Bertie.Tls13utils.impl_Bytes__concat hoist88 hoist87
+              Bertie.Tls13utils.impl_Bytes__concat hoist89 hoist88
             in
             (match
                 Bertie.Tls13formats.Handshake_data.impl_HandshakeData__from_bytes (Bertie.Tls13formats.Handshake_data.HandshakeType_CertificateVerify
@@ -1995,12 +2023,12 @@ let handshake_record (p: Bertie.Tls13formats.Handshake_data.t_HandshakeData) =
     <:
     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   with
-  | Core_models.Result.Result_Ok hoist92 ->
+  | Core_models.Result.Result_Ok hoist93 ->
     Core_models.Result.Result_Ok
     (Bertie.Tls13utils.impl_Bytes__concat (Bertie.Tls13utils.impl_Bytes__concat ty ver
           <:
           Bertie.Tls13utils.t_Bytes)
-        hoist92)
+        hoist93)
     <:
     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   | Core_models.Result.Result_Err err ->
@@ -2546,13 +2574,13 @@ let check_extension (algs: Bertie.Tls13crypto.t_Algorithms) (bytes: t_Slice u8) 
               <:
               Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
             with
-            | Core_models.Result.Result_Ok hoist64 ->
+            | Core_models.Result.Result_Ok hoist65 ->
               Core_models.Result.Result_Ok
               (mk_usize 4 +! len,
                 ({
                     f_sni
                     =
-                    Core_models.Option.Option_Some hoist64
+                    Core_models.Option.Option_Some hoist65
                     <:
                     Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes;
                     f_key_share
@@ -3088,9 +3116,9 @@ let server_hello
                     <:
                     Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                   with
-                  | Core_models.Result.Result_Ok hoist70 ->
+                  | Core_models.Result.Result_Ok hoist71 ->
                     let extensions:Bertie.Tls13utils.t_Bytes =
-                      Bertie.Tls13utils.impl_Bytes__concat extensions hoist70
+                      Bertie.Tls13utils.impl_Bytes__concat extensions hoist71
                     in
                     (match
                         Bertie.Tls13utils.encode_length_u16 extensions
@@ -3575,39 +3603,11 @@ let parse_client_hello
                                             f_ticket = Core_models.Option.Option_Some tkt ;
                                             f_binder = Core_models.Option.Option_Some binder } ->
                                             (match
-                                                Bertie.Tls13utils.check ((Bertie.Tls13utils.impl_Bytes__len
-                                                        ch
-                                                      <:
-                                                      usize) >=.
-                                                    ((Bertie.Tls13crypto.impl_HashAlgorithm__hash_len
-                                                          (Bertie.Tls13crypto.impl_Algorithms__hash ciphersuite
-
-                                                            <:
-                                                            Bertie.Tls13crypto.t_HashAlgorithm)
-                                                        <:
-                                                        usize) +!
-                                                      mk_usize 3
-                                                      <:
-                                                      usize)
-                                                    <:
-                                                    bool)
+                                                binders_offset ciphersuite client_hello
                                                 <:
-                                                Core_models.Result.t_Result Prims.unit u8
+                                                Core_models.Result.t_Result usize u8
                                               with
-                                              | Core_models.Result.Result_Ok _ ->
-                                                let trunc_len:usize =
-                                                  ((Bertie.Tls13utils.impl_Bytes__len ch <: usize) -!
-                                                    (Bertie.Tls13crypto.impl_HashAlgorithm__hash_len
-                                                        (Bertie.Tls13crypto.impl_Algorithms__hash ciphersuite
-
-                                                          <:
-                                                          Bertie.Tls13crypto.t_HashAlgorithm)
-                                                      <:
-                                                      usize)
-                                                    <:
-                                                    usize) -!
-                                                  mk_usize 3
-                                                in
+                                              | Core_models.Result.Result_Ok trunc_len ->
                                                 Core_models.Result.Result_Ok
                                                 (crand,
                                                   sid,
@@ -3662,39 +3662,11 @@ let parse_client_hello
                                             f_ticket = Core_models.Option.Option_Some tkt ;
                                             f_binder = Core_models.Option.Option_Some binder } ->
                                             (match
-                                                Bertie.Tls13utils.check ((Bertie.Tls13utils.impl_Bytes__len
-                                                        ch
-                                                      <:
-                                                      usize) >=.
-                                                    ((Bertie.Tls13crypto.impl_HashAlgorithm__hash_len
-                                                          (Bertie.Tls13crypto.impl_Algorithms__hash ciphersuite
-
-                                                            <:
-                                                            Bertie.Tls13crypto.t_HashAlgorithm)
-                                                        <:
-                                                        usize) +!
-                                                      mk_usize 3
-                                                      <:
-                                                      usize)
-                                                    <:
-                                                    bool)
+                                                binders_offset ciphersuite client_hello
                                                 <:
-                                                Core_models.Result.t_Result Prims.unit u8
+                                                Core_models.Result.t_Result usize u8
                                               with
-                                              | Core_models.Result.Result_Ok _ ->
-                                                let trunc_len:usize =
-                                                  ((Bertie.Tls13utils.impl_Bytes__len ch <: usize) -!
-                                                    (Bertie.Tls13crypto.impl_HashAlgorithm__hash_len
-                                                        (Bertie.Tls13crypto.impl_Algorithms__hash ciphersuite
-
-                                                          <:
-                                                          Bertie.Tls13crypto.t_HashAlgorithm)
-                                                      <:
-                                                      usize)
-                                                    <:
-                                                    usize) -!
-                                                  mk_usize 3
-                                                in
+                                              | Core_models.Result.Result_Ok trunc_len ->
                                                 Core_models.Result.Result_Ok
                                                 (crand,
                                                   sid,
@@ -3961,9 +3933,9 @@ let client_hello
         <:
         Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
       with
-      | Core_models.Result.Result_Ok hoist68 ->
+      | Core_models.Result.Result_Ok hoist69 ->
         (match
-            Bertie.Tls13utils.encode_length_u16 hoist68
+            Bertie.Tls13utils.encode_length_u16 hoist69
             <:
             Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
           with
@@ -4048,22 +4020,16 @@ let client_hello
                                       | true, Core_models.Option.Option_Some session_ticket ->
                                         get_psk_extensions algorithms session_ticket extensions
                                       | false, Core_models.Option.Option_None  ->
-                                        Core_models.Result.Result_Ok
-                                        (mk_usize 0, extensions
-                                          <:
-                                          (usize & Bertie.Tls13utils.t_Bytes))
+                                        Core_models.Result.Result_Ok extensions
                                         <:
-                                        Core_models.Result.t_Result
-                                          (usize & Bertie.Tls13utils.t_Bytes) u8
+                                        Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                                       | _ ->
-                                        Bertie.Tls13utils.tlserr #(usize & Bertie.Tls13utils.t_Bytes
-                                          )
+                                        Bertie.Tls13utils.tlserr #Bertie.Tls13utils.t_Bytes
                                           Bertie.Tls13utils.v_PSK_MODE_MISMATCH)
                                     <:
-                                    Core_models.Result.t_Result (usize & Bertie.Tls13utils.t_Bytes)
-                                      u8
+                                    Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
                                   with
-                                  | Core_models.Result.Result_Ok (trunc_len, extensions) ->
+                                  | Core_models.Result.Result_Ok extensions ->
                                     (match
                                         Bertie.Tls13utils.encode_length_u16 extensions
                                         <:
@@ -4132,67 +4098,102 @@ let client_hello
                                           with
                                           | Core_models.Result.Result_Ok client_hello ->
                                             (match
-                                                parse_client_hello algorithms client_hello
+                                                binders_offset algorithms client_hello
                                                 <:
-                                                Core_models.Result.t_Result
-                                                  (Bertie.Tls13utils.t_Bytes &
-                                                    Bertie.Tls13utils.t_Bytes &
-                                                    Bertie.Tls13utils.t_Bytes &
-                                                    Bertie.Tls13utils.t_Bytes &
-                                                    Core_models.Option.t_Option
-                                                    Bertie.Tls13utils.t_Bytes &
-                                                    Core_models.Option.t_Option
-                                                    Bertie.Tls13utils.t_Bytes &
-                                                    usize) u8
+                                                Core_models.Result.t_Result usize u8
                                               with
-                                              | Core_models.Result.Result_Ok
-                                                (parsed_client_random,
-                                                  _,
-                                                  parsed_server_name,
-                                                  parsed_gx,
-                                                  parsed_session_ticket,
-                                                  _,
-                                                  parsed_trunc_len) ->
+                                              | Core_models.Result.Result_Ok trunc_len ->
                                                 (match
-                                                    Bertie.Tls13utils.check_eq parsed_client_random
-                                                      client_random_copy
+                                                    parse_client_hello algorithms client_hello
                                                     <:
-                                                    Core_models.Result.t_Result Prims.unit u8
+                                                    Core_models.Result.t_Result
+                                                      (Bertie.Tls13utils.t_Bytes &
+                                                        Bertie.Tls13utils.t_Bytes &
+                                                        Bertie.Tls13utils.t_Bytes &
+                                                        Bertie.Tls13utils.t_Bytes &
+                                                        Core_models.Option.t_Option
+                                                        Bertie.Tls13utils.t_Bytes &
+                                                        Core_models.Option.t_Option
+                                                        Bertie.Tls13utils.t_Bytes &
+                                                        usize) u8
                                                   with
-                                                  | Core_models.Result.Result_Ok _ ->
+                                                  | Core_models.Result.Result_Ok
+                                                    (parsed_client_random,
+                                                      _,
+                                                      parsed_server_name,
+                                                      parsed_gx,
+                                                      parsed_session_ticket,
+                                                      _,
+                                                      parsed_trunc_len) ->
                                                     (match
-                                                        Bertie.Tls13utils.check_eq parsed_server_name
-                                                          server_name
+                                                        Bertie.Tls13utils.check_eq parsed_client_random
+                                                          client_random_copy
                                                         <:
                                                         Core_models.Result.t_Result Prims.unit u8
                                                       with
                                                       | Core_models.Result.Result_Ok _ ->
                                                         (match
-                                                            Bertie.Tls13utils.check_eq parsed_gx
-                                                              kem_pk
+                                                            Bertie.Tls13utils.check_eq parsed_server_name
+                                                              server_name
                                                             <:
                                                             Core_models.Result.t_Result Prims.unit
                                                               u8
                                                           with
                                                           | Core_models.Result.Result_Ok _ ->
                                                             (match
-                                                                Bertie.Tls13utils.check_eq_option parsed_session_ticket
-                                                                  session_ticket
+                                                                Bertie.Tls13utils.check_eq parsed_gx
+                                                                  kem_pk
                                                                 <:
                                                                 Core_models.Result.t_Result
                                                                   Prims.unit u8
                                                               with
                                                               | Core_models.Result.Result_Ok _ ->
-                                                                let _:Prims.unit = () in
-                                                                Core_models.Result.Result_Ok
-                                                                (client_hello, trunc_len
-                                                                  <:
-                                                                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                                                    usize))
-                                                                <:
-                                                                Core_models.Result.t_Result
-                                                                  (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
-                                                                    usize) u8
+                                                                (match
+                                                                    Bertie.Tls13utils.check_eq_option
+                                                                      parsed_session_ticket
+                                                                      session_ticket
+                                                                    <:
+                                                                    Core_models.Result.t_Result
+                                                                      Prims.unit u8
+                                                                  with
+                                                                  | Core_models.Result.Result_Ok _ ->
+                                                                    (match
+                                                                        Bertie.Tls13utils.check (parsed_trunc_len =.
+                                                                            trunc_len
+                                                                            <:
+                                                                            bool)
+                                                                        <:
+                                                                        Core_models.Result.t_Result
+                                                                          Prims.unit u8
+                                                                      with
+                                                                      | Core_models.Result.Result_Ok
+                                                                        _ ->
+                                                                        let _:Prims.unit = () in
+                                                                        Core_models.Result.Result_Ok
+                                                                        (client_hello, trunc_len
+                                                                          <:
+                                                                          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+                                                                            usize))
+                                                                        <:
+                                                                        Core_models.Result.t_Result
+                                                                          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+                                                                            usize) u8
+                                                                      | Core_models.Result.Result_Err
+                                                                        err ->
+                                                                        Core_models.Result.Result_Err
+                                                                        err
+                                                                        <:
+                                                                        Core_models.Result.t_Result
+                                                                          (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+                                                                            usize) u8)
+                                                                  | Core_models.Result.Result_Err
+                                                                    err ->
+                                                                    Core_models.Result.Result_Err
+                                                                    err
+                                                                    <:
+                                                                    Core_models.Result.t_Result
+                                                                      (Bertie.Tls13formats.Handshake_data.t_HandshakeData &
+                                                                        usize) u8)
                                                               | Core_models.Result.Result_Err err ->
                                                                 Core_models.Result.Result_Err err
                                                                 <:

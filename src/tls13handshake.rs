@@ -592,9 +592,7 @@ fn process_psk_binder_zero_rtt(
             let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
             let mk = tagkey_from_handle(ks, &mk_handle)?.val;
 
-            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
-            let binder = tagkey_from_handle(ks, &binder_handle)?.val;
-
+            XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
             hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms_handle) =

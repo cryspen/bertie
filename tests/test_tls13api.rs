@@ -335,3 +335,91 @@ fn test_full_round_trip_with_psk() {
     }
     assert!(b);
 }
+
+/// Run a PSK handshake for `server_name`, optionally flipping the last byte of
+/// the ClientHello record, which is the last byte of the PSK binder.
+fn psk_handshake(server_name: &Bytes, tamper_binder: bool) -> Result<(), String> {
+    let cr = random_bytes(32);
+    let mut client_rng = TestRng::new(cr.concat(load_hex(client_x25519_priv)).declassify());
+    let mut server_rng = TestRng::new(
+        random_bytes(64)
+            .concat(load_hex(server_x25519_priv))
+            .declassify(),
+    );
+    let session_ticket = random_bytes(32);
+    let psk = random_bytes(32);
+    let db = ServerDB::new(
+        server_name.clone(),
+        Bytes::from(&ECDSA_P256_SHA256_CERT),
+        SignatureKey::from(&ECDSA_P256_SHA256_Key),
+        Some((session_ticket.clone(), psk.clone())),
+    );
+    let ciphersuite = TLS_WITH_PSK_CHACHA20_POLY1305_SHA256_X25519;
+    let mut client_ks = TLSkeyscheduler {
+        keys: HashMap::new(),
+    };
+    let mut server_ks = TLSkeyscheduler {
+        keys: HashMap::new(),
+    };
+
+    let (client_hello, client) = Client::connect(
+        ciphersuite,
+        server_name,
+        Some(session_ticket),
+        Some(psk),
+        &mut client_rng,
+        &mut client_ks,
+    )
+    .map_err(|e| format!("connect: {e}"))?;
+    let client_hello = if tamper_binder {
+        let mut raw = client_hello.declassify();
+        let last = raw.len() - 1;
+        raw[last] ^= 0xff;
+        Bytes::from(raw)
+    } else {
+        client_hello
+    };
+    let (sh, sf, server) = Server::accept(
+        ciphersuite,
+        db,
+        &client_hello,
+        &mut server_rng,
+        &mut server_ks,
+    )
+    .map_err(|e| format!("accept: {e}"))?;
+    let (_, client) = client
+        .read_handshake(&sh, &mut client_ks)
+        .map_err(|e| format!("server hello: {e}"))?;
+    let (cf, _) = client
+        .read_handshake(&sf, &mut client_ks)
+        .map_err(|e| format!("server finished: {e}"))?;
+    server
+        .read_handshake(&cf.ok_or("no client finished")?, &mut server_ks)
+        .map_err(|e| format!("client finished: {e}"))?;
+    Ok(())
+}
+
+#[test]
+fn psk_handshake_any_server_name() {
+    for name in [
+        "",
+        "a",
+        "local",
+        "localhost",
+        "example.com",
+        &"x".repeat(100),
+    ] {
+        let server_name = Bytes::from(name.as_bytes());
+        assert_eq!(psk_handshake(&server_name, false), Ok(()), "{name:?}");
+    }
+}
+
+#[test]
+fn psk_rejects_tampered_binder() {
+    let server_name = Bytes::from(b"localhost");
+    let result = psk_handshake(&server_name, true);
+    assert!(
+        matches!(&result, Err(e) if e.starts_with("accept:")),
+        "{result:?}"
+    );
+}
