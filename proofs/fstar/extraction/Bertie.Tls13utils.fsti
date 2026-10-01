@@ -3,13 +3,6 @@ module Bertie.Tls13utils
 open FStar.Mul
 open Core_models
 
-let _ =
-  (* This module has implicit dependencies, here we make them explicit. *)
-  (* The implicit dependencies arise from typeclasses instances. *)
-  let open Rand.Distr.Distribution in
-  let open Rand.Distr.Integer in
-  ()
-
 type t_Error = | Error_UnknownCiphersuite : Alloc.String.t_String -> t_Error
 
 [@@ FStar.Tactics.Typeclasses.tcinstance]
@@ -95,9 +88,34 @@ val impl_16:Core_models.Default.t_Default t_Bytes
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_2:Core_models.Convert.t_From t_Bytes (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
 
+/// Assume that growing a vector of length `len` by `extra` elements does not
+/// overflow `usize`. In Rust, the allocation fails first.
+val assume_no_alloc_overflow (len extra: usize)
+    : Prims.Pure Prims.unit
+      Prims.l_True
+      (ensures
+        fun temp_0_ ->
+          let _:Prims.unit = temp_0_ in
+          ((Rust_primitives.Hax.Int.from_machine len <: Hax_lib.Int.t_Int) +
+            (Rust_primitives.Hax.Int.from_machine extra <: Hax_lib.Int.t_Int)
+            <:
+            Hax_lib.Int.t_Int) <=
+          (Rust_primitives.Hax.Int.from_machine Core_models.Num.impl_usize__MAX <: Hax_lib.Int.t_Int
+          ))
+
 /// Convert the bytes into raw bytes
 val impl_Bytes__into_raw (self: t_Bytes)
     : Prims.Pure (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) Prims.l_True (fun _ -> Prims.l_True)
+
+/// Declassify these bytes and return a copy of [`u8`].
+val impl_Bytes__declassify (self: t_Bytes)
+    : Prims.Pure (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global = result in
+          (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result <: usize) =.
+          (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize))
 
 /// Get a reference to the raw bytes.
 val impl_Bytes__as_raw (self: t_Bytes)
@@ -108,6 +126,11 @@ val impl_Bytes__as_raw (self: t_Bytes)
           let result:t_Slice u8 = result in
           (Core_models.Slice.impl__len #u8 result <: usize) =.
           (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize))
+
+val impl_Bytes__declassify_array (v_C: usize) (self: t_Bytes)
+    : Prims.Pure (Core_models.Result.t_Result (t_Array u8 v_C) u8)
+      Prims.l_True
+      (fun _ -> Prims.l_True)
 
 val u16_as_be_bytes (v_val: u16)
     : Prims.Pure (t_Array u8 (mk_usize 2)) Prims.l_True (fun _ -> Prims.l_True)
@@ -153,28 +176,6 @@ let impl_22: Core_models.Ops.Index.t_Index t_Bytes (Core_models.Ops.Range.t_Rang
 
 /// Create new [`Bytes`].
 val impl_Bytes__new: Prims.unit -> Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Push `x` into these [`Bytes`].
-val impl_Bytes__push (self: t_Bytes) (x: u8)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Extend `self` with the slice `x`.
-val impl_Bytes__extend_from_slice (self x: t_Bytes)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Read a hex string into [`Bytes`].
-val impl_Bytes__from_hex (s: string) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-val impl_Bytes__concat_array (v_N: usize) (self: t_Bytes) (other: t_Array u8 v_N)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
-/// Update the slice `self[start..start+len] = other[beg..beg+len]` and return
-/// a copy as [`Bytes`].
-val impl_Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
-    : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
 /// Create new [`Bytes`].
 val impl_Bytes__new_alloc (len: usize)
@@ -261,6 +262,64 @@ val e_update_at_usize_bytes_test (b: t_Bytes)
 /// Generate a new [`Bytes`] struct from slice `s`.
 val impl_Bytes__from_slice (s: t_Slice u8) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
 
+/// Push `x` into these [`Bytes`].
+val impl_Bytes__push (self: t_Bytes) (x: u8)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun self_e_future ->
+          let self_e_future:t_Bytes = self_e_future in
+          (Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                  #Alloc.Alloc.t_Global
+                  self_e_future._0
+                <:
+                usize)
+            <:
+            Hax_lib.Int.t_Int) =
+          ((Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                    #Alloc.Alloc.t_Global
+                    self._0
+                  <:
+                  usize)
+              <:
+              Hax_lib.Int.t_Int) +
+            (Rust_primitives.Hax.Int.from_machine (mk_i32 1) <: Hax_lib.Int.t_Int)
+            <:
+            Hax_lib.Int.t_Int))
+
+/// Extend `self` with the slice `x`.
+val impl_Bytes__extend_from_slice (self x: t_Bytes)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun self_e_future ->
+          let self_e_future:t_Bytes = self_e_future in
+          (Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                  #Alloc.Alloc.t_Global
+                  self_e_future._0
+                <:
+                usize)
+            <:
+            Hax_lib.Int.t_Int) =
+          ((Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                    #Alloc.Alloc.t_Global
+                    self._0
+                  <:
+                  usize)
+              <:
+              Hax_lib.Int.t_Int) +
+            (Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                    #Alloc.Alloc.t_Global
+                    x._0
+                  <:
+                  usize)
+              <:
+              Hax_lib.Int.t_Int)
+            <:
+            Hax_lib.Int.t_Int))
+
+val concat_inner (bytes other: t_Bytes) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
+
 /// Extend `self` with the bytes `x`.
 val impl_Bytes__append (self x: t_Bytes)
     : Prims.Pure t_Bytes
@@ -296,35 +355,27 @@ val impl_Bytes__append (self x: t_Bytes)
 val impl_Bytes__raw_slice (self: t_Bytes) (range: Core_models.Ops.Range.t_Range usize)
     : Prims.Pure (t_Slice u8)
       (requires
-        range.Core_models.Ops.Range.f_start <=.
-        (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize) &&
+        range.Core_models.Ops.Range.f_start <=. range.Core_models.Ops.Range.f_end &&
         range.Core_models.Ops.Range.f_end <=.
         (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize))
       (ensures
         fun result ->
           let result:t_Slice u8 = result in
-          if range.Core_models.Ops.Range.f_end >=. range.Core_models.Ops.Range.f_start
-          then
-            (Core_models.Slice.impl__len #u8 result <: usize) =.
-            (range.Core_models.Ops.Range.f_end -! range.Core_models.Ops.Range.f_start <: usize)
-          else (Core_models.Slice.impl__len #u8 result <: usize) =. mk_usize 0)
+          (Core_models.Slice.impl__len #u8 result <: usize) =.
+          (range.Core_models.Ops.Range.f_end -! range.Core_models.Ops.Range.f_start <: usize))
 
 /// Get a new copy of the given `range` as [`Bytes`].
 val impl_Bytes__slice_range (self: t_Bytes) (range: Core_models.Ops.Range.t_Range usize)
     : Prims.Pure t_Bytes
       (requires
-        range.Core_models.Ops.Range.f_start <=.
-        (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize) &&
+        range.Core_models.Ops.Range.f_start <=. range.Core_models.Ops.Range.f_end &&
         range.Core_models.Ops.Range.f_end <=.
         (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize))
       (ensures
         fun result ->
           let result:t_Bytes = result in
-          if range.Core_models.Ops.Range.f_end >=. range.Core_models.Ops.Range.f_start
-          then
-            (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =.
-            (range.Core_models.Ops.Range.f_end -! range.Core_models.Ops.Range.f_start <: usize)
-          else (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =. mk_usize 0)
+          (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =.
+          (range.Core_models.Ops.Range.f_end -! range.Core_models.Ops.Range.f_start <: usize))
 
 /// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
 val impl_Bytes__slice (self: t_Bytes) (start len: usize)
@@ -384,6 +435,64 @@ val impl_Bytes__concat (self other: t_Bytes)
               Hax_lib.Int.t_Int)
             <:
             Hax_lib.Int.t_Int))
+
+/// Concatenate `other` with these bytes and return a copy as [`Bytes`].
+val impl_Bytes__concat_array (v_N: usize) (self: t_Bytes) (other: t_Array u8 v_N)
+    : Prims.Pure t_Bytes
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          (Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                  #Alloc.Alloc.t_Global
+                  result._0
+                <:
+                usize)
+            <:
+            Hax_lib.Int.t_Int) =
+          ((Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                    #Alloc.Alloc.t_Global
+                    self._0
+                  <:
+                  usize)
+              <:
+              Hax_lib.Int.t_Int) +
+            (Rust_primitives.Hax.Int.from_machine v_N <: Hax_lib.Int.t_Int)
+            <:
+            Hax_lib.Int.t_Int))
+
+/// Update the slice `self[start..start+len] = other[beg..beg+len]` and return
+/// a copy as [`Bytes`].
+val impl_Bytes__update_slice (self: t_Bytes) (start: usize) (other: t_Bytes) (beg len: usize)
+    : Prims.Pure t_Bytes
+      (requires
+        ((Rust_primitives.Hax.Int.from_machine start <: Hax_lib.Int.t_Int) +
+          (Rust_primitives.Hax.Int.from_machine len <: Hax_lib.Int.t_Int)
+          <:
+          Hax_lib.Int.t_Int) <=
+        (Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                #Alloc.Alloc.t_Global
+                self._0
+              <:
+              usize)
+          <:
+          Hax_lib.Int.t_Int) &&
+        ((Rust_primitives.Hax.Int.from_machine beg <: Hax_lib.Int.t_Int) +
+          (Rust_primitives.Hax.Int.from_machine len <: Hax_lib.Int.t_Int)
+          <:
+          Hax_lib.Int.t_Int) <=
+        (Rust_primitives.Hax.Int.from_machine (Alloc.Vec.impl_1__len #u8
+                #Alloc.Alloc.t_Global
+                other._0
+              <:
+              usize)
+          <:
+          Hax_lib.Int.t_Int))
+      (ensures
+        fun result ->
+          let result:t_Bytes = result in
+          (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global result._0 <: usize) =.
+          (Alloc.Vec.impl_1__len #u8 #Alloc.Alloc.t_Global self._0 <: usize))
 
 /// Convert the bool `b` into a Result.
 val check (b: bool)
@@ -480,8 +589,6 @@ val impl_8:Core_models.Convert.t_From t_AppData (Alloc.Vec.t_Vec u8 Alloc.Alloc.
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_9:Core_models.Convert.t_From t_AppData t_Bytes
 
-val random_bytes (len: usize) : Prims.Pure t_Bytes Prims.l_True (fun _ -> Prims.l_True)
-
 class t_Declassify (v_Self: Type0) (v_T: Type0) = {
   f_declassify_pre:self_: v_Self -> pred: Type0{true ==> pred};
   f_declassify_post:v_Self -> v_T -> Type0;
@@ -495,17 +602,14 @@ val impl:t_Declassify u8 u8
 [@@ FStar.Tactics.Typeclasses.tcinstance]
 val impl_1:t_Declassify u32 u32
 
-/// Declassify these bytes and return a copy of [`u8`].
-val impl_Bytes__declassify (self: t_Bytes)
-    : Prims.Pure (Alloc.Vec.t_Vec u8 Alloc.Alloc.t_Global) Prims.l_True (fun _ -> Prims.l_True)
-
-val impl_Bytes__declassify_array (v_C: usize) (self: t_Bytes)
-    : Prims.Pure (Core_models.Result.t_Result (t_Array u8 v_C) u8)
-      Prims.l_True
-      (fun _ -> Prims.l_True)
-
 /// Test if [Bytes] `b1` and `b2` have the same value.
-val eq1 (b1 b2: u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+val eq1 (b1 b2: u8)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          result =. (b1 =. b2 <: bool))
 
 /// Parser function to check if [Bytes] `b1` and `b2` have the same value,
 /// returning a [TLSError] otherwise.
@@ -521,9 +625,21 @@ val check_eq1 (b1 b2: u8)
 
 /// Check if [U8] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
-val eq_slice (b1 b2: t_Slice u8) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+val eq_slice (b1 b2: t_Slice u8)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          b2t result ==> b2t (b1 =. b2 <: bool))
 
-val eq_inner (b1 b2: t_Bytes) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
+val eq_inner (b1 b2: t_Bytes)
+    : Prims.Pure bool
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:bool = result in
+          b2t result ==> b2t (b1 =. b2 <: bool))
 
 /// Check if [Bytes] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
@@ -532,10 +648,24 @@ val eq (b1 b2: t_Bytes) : Prims.Pure bool Prims.l_True (fun _ -> Prims.l_True)
 /// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 val check_eq_slice (b1 b2: t_Slice u8)
-    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core_models.Result.t_Result Prims.unit u8 = result in
+          match result <: Core_models.Result.t_Result Prims.unit u8 with
+          | Core_models.Result.Result_Ok _ -> b1 =. b2
+          | _ -> true)
 
 val check_eq_inner (b1 b2: t_Bytes)
-    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8) Prims.l_True (fun _ -> Prims.l_True)
+    : Prims.Pure (Core_models.Result.t_Result Prims.unit u8)
+      Prims.l_True
+      (ensures
+        fun result ->
+          let result:Core_models.Result.t_Result Prims.unit u8 = result in
+          match result <: Core_models.Result.t_Result Prims.unit u8 with
+          | Core_models.Result.Result_Ok _ -> b1 =. b2
+          | _ -> true)
 
 /// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.

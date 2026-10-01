@@ -207,6 +207,13 @@ pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
     result
 }
 
+/// Assume that growing a vector of length `len` by `extra` elements does not
+/// overflow `usize`. In Rust, the allocation fails first.
+#[hax_lib::ensures(|_| len.lift() + extra.lift() <= usize::MAX.lift())]
+fn assume_no_alloc_overflow(len: usize, extra: usize) {
+    hax_lib::assume!(len.lift() + extra.lift() <= usize::MAX.lift());
+}
+
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
@@ -217,6 +224,7 @@ pub(crate) fn concat_inner(bytes: Bytes, other: Bytes) -> Bytes {
        b1 = b2. (* This is term equality, which may not be what we want? *)"
     )
 )]
+#[hax_lib::ensures(|result| hax_lib::implies(result, b1 == b2))]
 fn eq_inner(b1: &Bytes, b2: &Bytes) -> bool {
     eq_slice(&b1.0, &b2.0)
 }
@@ -230,6 +238,7 @@ impl Bytes {
     )]
     #[hax_lib::ensures(|result| result.len() >= self.len() && result.len() - self.len() == prefix.len())]
     pub(crate) fn prefix(self, prefix: &[U8]) -> Self {
+        assume_no_alloc_overflow(prefix.len(), self.0.len());
         let mut out = Vec::with_capacity(prefix.len() + self.len());
 
         out.extend_from_slice(prefix);
@@ -239,8 +248,16 @@ impl Bytes {
     }
 
     /// Declassify these bytes and return a copy of [`u8`].
+    #[cfg(feature = "secret_integers")]
     pub fn declassify(&self) -> Vec<u8> {
         self.0.iter().map(|x| x.declassify()).collect()
+    }
+
+    /// Declassify these bytes and return a copy of [`u8`].
+    #[cfg(not(feature = "secret_integers"))]
+    #[hax_lib::ensures(|result| result.len() == self.0.len())]
+    pub fn declassify(&self) -> Vec<u8> {
+        self.0.clone()
     }
 
     /// Convert the bytes into raw bytes
@@ -259,9 +276,14 @@ impl Bytes {
 
 impl Bytes {
     pub(crate) fn declassify_array<const C: usize>(&self) -> Result<[u8; C], TLSError> {
-        self.declassify()
-            .try_into()
-            .map_err(|_| INCORRECT_ARRAY_LENGTH)
+        let bytes = self.declassify();
+        if bytes.len() == C {
+            let mut out = [0u8; C];
+            out.copy_from_slice(&bytes);
+            Ok(out)
+        } else {
+            Err(INCORRECT_ARRAY_LENGTH)
+        }
     }
 }
 
@@ -412,6 +434,9 @@ reduc forall b1 : $:{Bytes};
           ${check_eq_inner}(b1,b1) = ()."
     )
 )]
+#[hax_lib::ensures(|result| match result {
+    Ok(_) => b1 == b2,
+    _ => true })]
 fn check_eq_inner(b1: &Bytes, b2: &Bytes) -> Result<(), TLSError> {
     check_eq_slice(b1.as_raw(), b2.as_raw())
 }
@@ -444,18 +469,23 @@ impl Bytes {
     }
 
     /// Push `x` into these [`Bytes`].
+    #[hax_lib::ensures(|_| future(self).0.len().lift() == self.0.len().lift() + 1.lift())]
     pub(crate) fn push(&mut self, x: U8) {
+        assume_no_alloc_overflow(self.0.len(), 1);
         self.0.push(x)
     }
 
     /// Extend `self` with the slice `x`.
+    #[hax_lib::ensures(|_| future(self).0.len().lift() == self.0.len().lift() + x.0.len().lift())]
     pub(crate) fn extend_from_slice(&mut self, x: &Bytes) {
+        assume_no_alloc_overflow(self.0.len(), x.0.len());
         self.0.extend_from_slice(&x.0)
     }
 
     /// Extend `self` with the bytes `x`.
     #[hax_lib::ensures(|_| future(self).0.len().lift() == self.0.len().lift() + x.0.len().lift())]
     pub(crate) fn append(&mut self, mut x: Bytes) {
+        assume_no_alloc_overflow(self.0.len(), x.0.len());
         self.0.append(&mut x.0)
     }
 
@@ -465,6 +495,7 @@ impl Bytes {
     }
 
     /// Read a hex string into [`Bytes`].
+    #[hax_lib::exclude]
     pub fn from_hex(s: &str) -> Bytes {
         let s: String = s.split_whitespace().collect();
         #[allow(clippy::manual_is_multiple_of)]
@@ -485,15 +516,15 @@ impl Bytes {
     }
 
     /// Get a slice of the given `range`.
-    #[hax_lib::requires(range.start <= self.0.len() && range.end <= self.0.len())]
-    #[hax_lib::ensures(|result| if range.end >= range.start {result.len() == range.end - range.start} else {result.len() == 0})]
+    #[hax_lib::requires(range.start <= range.end && range.end <= self.0.len())]
+    #[hax_lib::ensures(|result| result.len() == range.end - range.start)]
     pub(crate) fn raw_slice(&self, range: Range<usize>) -> &[U8] {
         &self.0[range]
     }
 
     /// Get a new copy of the given `range` as [`Bytes`].
-    #[hax_lib::requires(range.start <= self.0.len() && range.end <= self.0.len())]
-    #[hax_lib::ensures(|result| if range.end >= range.start {result.0.len() == range.end - range.start} else {result.0.len() == 0})]
+    #[hax_lib::requires(range.start <= range.end && range.end <= self.0.len())]
+    #[hax_lib::ensures(|result| result.0.len() == range.end - range.start)]
     pub(crate) fn slice_range(&self, range: Range<usize>) -> Bytes {
         self.0[range].into()
     }
@@ -512,13 +543,17 @@ impl Bytes {
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
+    #[hax_lib::ensures(|result| result.0.len().lift() == self.0.len().lift() + N.lift())]
     pub fn concat_array<const N: usize>(mut self, other: [U8; N]) -> Bytes {
+        assume_no_alloc_overflow(self.0.len(), N);
         self.0.extend_from_slice(&other);
         self
     }
 
     /// Update the slice `self[start..start+len] = other[beg..beg+len]` and return
     /// a copy as [`Bytes`].
+    #[hax_lib::requires(start.lift() + len.lift() <= self.0.len().lift() && beg.lift() + len.lift() <= other.0.len().lift())]
+    #[hax_lib::ensures(|result| result.0.len() == self.0.len())]
     pub(crate) fn update_slice(
         &self,
         start: usize,
@@ -526,11 +561,12 @@ impl Bytes {
         beg: usize,
         len: usize,
     ) -> Bytes {
-        let mut res = self.clone();
+        let mut res = self.0.clone();
         for i in 0..len {
-            res[start + i] = other[beg + i];
+            hax_lib::loop_invariant!(|_: usize| res.len() == self.0.len());
+            res[start + i] = other.0[beg + i];
         }
-        res
+        Bytes(res)
     }
 }
 
@@ -583,6 +619,7 @@ pub(crate) fn check(b: bool) -> Result<(), TLSError> {
 }
 
 /// Test if [Bytes] `b1` and `b2` have the same value.
+#[hax_lib::ensures(|result| result == (b1 == b2))]
 pub(crate) fn eq1(b1: U8, b2: U8) -> bool {
     b1.declassify() == b2.declassify()
 }
@@ -604,15 +641,27 @@ pub(crate) fn check_eq1(b1: U8, b2: U8) -> Result<(), TLSError> {
 // TODO: This function should short-circuit once hax supports returns within loops
 /// Check if [U8] slices `b1` and `b2` are of the same
 /// length and agree on all positions.
+#[hax_lib::ensures(|result| hax_lib::implies(result, b1 == b2))]
 pub(crate) fn eq_slice(b1: &[U8], b2: &[U8]) -> bool {
     if b1.len() != b2.len() {
         false
     } else {
         let mut b: bool = true;
         for i in 0..b1.len() {
+            hax_lib::loop_invariant!(|i: usize| hax_lib::implies(
+                b,
+                hax_lib::forall(|j: usize| hax_lib::implies(j < i, b1[j] == b2[j]))
+            ));
             if !eq1(b1[i], b2[i]) {
                 b = false;
             };
+        }
+        if b {
+            hax_lib::fstar!(
+                "introduce forall (k: nat{k < Seq.length $b1 }). Seq.index $b1 k == Seq.index $b2 k
+                 with assert ($b1 .[ mk_usize k ] == $b2 .[ mk_usize k ]);
+                 Seq.lemma_eq_intro $b1 $b2"
+            );
         }
         b
     }
@@ -628,6 +677,9 @@ pub fn eq(b1: &Bytes, b2: &Bytes) -> bool {
 /// Parse function to check if two slices `b1` and `b2` are of the same
 /// length and agree on all positions, returning a [TLSError] otherwise.
 #[inline(always)]
+#[hax_lib::ensures(|result| match result {
+    Ok(_) => b1 == b2,
+    _ => true })]
 pub(crate) fn check_eq_slice(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
     let b = eq_slice(b1, b2);
     if b {
@@ -691,7 +743,7 @@ pub(crate) fn check_eq_option(b1: &Option<Bytes>, b2: &Option<Bytes>) -> Result<
 /// Returns `Ok(())` when they are equal, and a [`TLSError`] otherwise.
 pub(crate) fn check_mem(b1: &[U8], b2: &[U8]) -> Result<(), TLSError> {
     #[allow(clippy::manual_is_multiple_of)]
-    if b2.len() % b1.len() != 0 {
+    if b1.is_empty() || b2.len() % b1.len() != 0 {
         Err(parse_failed())
     } else {
         let mut b = false;
@@ -972,6 +1024,7 @@ impl From<Bytes> for AppData {
     }
 }
 
+#[hax_lib::exclude]
 pub fn random_bytes(len: usize) -> Bytes {
     (0..len)
         .map(|_| rand::random::<u8>())

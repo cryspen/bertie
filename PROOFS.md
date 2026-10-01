@@ -158,8 +158,10 @@ panic freedom on all possible inputs. This means that even in the
 presence of an attacker sending Bertie malformed messages, the verified
 code will never create a panic. Functions marked
 `hax_lib::fstar::verification_status(lax)` in the Rust source are not
-verified, and the `tls13crypto` and `tls13utils` modules are extracted
-as interfaces only, so their contracts are assumed. Of course, there is other
+verified, and the `tls13crypto` module is extracted as an interface
+only, so its contracts are assumed. Growing a `Bytes` value assumes that
+the new length fits in `usize` (`assume_no_alloc_overflow` in
+`src/tls13utils.rs`); in Rust, the allocation fails first. Of course, there is other
 code outside the verification boundary that may yet panic and we intend
 to expand the scope of our verification ocer time.
 

@@ -710,7 +710,7 @@ pub(crate) fn set_client_hello_binder(
     let hlen = ciphersuite.hash().hash_len();
     match (binder, trunc_len) {
         (Some(m), Some(trunc_len)) => {
-            if chlen - trunc_len == hlen + 3 {
+            if chlen - trunc_len == hlen + 3 && m.len() == hlen {
                 Ok(HandshakeData(ch.update_slice(trunc_len + 3, m, 0, hlen)))
             } else {
                 tlserr(parse_failed())

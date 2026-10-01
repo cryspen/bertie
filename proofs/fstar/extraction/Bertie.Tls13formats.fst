@@ -1112,7 +1112,9 @@ let set_client_hello_binder
     (Core_models.Option.t_Option Bertie.Tls13utils.t_Bytes & Core_models.Option.t_Option usize)
   with
   | Core_models.Option.Option_Some m, Core_models.Option.Option_Some trunc_len ->
-    if (chlen -! trunc_len <: usize) =. (hlen +! mk_usize 3 <: usize)
+    if
+      (chlen -! trunc_len <: usize) =. (hlen +! mk_usize 3 <: usize) &&
+      (Bertie.Tls13utils.impl_Bytes__len m <: usize) =. hlen
     then
       Core_models.Result.Result_Ok
       (Bertie.Tls13formats.Handshake_data.HandshakeData
