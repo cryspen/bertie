@@ -1,3 +1,5 @@
 .depend
 depend.graph
 dep.graph
+.cache/
+.hints/
