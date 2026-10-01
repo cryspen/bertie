@@ -18,6 +18,9 @@
 #[cfg(feature = "hax-pv")]
 use hax_lib::{proverif, pv_constructor};
 
+#[allow(unused_imports)]
+use hax_lib::Abstraction;
+
 #[cfg(not(feature = "secret_integers"))]
 use crate::tls13utils::Declassify;
 use crate::{
@@ -374,7 +377,7 @@ pub(crate) fn verification_key_from_cert(cert: &Bytes) -> Result<Spki, Asn1Error
 
 /// Read the EC PK from the cert as uncompressed point.
 #[hax_lib::pv_constructor]
-#[hax_lib::requires(fstar!(r#"v indices._1 > 0 && Seq.length cert._0 >= v indices._0 + v indices._1"#))]
+#[hax_lib::requires(indices.1 > 0 && cert.len().lift() >= indices.0.lift() + indices.1.lift())]
 pub(crate) fn ecdsa_public_key(
     cert: &Bytes,
     indices: CertificateKey,

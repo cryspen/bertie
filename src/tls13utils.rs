@@ -3,6 +3,9 @@ use core::ops::Range;
 #[cfg(feature = "hax-fstar")]
 use hax_lib::{attributes, requires};
 
+#[allow(unused_imports)]
+use hax_lib::Abstraction;
+
 use crate::std::{format, string::String, vec, vec::Vec};
 
 // FIXME: NOT HACSPEC | ONLY FOR DEBUGGING
@@ -48,7 +51,7 @@ pub(crate) fn error_string(c: u8) -> String {
 }
 
 #[cfg(not(test))]
-#[hax_lib::ensures(|result| fstar!("not (Core.Result.Result_Ok? result)"))]
+#[hax_lib::ensures(|result| result.is_err())]
 pub(crate) fn tlserr<T>(err: TLSError) -> Result<T, TLSError> {
     Err(err)
 }
@@ -248,7 +251,7 @@ impl Bytes {
 
     /// Get a reference to the raw bytes.
     #[allow(dead_code)]
-    #[hax_lib::ensures(|result| fstar!(r#"Seq.length result == Seq.length self._0"#))]
+    #[hax_lib::ensures(|result| result.len() == self.0.len())]
     pub(crate) fn as_raw(&self) -> &[U8] {
         &self.0
     }
@@ -367,7 +370,7 @@ impl core::ops::Index<usize> for Bytes {
 let update_at_usize_bytes: Rust_primitives.Hax.update_at_tc t_Bytes usize =
    {
      super_index = impl_21;
-     update_at = fun s (i:usize{v i < Seq.length s._0}) x -> Bytes (Seq.upd s._0 (v i) x)
+     update_at = fun s i x -> Bytes (Alloc.Vec.from_seq (Seq.upd s._0._0 (v i) x))
    }"
 )]
 fn _update_at_usize_bytes_test(b: &mut Bytes) {
@@ -394,7 +397,7 @@ mod non_hax {
 #[hax_lib::attributes]
 impl core::ops::Index<Range<usize>> for Bytes {
     type Output = [U8];
-    #[requires(x.start <= self.0.len() && x.end <= self.0.len())]
+    #[requires(x.start <= x.end && x.end <= self.0.len())]
     #[hax_lib::ensures(|result| if x.end >= x.start {result.len() == x.end - x.start} else {result.len() == 0})]
     fn index(&self, x: Range<usize>) -> &[U8] {
         &self.0[x]
@@ -422,20 +425,20 @@ impl Bytes {
     }
 
     /// Create new [`Bytes`].
-    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == 0"))]
+    #[hax_lib::ensures(|result| result.0.len() == 0)]
     pub(crate) fn new_alloc(len: usize) -> Bytes {
         Bytes(Vec::with_capacity(len))
     }
 
     /// Generate `len` bytes of `0`.
     #[hax_lib::pv_constructor]
-    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == v len"))]
+    #[hax_lib::ensures(|result| result.0.len() == len)]
     pub(crate) fn zeroes(len: usize) -> Bytes {
         Bytes(vec![U8(0); len])
     }
 
     /// Get the length of these [`Bytes`].
-    #[hax_lib::ensures(|result| fstar!("v result == Seq.length self._0"))]
+    #[hax_lib::ensures(|result| result == self.0.len())]
     pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
@@ -451,7 +454,7 @@ impl Bytes {
     }
 
     /// Extend `self` with the bytes `x`.
-    #[hax_lib::ensures(|_| fstar!("Seq.length self_e_future._0 == Seq.length self._0 + Seq.length x._0"))]
+    #[hax_lib::ensures(|_| future(self).0.len().lift() == self.0.len().lift() + x.0.len().lift())]
     pub(crate) fn append(&mut self, mut x: Bytes) {
         self.0.append(&mut x.0)
     }
@@ -482,28 +485,28 @@ impl Bytes {
     }
 
     /// Get a slice of the given `range`.
-    #[hax_lib::requires(fstar!(r#"v ${range.start} <= Seq.length self._0 && v ${range.end} <= Seq.length self._0"#))]
+    #[hax_lib::requires(range.start <= self.0.len() && range.end <= self.0.len())]
     #[hax_lib::ensures(|result| if range.end >= range.start {result.len() == range.end - range.start} else {result.len() == 0})]
     pub(crate) fn raw_slice(&self, range: Range<usize>) -> &[U8] {
         &self.0[range]
     }
 
     /// Get a new copy of the given `range` as [`Bytes`].
-    #[hax_lib::requires(fstar!(r#"v ${range.start} <= Seq.length self._0 && v ${range.end} <= Seq.length self._0"#))]
+    #[hax_lib::requires(range.start <= self.0.len() && range.end <= self.0.len())]
     #[hax_lib::ensures(|result| if range.end >= range.start {result.0.len() == range.end - range.start} else {result.0.len() == 0})]
     pub(crate) fn slice_range(&self, range: Range<usize>) -> Bytes {
         self.0[range].into()
     }
 
     /// Get a new copy of the given range `[start..start+len]` as [`Bytes`].
-    #[hax_lib::requires(fstar!(r#"v $start <= Seq.length self._0 && v $start + v len <= Seq.length self._0"#))]
+    #[hax_lib::requires(start.lift() <= self.0.len().lift() && start.lift() + len.lift() <= self.0.len().lift())]
     #[hax_lib::ensures(|result| result.0.len() == len)]
     pub(crate) fn slice(&self, start: usize, len: usize) -> Bytes {
         self.0[start..start + len].into()
     }
 
     /// Concatenate `other` with these bytes and return a copy as [`Bytes`].
-    #[hax_lib::ensures(|result| fstar!("Seq.length result._0 == Seq.length self._0 + Seq.length other._0"))]
+    #[hax_lib::ensures(|result| result.0.len().lift() == self.0.len().lift() + other.0.len().lift())]
     pub fn concat(self, other: Bytes) -> Bytes {
         concat_inner(self, other)
     }
