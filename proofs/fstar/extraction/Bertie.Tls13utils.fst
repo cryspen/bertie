@@ -725,8 +725,8 @@ let length_u24_encoded (bytes: t_Slice u8) =
 
 let check_length_encoding_u8_slice (bytes: t_Slice u8) =
   match length_u8_encoded bytes <: Core_models.Result.t_Result usize u8 with
-  | Core_models.Result.Result_Ok hoist224 ->
-    if (hoist224 +! mk_usize 1 <: usize) <>. (Core_models.Slice.impl__len #u8 bytes <: usize)
+  | Core_models.Result.Result_Ok hoist200 ->
+    if (hoist200 +! mk_usize 1 <: usize) <>. (Core_models.Slice.impl__len #u8 bytes <: usize)
     then
       Core_models.Result.Result_Err (parse_failed ()) <: Core_models.Result.t_Result Prims.unit u8
     else
@@ -739,8 +739,8 @@ let check_length_encoding_u8 (bytes: t_Bytes) =
 
 let check_length_encoding_u16_slice (bytes: t_Slice u8) =
   match length_u16_encoded bytes <: Core_models.Result.t_Result usize u8 with
-  | Core_models.Result.Result_Ok hoist227 ->
-    if (hoist227 +! mk_usize 2 <: usize) <>. (Core_models.Slice.impl__len #u8 bytes <: usize)
+  | Core_models.Result.Result_Ok hoist203 ->
+    if (hoist203 +! mk_usize 2 <: usize) <>. (Core_models.Slice.impl__len #u8 bytes <: usize)
     then
       Core_models.Result.Result_Err (parse_failed ()) <: Core_models.Result.t_Result Prims.unit u8
     else
@@ -753,8 +753,8 @@ let check_length_encoding_u16 (bytes: t_Bytes) =
 
 let check_length_encoding_u24 (bytes: t_Slice u8) =
   match length_u24_encoded bytes <: Core_models.Result.t_Result usize u8 with
-  | Core_models.Result.Result_Ok hoist230 ->
-    if (hoist230 +! mk_usize 3 <: usize) <>. (Core_models.Slice.impl__len #u8 bytes <: usize)
+  | Core_models.Result.Result_Ok hoist206 ->
+    if (hoist206 +! mk_usize 3 <: usize) <>. (Core_models.Slice.impl__len #u8 bytes <: usize)
     then
       Core_models.Result.Result_Err (parse_failed ()) <: Core_models.Result.t_Result Prims.unit u8
     else

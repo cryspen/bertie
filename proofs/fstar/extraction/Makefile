@@ -33,7 +33,6 @@ WORKSPACE_ROOT ?= $(shell git rev-parse --show-toplevel)/..
 HAX_HOME            ?= $(WORKSPACE_ROOT)/hax
 HAX_PROOF_LIBS_HOME ?= $(HAX_HOME)/proof-libs/fstar
 HAX_LIBS_HOME       ?= $(HAX_HOME)/hax-lib/proofs/fstar/extraction
-LIBCRUX_MODELS_HOME ?= ../libcrux-models
 
 FSTAR_HOME    ?= $(WORKSPACE_ROOT)/FStar
 FSTAR_BIN     ?= $(shell command -v fstar.exe 1>&2 2> /dev/null && echo "fstar.exe" || echo "$(FSTAR_HOME)/bin/fstar.exe")
@@ -53,7 +52,7 @@ ROOTS = $(wildcard *.fst)
 
 
 
-FSTAR_INCLUDE_DIRS = $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME) $(LIBCRUX_MODELS_HOME)
+FSTAR_INCLUDE_DIRS = $(HAX_PROOF_LIBS_HOME)/rust_primitives $(HAX_PROOF_LIBS_HOME)/core $(HAX_LIBS_HOME)
 
 FSTAR_FLAGS = --cmi \
   --warn_error -331 \

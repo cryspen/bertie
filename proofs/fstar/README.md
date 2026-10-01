@@ -15,5 +15,3 @@ and typecheck it with
 
 Proof annotations live in the Rust source as `hax_lib` attributes, so
 `extraction` is never edited by hand.
-
-`libcrux-models` holds the F* interfaces assumed for the libcrux primitives.
