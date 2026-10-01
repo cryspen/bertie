@@ -779,7 +779,7 @@ fn libcrux_rsa_pss_sign(
     rng.fill_bytes(&mut salt);
     let sk = libcrux_rsa::VarLenPrivateKey::from_components(modulus, sk)
         .map_err(|_| INCORRECT_ARRAY_LENGTH)?;
-    let mut signature = [0u8; 512];
+    let mut signature = vec![0u8; modulus.len()];
     libcrux_rsa::sign_varlen(
         libcrux_rsa::DigestAlgorithm::Sha2_256,
         &sk,
@@ -788,7 +788,7 @@ fn libcrux_rsa_pss_sign(
         &mut signature,
     )
     .map_err(|_| CRYPTO_ERROR)?;
-    Ok(signature.to_vec())
+    Ok(signature)
 }
 
 /// RSA-PSS with SHA-256 and a 32-byte salt. `modulus` excludes the leading
@@ -1223,6 +1223,42 @@ mod tests {
         for len in [0, 1, 15] {
             let cip: Bytes = vec![U8(0); len].into();
             assert!(aead_decrypt(&key, &iv, &cip, &Bytes::new()).is_err());
+        }
+    }
+
+    #[test]
+    fn rsa_pss_signature_has_modulus_length() {
+        let mut rng = rand::rng();
+        let input: Bytes = vec![U8(1); 32].into();
+        for (cert, key, modulus_len) in [
+            (
+                "tests/assets/rsa2048_cert.der",
+                "tests/assets/rsa2048_key.der",
+                256,
+            ),
+            ("tests/assets/rsa_cert.der", "tests/assets/rsa_key.der", 512),
+        ] {
+            let cert: Bytes = std::fs::read(cert).unwrap().into();
+            let key: Bytes = std::fs::read(key).unwrap().into();
+            let spki = crate::tls13cert::verification_key_from_cert(&cert).unwrap();
+            let PublicVerificationKey::Rsa(pk) =
+                crate::tls13cert::cert_public_key(&cert, &spki).unwrap()
+            else {
+                panic!("not an RSA certificate");
+            };
+            let sk = crate::tls13cert::rsa_private_key(&key).unwrap();
+            let sig = sign_rsa(
+                &sk,
+                &pk.modulus,
+                &pk.exponent,
+                SignatureScheme::RsaPssRsaSha256,
+                &input,
+                &mut rng,
+            )
+            .unwrap();
+            assert_eq!(sig.len(), modulus_len);
+            let pk = PublicVerificationKey::Rsa(pk);
+            assert!(verify(&SignatureScheme::RsaPssRsaSha256, &pk, &input, &sig).is_ok());
         }
     }
 
