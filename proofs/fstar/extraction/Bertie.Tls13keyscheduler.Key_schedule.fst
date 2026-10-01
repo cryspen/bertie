@@ -41,7 +41,7 @@ let hkdf_expand_label
       <:
       Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
     with
-    | Core_models.Result.Result_Ok hoist130 ->
+    | Core_models.Result.Result_Ok hoist131 ->
       (match
           Bertie.Tls13utils.encode_length_u8 (Bertie.Tls13utils.impl_Bytes__as_raw context
               <:
@@ -49,10 +49,10 @@ let hkdf_expand_label
           <:
           Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
         with
-        | Core_models.Result.Result_Ok hoist129 ->
+        | Core_models.Result.Result_Ok hoist130 ->
           let info:Bertie.Tls13utils.t_Bytes =
-            Bertie.Tls13utils.impl_Bytes__prefix (Bertie.Tls13utils.impl_Bytes__concat hoist130
-                  hoist129
+            Bertie.Tls13utils.impl_Bytes__prefix (Bertie.Tls13utils.impl_Bytes__concat hoist131
+                  hoist130
                 <:
                 Bertie.Tls13utils.t_Bytes)
               (lenb <: t_Slice u8)
@@ -860,7 +860,21 @@ let xpd_alg (alg: Bertie.Tls13crypto.t_HashAlgorithm) (k1 label d: Bertie.Tls13u
     (Core_models.Option.Option_Some (Label_e__e__e__e__e__e__ <: t_Label)
       <:
       Core_models.Option.t_Option t_Label)
-  then Bertie.Tls13crypto.hmac_tag alg k1 d
+  then
+    match
+      hkdf_expand_label alg
+        k1
+        (Bertie.Tls13utils.bytes (Bertie.Tls13formats.v_LABEL_FINISHED <: t_Slice u8)
+          <:
+          Bertie.Tls13utils.t_Bytes)
+        (Bertie.Tls13utils.impl_Bytes__new () <: Bertie.Tls13utils.t_Bytes)
+        (Bertie.Tls13crypto.impl_HashAlgorithm__hmac_tag_len alg <: usize)
+      <:
+      Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
+    with
+    | Core_models.Result.Result_Ok finished_key -> Bertie.Tls13crypto.hmac_tag alg finished_key d
+    | Core_models.Result.Result_Err err ->
+      Core_models.Result.Result_Err err <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8
   else
     hkdf_expand_label alg k1 label d (Bertie.Tls13crypto.impl_HashAlgorithm__hash_len alg <: usize)
 
@@ -984,9 +998,9 @@ let get_by_handle (ks: t_TLSkeyscheduler) (handle: t_Handle) =
 
 let tagkey_from_handle (ks: t_TLSkeyscheduler) (handle: t_Handle) =
   match get_by_handle ks handle <: Core_models.Result.t_Result Bertie.Tls13utils.t_Bytes u8 with
-  | Core_models.Result.Result_Ok hoist134 ->
+  | Core_models.Result.Result_Ok hoist135 ->
     Core_models.Result.Result_Ok
-    ({ f_alg = handle.f_alg; f_tag = handle.f_name; f_val = hoist134 } <: t_TagKey)
+    ({ f_alg = handle.f_alg; f_tag = handle.f_name; f_val = hoist135 } <: t_TagKey)
     <:
     Core_models.Result.t_Result t_TagKey u8
   | Core_models.Result.Result_Err err ->

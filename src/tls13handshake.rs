@@ -590,10 +590,11 @@ fn process_psk_binder_zero_rtt(
             set_by_handle(ks, &psk_handle, k.clone());
 
             let mk_handle = derive_binder_key(&ciphersuite.hash, &psk_handle, ks)?;
-            let mk = tagkey_from_handle(ks, &mk_handle)?.val;
-
-            XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
-            hmac_verify(&ciphersuite.hash, &mk, &th_trunc, &binder)?;
+            let binder_handle = XPD(ks, Binder, 0, &mk_handle, true, &th_trunc)?;
+            let expected_binder = tagkey_from_handle(ks, &binder_handle)?.val;
+            if !eq(&expected_binder, &binder) {
+                return tlserr(CRYPTO_ERROR);
+            }
             if ciphersuite.zero_rtt {
                 let (key_iv, early_exporter_ms_handle) =
                     derive_0rtt_keys(&ciphersuite.hash, &ciphersuite.aead, &psk_handle, &th, ks)?;
