@@ -18,7 +18,6 @@ use bertie::{
         // SHA384_Aes256Gcm_RsaPssRsaSha256_X25519,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_P256,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
-        SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00,
         SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768,
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
         SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
@@ -63,7 +62,7 @@ macro_rules! measure {
     };
 }
 
-const CIPHERSUITES: [Algorithms; 6] = [
+const CIPHERSUITES: [Algorithms; 5] = [
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_P256,
     // SHA256_Aes128Gcm_EcdsaSecp256r1Sha256_X25519,
     // SHA256_Aes128Gcm_RsaPssRsaSha256_P256,
@@ -72,7 +71,6 @@ const CIPHERSUITES: [Algorithms; 6] = [
     SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519,
     SHA256_Chacha20Poly1305_RsaPssRsaSha256_P256,
     SHA256_Chacha20Poly1305_RsaPssRsaSha256_X25519,
-    SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00,
     SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519MlKem768,
     // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_P256,
     // SHA384_Aes256Gcm_EcdsaSecp256r1Sha256_X25519,

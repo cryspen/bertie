@@ -9,7 +9,6 @@ let _ =
   let open Bertie.Tls13utils in
   let open Libcrux_ecdsa.P256.Conversions in
   let open Libcrux_rsa.Impl_hacl in
-  let open Rand.Rng in
   let open Rand_core in
   ()
 
@@ -271,7 +270,6 @@ type t_KemScheme =
   | KemScheme_X448 : t_KemScheme
   | KemScheme_Secp384r1 : t_KemScheme
   | KemScheme_Secp521r1 : t_KemScheme
-  | KemScheme_X25519Kyber768Draft00 : t_KemScheme
   | KemScheme_X25519MlKem768 : t_KemScheme
 
 val t_KemScheme_cast_to_repr (x: t_KemScheme)
@@ -481,18 +479,6 @@ let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519: t_Algorithms =
     (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
     (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
     (KemScheme_X25519 <: t_KemScheme)
-    false
-    false
-
-/// `TLS_CHACHA20_POLY1305_SHA256`
-/// with
-/// * X25519Kyber768Draft00 for key exchange (cf. https://www.ietf.org/archive/id/draft-tls-westerbaan-xyber768d00-02.html)
-/// * EcDSA P256 SHA256 for signatures
-let v_SHA256_Chacha20Poly1305_EcdsaSecp256r1Sha256_X25519Kyber768Draft00: t_Algorithms =
-  impl_Algorithms__new (HashAlgorithm_SHA256 <: t_HashAlgorithm)
-    (AeadAlgorithm_Chacha20Poly1305 <: t_AeadAlgorithm)
-    (SignatureScheme_EcdsaSecp256r1Sha256 <: t_SignatureScheme)
-    (KemScheme_X25519Kyber768Draft00 <: t_KemScheme)
     false
     false
 

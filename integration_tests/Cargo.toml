@@ -7,8 +7,7 @@ edition = "2021"
 
 [dependencies]
 bertie = { version = "0.1.0-pre.2", path = ".." }
-libcrux-platform = { git = "https://github.com/cryspen/libcrux" }
 tracing-subscriber = "0.3"
 
 [dev-dependencies]
-rand = "0.9"
+rand = "0.10"
