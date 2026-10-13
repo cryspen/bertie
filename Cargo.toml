@@ -20,7 +20,7 @@ tracing = "0.1"
 libcrux-kem = { version = "0.0.2", features = ["kyber"] }
 libcrux-sha2 = { version = "0.0.3-alpha.1" }
 libcrux-hmac = { version = "0.0.3-alpha.1" }
-libcrux-hkdf = { version = "0.0.3-alpha.1" }
+libcrux-hkdf = { version = "0.0.6" }
 libcrux-chacha20poly1305 = { version = "0.0.2" }
 libcrux-rsa = { version = "0.0.2" }
 libcrux-ed25519 = { version = "0.0.3-alpha.1" }
