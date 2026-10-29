@@ -193,6 +193,7 @@ elif options.sub == "extract-proverif":
                     "+!**::tls13formats::handshake_data::to_two_inner",
                     "+!**::tls13formats::handshake_data::to_four_inner",
                     "+!**::tls13crypto::hash",
+                    "+**::tls13crypto::verify",
                     "+~**::tls13keyscheduler::derive_hk_ms",
                     "+~**::tls13keyscheduler::derive_finished_key",
                     "+~**::tls13keyscheduler::derive_hk_handles",
@@ -203,7 +204,7 @@ elif options.sub == "extract-proverif":
                     "+!**::tls13record::decrypt_handshake"
                 ]
             ),
-            "pro-verif",
+            "proverif",
         ],
         cwd=".",
         env=hax_env,
@@ -220,19 +221,7 @@ elif options.sub == "typecheck":
     shell(["make", "-C", "proofs/fstar/extraction/"], env=custom_env)
     exit(0)
 elif options.sub == "typecheck-proverif":
-    # Typecheck subcommand.
-    custom_env = {}
-    shell(
-        [
-            "proverif",
-            "-lib",
-            "proofs/proverif/handwritten_lib",
-            "-lib",
-            "proofs/proverif/extraction/lib",
-            "proofs/proverif/extraction/analysis.pv",
-        ],
-        env=custom_env,
-    )
+    shell(["bash", "proofs/proverif/check-pv.sh"])
     exit(0)
 else:
     parser.print_help()

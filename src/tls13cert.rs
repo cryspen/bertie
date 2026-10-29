@@ -320,37 +320,29 @@ fn read_spki(cert: &Bytes, mut offset: usize) -> Result<Spki, Asn1Error> {
 /// Returns the start offset within the `cert` bytes and length of the key.
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before(
-        "
-
-"
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
     proverif::replace(
         "
 (* This is a private constructor, so the attacker can't create their own certificate for a given server name. *)
-fun extern__certificate(
-            $:{Bytes}, (* server name *)
-            $:{SignatureScheme},
-            $:{PublicVerificationKey}
+fun model__certificate(
+            bitstring, (* server name *)
+            bitstring,
+            bitstring
         )
-        : $:{Bytes} [private].
+        : bitstring [private].
 
 (* If we have a certificate created using the constructor above, proceed. Otherwise this blocks. *)
-reduc forall 
-            server_name: $:{Bytes}, (* server name *)
-            alg:         $:{SignatureScheme},
-            vk:          $:{PublicVerificationKey};
+reduc forall
+            server_name: bitstring, (* server name *)
+            alg:         bitstring,
+            vk:          bitstring;
 
-    ${verification_key_from_cert}(
-            extern__certificate(
+    bertie__tls13cert__verification_key_from_cert(
+            model__certificate(
                server_name,
                alg,
                vk
             )
-    ) = extern__certificate(
+    ) = model__certificate(
                server_name,
                alg,
                vk
@@ -469,14 +461,14 @@ pub(crate) fn rsa_private_key(key: &Bytes) -> Result<Bytes, Asn1Error> {
     feature = "hax-pv",
     proverif::replace(
         "(* If we have a certificate created using the private constructor above, return vk. Otherwise this blocks. *)
-reduc forall 
-            server_name: $:{Bytes}, (* server name *)
-            alg:         $:{SignatureScheme},
-            vk:          $:{PublicVerificationKey},
-            spki:        $:{Bytes};
+reduc forall
+            server_name: bitstring, (* server name *)
+            alg:         bitstring,
+            vk:          bitstring,
+            spki:        bitstring;
 
-    ${cert_public_key}(
-            extern__certificate(
+    bertie__tls13cert__cert_public_key(
+            model__certificate(
                server_name,
                alg,
                vk

@@ -1,13 +1,19 @@
-(* The terms defined in this file can not be extracted by hax at the
-moment, thus we provide them here.*)
+(*****************************************************************)
+(*  Bertie — handwritten ProVerif declarations                     *)
+(*                                                                 *)
+(* Symbols that the verbatim ProVerif bodies in src/** refer to    *)
+(* before any extracted item declares them. Loaded after           *)
+(* primitives.pvl, result.pvl and cryptolib.pvl, before lib.pvl.   *)
+(*****************************************************************)
 
-type impl_CryptoRng.
-
-type std__collections__hash__map__t_HashMap_of_bitstring_bertie__tls13utils__t_Bytes_std__hash__random__t_RandomState.
-
-letfun rand_core__f_fill_bytes(rng: impl_CryptoRng, dest: bitstring) = new b: bitstring; (rng, b).
-
-fun rust_primitives__hax__repeat(nat, nat): bitstring.
-
-letfun core__ops__bit__f_not(b: bool) = if b then false else true.
-letfun core__cmp__f_ge(lhs: nat, rhs:nat ) = lhs >= rhs.
+(* The ClientHello message, as built by `client_hello` and taken apart by     *)
+(* `set_client_hello_binder` and `parse_client_hello`.                        *)
+fun model__client_hello_c(
+      bitstring, (* client_randomness *)
+      bitstring, (* session_id *)
+      bitstring, (* server name / sni *)
+      bitstring, (* kem_pk / gx *)
+      bitstring, (* tkto *)
+      bitstring, (* binder *)
+      bitstring) (* trunc_len *)
+      : bitstring [data].

@@ -549,19 +549,18 @@ fn get_psk_extensions(
 }
 
 /// Build a ClientHello message.
-
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace_body(
-        "(extern__client_hello_c(
+        "rust_primitives__hax__Tuple2__Tuple2(model__client_hello_c(
          client_random,
-         $:{Bytes}_default(),
+         bitstring_default(),
          server_name,
          kem_pk,
          session_ticket,
          None(),
-         0),
-     0)"
+         nat_0),
+     nat_0)"
     )
 )]
 #[hax_lib::requires(client_random.len() == 32)]
@@ -648,23 +647,9 @@ pub(crate) fn client_hello(
 
 #[cfg_attr(
     feature = "hax-pv",
-    proverif::before(
-        "fun extern__client_hello_c(
-      $:{Bytes}, (* client_randomness *)
-      $:{Bytes}, (* session_id *)
-      $:{Bytes}, (*server name /sni*)
-      $:{Bytes}, (*kem_pk / gx*)
-      Option, (*tkto*)
-      Option, (*bindero*)
-      nat) (*trunc_len*)
-      : $:{HandshakeData} [data]."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
     proverif::replace_body(
         "
-       let extern__client_hello_c(client_randomness,
+       let model__client_hello_c(client_randomness,
                                   session_id,
                                   server_name,
                                   kem_pk,
@@ -672,13 +657,13 @@ pub(crate) fn client_hello(
                                   old_binder,
                                   old_trunc_len)
         = client_hello in
-          extern__client_hello_c(client_randomness,
+          model__client_hello_c(client_randomness,
                                   session_id,
                                   server_name,
                                   kem_pk,
                                   tkto,
                                   binder,
-                                  0)"
+                                  nat_0)"
     )
 )]
 #[hax_lib::requires(match trunc_len {
@@ -735,33 +720,34 @@ pub fn bench_parse_client_hello(
     feature = "hax-pv",
     proverif::replace(
         "
-fun ${parse_client_hello}(
-  $:{Algorithms},
-  $:{HandshakeData})
-: bitstring
+fun bertie__tls13formats__parse_client_hello(
+  bitstring,
+  bitstring): bitstring
 reduc forall
-      algs:$:{Algorithms},
-      client_random: $:{Bytes},
-      server_name: $:{Bytes},
-      kem_pk: $:{Bytes},
-      session_ticket: Option,
-      binder: Option;
-    ${parse_client_hello}(
+      algs: bitstring,
+      client_random: bitstring,
+      session_id: bitstring,
+      server_name: bitstring,
+      kem_pk: bitstring,
+      session_ticket: bitstring,
+      binder: bitstring,
+      trunc_len: bitstring;
+    bertie__tls13formats__parse_client_hello(
         algs,
-        extern__client_hello_c(client_random,
-                            $:{Bytes}_default_value,
+        model__client_hello_c(client_random,
+                            session_id,
                             server_name,
                             kem_pk,
                             session_ticket,
                             binder,
-                            0))
-           = (client_random,
-                            $:{Bytes}_default_value,
+                            trunc_len))
+           = rust_primitives__hax__Tuple7__Tuple7(client_random,
+                            session_id,
                             server_name,
                             kem_pk,
                             session_ticket,
                             binder,
-                            0)."
+                            trunc_len)."
     )
 )]
 #[hax_lib::ensures(|result| match result {
@@ -947,28 +933,9 @@ pub fn bench_parse_server_hello(
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "(* marked as constructor *)
-fun bertie__tls13formats__server_hello(
-      bertie__tls13crypto__t_Algorithms,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes,
-      bertie__tls13utils__t_Bytes
-    )
-    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-
-
-
-
-        reduc forall
-   algs: $:{Algorithms},
-   server_random: $:{Bytes},
-   sid: $:{Bytes},
-   gy: $:{Bytes};
-
-   ${parse_server_hello}(
-     algs,
-     ${server_hello}(algs, server_random, sid, gy)
-) = (server_random, gy)."
+        "fun bertie__tls13formats__server_hello(bitstring, bitstring, bitstring, bitstring): bitstring [data].
+reduc forall algs: bitstring, server_random: bitstring, sid: bitstring, gy: bitstring;
+   bertie__tls13formats__parse_server_hello(algs, bertie__tls13formats__server_hello(algs, server_random, sid, gy)) = rust_primitives__hax__Tuple2__Tuple2(server_random, gy)."
     )
 )]
 pub(crate) fn parse_server_hello(
@@ -1024,19 +991,9 @@ pub(crate) fn encrypted_extensions(_algs: &Algorithms) -> Result<HandshakeData, 
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
-(* marked as constructor *)
-fun ${encrypted_extensions}(bertie__tls13crypto__t_Algorithms
-    )
-    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-
-
-reduc forall algs: $:{Algorithms};
-
-      ${parse_encrypted_extensions}(
-        algs,
-        ${encrypted_extensions}(algs)
-      ) = ()."
+        "fun bertie__tls13formats__encrypted_extensions(bitstring): bitstring [data].
+reduc forall algs: bitstring;
+   bertie__tls13formats__parse_encrypted_extensions(algs, bertie__tls13formats__encrypted_extensions(algs)) = rust_primitives__hax__Tuple0__Tuple0."
     )
 )]
 pub(crate) fn parse_encrypted_extensions(
@@ -1095,21 +1052,9 @@ pub fn bench_parse_server_certificate(certificate: &HandshakeData) -> Result<Byt
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
-(* marked as constructor *)
-fun bertie__tls13formats__server_certificate(
-      bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
-    )
-    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-
-
-reduc forall
-algs: $:{Algorithms},
-cert: $:{Bytes};
-
-  ${parse_server_certificate}(
-     ${server_certificate}(algs, cert)
-  ) = cert."
+        "fun bertie__tls13formats__server_certificate(bitstring, bitstring): bitstring [data].
+reduc forall algs: bitstring, cert: bitstring;
+   bertie__tls13formats__parse_server_certificate(bertie__tls13formats__server_certificate(algs, cert)) = cert."
     )
 )]
 pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<Bytes, TLSError> {
@@ -1218,21 +1163,9 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
-(* marked as constructor *)
-fun bertie__tls13formats__certificate_verify(
-      bertie__tls13crypto__t_Algorithms, bertie__tls13utils__t_Bytes
-    )
-    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-
-
-reduc forall
-algs: $:{Algorithms},
-cert: $:{Bytes};
-
-      ${parse_certificate_verify}(
-        algs,${certificate_verify}(algs, cert)
-      ) = cert."
+        "fun bertie__tls13formats__certificate_verify(bitstring, bitstring): bitstring [data].
+reduc forall algs: bitstring, cert: bitstring;
+   bertie__tls13formats__parse_certificate_verify(algs, bertie__tls13formats__certificate_verify(algs, cert)) = cert."
     )
 )]
 pub(crate) fn parse_certificate_verify(
@@ -1282,19 +1215,9 @@ pub(crate) fn finished(vd: &Bytes) -> Result<HandshakeData, TLSError> {
 #[cfg_attr(
     feature = "hax-pv",
     proverif::replace(
-        "
-(* marked as constructor *)
-fun bertie__tls13formats__finished(bertie__tls13utils__t_Bytes)
-    : bertie__tls13formats__handshake_data__t_HandshakeData [data].
-
-
-reduc forall
-  vd: $:{Bytes};
-
-   ${parse_finished}(
-     ${finished}(vd)
-) = vd.
-    "
+        "fun bertie__tls13formats__finished(bitstring): bitstring [data].
+reduc forall vd: bitstring;
+   bertie__tls13formats__parse_finished(bertie__tls13formats__finished(vd)) = vd."
     )
 )]
 pub(crate) fn parse_finished(finished: &HandshakeData) -> Result<Bytes, TLSError> {
@@ -1431,16 +1354,16 @@ impl Transcript {
     #[cfg_attr(
         feature = "hax-pv",
         proverif::replace_body(
-            "let bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
-            hash_algorithm: $:{HashAlgorithm},
-            old_handshake_data: $:{HandshakeData}
+            "let bertie__tls13formats__Transcript__Transcript(
+            hash_algorithm: bitstring,
+            old_handshake_data: bitstring
         ) = self in
-    bertie__tls13formats__Transcript(  (* XXX: hand-insert *)
+    bertie__tls13formats__Transcript__Transcript(
         hash_algorithm,
-        ${HandshakeData}(
-            ${handshake_data::to_bytes_inner}(
-                ${HandshakeData::concat}(
-                    ${self.transcript},
+        bertie__tls13formats__handshake_data__HandshakeData__HandshakeData(
+            bertie__tls13formats__handshake_data__to_bytes_inner(
+                rust_primitives__hax__Tuple2__Tuple2(
+                    old_handshake_data,
                     msg
                 )
             )

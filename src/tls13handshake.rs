@@ -686,7 +686,7 @@ fn get_server_hello(
     feature = "hax-pv",
     hax_lib::proverif::replace_body(
         "(
-              extern__sign_inner_rsa(
+              crypto__sign(
                   sk,
                   sigval
                )

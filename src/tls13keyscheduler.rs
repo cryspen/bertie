@@ -29,25 +29,10 @@ pub fn derive_binder_key(
 #[cfg_attr(
     feature = "hax-pv",
     hax_lib::proverif::before(
-        "fun extern__derive_aead_key_iv(
-    $:{HashAlgorithm},
-    $:{AeadAlgorithm},
-    $:{Handle},
-    $:{TLSkeyscheduler}
-         )
-     : $:{AeadKeyIV}."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
+        "fun extern__derive_aead_key_iv(bitstring, bitstring, bitstring, bitstring): bitstring."
+    ),
     hax_lib::proverif::replace_body(
-        "(extern__derive_aead_key_iv(
-            hash_algorithm,
-            aead_algorithm,
-            handle,
-            ks
-          )
-       )"
+        "extern__derive_aead_key_iv(${hash_algorithm}, ${aead_algorithm}, ${handle}, ${ks})"
     )
 )]
 pub(crate) fn derive_aead_key_iv(
@@ -119,25 +104,8 @@ pub(crate) fn derive_0rtt_keys(
 
 #[cfg_attr(
     feature = "hax-pv",
-    hax_lib::proverif::before(
-        "fun extern__derive_finished_key(
-                $:{HashAlgorithm},
-                $:{Handle},
-                $:{TLSkeyscheduler}
-         )
-     : $:{MacKey}."
-    )
-)]
-#[cfg_attr(
-    feature = "hax-pv",
-    hax_lib::proverif::replace_body(
-        "(extern__derive_finished_key(
-              ha,
-              handle,
-              ks
-          )
-       )"
-    )
+    hax_lib::proverif::before("fun extern__derive_finished_key(bitstring, bitstring, bitstring): bitstring."),
+    hax_lib::proverif::replace_body("extern__derive_finished_key(${ha}, ${handle}, ${ks})")
 )]
 pub fn derive_finished_key(
     ha: &HashAlgorithm,
