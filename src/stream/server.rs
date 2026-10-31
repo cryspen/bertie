@@ -236,8 +236,14 @@ impl BertieStream<ServerState<TcpStream>> {
 
     /// Close the connection.
     pub fn close(mut self) -> Result<(), BertieError> {
-        // send a close_notify alert
-        self.write_all(&[21, 03, 03, 00, 02, 1, 00])?;
+        // send a close_notify alert, encrypted once the handshake has completed
+        match self.state.sstate.take() {
+            Some(sstate) => {
+                let alert = sstate.close_notify()?;
+                self.write_all(&alert.declassify())?;
+            }
+            None => self.write_all(&[21, 03, 03, 00, 02, 1, 00])?,
+        }
         Ok(())
     }
 

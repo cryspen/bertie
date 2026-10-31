@@ -305,6 +305,20 @@ pub fn encrypt_data(
     Ok((rec, DuplexCipherState1(ae, kiv, n + 1, x, y, exp)))
 }
 
+/// Encrypt a `close_notify` alert under the sender's application traffic key.
+///
+/// RFC 8446 §6 requires alerts to be encrypted as specified by the current
+/// connection state. The cipher state is consumed: nothing may be sent after
+/// `close_notify`.
+pub(crate) fn encrypt_close_notify(st: DuplexCipherState1) -> Result<Bytes, TLSError> {
+    let DuplexCipherState1(_, kiv, n, _, _, _) = st;
+    let alert = bytes2(
+        AlertLevel::Warning as u8,
+        AlertDescription::CloseNotify as u8,
+    );
+    encrypt_record_payload(&kiv, n, ContentType::Alert, alert, 0)
+}
+
 pub fn decrypt_data_or_hs(
     ciphertext: &Bytes,
     st: DuplexCipherState1,
