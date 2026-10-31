@@ -299,4 +299,17 @@ impl Server {
             _ => Err(INCORRECT_STATE),
         }
     }
+
+    /// Close the connection with an encrypted `close_notify` alert.
+    ///
+    /// The function returns a [`Result`].
+    /// When successful, it returns the alert record to send to the client.
+    /// The server state is consumed, so no further data can be sent.
+    /// If the handshake has not completed, it returns [`INCORRECT_STATE`].
+    pub fn close_notify(self) -> Result<Bytes, TLSError> {
+        match self {
+            Server::Server1(_, cipher1) => encrypt_close_notify(cipher1),
+            _ => Err(INCORRECT_STATE),
+        }
+    }
 }

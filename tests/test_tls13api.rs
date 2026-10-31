@@ -11,7 +11,7 @@ use bertie::{
     tls13crypto::{
         AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, SignatureKey, SignatureScheme,
     },
-    tls13utils::{eq, random_bytes, AppData, Bytes},
+    tls13utils::{eq, random_bytes, AppData, Bytes, PARSE_FAILED},
     Client, Server, TLSkeyscheduler,
 };
 
@@ -206,10 +206,23 @@ fn test_full_round_trip() {
                                         // Send data from server to client.
                                         let data =
                                             Bytes::from(b"Hello client, here is the server.");
-                                        let (ap, _server) =
+                                        let (ap, server) =
                                             server.write(AppData::new(data.clone())).unwrap();
-                                        let (application_data, _cstate) = client.read(&ap).unwrap();
+                                        let (application_data, client) = client.read(&ap).unwrap();
                                         assert!(eq(&data, application_data.unwrap().as_raw()));
+
+                                        // Close with an encrypted close_notify: an
+                                        // application_data record carrying a 2-byte
+                                        // alert, 1 content-type byte and a 16-byte tag.
+                                        let alert = server.close_notify().unwrap().declassify();
+                                        assert_eq!(alert.len(), 5 + 2 + 1 + 16);
+                                        assert_eq!(alert[..5], [23, 3, 3, 0, 19]);
+                                        // The client decrypts it and rejects the alert
+                                        // content type, rather than failing decryption.
+                                        assert_eq!(
+                                            client.read(&alert.into()).err(),
+                                            Some(PARSE_FAILED)
+                                        );
                                     }
                                 }
                             }
