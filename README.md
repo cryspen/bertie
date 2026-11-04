@@ -3,12 +3,12 @@
 [![CI](https://github.com/cryspen/bertie/actions/workflows/ci.yml/badge.svg)](https://github.com/cryspen/bertie/actions/workflows/ci.yml)
 [![Scheduled](https://github.com/cryspen/bertie/actions/workflows/scheduled.yml/badge.svg)](https://github.com/cryspen/bertie/actions/workflows/scheduled.yml)
 
-Bertie is a minimal, high-assurance implementation of TLS 1.3 written in a subset of Rust called [hacspec].
+Bertie is a minimal, high-assurance implementation of TLS 1.3 written in a verification-friendly subset of Rust and extracted with [hax] to [F*], ProVerif and SSProve (see [PROOFS.md](PROOFS.md)).
 
 It is built upon the following design principles:
 
 1) **Purely functional**: no mutable data structures or externally visible side-effects.
-2) **Verification friendly**: written in hacspec and translates to [F*].
+2) **Verification friendly**: written in a verification-friendly subset of Rust and extracted with [hax] to [F*], ProVerif and SSProve.
 3) **Succinct and minimal**: configured with a single protocol version and cipher suite.
 
 Karthikeyan Bhargavan first authored Bertie at Inria in 2021 and transferred it to [Cryspen] in 2022.
@@ -35,20 +35,16 @@ If you are looking for commercial support for Bertie, please [reach out to Cryps
 
 Note: You do not need to do any of this when you just want to build and run Bertie. This is only if you intend to *work* on Bertie, i.e., change its core and contribute the changes to the project.
 
-Keep in mind that Bertie is written in [hacspec] -- a more "restrictive" version of Rust that lends itself to formal verification.
-Working on Bertie feels a lot like working on a typical Rust crate but all code needs to be valid according to hacspec.
+Keep in mind that Bertie is written in a verification-friendly subset of Rust and extracted with [hax].
+Working on Bertie feels a lot like working on a typical Rust crate but all core code needs to be extractable by hax.
 Thus, you may also find that some code is "unusual" compared to vanilla Rust.
 
-But no worries!
-There is a Cargo plugin to verify that everything is valid according to hacspec.
-Just follow the instructions on the [hacspec] website to install it.
-Then, set a [rustup override](https://rust-lang.github.io/rustup/overrides.html) to the channel currently used in the [hacspec repository](https://github.com/hacspec/hacspec/blob/master/rust-toolchain), i.e., ...
+Install hax following its [installation instructions](https://github.com/cryspen/hax?tab=readme-ov-file#installation), then see [PROOFS.md](PROOFS.md) for the proof toolchains and verification commands.
+To regenerate the F* extraction, run:
 
 ```sh
-rustup override set <channel>
+./hax-driver.py extract-fstar
 ```
-
-You can then `cargo clean`, `cargo build`, and `cargo hacspec` to verify that your changes conform to the hacspec specification.
 
 ### CONTRIBUTING
 
@@ -60,12 +56,18 @@ Before contributing, please have a look at the [contributing guidelines] and the
 
 * `.github` contains the configuration for GitHub Actions CI.
 * `assets` contains non-code files that are used in the Bertie project.
+* `benches` contains client, client stack and server benchmarks.
 * `bogo_shim` contains the BoGo shim application that is used for testing against BoringSSL's test runner.
+* `hax-driver.py` drives proof extraction and verification.
+* `integration_tests` contains client/server self-tests across TLS algorithm configurations.
+* `proofs` contains F*, ProVerif and SSProve proof artifacts.
 * `record` is a crate that provides common functionality used in `simple_https_client` and `simple_https_server`.
 * `simple_https_client` is an example crate that implements a Bertie HTTPS client.
 * `simple_https_server` is an example crate that implements a Bertie HTTPS server.
-* `src` contains the Bertie source code (that must be valid according to hacspec.)
-* `tests` contains all tests.
+* `src` contains the Bertie source code (must be extractable by hax).
+* `test_certs` contains certificates and keys used by tests.
+* `tests` contains integration tests and Wycheproof vectors.
+* `util` contains certificate collection and top-site testing scripts and domain lists.
 
 ### PUBLICATIONS
 
@@ -88,6 +90,7 @@ The Bertie project is supported by [Inria] and the [nlnet foundation].
 [project tasks]: https://github.com/orgs/cryspen/projects/2/views/2
 [code of conduct]: CODE_OF_CONDUCT.md
 [contributing guidelines]: CONTRIBUTING.md
+[hax]: https://github.com/cryspen/hax
 [hacspec]: https://github.com/hacspec/hacspec
 [F*]: https://www.fstar-lang.org/
 [Cryspen]: https://www.cryspen.com/
