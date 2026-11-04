@@ -37,6 +37,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc as std;
 
+mod der;
 mod tls13formats;
 mod tls13handshake;
 mod tls13keyscheduler;
