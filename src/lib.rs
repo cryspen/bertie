@@ -61,6 +61,8 @@ pub use tls13formats::{
 };
 
 #[cfg(all(test, feature = "std"))]
+mod test_der_outside;
+#[cfg(all(test, feature = "std"))]
 mod test_tls13traces_internal;
 
 // === Public API that is NOT in hacspec

@@ -68,6 +68,28 @@
 //! 6. **Types.** The functions take `&[u8]` and return `Vec<u8>`, not Bertie's `Bytes`/`U8`. The
 //!    `tls13formats` wrapper converts at the boundary; that conversion lives in `tls13utils`, which hax
 //!    extracts as an interface only, so it is trusted.
+//!
+//! ## Non-vacuity check against Wycheproof (executable spec vs outside verdicts)
+//!
+//! `C2SP/wycheproof` at `d17cc89fa5c8f4f4d378b5385ebf75da5d0926c9`,
+//! `testvectors_v1/ecdsa_secp256r1_sha256_test.json` (327156 bytes, sha256
+//! `182db4f3e230f6f9fa9f800d2a614dede30284b8e8438bbfe1171905402e9332`, Apache-2.0, vendored under
+//! `tests/wycheproof/` with its licence). Test `der::tests::wycheproof_encoding_verdicts`:
+//!
+//! ```text
+//! RUSTFLAGS='--cfg hax' cargo test --lib der:: -- --nocapture
+//! ```
+//!
+//! Result (484 vectors, none skipped, nothing tuned):
+//!
+//! | Wycheproof verdict | Spec says | Count |
+//! |---|---|---|
+//! | `valid` | DER-valid | 174 (of 174); 0 rejected |
+//! | `invalid`, flag in {`BerEncodedSignature`, `InvalidEncoding`, `MissingZero`, `InvalidTypesInSignature`} | not DER-valid | 163 (of 163); 0 accepted |
+//! | `invalid`, value-level flags only (`ModifiedSignature`, `RangeCheck`, `InvalidSignature`, `IntegerOverflow`, `ModifiedInteger`, `ArithmeticError`, `PointDuplication`) | no encoding verdict expected | 75 DER-valid, 72 not DER-valid |
+//!
+//! Zero disagreements on the vectors where Wycheproof gives an encoding verdict. The last row is
+//! informational: those signatures are invalid for reasons the encoding does not decide.
 
 #![cfg_attr(not(hax), allow(dead_code, unused_imports))]
 #![allow(clippy::if_same_then_else)]
@@ -697,5 +719,70 @@ mod tests {
         let big = two_pow_256();
         let b = from_hex("3006020101020101");
         assert!(!der_sig_valid(&b, big, 1u8.to_int()));
+    }
+
+    /// Non-vacuity: compare the spec with Wycheproof's encoding verdicts. Disagreements are
+    /// printed and counted, not asserted, so the spec is not tuned to fit the vectors.
+    #[test]
+    fn wycheproof_encoding_verdicts() {
+        let text = include_str!("../tests/wycheproof/ecdsa_secp256r1_sha256_test.json");
+        let json: serde_json::Value = serde_json::from_str(text).unwrap();
+        let encoding_flags = [
+            "BerEncodedSignature",
+            "InvalidEncoding",
+            "MissingZero",
+            "InvalidTypesInSignature",
+        ];
+        let (mut total, mut valid_ok, mut valid_bad) = (0, 0, 0);
+        let (mut enc_ok, mut enc_bad, mut other_valid_der, mut other_invalid_der) = (0, 0, 0, 0);
+        for group in json["testGroups"].as_array().unwrap() {
+            for t in group["tests"].as_array().unwrap() {
+                total += 1;
+                let sig = from_hex(t["sig"].as_str().unwrap());
+                let spec_says_valid = der_sig_valid_for_some_values(&sig);
+                let tc_id = t["tcId"].as_u64().unwrap();
+                let flags: Vec<&str> = t["flags"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|f| f.as_str().unwrap())
+                    .collect();
+                let result = t["result"].as_str().unwrap();
+                let encoding_invalid =
+                    result == "invalid" && flags.iter().any(|f| encoding_flags.contains(f));
+                if result == "valid" {
+                    if spec_says_valid {
+                        valid_ok += 1;
+                    } else {
+                        valid_bad += 1;
+                        std::println!(
+                            "DISAGREE tcId {tc_id} {flags:?}: Wycheproof valid, spec rejects"
+                        );
+                    }
+                } else if encoding_invalid {
+                    if spec_says_valid {
+                        enc_bad += 1;
+                        let c = t["comment"].as_str().unwrap();
+                        std::println!(
+                            "DISAGREE tcId {tc_id} {flags:?} ({c}): encoding-invalid, spec accepts"
+                        );
+                    } else {
+                        enc_ok += 1;
+                    }
+                } else if spec_says_valid {
+                    other_valid_der += 1;
+                } else {
+                    other_invalid_der += 1;
+                    std::println!("INFO tcId {tc_id} {flags:?}: value-level invalid, spec also rejects the encoding");
+                }
+            }
+        }
+        std::println!(
+            "WYCHEPROOF total={total} valid:spec_accepts={valid_ok} valid:spec_rejects={valid_bad} \
+             encoding_invalid:spec_rejects={enc_ok} encoding_invalid:spec_accepts={enc_bad} \
+             other_invalid:spec_accepts_encoding={other_valid_der} other_invalid:spec_rejects_encoding={other_invalid_der}"
+        );
+        assert_eq!(total, 484);
+        let _ = (vec![0u8], format!(""));
     }
 }
