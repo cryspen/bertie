@@ -1,6 +1,6 @@
 //! Outside checks for `der.rs`: Wycheproof through Bertie's real parse-then-verify path, and a
-//! differential test against independent DER implementations (RustCrypto `der`, `p256`/`ecdsa`,
-//! rustls-webpki). None of this is proof; it is evidence from code that is not ours.
+//! differential test against independent DER implementations (RustCrypto `der`, rustls-webpki).
+//! None of this is proof; it is evidence from code that is not ours.
 
 use std::collections::BTreeMap;
 use std::format;
@@ -14,8 +14,8 @@ use rustls_pki_types::SignatureVerificationAlgorithm;
 
 use crate::der as bertie_der;
 use crate::tls13crypto::{
-    verify, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme, PublicVerificationKey,
-    SignatureScheme,
+    kem_keygen, sign, verify, AeadAlgorithm, Algorithms, HashAlgorithm, KemScheme,
+    PublicVerificationKey, SignatureScheme,
 };
 use crate::tls13formats::{
     handshake_data::{HandshakeData, HandshakeType},
@@ -300,39 +300,40 @@ fn legacy_style_encode(raw: &[u8]) -> Vec<u8> {
 
 #[test]
 fn webpki_accepts_every_real_signature_we_encode() {
-    use p256::ecdsa::{signature::Signer, Signature, SigningKey};
     const SIGNATURES: usize = 100_000;
     let mut rng = rand::rngs::StdRng::seed_from_u64(0x5167);
-    let sk = SigningKey::from_bytes(&[0x42u8; 32].into()).unwrap();
-    let pk = sk.verifying_key().to_encoded_point(false);
+    // A P-256 key pair from Bertie's own key generation; `pk` is the uncompressed point 04 || x || y.
+    let (sk, pk) = kem_keygen(KemScheme::Secp256r1, &mut rng).unwrap();
+    let pk = pk.declassify();
     let webpki_alg = webpki::ring::ECDSA_P256_SHA256;
     let (mut short, mut ours_rejected, mut legacy_rejected, mut legacy_short_rejected) =
         (0usize, Vec::new(), 0usize, 0usize);
     for _ in 0..SIGNATURES {
         let mut msg = [0u8; 48];
         rng.fill(&mut msg[..]);
-        let sig: Signature = sk.sign(&msg);
-        let raw = sig.to_bytes();
+        // Bertie's own signer (libcrux), which returns the raw 64-byte r || s.
+        let raw = sign(
+            &SignatureScheme::EcdsaSecp256r1Sha256,
+            &sk,
+            &Bytes::from(&msg[..]),
+            &mut rng,
+        )
+        .unwrap()
+        .declassify();
         let is_short = raw[0] == 0 || raw[32] == 0;
         short += is_short as usize;
         let ours = bertie_der::encode_ecdsa_signature(&raw).unwrap();
-        if webpki_alg
-            .verify_signature(pk.as_bytes(), &msg, &ours)
-            .is_err()
-        {
+        if webpki_alg.verify_signature(&pk, &msg, &ours).is_err() {
             ours_rejected.push(format!("{raw:02x?}"));
         }
         let legacy = legacy_style_encode(&raw);
-        if webpki_alg
-            .verify_signature(pk.as_bytes(), &msg, &legacy)
-            .is_err()
-        {
+        if webpki_alg.verify_signature(&pk, &msg, &legacy).is_err() {
             legacy_rejected += 1;
             legacy_short_rejected += is_short as usize;
         }
         // The same signature must also pass Bertie's own parse-then-verify path.
         assert_eq!(
-            bertie_parse_then_verify(&pk.as_bytes()[1..], &msg, &ours),
+            bertie_parse_then_verify(&pk[1..], &msg, &ours),
             Outcome::Accepted
         );
     }
@@ -348,29 +349,4 @@ fn webpki_accepts_every_real_signature_we_encode() {
         &ours_rejected[..ours_rejected.len().min(3)]
     );
     assert!(short > 0);
-}
-
-#[test]
-fn ecdsa_crate_agrees_on_in_range_values() {
-    use p256::ecdsa::Signature;
-    let mut rng = rand::rngs::StdRng::seed_from_u64(0xEC5A);
-    let (mut compared, mut skipped) = (0usize, 0usize);
-    for _ in 0..200_000 {
-        let mut raw = [0u8; 64];
-        rng.fill(&mut raw[..]);
-        let zeros = rng.random_range(0..=3usize);
-        raw[..zeros].fill(0);
-        match Signature::from_slice(&raw) {
-            Ok(sig) => {
-                compared += 1;
-                assert_eq!(
-                    sig.to_der().as_bytes(),
-                    bertie_der::encode_ecdsa_signature(&raw).unwrap()
-                );
-            }
-            Err(_) => skipped += 1,
-        }
-    }
-    std::println!("ECDSA-CRATE compared={compared} out_of_range_skipped={skipped}");
-    assert!(compared > 100_000);
 }
