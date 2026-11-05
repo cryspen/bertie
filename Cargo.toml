@@ -46,6 +46,10 @@ rayon = "1.3.0"
 criterion = "0.5"
 psm = "0.1.24"
 bytesize = "1.3.0"
+# DER outside checks (tests only)
+der = { version = "0.7", features = ["alloc"] }
+rustls-webpki = { version = "0.103", default-features = false, features = ["ring", "std"] }
+rustls-pki-types = "1"
 
 [[bench]]
 name = "client"

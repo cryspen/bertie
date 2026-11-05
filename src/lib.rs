@@ -37,6 +37,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc as std;
 
+mod der;
 mod tls13formats;
 mod tls13handshake;
 mod tls13keyscheduler;
@@ -59,6 +60,8 @@ pub use tls13formats::{
     bench_parse_server_hello, HandshakeData,
 };
 
+#[cfg(all(test, feature = "std"))]
+mod test_der_outside;
 #[cfg(all(test, feature = "std"))]
 mod test_tls13traces_internal;
 
