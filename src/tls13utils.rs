@@ -883,6 +883,7 @@ pub(crate) fn check_length_encoding_u8_slice(bytes: &[U8]) -> Result<(), TLSErro
 #[hax_lib::ensures(|result| match result {
                                     Result::Ok(_) => bytes.len() >= 1 && bytes.len() <= 256,
                                     _ => true})]
+#[allow(dead_code)]
 pub(crate) fn check_length_encoding_u8(bytes: &Bytes) -> Result<(), TLSError> {
     check_length_encoding_u8_slice(bytes.as_raw())
 }

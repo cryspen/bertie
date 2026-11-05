@@ -1,6 +1,7 @@
 //! A module that for the formatting code needed by TLS 1.3
 #![allow(clippy::manual_range_contains)]
 
+use crate::der;
 use crate::tls13utils::Declassify;
 
 // #[cfg(not(feature = "secret_integers"))]
@@ -1127,59 +1128,6 @@ pub(crate) fn parse_server_certificate(certificate: &HandshakeData) -> Result<By
     Ok(crt)
 }
 
-fn ecdsa_signature(sv: &Bytes) -> Result<Bytes, TLSError> {
-    if sv.len() != 64 {
-        Err(parse_failed())
-    } else {
-        let b0 = bytes1(0x0);
-        let b1 = bytes1(0x30);
-        let b2 = bytes1(0x02);
-        let mut r: Bytes = sv.slice(0, 32);
-        let mut s: Bytes = sv.slice(32, 32);
-        if r[0].declassify() >= 128 {
-            r = b0.clone().concat(r);
-        }
-        if s[0].declassify() >= 128 {
-            s = b0.concat(s);
-        }
-        Ok(b1.concat(encode_length_u8(
-            b2.clone()
-                .concat(encode_length_u8(r.as_raw())?)
-                .concat(b2)
-                .concat(encode_length_u8(s.as_raw())?)
-                .as_raw(),
-        )?))
-    }
-}
-
-fn check_r_len(rlen: usize) -> Result<(), TLSError> {
-    if rlen < 32 || rlen > 33 {
-        Err(INVALID_SIGNATURE)
-    } else {
-        Ok(())
-    }
-}
-
-fn parse_ecdsa_signature(sig: Bytes) -> Result<Bytes, TLSError> {
-    if sig.len() < 4 {
-        Err(parse_failed())
-    } else {
-        check_eq(&bytes1(0x30), &sig.slice_range(0..1))?;
-        check_length_encoding_u8(&sig.slice_range(1..sig.len()))?;
-        check_eq(&bytes1(0x02), &sig.slice_range(2..3))?;
-        let rlen = length_u8_encoded(&sig[3..sig.len()])?;
-        check_r_len(rlen)?;
-        let r = sig.slice(4 + rlen - 32, 32);
-        if sig.len() < 6 + rlen + 32 {
-            Err(INVALID_SIGNATURE)
-        } else {
-            check_eq(&bytes1(0x02), &sig.slice_range(4 + rlen..5 + rlen))?;
-            check_length_encoding_u8(&sig.slice_range(5 + rlen..sig.len()))?;
-            let s = sig.slice(sig.len() - 32, 32);
-            Ok(r.concat(s))
-        }
-    }
-}
 #[hax_lib::ensures(|result| match result {
     Result::Ok(cert_verify_msg) => {
         match parse_certificate_verify(algs, &cert_verify_msg) {
@@ -1193,10 +1141,14 @@ pub(crate) fn certificate_verify(algs: &Algorithms, cv: &Bytes) -> Result<Handsh
     let sv = (match algs.signature {
         SignatureScheme::RsaPssRsaSha256 => Ok(cv.clone()),
         SignatureScheme::EcdsaSecp256r1Sha256 => {
-            if cv.len() != 64 {
+            let raw = cv.declassify();
+            if raw.len() != der::RAW_SIGNATURE_LEN {
                 Err(parse_failed())
             } else {
-                ecdsa_signature(cv)
+                match der::encode_ecdsa_signature(raw.as_slice()) {
+                    Ok(der_sig) => Ok(Bytes::from(der_sig)),
+                    Err(e) => Err(e),
+                }
             }
         }
         SignatureScheme::ED25519 => Err(UNSUPPORTED_ALGORITHM),
@@ -1245,7 +1197,13 @@ pub(crate) fn parse_certificate_verify(
     check_eq_with_slice(algs.signature_algorithm()?.as_raw(), cv.as_raw(), 0, 2)?;
     check_length_encoding_u16(&cv.slice_range(2..cv.len()))?;
     match sa {
-        SignatureScheme::EcdsaSecp256r1Sha256 => parse_ecdsa_signature(cv.slice_range(4..cv.len())),
+        SignatureScheme::EcdsaSecp256r1Sha256 => {
+            let der_sig = cv.slice_range(4..cv.len()).declassify();
+            match der::decode_ecdsa_signature(der_sig.as_slice()) {
+                Ok(raw) => Ok(Bytes::from(raw)),
+                Err(e) => Err(e),
+            }
+        }
         SignatureScheme::RsaPssRsaSha256 => Ok(cv.slice_range(4..cv.len())),
         SignatureScheme::ED25519 => {
             if cv.len() - 4 == 64 {
