@@ -1336,8 +1336,10 @@ letfun bertie__server__lookup_db(
         bertie__server__ServerDB__ServerDB__sk(db),
         None()
       )
-    else bitstring_err())
-    else bitstring_err().
+    else let wildcard_2 = bertie__tls13utils__PSK_MODE_MISMATCH() in
+    bitstring_err())
+    else (let wildcard_3 = bertie__tls13utils__parse_failed(rust_primitives__hax__Tuple0__Tuple0) in
+    bitstring_err()).
 
 (* src: src/tls13handshake.rs:26:0-33:2 bertie__tls13handshake__ClientPostClientHello *)
 fun bertie__tls13handshake__ClientPostClientHello__ClientPostClientHello(
@@ -2729,7 +2731,11 @@ letfun bertie__tls13handshake__compute_psk_binder_zero_rtt(
       ks,
       rust_primitives__hax__Tuple3__Tuple3(ch, None(), bertie__tls13formats__Impl_20__add(tx, ch))
     )
-  else rust_primitives__hax__Tuple2__Tuple2(ks, bitstring_err())) else bitstring_err().
+  else rust_primitives__hax__Tuple2__Tuple2(
+    ks,
+    let wildcard_1 = bertie__tls13utils__PSK_MODE_MISMATCH() in
+    bitstring_err()
+  )) else bitstring_err().
 (* src: src/tls13handshake.rs:135:0-180:1 bertie__tls13handshake__build_client_hello *)
 letfun bertie__tls13handshake__build_client_hello(
   ciphersuite: bitstring,
@@ -2969,7 +2975,8 @@ letfun bertie__tls13handshake__put_server_signature(
                 server_finished_key,
                 bertie__tls13formats__Impl_20__add(transcript_2, server_certificate_verify)
               ))
-    else bitstring_err()) else bitstring_err().
+    else (let wildcard = bertie__tls13utils__PSK_MODE_MISMATCH() in
+    bitstring_err())) else bitstring_err().
 (* src: src/tls13handshake.rs:353:0-383:1 bertie__tls13handshake__put_psk_skip_server_signature *)
 letfun bertie__tls13handshake__put_psk_skip_server_signature(
   encrypted_extensions: bitstring,
@@ -3000,7 +3007,8 @@ letfun bertie__tls13handshake__put_psk_skip_server_signature(
       server_finished_key,
       bertie__tls13formats__Impl_20__add(transcript, encrypted_extensions)
     ))
-    else bitstring_err()) else bitstring_err().
+    else (let wildcard = bertie__tls13utils__PSK_MODE_MISMATCH() in
+    bitstring_err())) else bitstring_err().
 (* src: src/tls13handshake.rs:385:0-435:1 bertie__tls13handshake__put_server_finished *)
 letfun bertie__tls13handshake__put_server_finished(
   server_finished: bitstring,
@@ -3349,7 +3357,11 @@ letfun bertie__tls13handshake__process_psk_binder_zero_rtt(
               )) else bitstring_err()) else bitstring_err())
   else let rust_primitives__hax__Tuple3__Tuple3((=False()), None(), None()) = hax__scrut0 in
     rust_primitives__hax__Tuple2__Tuple2(ks, None())
-  else rust_primitives__hax__Tuple2__Tuple2(ks, bitstring_err()).
+  else rust_primitives__hax__Tuple2__Tuple2(
+    ks,
+    let wildcard = bertie__tls13utils__PSK_MODE_MISMATCH() in
+    bitstring_err()
+  ).
 (* src: src/tls13handshake.rs:546:0-572:1 bertie__tls13handshake__put_client_hello *)
 letfun bertie__tls13handshake__put_client_hello(
   ciphersuite: bitstring,
@@ -3618,7 +3630,11 @@ letfun bertie__tls13handshake__get_server_signature_no_psk(state: bitstring, rng
             rng
           ) in rust_primitives__hax__Tuple2__Tuple2(tmp0_1, out_kw_1) else bitstring_err())
         else let bertie__tls13crypto__SignatureScheme__ED25519() = hax__scrut3 in
-          rust_primitives__hax__Tuple2__Tuple2(rng, bitstring_err())
+          rust_primitives__hax__Tuple2__Tuple2(
+            rng,
+            let wildcard = bertie__tls13utils__UNSUPPORTED_ALGORITHM() in
+            bitstring_err()
+          )
         else bitstring_err()) in (let sig = hoist38 in
           let hax__scrut4 = bertie__tls13formats__certificate_verify(
             bertie__tls13handshake__ServerPostServerHello__ServerPostServerHello__ciphersuite(
@@ -3672,6 +3688,7 @@ letfun bertie__tls13handshake__get_server_signature(state: bitstring, rng: bitst
     ) in rust_primitives__hax__Tuple2__Tuple2(tmp0, out_kw) else bitstring_err())
     else rust_primitives__hax__Tuple2__Tuple2(
       rng,
+      let wildcard = bertie__tls13utils__PSK_MODE_MISMATCH() in
       bitstring_err()
     )) in rust_primitives__hax__Tuple2__Tuple2(rng_2, hax_temp_output) else bitstring_err().
 (* src: src/tls13handshake.rs:777:0-796:1 bertie__tls13handshake__get_skip_server_signature_no_psk *)
@@ -3713,7 +3730,8 @@ letfun bertie__tls13handshake__get_skip_server_signature(st: bitstring) =
   ) = st in (let hax__cond0 = bertie__tls13crypto__Impl_38__psk_mode(algs) in
   let (=True()) = hax__cond0
     in bertie__tls13handshake__get_skip_server_signature_no_psk(st)
-    else bitstring_err()) else bitstring_err().
+    else (let wildcard = bertie__tls13utils__PSK_MODE_MISMATCH() in
+    bitstring_err())) else bitstring_err().
 (* src: src/tls13handshake.rs:818:0-845:1 bertie__tls13handshake__get_server_finished *)
 letfun bertie__tls13handshake__get_server_finished(st: bitstring, ks: bitstring) =
   let bertie__tls13handshake__ServerPostCertificateVerify__ServerPostCertificateVerify(

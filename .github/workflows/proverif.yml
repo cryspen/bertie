@@ -4,15 +4,13 @@ name: proverif
 #
 #   * verify  (every push / PR): run ProVerif against the COMMITTED extraction
 #     snapshot (proofs/proverif/extraction/lib.pvl) + the handwritten model
-#     files, asserting the expected query verdicts. Fast — it does NOT build the
-#     hax engine and does NOT re-extract. Bertie does not vendor the engine's
-#     ProVerif libraries, so we sparsely check them out from
-#     cryspen/hax@evit-upstream-28-oct-2026.
+#     files, asserting the expected query verdicts. Fast: it does not install
+#     hax and does not re-extract. Bertie does not vendor hax's ProVerif
+#     libraries, so they are sparsely checked out from the pinned hax release.
 #
-#   * extract (nightly + manual): rebuild the hax ProVerif backend from
-#     cryspen/hax@evit-upstream-28-oct-2026, RE-EXTRACT lib.pvl, verify it, then fail if the extraction drifts from the
-#     committed snapshot. Catches engine/source drift. Heavy (builds the OCaml
-#     hax engine + cargo-hax), so it is not run per-push.
+#   * extract (nightly + manual): install the pinned hax release, RE-EXTRACT
+#     lib.pvl, verify it, then fail if the extraction drifts from the committed
+#     snapshot. Catches hax/source drift.
 
 on:
   push:
@@ -20,6 +18,10 @@ on:
   schedule:
     - cron: "0 4 * * *"
   workflow_dispatch:
+
+env:
+  HAX_REPOSITORY: pereq-dev/hax
+  HAX_REFERENCE: cargo-hax-v0.5.0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,8 +41,8 @@ jobs:
       - name: Fetch hax proof libs (sparse)
         uses: actions/checkout@v4
         with:
-          repository: cryspen/hax
-          ref: evit-upstream-28-oct-2026
+          repository: ${{ env.HAX_REPOSITORY }}
+          ref: ${{ env.HAX_REFERENCE }}
           path: hax-engine
           sparse-checkout: |
             hax-lib/proof-libs/proverif
@@ -76,54 +78,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout hax ProVerif backend
+      - name: ⤵ Install hax
+        uses: hacspec/hax-actions@1f01b89579f425ad7c1e66aebbd5df7e688cb576
+        with:
+          hax_repository: github:${{ env.HAX_REPOSITORY }}
+          hax_reference: ${{ env.HAX_REFERENCE }}
+
+      - name: Fetch hax proof libs (sparse)
         uses: actions/checkout@v4
         with:
-          repository: cryspen/hax
-          ref: evit-upstream-28-oct-2026
+          repository: ${{ env.HAX_REPOSITORY }}
+          ref: ${{ env.HAX_REFERENCE }}
           path: hax-engine
+          sparse-checkout: |
+            hax-lib/proof-libs/proverif
+          sparse-checkout-cone-mode: false
 
-      - name: System deps (opam, jq, node, proverif)
+      - name: Install ProVerif
         run: |
           sudo apt-get update
-          sudo apt-get install -y opam jq nodejs libgtk2.0-dev
-          # `--bare` creates no switch, so the `opam install` below used to fail
-          # with "No switch is currently set" (exit 50). Create the same switch
-          # setup-local.sh installs the engine into, and put ProVerif in it, so
-          # one active switch carries both. `--set-switch` is required -- without
-          # it, `opam env --switch=X` silently no-ops and keeps the old switch.
-          opam init -y --disable-sandboxing --bare
-          opam switch create hax-proverif 5.3.0
-          eval "$(opam env --switch=hax-proverif --set-switch)"
+          sudo apt-get install -y opam ocaml libgtk2.0-dev
+          opam init -y --disable-sandboxing
+          eval "$(opam env)"
           opam install -y proverif
-
-      - name: Rust toolchain (pinned by hax)
-        run: |
-          TOOLCHAIN="$(grep -oE 'nightly-[0-9-]+' hax-engine/rust-toolchain.toml | head -1)"
-          rustup toolchain install "$TOOLCHAIN" \
-            --component rustc-dev --component rust-src --component llvm-tools-preview
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: hax-engine
-
-      - name: Cache opam
-        uses: actions/cache@v4
-        with:
-          path: ~/.opam
-          key: opam-hax-proverif-${{ runner.os }}-${{ hashFiles('hax-engine/engine/**/dune-project') }}
-
-      - name: Build + install the hax engine into a switch
-        run: |
-          opam switch list --short | grep -qx hax-proverif || opam switch create hax-proverif 5.3.0
-          HAX_OPAM_SWITCH=hax-proverif ./hax-engine/setup-local.sh
 
       - name: Re-extract + verify
         run: |
-          # Fresh shell: opam does not touch the profile non-interactively, so
-          # re-enter the switch or neither cargo-hax nor proverif is on PATH.
-          # `--set-switch` is required; without it this line silently no-ops.
-          eval "$(opam env --switch=hax-proverif --set-switch)"
+          eval "$(opam env)"
           ./hax-driver.py extract-proverif
           HAX_HOME="$GITHUB_WORKSPACE/hax-engine" bash proofs/proverif/check-pv.sh
 
