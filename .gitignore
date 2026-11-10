@@ -6,3 +6,6 @@ Cargo.lock
 
 .DS_Store
 .vscode
+
+# source maps written next to the extraction
+proofs/proverif/extraction/*.pvl.map
